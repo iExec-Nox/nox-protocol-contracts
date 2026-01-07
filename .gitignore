@@ -18,7 +18,11 @@
 
 # Hardhat coverage reports
 /coverage
+coverage.json
 *.lcov
 # dotenv environment variable files
 .env
 .env.*
+
+# Mac system files
+.DS_Store
