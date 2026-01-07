@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.24;
 
+import {IACL} from "./interfaces/IACL.sol";
+
 /**
  * @title ACL
  * @notice The ACL (Access Control List) is a permission management system designed to control access rights
@@ -8,19 +10,10 @@ pragma solidity ^0.8.24;
  * the ACL ensures that sensitive data remains protected while enabling authorized parties to interact with
  * encrypted resources in a secure and controlled manner.
  */
-contract ACL {
-    /// @notice Structure containing permission mappings for a handle
-    /// @dev Admins can manipulate a handle as input in computations
-    /// @dev Viewers can decrypt the associated data
-    struct HandleInfo {
-        mapping(bytes32 => mapping(address => bool)) admins;
-        mapping(address => mapping(address => bool)) viewers;
-        //TODO: Add Delegated Viewers
-    }
-
+contract ACL is IACL{
     /// @notice Main storage structure following ERC-7201 pattern
     struct ACLStorage {
-        mapping(bytes32 => HandleInfo) handles;
+        mapping(bytes32 => IACL.HandleInfo) handles;
         //TODO: Add TEEComputeManager Contract Address
     }
 
