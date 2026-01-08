@@ -18,12 +18,17 @@ contract ACL is IACL {
         mapping(bytes32 handleId => mapping(address => bool)) admins;
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         //TODO: Add Delegated Viewers
-        //TODO: Add TEEComputeManager Contract Address
+        address TEEComputeManager;
     }
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.ACL")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant ACL_STORAGE_LOCATION =
         0xed401488ebb59e3713b284243aa87272e78f75cf6500206003b8bf39f01abd00;
+    
+    constructor(address teeComputeManager) {
+        ACLStorage storage $ = _getACLStorage();
+        $.TEEComputeManager = teeComputeManager;
+    }
 
     // ============ ALLOWANCE MANAGEMENT ============
 
@@ -43,11 +48,35 @@ contract ACL is IACL {
 
     /**
      * @notice Allows the use of `handle` by address `account` for this transaction.
+     * @dev To grant transient access, the caller must already have permission on `handle`.
+     *      The TEEComputeManager is exempt from this requirement and can always grant 
+     *      transient permissions — a privilege not available with persistent `allow()`.
+     *
+     *      The TEEComputeManager uses this function in two scenarios:
+     *      - For handles generated off-chain by the Handle Gateway, once the proof has been verified
+     *      - For handles resulting from on-chain operations, where the caller naturally 
+     *        inherits rights on the output handle
+     *
+     *      Transient access only lasts for the current transaction. It is the responsibility 
+     *      of the application contract to convert this into persistent access via `allow()` 
+     *      if needed.
      * @param handle Handle.
      * @param account Address of the account.
      */
-    function allowTransient(bytes32 handle, address account) external override {
-        // TODO: Implement transient permissions granting
+    function allowTransient(bytes32 handle, address account) public override {
+        ACLStorage storage $ = _getACLStorage();
+        if (msg.sender != $.TEEComputeManager) {
+            if (!isAllowed(handle, msg.sender)) revert SenderNotAllowed(msg.sender);
+        }
+
+        bytes32 key = keccak256(abi.encodePacked(handle, account));
+        assembly {
+            tstore(key, 1)
+            let length := tload(0)
+            let lengthPlusOne := add(length, 1)
+            tstore(lengthPlusOne, key)
+            tstore(0, lengthPlusOne)
+        }
     }
     
     // ============ ALLOWANCE QUERIES ============
@@ -64,6 +93,21 @@ contract ACL is IACL {
     }
 
     /**
+     * @notice Returns `true` if the address is allowed to use an handle transiently and `false` otherwise.
+     * @param handle Handle.
+     * @param account Address of the account.
+     * @return Whether the account can access the handle (transient only).
+     */
+    function isTransientlyAllowed(bytes32 handle, address account) internal view returns (bool) {
+        bool isAllowedTransient;
+        bytes32 key = keccak256(abi.encodePacked(handle, account));
+        assembly {
+            isAllowedTransient := tload(key)
+        }
+        return isAllowedTransient;  
+    }
+
+    /**
      * @notice Returns `true` if the address is allowed to use an handle and `false` otherwise.
      * @param handle Handle.
      * @param account Address of the account.
@@ -72,18 +116,6 @@ contract ACL is IACL {
     function isPersistentlyAllowed(bytes32 handle, address account) internal view returns (bool) {
         ACLStorage storage $ = _getACLStorage();
         return $.admins[handle][account];
-    }
-
-
-    /**
-     * @notice Checks whether the account is allowed to use the handle in the
-     * same transaction (transient).
-     * @dev Currently not implemented - returns false by default
-     * @return Whether the account can access transiently the handle.
-     */
-    function isTransientlyAllowed(bytes32 /* handle */, address /* account */) internal pure returns (bool) {
-        //TODO: Implement transient permissions check
-        return false;
     }
 
     // ============ INTERNAL HELPERS ============

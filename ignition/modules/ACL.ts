@@ -1,7 +1,8 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
 export default buildModule("ACLModule", (m) => {
-  const acl = m.contract("ACL");
+    const teeComputeManager = m.getParameter("teeComputeManager");
+    const acl = m.contract("ACL", [teeComputeManager]);
 
-  return { acl };
+    return { acl };
 });
