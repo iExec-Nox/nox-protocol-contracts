@@ -78,8 +78,7 @@ contract ACL is IACL {
     /**
      * @notice Checks whether the account is allowed to use the handle in the
      * same transaction (transient).
-     * @param handle Handle.
-     * @param account Address of the account.
+     * @dev Currently not implemented - returns false by default
      * @return Whether the account can access transiently the handle.
      */
     function isTransientlyAllowed(bytes32 /* handle */, address /* account */) internal pure returns (bool) {
