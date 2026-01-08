@@ -22,26 +22,20 @@ jobs:
           # cache: 'pnpm' TODO
       - run: corepack enable # Use package manager defined in package.json
       - run: pnpm install --frozen-lockfile
-
       - name: Check code formatting
         run: pnpm run format:check
-
       - name: Build
         run: pnpm run build
-
       - name: Deployment dry-run
         run: pnpm run deploy
-
       - name: Run coverage
         run: pnpm run coverage
-
-      # TODO
+      # TODO when Codecov token is available
       # - name: Upload coverage reports to Codecov
       #   uses: codecov/codecov-action@v4.0.1
       #   with:
       #     token: ${{ secrets.CODECOV_TOKEN }}
       #     slug: iExecBlockchainComputing/PoCo
-
       - name: Run static analysis with Slither
         uses: crytic/slither-action@v0.4.1
         with:
@@ -53,9 +47,8 @@ jobs:
             --solc-remaps "forge-std/=node_modules/forge-std/src/"
             --solc-args "--optimize --via-ir"
             --filter-paths "node_modules/|contracts/.*\.t\.sol"
-          fail-on: none # TODO set this to high or other
+          fail-on: high
           sarif: results.sarif
-
       # TODO when repo is public
       # - name: Upload SARIF file
       #   uses: github/codeql-action/upload-sarif@v4
