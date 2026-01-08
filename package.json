@@ -6,6 +6,7 @@
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
+    "deploy": "pnpm hardhat ignition deploy ignition/modules/Counter.ts",
     "lint:fix": "pnpm prettier --write .",
     "lint:check": "pnpm prettier --check ."
   },
