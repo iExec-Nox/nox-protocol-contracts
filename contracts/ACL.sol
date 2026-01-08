@@ -129,5 +129,4 @@ contract ACL is IACL {
             $.slot := ACL_STORAGE_LOCATION
         }
     }
-
 }
