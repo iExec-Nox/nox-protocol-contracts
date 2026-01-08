@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "description": "Nox protocol smart contracts",
   "scripts": {
+    "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
     "lint:fix": "pnpm prettier --write .",
