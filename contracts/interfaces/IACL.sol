@@ -10,8 +10,8 @@ interface IACL {
     /// @dev Admins can manipulate a handle as input in computations, and can add other admins and viewers
     /// @dev Viewers can decrypt the associated data
     struct HandleInfo {
-        mapping(bytes32 => mapping(address => bool)) admins;
-        mapping(address => mapping(address => bool)) viewers;
+        mapping(address => bool) admins;
+        mapping(address => bool) viewers;
         //TODO: Add Delegated Viewers
     }
 }
