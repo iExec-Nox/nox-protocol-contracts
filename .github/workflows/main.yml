@@ -18,7 +18,7 @@ jobs:
       - uses: actions/checkout@v5
       - uses: actions/setup-node@v6
         with:
-          node-version-file: '.nvmrc'
+          node-version-file: ".nvmrc"
           # cache: 'pnpm' TODO
       - run: corepack enable # Use package manager defined in package.json
       - run: pnpm install --frozen-lockfile
@@ -45,8 +45,8 @@ jobs:
       - name: Run static analysis with Slither
         uses: crytic/slither-action@v0.4.1
         with:
-          target: 'contracts/'
-          solc-version: '0.8.28'
+          target: "contracts/"
+          solc-version: "0.8.28"
           slither-args: --checklist --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
           fail-on: none # TODO set this to high or other
           sarif: results.sarif
