@@ -4,5 +4,4 @@
 - Add solidity linter
 - Configure Solidity Solcover if required
 - Add JS linter if relevant
-- Add Slither analysis
 - Update license
