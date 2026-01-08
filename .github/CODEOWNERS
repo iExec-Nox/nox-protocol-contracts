@@ -1,0 +1,4 @@
+# Review requests are automatically sent to code owners and to Copilot
+# when a pull request is opened and ready for review.
+
+*   @zguesmi @Le-Caignec
