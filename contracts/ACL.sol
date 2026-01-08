@@ -30,6 +30,17 @@ contract ACL is IACL {
         $.TEEComputeManager = teeComputeManager;
     }
 
+    // ============ MODIFIERS ============
+
+    /**
+     * @notice Ensures the account address is not zero
+     * @param account The address to validate
+     */
+    modifier notZeroAddress(address account) {
+        if (account == address(0)) revert ZeroAddress();
+        _;
+    }
+
     // ============ ALLOWANCE MANAGEMENT ============
 
     /**
@@ -38,9 +49,8 @@ contract ACL is IACL {
      * @param handle The handle identifier
      * @param account The address to grant admin role
      */
-    function allow(bytes32 handle, address account) external override {
+    function allow(bytes32 handle, address account) external override notZeroAddress(account) {
         if (!isAllowed(handle, msg.sender)) revert SenderNotAllowed(msg.sender);
-        if (account == address(0)) revert ZeroAddress();
         ACLStorage storage $ = _getACLStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
@@ -63,7 +73,7 @@ contract ACL is IACL {
      * @param handle Handle.
      * @param account Address of the account.
      */
-    function allowTransient(bytes32 handle, address account) public override {
+    function allowTransient(bytes32 handle, address account) public override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         if (msg.sender != $.TEEComputeManager) {
             if (!isAllowed(handle, msg.sender)) revert SenderNotAllowed(msg.sender);
