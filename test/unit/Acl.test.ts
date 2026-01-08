@@ -5,9 +5,9 @@ import { network } from "hardhat";
 import ACLModule from "../../ignition/modules/ACL.js";
 
 describe("ACL", async function () {
-  const { viem, ignition } = await network.connect();
+  const { ignition } = await network.connect();
 
-  it("Should deploy successfully with ERC-7201 storage pattern", async function () {
+  it("Should deploy successfully the ACL contract", async function () {
     const { acl } = await ignition.deploy(ACLModule);
 
     assert.ok(acl.address);
