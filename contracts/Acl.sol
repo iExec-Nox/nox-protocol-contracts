@@ -82,7 +82,7 @@ contract ACL is IACL {
      * @param account Address of the account.
      * @return Whether the account can access transiently the handle.
      */
-    function isTransientlyAllowed(bytes32 handle, address account) internal pure returns (bool) {
+    function isTransientlyAllowed(bytes32 /* handle */, address /* account */) internal pure returns (bool) {
         //TODO: Implement transient permissions check
         return false;
     }
