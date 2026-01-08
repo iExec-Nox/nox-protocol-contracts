@@ -47,11 +47,17 @@ jobs:
         with:
           target: "contracts/"
           solc-version: "0.8.28"
-          slither-args: --checklist --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+          slither-args: >
+            --checklist
+            --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+            --solc-remaps "forge-std/=node_modules/forge-std/src/"
+            --solc-args "--optimize --via-ir"
+            --filter-paths "node_modules/|contracts/.*\.t\.sol"
           fail-on: none # TODO set this to high or other
           sarif: results.sarif
 
-      - name: Upload SARIF file
-        uses: github/codeql-action/upload-sarif@v3
-        with:
-          sarif_file: results.sarif
+      # TODO when repo is public
+      # - name: Upload SARIF file
+      #   uses: github/codeql-action/upload-sarif@v4
+      #   with:
+      #     sarif_file: results.sarif
