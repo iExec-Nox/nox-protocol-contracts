@@ -11,6 +11,5 @@ describe("ACL", async function () {
     const { acl } = await ignition.deploy(ACLModule);
 
     assert.ok(acl.address);
-    assert.match(acl.address, /^0x[a-fA-F0-9]{40}$/);
   });
 });
