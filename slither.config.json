@@ -1,5 +1,5 @@
 {
-  "solc_remaps": "@=node_modules/@",
-  "filter_paths": "(node_modules/|**/*.t.sol)",
+  "solc_remaps": ["forge-std/=node_modules/forge-std/src/"],
+  "filter_paths": "(node_modules/|contracts/**/*.t.sol)",
   "solc_args": "--optimize --via-ir"
 }
