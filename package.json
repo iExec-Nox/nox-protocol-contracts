@@ -1,0 +1,26 @@
+{
+  "name": "nox-contracts",
+  "version": "0.1.0",
+  "description": "Nox protocol smart contracts",
+  "scripts": {
+    "clean": "pnpm hardhat clean",
+    "build": "pnpm hardhat build",
+    "test": "pnpm hardhat test",
+    "lint:fix": "pnpm prettier --write .",
+    "lint:check": "pnpm prettier --check ."
+  },
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.7.0",
+  "type": "module",
+  "devDependencies": {
+    "@nomicfoundation/hardhat-ignition": "^3.0.6",
+    "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
+    "@types/node": "^22.8.5",
+    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "hardhat": "^3.1.2",
+    "prettier": "^3.7.4",
+    "prettier-plugin-solidity": "^2.2.1",
+    "typescript": "~5.8.0",
+    "viem": "^2.30.0"
+  }
+}
