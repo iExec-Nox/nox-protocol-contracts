@@ -103,10 +103,10 @@ contract ACL is IACL {
     }
 
     /**
-     * @notice Returns `true` if the address is allowed to use an handle transiently and `false` otherwise.
+     * @notice Returns `true` if the address has persistent access to a handle and `false` otherwise.
      * @param handle Handle.
      * @param account Address of the account.
-     * @return Whether the account can access the handle (transient only).
+     * @return Whether the account can access the handle (persistent only).
      */
     function isTransientlyAllowed(bytes32 handle, address account) internal view returns (bool) {
         bool isAllowedTransient;
@@ -114,11 +114,11 @@ contract ACL is IACL {
         assembly {
             isAllowedTransient := tload(key)
         }
-        return isAllowedTransient;  
+        return isAllowedTransient;
     }
 
     /**
-     * @notice Returns `true` if the address is allowed to use an handle and `false` otherwise.
+     * @notice Returns `true` if the address is allowed to use the handle and `false` otherwise.
      * @param handle Handle.
      * @param account Address of the account.
      * @return Whether the account can access the handle (persistent only).
