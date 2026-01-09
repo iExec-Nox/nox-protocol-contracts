@@ -26,7 +26,6 @@ contract ACL is IACL {
         0xed401488ebb59e3713b284243aa87272e78f75cf6500206003b8bf39f01abd00;
 
     // ============ MODIFIERS ============
-
     /**
      * Ensures the account address is not zero
      * @param account The address to validate
@@ -39,14 +38,12 @@ contract ACL is IACL {
     }
 
     // ============ CONSTRUCTOR ============
-    
     constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
         $.TEEComputeManager = teeComputeManager;
     }
 
     // ============ ALLOWANCE MANAGEMENT ============
-
     /// @inheritdoc IACL
     function allow(bytes32 handle, address account) external override notZeroAddress(account) {
         if (!isAllowed(handle, msg.sender)) {
@@ -119,7 +116,6 @@ contract ACL is IACL {
     }
 
     // ============ INTERNAL HELPERS ============
-    
     /**
      * Get the storage location for ACL data
      * @return $ The storage pointer
