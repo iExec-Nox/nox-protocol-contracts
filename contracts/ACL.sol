@@ -33,7 +33,7 @@ contract ACL is IACL {
      */
     modifier notZeroAddress(address account) {
         if (account == address(0)) {
-            revert ZeroAddress();
+            revert InvalidZeroAddress();
         }
         _;
     }

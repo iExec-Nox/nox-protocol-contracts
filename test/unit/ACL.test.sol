@@ -43,7 +43,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests that allow() reverts with zero address.
      */
-    function test_Allow_RevertWhen_ZeroAddress() public {
+    function test_Allow_RevertWhen_InvalidZeroAddress() public {
         bytes32 handle = keccak256("test-handle");
         
         // First grant access to user1
@@ -52,7 +52,7 @@ contract ACLTest is Test {
         
         // Try to grant to zero address
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.ZeroAddress.selector));
+        vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
         acl.allow(handle, address(0));
     }
 
