@@ -26,7 +26,6 @@ contract ACL is IACL {
         0xed401488ebb59e3713b284243aa87272e78f75cf6500206003b8bf39f01abd00;
 
     // ============ MODIFIERS ============
-
     /**
      * Ensures the account address is not zero
      * @param account The address to validate
