@@ -9,12 +9,6 @@ interface IACL {
     /// @notice Error thrown when sender doesn't have access to the handle
     error SenderNotAllowed(address sender);
     
-    /// @notice Error thrown when the account is already an admin
-    error AlreadyAllowed();
-    
-    /// @notice Error thrown when caller doesn't have access to the handle
-    error UnauthorizedAccess(bytes32 handle, address caller);
-    
     /// @notice Error thrown when account address is zero
     error ZeroAddress();
 
