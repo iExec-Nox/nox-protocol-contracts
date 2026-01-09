@@ -71,7 +71,7 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests the flow: Non-TEEComputeManager cannot grant transient without access.
+     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
      */
     function testFuzz_AllowTransient_RevertWhen_SenderNotAllowed(
         address sender,
