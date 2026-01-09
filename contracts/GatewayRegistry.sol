@@ -8,7 +8,11 @@ import {IGatewayRegistry} from "./interfaces/IGatewayRegistry.sol";
 /**
  * TODO
  */
-contract GatewayRegistry is IGatewayRegistry, UUPSUpgradeable, AccessControlDefaultAdminRulesUpgradeable {
+contract GatewayRegistry is
+    IGatewayRegistry,
+    UUPSUpgradeable,
+    AccessControlDefaultAdminRulesUpgradeable
+{
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     /**
@@ -35,5 +39,7 @@ contract GatewayRegistry is IGatewayRegistry, UUPSUpgradeable, AccessControlDefa
     /**
      * Authorizes contract upgrades. Can only be called by accounts with the UPGRADER_ROLE.
      */
-    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyRole(UPGRADER_ROLE) {}
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal override onlyRole(UPGRADER_ROLE) {}
 }
