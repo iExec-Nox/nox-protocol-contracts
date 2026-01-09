@@ -87,7 +87,7 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests the flow: TEEComputeManager grants transient access, then user grants permanent access (fuzz test).
+     * @dev Tests that the TEEComputeManager grants transient access, then user grants permanent access (fuzz test).
      */
     function testFuzz_Allow_SucceedsAfterTransientAccess(bytes32 handle, address user, address target) public {
         vm.assume(user != address(0));
