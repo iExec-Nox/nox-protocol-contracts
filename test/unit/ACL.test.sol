@@ -134,5 +134,90 @@ contract ACLTest is Test {
         assertTrue(acl.isAllowed(handle, admin2));
     }
 
+    /**
+     * @dev Tests that isViewer returns false by default (fuzz test).
+     */
+    function testFuzz_IsViewer_ReturnsFalseByDefault(bytes32 handle, address viewer) public view {
+        assertFalse(acl.isViewer(handle, viewer));
+    }
+
+    /**
+     * @dev Tests that addViewer() reverts when sender has no access to the handle.
+     */
+    function testFuzz_AddViewer_RevertWhen_UnauthorizedSender(bytes32 handle, address sender, address viewer) public {
+        vm.assume(viewer != address(0));
+        vm.prank(sender);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, sender));
+        acl.addViewer(handle, viewer);
+    }
+
+    /**
+     * @dev Tests that addViewer() reverts with zero address.
+     */
+    function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
+        bytes32 handle = keccak256("test-handle");
+        
+        // First grant access to user1
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+        
+        // Try to add zero address as viewer
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
+        acl.addViewer(handle, address(0));
+    }
+
+    /**
+     * @dev Tests that an admin can add a viewer successfully (fuzz test).
+     */
+    function testFuzz_AddViewer_SucceedsWhenCalledByAdmin(bytes32 handle, address admin, address viewer) public {
+        vm.assume(admin != address(0));
+        vm.assume(viewer != address(0));
+        
+        // Setup: grant admin access
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, admin);
+        
+        vm.prank(admin);
+        acl.allow(handle, admin);
+        
+        // Viewer should not be a viewer yet
+        assertFalse(acl.isViewer(handle, viewer));
+        
+        // Admin adds viewer
+        vm.prank(admin);
+        vm.expectEmit(true, true, true, false);
+        emit IACL.ViewerAdded(admin, viewer, handle);
+        acl.addViewer(handle, viewer);
+        
+        // Viewer should now be a viewer
+        assertTrue(acl.isViewer(handle, viewer));
+    }
+
+    /**
+     * @dev Tests that adding a viewer multiple times doesn't revert.
+     */
+    function testFuzz_AddViewer_SucceedsEvenIfAlreadyViewer(bytes32 handle, address admin, address viewer) public {
+        vm.assume(admin != address(0));
+        vm.assume(viewer != address(0));
+        
+        // Setup: grant admin access
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, admin);
+        
+        vm.prank(admin);
+        acl.allow(handle, admin);
+        
+        // Add viewer first time
+        vm.prank(admin);
+        acl.addViewer(handle, viewer);
+        assertTrue(acl.isViewer(handle, viewer));
+        
+        // Add viewer second time (should not revert)
+        vm.prank(admin);
+        acl.addViewer(handle, viewer);
+        assertTrue(acl.isViewer(handle, viewer));
+    }
+
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
 }

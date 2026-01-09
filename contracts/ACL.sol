@@ -54,6 +54,16 @@ contract ACL is IACL {
         emit Allowed(msg.sender, account, handle);
     }
 
+    /// @inheritdoc IACL
+    function addViewer(bytes32 handle, address viewer) external override notZeroAddress(viewer) {
+        if (!isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
+        }
+        ACLStorage storage $ = _getACLStorage();
+        $.viewers[handle][viewer] = true;
+        emit ViewerAdded(msg.sender, viewer, handle);
+    }
+
     /**
      * @inheritdoc IACL
      * @dev To grant transient access, the caller must already have permission on `handle`.
@@ -87,6 +97,12 @@ contract ACL is IACL {
     // @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);
+    }
+
+    /// @inheritdoc IACL
+    function isViewer(bytes32 handle, address viewer) public view override returns (bool) {
+        ACLStorage storage $ = _getACLStorage();
+        return $.viewers[handle][viewer];
     }
 
     /**
