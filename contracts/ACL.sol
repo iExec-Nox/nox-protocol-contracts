@@ -5,13 +5,13 @@ import "./interfaces/IACL.sol";
 
 /**
  * @title ACL
- * @notice The ACL (Access Control List) is a permission management system designed to control access rights
+ * @dev The ACL (Access Control List) is a permission management system designed to control access rights
  * for encrypted handles within the Nox protocol. By defining administrators and delegated viewers for each handle,
  * the ACL ensures that sensitive data remains protected while enabling authorized parties to interact with
  * encrypted resources in a secure and controlled manner.
  */
 contract ACL is IACL {
-    /// @notice Main storage structure following ERC-7201 pattern
+    /// Main storage structure following ERC-7201 pattern
     struct ACLStorage {
         /// @dev Admins can use a handle as input in computations, and can add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
@@ -28,7 +28,7 @@ contract ACL is IACL {
     // ============ MODIFIERS ============
 
     /**
-     * @notice Ensures the account address is not zero
+     * Ensures the account address is not zero
      * @param account The address to validate
      */
     modifier notZeroAddress(address account) {
@@ -108,7 +108,7 @@ contract ACL is IACL {
     }
 
     /**
-     * @notice Returns `true` if the address is allowed to use the handle and `false` otherwise.
+     * Returns `true` if the address is allowed to use the handle and `false` otherwise.
      * @param handle Handle.
      * @param account Address of the account.
      * @return Whether the account can access the handle (persistent only).
@@ -121,7 +121,7 @@ contract ACL is IACL {
     // ============ INTERNAL HELPERS ============
     
     /**
-     * @notice Get the storage location for ACL data
+     * Get the storage location for ACL data
      * @return $ The storage pointer
      */
     function _getACLStorage() private pure returns (ACLStorage storage $) {
