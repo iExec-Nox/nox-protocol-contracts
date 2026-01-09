@@ -12,10 +12,10 @@ import "./interfaces/IACL.sol";
  */
 contract ACL is IACL {
     /// @notice Main storage structure following ERC-7201 pattern
-    /// @dev Admins can use a handle as input in computations, and can add other admins and viewers
-    /// @dev Viewers can decrypt the associated data
     struct ACLStorage {
+        /// @dev Admins can use a handle as input in computations, and can add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
+        /// @dev Viewers can decrypt the associated data
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         //TODO: Add Delegated Viewers
         address TEEComputeManager;
@@ -66,7 +66,7 @@ contract ACL is IACL {
      *      of the application contract to convert this into persistent access via `allow()` 
      *      if needed.
      */
-    function allowTransient(bytes32 handle, address account) public override notZeroAddress(account) {
+    function allowTransient(bytes32 handle, address account) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         if (msg.sender != $.TEEComputeManager) {
             if (!isAllowed(handle, msg.sender)) revert SenderNotAllowed(msg.sender);

@@ -12,7 +12,7 @@ interface IACL {
     /// @notice Error thrown when account address is zero
     error ZeroAddress();
 
-    /// @notice Emitted when admin status is granted
+    /// @notice Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
 
     /**
