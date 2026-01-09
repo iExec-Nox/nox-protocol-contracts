@@ -52,7 +52,8 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests that allowTransient() works when called by TEEComputeManager (fuzz test).
+     * @dev Tests that the TEEComputeManager can grant transient access to a handle via
+     *      allowTransient() without having prior access to that handle (fuzz test).
      */
     function testFuzz_AllowTransient_SucceedsWhenCalledByTEEComputeManager(bytes32 handle, address account) public {
         vm.assume(account != address(0));

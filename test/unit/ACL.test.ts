@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import hre from "hardhat";
 import ACLModule from "../../ignition/modules/ACL.js";
-import { keccak256, toHex, getAddress, encodePacked } from "viem";
+import { keccak256, toHex } from "viem";
 
 const { networkHelpers, viem, ignition } = await hre.network.connect();
 
