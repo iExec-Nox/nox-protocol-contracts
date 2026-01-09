@@ -22,14 +22,14 @@ contract ACLTest is Test {
     /**
      * @dev Tests that isAllowed returns false for any address and handle by default (fuzz test).
      */
-    function testFuzz_IsAllowedReturnsFalseIfNotAllowed(bytes32 handle, address account) public view {
+    function testFuzz_IsAllowed_ReturnsFalseByDefault(bytes32 handle, address account) public view {
         assertFalse(acl.isAllowed(handle, account));
     }
 
     /**
      * @dev Tests that allow() reverts when sender has no access to the handle.
      */
-    function testFuzz_CannotAllowIfNotAllowedToUseTheHandle(bytes32 handle, address account) public {
+    function testFuzz_Allow_RevertWhen_SenderNotAllowed(bytes32 handle, address account) public {
         vm.prank(account);
         vm.expectRevert(abi.encodeWithSelector(IACL.SenderNotAllowed.selector, account));
         acl.allow(handle, user2);
@@ -38,7 +38,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests that allow() reverts with zero address.
      */
-    function test_CannotAllowZeroAddress() public {
+    function test_Allow_RevertWhen_ZeroAddress() public {
         bytes32 handle = keccak256("test-handle");
         
         // First grant access to user1
@@ -54,7 +54,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests that allowTransient() works when called by TEEComputeManager (fuzz test).
      */
-    function testFuzz_CanAllowTransientIfTEEComputeManager(bytes32 handle, address account) public {
+    function testFuzz_AllowTransient_SucceedsWhenCalledByTEEComputeManager(bytes32 handle, address account) public {
         vm.assume(account != address(0));
         
         vm.prank(teeComputeManager);
@@ -67,7 +67,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests the flow: Non-TEEComputeManager cannot grant transient without access.
      */
-    function testFuzz_CannotAllowTransientWithoutAccess(
+    function testFuzz_AllowTransient_RevertWhen_SenderNotAllowed(
         address sender,
         bytes32 handle,
         address account
@@ -83,7 +83,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests the flow: TEEComputeManager grants transient access, then user grants permanent access (fuzz test).
      */
-    function testFuzz_CanGrantPermanentAccessAfterTransient(bytes32 handle, address user, address target) public {
+    function testFuzz_Allow_SucceedsAfterTransientAccess(bytes32 handle, address user, address target) public {
         vm.assume(user != address(0));
         vm.assume(target != address(0));
         
@@ -102,7 +102,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests that an admin with permanent access can grant access to a new admin (fuzz test).
      */
-    function testFuzz_AdminCanAllowNewAdmin(bytes32 handle, address admin1, address admin2) public {
+    function testFuzz_Allow_AdminCanGrantAccessToNewAdmin(bytes32 handle, address admin1, address admin2) public {
         vm.assume(admin1 != address(0));
         vm.assume(admin2 != address(0));
         
