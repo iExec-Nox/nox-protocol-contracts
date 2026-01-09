@@ -93,7 +93,7 @@ contract ACL is IACL {
     }
 
     /**
-     * @notice Returns `true` if the address has persistent access to a handle and `false` otherwise.
+     * Check if an address has persistent access to handle.
      * @param handle Handle.
      * @param account Address of the account.
      * @return Whether the account can access the handle (persistent only).
