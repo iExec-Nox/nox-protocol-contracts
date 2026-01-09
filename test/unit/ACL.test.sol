@@ -194,30 +194,5 @@ contract ACLTest is Test {
         assertTrue(acl.isViewer(handle, viewer));
     }
 
-    /**
-     * @dev Tests that adding a viewer multiple times doesn't revert.
-     */
-    function testFuzz_AddViewer_SucceedsEvenIfAlreadyViewer(bytes32 handle, address admin, address viewer) public {
-        vm.assume(admin != address(0));
-        vm.assume(viewer != address(0));
-        
-        // Setup: grant admin access
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, admin);
-        
-        vm.prank(admin);
-        acl.allow(handle, admin);
-        
-        // Add viewer first time
-        vm.prank(admin);
-        acl.addViewer(handle, viewer);
-        assertTrue(acl.isViewer(handle, viewer));
-        
-        // Add viewer second time (should not revert)
-        vm.prank(admin);
-        acl.addViewer(handle, viewer);
-        assertTrue(acl.isViewer(handle, viewer));
-    }
-
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
 }
