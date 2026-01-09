@@ -39,7 +39,6 @@ contract ACL is IACL {
     }
 
     // ============ CONSTRUCTOR ============
-    
     constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
         $.TEEComputeManager = teeComputeManager;
