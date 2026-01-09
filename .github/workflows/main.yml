@@ -1,0 +1,56 @@
+name: Nox Contracts CI
+
+on:
+  push:
+    branches:
+      - main # To trigger coverage updates of `main` on Codecov
+  pull_request:
+  workflow_call:
+
+concurrency:
+  group: ${{ github.ref }}-ci
+  cancel-in-progress: true
+
+jobs:
+  build-and-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+          # cache: 'pnpm' TODO
+      - run: corepack enable # Use package manager defined in package.json
+      - run: pnpm install --frozen-lockfile
+      - name: Check code formatting
+        run: pnpm run format:check
+      - name: Build
+        run: pnpm run build
+      - name: Deployment dry-run
+        run: pnpm run deploy
+      - name: Run coverage
+        run: pnpm run coverage
+      # TODO when Codecov token is available
+      # - name: Upload coverage reports to Codecov
+      #   uses: codecov/codecov-action@v4.0.1
+      #   with:
+      #     token: ${{ secrets.CODECOV_TOKEN }}
+      #     slug: iExecBlockchainComputing/nox-contracts
+      - name: Run static analysis with Slither
+        uses: crytic/slither-action@v0.4.1
+        with:
+          target: "contracts/"
+          solc-version: "0.8.28"
+          slither-args: >
+            --checklist
+            --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
+            --solc-remaps "forge-std/=node_modules/forge-std/src/"
+            --solc-args "--optimize --via-ir"
+            --filter-paths "node_modules/|contracts/.*\.t\.sol"
+          fail-on: high
+          sarif: results.sarif
+      # TODO when repo is public
+      # - name: Upload SARIF file
+      #   uses: github/codeql-action/upload-sarif@v4
+      #   with:
+      #     sarif_file: results.sarif
