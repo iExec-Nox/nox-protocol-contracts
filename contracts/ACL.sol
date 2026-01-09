@@ -25,7 +25,7 @@ contract ACL is IACL {
     bytes32 private constant ACL_STORAGE_LOCATION =
         0xed401488ebb59e3713b284243aa87272e78f75cf6500206003b8bf39f01abd00;
     
-    constructor(address teeComputeManager) {
+    constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
         $.TEEComputeManager = teeComputeManager;
     }
