@@ -32,7 +32,9 @@ contract ACL is IACL {
      * @param account The address to validate
      */
     modifier notZeroAddress(address account) {
-        if (account == address(0)) revert ZeroAddress();
+        if (account == address(0)) {
+            revert ZeroAddress();
+        }
         _;
     }
 
