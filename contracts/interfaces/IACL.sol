@@ -16,10 +16,10 @@ interface IACL {
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
 
     /**
-     * @notice Grant admin status to another address for a specific handle
+     * @notice Grant admin role to another address for a specific handle
      * @dev Caller must have access (transient OR persistent) to the handle
      * @param handle The handle identifier
-     * @param account The address to grant admin status
+     * @param account The address to grant admin role
      */
     function allow(bytes32 handle, address account) external;
 
@@ -35,7 +35,7 @@ interface IACL {
      * allowTransient() or allow().
      * @param handle Handle.
      * @param account Address of the account.
-     * @return isAllowed Whether the account can access the handle.
+     * @return Whether the account can access the handle (persistent or transient).
      */
     function isAllowed(bytes32 handle, address account) external view returns (bool);
 }

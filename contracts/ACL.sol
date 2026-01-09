@@ -43,12 +43,7 @@ contract ACL is IACL {
 
     // ============ ALLOWANCE MANAGEMENT ============
 
-    /**
-     * @notice Grant admin role to another address for a specific handle
-     * @dev Caller must have access (transient OR persistent) to the handle
-     * @param handle The handle identifier
-     * @param account The address to grant admin role
-     */
+    /// @inheritdoc IACL
     function allow(bytes32 handle, address account) external override notZeroAddress(account) {
         if (!isAllowed(handle, msg.sender)) revert SenderNotAllowed(msg.sender);
         ACLStorage storage $ = _getACLStorage();
@@ -57,7 +52,7 @@ contract ACL is IACL {
     }
 
     /**
-     * @notice Allows the use of `handle` by address `account` for this transaction.
+     * @inheritdoc IACL
      * @dev To grant transient access, the caller must already have permission on `handle`.
      *      The TEEComputeManager is exempt from this requirement and can always grant 
      *      transient permissions — a privilege not available with persistent `allow()`.
@@ -70,8 +65,6 @@ contract ACL is IACL {
      *      Transient access only lasts for the current transaction. It is the responsibility 
      *      of the application contract to convert this into persistent access via `allow()` 
      *      if needed.
-     * @param handle Handle.
-     * @param account Address of the account.
      */
     function allowTransient(bytes32 handle, address account) public override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
@@ -90,14 +83,7 @@ contract ACL is IACL {
     }
     
     // ============ ALLOWANCE QUERIES ============
-    
-    /**
-     * @notice Returns whether the account is allowed to use the `handle`, either due to
-     * allowTransient() or allow().
-     * @param handle Handle.
-     * @param account Address of the account.
-     * @return Whether the account can access the handle (persistent or transient).
-     */
+    // @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return isPersistentlyAllowed(handle, account) || isTransientlyAllowed(handle, account);
     }
