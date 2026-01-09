@@ -34,9 +34,9 @@ contract ACLTest is Test {
     /**
      * @dev Tests that allow() reverts when sender has no access to the handle.
      */
-    function testFuzz_Allow_RevertWhen_SenderNotAllowed(bytes32 handle, address account) public {
+    function testFuzz_Allow_RevertWhen_UnauthorizedSender(bytes32 handle, address account) public {
         vm.prank(account);
-        vm.expectRevert(abi.encodeWithSelector(IACL.SenderNotAllowed.selector, account));
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, account));
         acl.allow(handle, user2);
     }
 
@@ -73,7 +73,7 @@ contract ACLTest is Test {
     /**
      * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
      */
-    function testFuzz_AllowTransient_RevertWhen_SenderNotAllowed(
+    function testFuzz_AllowTransient_RevertWhen_UnauthorizedSender(
         address sender,
         bytes32 handle,
         address account
@@ -82,7 +82,7 @@ contract ACLTest is Test {
         vm.assume(account != address(0));
         
         vm.prank(sender);
-        vm.expectRevert(abi.encodeWithSelector(IACL.SenderNotAllowed.selector, sender));
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, sender));
         acl.allowTransient(handle, account);
     }
 
