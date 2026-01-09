@@ -13,9 +13,9 @@ import "./interfaces/IACL.sol";
 contract ACL is IACL {
     /// Main storage structure following ERC-7201 pattern
     struct ACLStorage {
-        /// @dev Admins can use a handle as input in computations, and can add other admins and viewers
+        /// Admins can use a handle as input in computations, and can add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
-        /// @dev Viewers can decrypt the associated data
+        /// Viewers can decrypt the associated data
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         //TODO: Add Delegated Viewers
         address TEEComputeManager;
