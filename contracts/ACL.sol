@@ -96,7 +96,7 @@ contract ACL is IACL {
      * Check if an address has persistent access to handle.
      * @param handle Handle.
      * @param account Address of the account.
-     * @return Whether the account can access the handle (persistent only).
+     * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
      */
     function isTransientlyAllowed(bytes32 handle, address account) internal view returns (bool) {
         bool isAllowedTransient;
