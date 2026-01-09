@@ -46,7 +46,6 @@ contract ACL is IACL {
     }
 
     // ============ ALLOWANCE MANAGEMENT ============
-
     /// @inheritdoc IACL
     function allow(bytes32 handle, address account) external override notZeroAddress(account) {
         if (!isAllowed(handle, msg.sender)) {
