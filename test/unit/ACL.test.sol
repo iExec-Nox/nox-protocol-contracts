@@ -12,11 +12,16 @@ contract ACLTest is Test {
     address internal user2;
 
     function setUp() public {
-        teeComputeManager = address(0x1);
-        user1 = address(0x2);
-        user2 = address(0x3);
+        teeComputeManager = makeAddr("teeComputeManager");
+        user1 = makeAddr("user1");
+        user2 = makeAddr("user2");
+        
+        vm.label(teeComputeManager, "TEEComputeManager");
+        vm.label(user1, "User1");
+        vm.label(user2, "User2");
         
         acl = new ACL(teeComputeManager);
+        vm.label(address(acl), "ACL");
     }
 
     /**
