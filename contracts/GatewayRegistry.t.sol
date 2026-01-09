@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.28;
+pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
@@ -21,7 +21,7 @@ contract GatewayRegistryTest is Test {
 
     // initialize
 
-    function test_Initialize() public {
+    function test_Initialize() public view {
         assertTrue(gatewayRegistry.hasRole(gatewayRegistry.DEFAULT_ADMIN_ROLE(), initialAdmin));
         assertTrue(gatewayRegistry.hasRole(gatewayRegistry.UPGRADER_ROLE(), initialUpgrader));
     }
