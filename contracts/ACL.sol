@@ -116,7 +116,6 @@ contract ACL is IACL {
     }
 
     // ============ INTERNAL HELPERS ============
-    
     /**
      * Get the storage location for ACL data
      * @return $ The storage pointer
