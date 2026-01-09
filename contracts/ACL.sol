@@ -49,7 +49,9 @@ contract ACL is IACL {
 
     /// @inheritdoc IACL
     function allow(bytes32 handle, address account) external override notZeroAddress(account) {
-        if (!isAllowed(handle, msg.sender)) revert UnauthorizedSender(msg.sender);
+        if (!isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
+        }
         ACLStorage storage $ = _getACLStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
@@ -73,7 +75,9 @@ contract ACL is IACL {
     function allowTransient(bytes32 handle, address account) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         if (msg.sender != $.TEEComputeManager) {
-            if (!isAllowed(handle, msg.sender)) revert UnauthorizedSender(msg.sender);
+            if (!isAllowed(handle, msg.sender)) {
+                revert UnauthorizedSender(msg.sender);
+            }
         }
 
         bytes32 key = keccak256(abi.encodePacked(handle, account));
