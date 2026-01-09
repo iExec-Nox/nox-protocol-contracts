@@ -16,6 +16,7 @@ contract ACL is IACL {
         /// Admins can use a handle as input in computations, and can add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
         /// Viewers can decrypt the associated data
+        //TODO: Make viewer expirable
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         //TODO: Add Delegated Viewers
         address TEEComputeManager;
@@ -94,15 +95,15 @@ contract ACL is IACL {
     }
     
     // ============ ALLOWANCE QUERIES ============
+    /// @inheritdoc IACL
+    function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
+        ACLStorage storage $ = _getACLStorage();
+        return $.viewers[handle][viewer];
+    }
+    
     // @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);
-    }
-
-    /// @inheritdoc IACL
-    function isViewer(bytes32 handle, address viewer) public view override returns (bool) {
-        ACLStorage storage $ = _getACLStorage();
-        return $.viewers[handle][viewer];
     }
 
     /**
