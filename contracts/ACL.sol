@@ -85,7 +85,7 @@ contract ACL is IACL {
     // ============ ALLOWANCE QUERIES ============
     // @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
-        return isPersistentlyAllowed(handle, account) || isTransientlyAllowed(handle, account);
+        return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);
     }
 
     /**
@@ -94,7 +94,7 @@ contract ACL is IACL {
      * @param account Address of the account.
      * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
      */
-    function isTransientlyAllowed(bytes32 handle, address account) internal view returns (bool) {
+    function isAllowedTransient(bytes32 handle, address account) internal view returns (bool) {
         bool isAllowedTransient;
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
@@ -109,7 +109,7 @@ contract ACL is IACL {
      * @param account Address of the account.
      * @return Whether the account can access the handle (persistent only).
      */
-    function isPersistentlyAllowed(bytes32 handle, address account) internal view returns (bool) {
+    function isAllowedPersistent(bytes32 handle, address account) internal view returns (bool) {
         ACLStorage storage $ = _getACLStorage();
         return $.admins[handle][account];
     }
