@@ -57,19 +57,22 @@ contract ACL is IACL {
     /**
      * @inheritdoc IACL
      * @dev To grant transient access, the caller must already have permission on `handle`.
-     *      The TEEComputeManager is exempt from this requirement and can always grant 
+     *      The TEEComputeManager is exempt from this requirement and can always grant
      *      transient permissions — a privilege not available with persistent `allow()`.
      *
      *      The TEEComputeManager uses this function in two scenarios:
      *      - For handles generated off-chain by the Handle Gateway, once the proof has been verified
-     *      - For handles resulting from on-chain operations, where the caller naturally 
+     *      - For handles resulting from on-chain operations, where the caller naturally
      *        inherits rights on the output handle
      *
-     *      Transient access only lasts for the current transaction. It is the responsibility 
-     *      of the application contract to convert this into persistent access via `allow()` 
+     *      Transient access only lasts for the current transaction. It is the responsibility
+     *      of the application contract to convert this into persistent access via `allow()`
      *      if needed.
      */
-    function allowTransient(bytes32 handle, address account) external override notZeroAddress(account) {
+    function allowTransient(
+        bytes32 handle,
+        address account
+    ) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         if (msg.sender != $.teeComputeManager) {
             if (!isAllowed(handle, msg.sender)) {
@@ -82,7 +85,7 @@ contract ACL is IACL {
             tstore(key, 1)
         }
     }
-    
+
     // ============ ALLOWANCE QUERIES ============
     // @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
@@ -96,12 +99,12 @@ contract ACL is IACL {
      * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
      */
     function isAllowedTransient(bytes32 handle, address account) internal view returns (bool) {
-        bool isAllowedTransient;
+        bool isAllowedTransient_;
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
-            isAllowedTransient := tload(key)
+            isAllowedTransient_ := tload(key)
         }
-        return isAllowedTransient;
+        return isAllowedTransient_;
     }
 
     /**
