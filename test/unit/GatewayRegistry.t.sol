@@ -17,6 +17,9 @@ contract GatewayRegistryTest is Test {
     function setUp() public {
         gatewayRegistry = _deployNewProxy();
         gatewayRegistry.initialize(initialAdmin, initialUpgrader);
+        vm.label(initialAdmin, "initialAdmin");
+        vm.label(initialUpgrader, "initialUpgrader");
+        vm.label(address(gatewayRegistry), "gatewayRegistry");
     }
 
     // initialize
