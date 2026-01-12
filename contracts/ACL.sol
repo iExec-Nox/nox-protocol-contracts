@@ -68,19 +68,22 @@ contract ACL is IACL {
     /**
      * @inheritdoc IACL
      * @dev To grant transient access, the caller must already have permission on `handle`.
-     *      The TEEComputeManager is exempt from this requirement and can always grant 
+     *      The TEEComputeManager is exempt from this requirement and can always grant
      *      transient permissions — a privilege not available with persistent `allow()`.
      *
      *      The TEEComputeManager uses this function in two scenarios:
      *      - For handles generated off-chain by the Handle Gateway, once the proof has been verified
-     *      - For handles resulting from on-chain operations, where the caller naturally 
+     *      - For handles resulting from on-chain operations, where the caller naturally
      *        inherits rights on the output handle
      *
-     *      Transient access only lasts for the current transaction. It is the responsibility 
-     *      of the application contract to convert this into persistent access via `allow()` 
+     *      Transient access only lasts for the current transaction. It is the responsibility
+     *      of the application contract to convert this into persistent access via `allow()`
      *      if needed.
      */
-    function allowTransient(bytes32 handle, address account) external override notZeroAddress(account) {
+    function allowTransient(
+        bytes32 handle,
+        address account
+    ) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         if (msg.sender != $.teeComputeManager) {
             if (!isAllowed(handle, msg.sender)) {
@@ -93,14 +96,14 @@ contract ACL is IACL {
             tstore(key, 1)
         }
     }
-    
+
     // ============ ALLOWANCE QUERIES ============
     /// @inheritdoc IACL
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
         ACLStorage storage $ = _getACLStorage();
         return $.viewers[handle][viewer];
     }
-    
+
     // @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);

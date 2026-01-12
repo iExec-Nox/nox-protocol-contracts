@@ -8,7 +8,7 @@ pragma solidity ^0.8.0;
 interface IACL {
     /// Error thrown when sender doesn't have access to the handle
     error UnauthorizedSender(address sender);
-    
+
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
 
