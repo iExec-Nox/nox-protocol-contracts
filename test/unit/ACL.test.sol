@@ -185,7 +185,7 @@ contract ACLTest is Test {
 
         // Admin adds viewer
         vm.prank(user1);
-        vm.expectEmit(true, true, true, false);
+        vm.expectEmit;
         emit IACL.ViewerAdded(user1, viewer, handle);
         acl.addViewer(handle, viewer);
 
