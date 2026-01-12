@@ -32,6 +32,8 @@ contract ACLTest is Test {
         vm.label(address(acl), "ACL");
     }
 
+    // ============ isAllowed ============
+
     /**
      * @dev Tests that isAllowed returns false for any address and handle by default.
      */
@@ -39,6 +41,8 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle, user1));
         assertFalse(acl.isAllowed(handle, user2));
     }
+
+    // ============ allowTransient ============
 
     /**
      * @dev Tests that the TEEComputeManager can grant transient access to a handle via
@@ -51,6 +55,17 @@ contract ACLTest is Test {
         // Transient access should be available in the same transaction
         assertTrue(acl.isAllowed(handle, user1));
     }
+
+    /**
+     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
+     */
+    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.allowTransient(handle, user2);
+    }
+
+    // ============ allow ============
 
     /**
      * @dev Tests that the TEEComputeManager grants transient access, then user grants permanent access.
@@ -95,15 +110,6 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
-     */
-    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
-        acl.allowTransient(handle, user2);
-    }
-
-    /**
      * @dev Tests that allow() reverts when sender has no access to the handle.
      */
     function test_Allow_RevertWhen_UnauthorizedSender() public {
@@ -127,11 +133,41 @@ contract ACLTest is Test {
     }
 
     /**
+     * @dev Tests that being a viewer does not grant admin privileges.
+     */
+    function test_Allow_RevertWhen_CalledByViewer() public {
+        // Setup: user1 is admin and adds viewer
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        vm.prank(user1);
+        acl.allow(handle, user1);
+
+        vm.prank(user1);
+        acl.addViewer(handle, viewer1);
+
+        // Verify viewer is a viewer
+        assertTrue(acl.isViewer(handle, viewer1));
+
+        // Viewer should NOT have admin privileges (cannot call allow)
+        vm.prank(viewer1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer1));
+        acl.allow(handle, user2);
+
+        // Verify viewer is NOT allowed (admin check)
+        assertFalse(acl.isAllowed(handle, viewer1));
+    }
+
+    // ============ isViewer ============
+
+    /**
      * @dev Tests that isViewer returns false by default.
      */
     function test_IsViewer_ReturnsFalseByDefault() public view {
         assertFalse(acl.isViewer(handle, user1));
     }
+
+    // ============ addViewer ============
 
     /**
      * @dev Tests that an admin can add a viewer successfully.
@@ -201,32 +237,6 @@ contract ACLTest is Test {
         vm.prank(viewer1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer1));
         acl.addViewer(handle, viewer2);
-    }
-
-    /**
-     * @dev Tests that being a viewer does not grant admin privileges.
-     */
-    function test_Allow_RevertWhen_CalledByViewer() public {
-        // Setup: user1 is admin and adds viewer
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        vm.prank(user1);
-        acl.allow(handle, user1);
-
-        vm.prank(user1);
-        acl.addViewer(handle, viewer1);
-
-        // Verify viewer is a viewer
-        assertTrue(acl.isViewer(handle, viewer1));
-
-        // Viewer should NOT have admin privileges (cannot call allow)
-        vm.prank(viewer1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer1));
-        acl.allow(handle, user2);
-
-        // Verify viewer is NOT allowed (admin check)
-        assertFalse(acl.isAllowed(handle, viewer1));
     }
 
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
