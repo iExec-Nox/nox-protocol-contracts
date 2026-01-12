@@ -1,7 +1,15 @@
 import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 
-// TODO deploy proxy
-export default buildModule("GatewayRegistryModule", (m) => {
-    const gatewayRegistry = m.contract("GatewayRegistry");
-    return { gatewayRegistry };
+export default buildModule("GatewayRegistry", (m) => {
+    const initialAdmin = m.getParameter("initialAdmin");
+    const initialUpgrader = m.getParameter("initialUpgrader");
+
+    const implementation = m.contract("GatewayRegistry", [], {
+        id: "implementation",
+    });
+    const initData = m.encodeFunctionCall(implementation, "initialize", [initialAdmin, initialUpgrader]);
+    const proxy = m.contract("ERC1967Proxy", [implementation, initData], {
+        id: "proxy",
+    });
+    return { implementation, proxy };
 });
