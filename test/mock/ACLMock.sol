@@ -1,0 +1,39 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.0;
+
+import "../../contracts/ACL.sol";
+
+/**
+ * @title ACLMock
+ * @dev Mock contract for testing ACL functionality with helper functions
+ * This contract wraps ACL to provide test utilities that execute multiple operations in one transaction
+ */
+contract ACLMock {
+    ACL public immutable acl;
+
+    constructor(address teeComputeManager) {
+        acl = new ACL(teeComputeManager);
+    }
+
+    /**
+     * @dev Helper function to grant transient access and then persistent access in the same transaction.
+     * This is useful for testing to demonstrate that persistent permissions survive while transient do not.
+     * @param handleTransient Handle for which to grant only transient access
+     * @param handlePersistent Handle for which to grant persistent access
+     * @param account Account to receive both transient and persistent access
+     */
+    function grantTransientAndPersistent(
+        bytes32 handleTransient,
+        bytes32 handlePersistent,
+        address account
+    ) external {
+        // Grant transient access (will be cleared after transaction)
+        acl.allowTransient(handleTransient, account);
+
+        // Grant transient access to the handle we want to make persistent
+        acl.allowTransient(handlePersistent, msg.sender);
+
+        // Convert to persistent access (will survive after transaction)
+        acl.allow(handlePersistent, account);
+    }
+}
