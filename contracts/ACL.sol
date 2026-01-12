@@ -104,7 +104,7 @@ contract ACL is IACL {
         return $.viewers[handle][viewer];
     }
 
-    // @inheritdoc IACL
+    /// @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);
     }
