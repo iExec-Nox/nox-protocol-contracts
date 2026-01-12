@@ -10,17 +10,23 @@ contract ACLTest is Test {
     address internal teeComputeManager;
     address internal user1;
     address internal user2;
+    address internal viewer1;
+    address internal viewer2;
     bytes32 internal handle;
 
     function setUp() public {
         teeComputeManager = makeAddr("teeComputeManager");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
+        viewer1 = makeAddr("viewer1");
+        viewer2 = makeAddr("viewer2");
         handle = keccak256("test-handle");
 
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
+        vm.label(viewer1, "Viewer1");
+        vm.label(viewer2, "Viewer2");
 
         acl = new ACL(teeComputeManager);
         vm.label(address(acl), "ACL");
@@ -131,8 +137,6 @@ contract ACLTest is Test {
      * @dev Tests that an admin can add a viewer successfully.
      */
     function test_AddViewer_SucceedsWhenCalledByAdmin() public {
-        address viewer = makeAddr("viewer");
-
         // Setup: grant user1 admin access
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -141,16 +145,16 @@ contract ACLTest is Test {
         acl.allow(handle, user1);
 
         // Viewer should not be a viewer yet
-        assertFalse(acl.isViewer(handle, viewer));
+        assertFalse(acl.isViewer(handle, viewer1));
 
         // Admin adds viewer
         vm.prank(user1);
         vm.expectEmit;
-        emit IACL.ViewerAdded(user1, viewer, handle);
-        acl.addViewer(handle, viewer);
+        emit IACL.ViewerAdded(user1, viewer1, handle);
+        acl.addViewer(handle, viewer1);
 
         // Viewer should now be a viewer
-        assertTrue(acl.isViewer(handle, viewer));
+        assertTrue(acl.isViewer(handle, viewer1));
     }
 
     /**
@@ -180,9 +184,6 @@ contract ACLTest is Test {
      * @dev Tests that a viewer cannot add another viewer.
      */
     function test_AddViewer_RevertWhen_CalledByViewer() public {
-        address viewer1 = makeAddr("viewer1");
-        address viewer2 = makeAddr("viewer2");
-
         // Setup: user1 is admin and adds viewer1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -206,8 +207,6 @@ contract ACLTest is Test {
      * @dev Tests that being a viewer does not grant admin privileges.
      */
     function test_Allow_RevertWhen_CalledByViewer() public {
-        address viewer = makeAddr("viewer");
-
         // Setup: user1 is admin and adds viewer
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -216,18 +215,18 @@ contract ACLTest is Test {
         acl.allow(handle, user1);
 
         vm.prank(user1);
-        acl.addViewer(handle, viewer);
+        acl.addViewer(handle, viewer1);
 
         // Verify viewer is a viewer
-        assertTrue(acl.isViewer(handle, viewer));
+        assertTrue(acl.isViewer(handle, viewer1));
 
         // Viewer should NOT have admin privileges (cannot call allow)
-        vm.prank(viewer);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer));
+        vm.prank(viewer1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer1));
         acl.allow(handle, user2);
 
         // Verify viewer is NOT allowed (admin check)
-        assertFalse(acl.isAllowed(handle, viewer));
+        assertFalse(acl.isAllowed(handle, viewer1));
     }
 
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
