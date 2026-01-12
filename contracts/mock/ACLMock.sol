@@ -13,7 +13,7 @@ contract ACLMock {
 
     constructor() {
         // Set this contract as teeComputeManager so it can call allowTransient/allow
-        acl = new ACL(address(this));   
+        acl = new ACL(address(this));
     }
 
     /**
