@@ -8,10 +8,10 @@ async function main() {
     const chainConfig = config[connection.networkName];
     console.log(`Deploying to network: ${connection.networkName} (chainId: ${chainConfig.chainId})`);
     console.log(`Chain config:`, chainConfig);
-
+    // Deploy GatewayRegistry
     const { proxy: gatewayRegistryProxy } = await connection.ignition.deploy(GatewayRegistry, {
         deploymentId: connection.networkName,
-        displayUi: true,
+        displayUi: false,
         parameters: {
             GatewayRegistry: {
                 initialAdmin: chainConfig.initialAdmin,
@@ -20,6 +20,19 @@ async function main() {
         },
     });
     console.log(`GatewayRegistry: ${gatewayRegistryProxy.address}`);
+    // TODO Deploy TEE Compute Manager
+    const teeComputeManager = "0x000000000000000000000000000000000000000a";
+    // Deploy ACL
+    const { acl } = await connection.ignition.deploy(ACL, {
+        deploymentId: connection.networkName,
+        displayUi: false,
+        parameters: {
+            ACL: {
+                teeComputeManager: teeComputeManager,
+            },
+        },
+    });
+    console.log(`ACL: ${acl.address}`);
 }
 
 main().catch(console.error);
