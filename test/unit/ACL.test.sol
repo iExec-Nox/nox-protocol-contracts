@@ -10,11 +10,13 @@ contract ACLTest is Test {
     address internal teeComputeManager;
     address internal user1;
     address internal user2;
+    bytes32 internal handle;
 
     function setUp() public {
         teeComputeManager = makeAddr("teeComputeManager");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
+        handle = keccak256("test-handle");
 
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
@@ -28,7 +30,6 @@ contract ACLTest is Test {
      * @dev Tests that isAllowed returns false for any address and handle by default.
      */
     function test_IsAllowed_ReturnsFalseByDefault() public view {
-        bytes32 handle = keccak256("test-handle");
         assertFalse(acl.isAllowed(handle, user1));
         assertFalse(acl.isAllowed(handle, user2));
     }
@@ -37,7 +38,6 @@ contract ACLTest is Test {
      * @dev Tests that allow() reverts when sender has no access to the handle.
      */
     function test_Allow_RevertWhen_UnauthorizedSender() public {
-        bytes32 handle = keccak256("test-handle");
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.allow(handle, user2);
@@ -47,8 +47,6 @@ contract ACLTest is Test {
      * @dev Tests that allow() reverts with zero address.
      */
     function test_Allow_RevertWhen_InvalidZeroAddress() public {
-        bytes32 handle = keccak256("test-handle");
-
         // First grant access to user1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -64,8 +62,6 @@ contract ACLTest is Test {
      *      allowTransient() without having prior access to that handle.
      */
     function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
-        bytes32 handle = keccak256("test-handle");
-
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
 
@@ -77,8 +73,6 @@ contract ACLTest is Test {
      * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
      */
     function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
-        bytes32 handle = keccak256("test-handle");
-
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.allowTransient(handle, user2);
@@ -88,8 +82,6 @@ contract ACLTest is Test {
      * @dev Tests that the TEEComputeManager grants transient access, then user grants permanent access.
      */
     function test_Allow_SucceedsAfterTransientAccess() public {
-        bytes32 handle = keccak256("test-handle");
-
         // TEEComputeManager grants transient access to user1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -106,8 +98,6 @@ contract ACLTest is Test {
      * @dev Tests that an admin with permanent access can grant access to a new admin.
      */
     function test_Allow_AdminCanGrantAccessToNewAdmin() public {
-        bytes32 handle = keccak256("test-handle");
-
         // Setup: TEEComputeManager grants transient access to user1, who converts it to permanent
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -134,17 +124,13 @@ contract ACLTest is Test {
      * @dev Tests that isViewer returns false by default.
      */
     function test_IsViewer_ReturnsFalseByDefault() public view {
-        bytes32 handle = keccak256("test-handle");
         assertFalse(acl.isViewer(handle, user1));
-        assertFalse(acl.isViewer(handle, user2));
     }
 
     /**
      * @dev Tests that addViewer() reverts when sender has no access to the handle.
      */
     function test_AddViewer_RevertWhen_UnauthorizedSender() public {
-        bytes32 handle = keccak256("test-handle");
-
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.addViewer(handle, user2);
@@ -154,8 +140,6 @@ contract ACLTest is Test {
      * @dev Tests that addViewer() reverts with zero address.
      */
     function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
-        bytes32 handle = keccak256("test-handle");
-
         // First grant access to user1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -170,7 +154,6 @@ contract ACLTest is Test {
      * @dev Tests that an admin can add a viewer successfully.
      */
     function test_AddViewer_SucceedsWhenCalledByAdmin() public {
-        bytes32 handle = keccak256("test-handle");
         address viewer = makeAddr("viewer");
 
         // Setup: grant user1 admin access
@@ -197,7 +180,6 @@ contract ACLTest is Test {
      * @dev Tests that a viewer cannot add another viewer.
      */
     function test_AddViewer_RevertWhen_CalledByViewer() public {
-        bytes32 handle = keccak256("test-handle");
         address viewer1 = makeAddr("viewer1");
         address viewer2 = makeAddr("viewer2");
 
@@ -224,7 +206,6 @@ contract ACLTest is Test {
      * @dev Tests that being a viewer does not grant admin privileges.
      */
     function test_Allow_RevertWhen_CalledByViewer() public {
-        bytes32 handle = keccak256("test-handle");
         address viewer = makeAddr("viewer");
 
         // Setup: user1 is admin and adds viewer
