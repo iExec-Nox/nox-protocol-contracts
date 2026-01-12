@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import "../../contracts/ACL.sol";
+import "../ACL.sol";
 
 /**
  * @title ACLMock
@@ -11,8 +11,9 @@ import "../../contracts/ACL.sol";
 contract ACLMock {
     ACL public immutable acl;
 
-    constructor(address teeComputeManager) {
-        acl = new ACL(teeComputeManager);
+    constructor() {
+        // Set this contract as teeComputeManager so it can call allowTransient/allow
+        acl = new ACL(address(this));   
     }
 
     /**
@@ -30,8 +31,8 @@ contract ACLMock {
         // Grant transient access (will be cleared after transaction)
         acl.allowTransient(handleTransient, account);
 
-        // Grant transient access to the handle we want to make persistent
-        acl.allowTransient(handlePersistent, msg.sender);
+        // Grant transient access to THIS CONTRACT so it can call allow()
+        acl.allowTransient(handlePersistent, address(this));
 
         // Convert to persistent access (will survive after transaction)
         acl.allow(handlePersistent, account);

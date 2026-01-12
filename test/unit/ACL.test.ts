@@ -20,8 +20,12 @@ describe("ACL", async function () {
             },
         });
 
+        // Deploy ACLMock for testing transient/persistent in two different transactions
+        const aclMock = await viem.deployContract("ACLMock");
+
         return {
             acl,
+            aclMock,
             teeComputeManager: teeComputeManager,
             ownerWallet,
             unauthorizedWallet,
@@ -47,54 +51,38 @@ describe("ACL", async function () {
 
     describe("Transient vs Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
-            const { acl, teeComputeManager, ownerWallet, unauthorizedWallet } =
-                await networkHelpers.loadFixture(deployACLFixture);
+            const { aclMock, teeComputeManager, ownerWallet } = await networkHelpers.loadFixture(deployACLFixture);
 
             const handleTransient = keccak256(toHex("handle-transient"));
             const handlePersistent = keccak256(toHex("handle-persistent"));
 
-            // Transaction 1: Grant transient access to ownerWallet for both handles
-            await acl.write.allowTransient([handleTransient, ownerWallet.account.address], {
-                account: teeComputeManager.account,
-            });
-
-            await acl.write.allowTransient([handlePersistent, ownerWallet.account.address], {
-                account: teeComputeManager.account,
-            });
-
-            // Transaction 2: Convert one to persistent by granting to unauthorizedWallet
-            // ownerWallet still has transient access from previous transaction
-            await acl.write.allow([handlePersistent, unauthorizedWallet.account.address], {
-                account: ownerWallet.account,
-            });
-
-            // Transaction 3: Check permissions - transient from tx1 should be gone
-            // Note: Each await creates a new transaction, so transient from tx1 is cleared
-            const isAllowedTransient = await acl.read.isAllowed([handleTransient, ownerWallet.account.address]);
-            const isAllowedPersistent = await acl.read.isAllowed([
-                handlePersistent,
-                unauthorizedWallet.account.address,
-            ]);
-
-            // Transient permission from transaction 1 should be cleared
-            assert.strictEqual(isAllowedTransient, false, "Transient permission should be cleared after tx");
-
-            // Persistent permission should remain
-            assert.strictEqual(isAllowedPersistent, true, "Persistent permission should remain");
+            // Single transaction: Grant transient to one handle and persistent to another (same account)
+            // This uses the mock helper to do both in the same transaction
+            await aclMock.write.grantTransientAndPersistent(
+                [handleTransient, handlePersistent, ownerWallet.account.address],
+                {
+                    account: teeComputeManager.account,
+                },
+            );
 
             // Mine a new block to further verify persistence
             await networkHelpers.mine();
 
-            // Verify persistent permission still exists after mining
-            const isAllowedAfterMining = await acl.read.isAllowed([
-                handlePersistent,
-                unauthorizedWallet.account.address,
-            ]);
-            assert.strictEqual(isAllowedAfterMining, true, "Persistent permission should remain after mining");
+            // New transaction: Check permissions - transient should be gone, persistent should remain
+            const acl = aclMock.read.acl();
+            const aclAddress = await acl;
+            const aclContract = await viem.getContractAt("ACL", aclAddress);
 
-            // Transient should still be cleared
-            const isTransientAfterMining = await acl.read.isAllowed([handleTransient, ownerWallet.account.address]);
-            assert.strictEqual(isTransientAfterMining, false, "Transient should remain cleared");
+            const isAllowedTransient = await aclContract.read.isAllowed([handleTransient, ownerWallet.account.address]);
+            const isAllowedPersistent = await aclContract.read.isAllowed([
+                handlePersistent,
+                ownerWallet.account.address,
+            ]);
+
+            // Transient permission should be cleared after the transaction
+            assert.strictEqual(isAllowedTransient, false, "Transient permission should be cleared after tx");
+            // Persistent permission should remain
+            assert.strictEqual(isAllowedPersistent, true, "Persistent permission should remain");
         });
     });
 });
