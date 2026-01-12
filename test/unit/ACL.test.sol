@@ -193,5 +193,61 @@ contract ACLTest is Test {
         assertTrue(acl.isViewer(handle, viewer));
     }
 
+    /**
+     * @dev Tests that a viewer cannot add another viewer.
+     */
+    function test_AddViewer_RevertWhen_CalledByViewer() public {
+        bytes32 handle = keccak256("test-handle");
+        address viewer1 = makeAddr("viewer1");
+        address viewer2 = makeAddr("viewer2");
+
+        // Setup: user1 is admin and adds viewer1
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        vm.prank(user1);
+        acl.allow(handle, user1);
+
+        vm.prank(user1);
+        acl.addViewer(handle, viewer1);
+
+        // Verify viewer1 is a viewer
+        assertTrue(acl.isViewer(handle, viewer1));
+
+        // viewer1 should NOT be able to add another viewer
+        vm.prank(viewer1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer1));
+        acl.addViewer(handle, viewer2);
+    }
+
+    /**
+     * @dev Tests that being a viewer does not grant admin privileges.
+     */
+    function test_Allow_RevertWhen_CalledByViewer() public {
+        bytes32 handle = keccak256("test-handle");
+        address viewer = makeAddr("viewer");
+
+        // Setup: user1 is admin and adds viewer
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        vm.prank(user1);
+        acl.allow(handle, user1);
+
+        vm.prank(user1);
+        acl.addViewer(handle, viewer);
+
+        // Verify viewer is a viewer
+        assertTrue(acl.isViewer(handle, viewer));
+
+        // Viewer should NOT have admin privileges (cannot call allow)
+        vm.prank(viewer);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer));
+        acl.allow(handle, user2);
+
+        // Verify viewer is NOT allowed (admin check)
+        assertFalse(acl.isAllowed(handle, viewer));
+    }
+
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
 }
