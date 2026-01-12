@@ -19,7 +19,7 @@ contract ACL is IACL {
         //TODO: Make viewer expirable
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         //TODO: Add Delegated Viewers
-        address TEEComputeManager;
+        address teeComputeManager;
     }
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.ACL")) - 1)) & ~bytes32(uint256(0xff))
@@ -41,7 +41,7 @@ contract ACL is IACL {
     // ============ CONSTRUCTOR ============
     constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
-        $.TEEComputeManager = teeComputeManager;
+        $.teeComputeManager = teeComputeManager;
     }
 
     // ============ ALLOWANCE MANAGEMENT ============
@@ -82,7 +82,7 @@ contract ACL is IACL {
      */
     function allowTransient(bytes32 handle, address account) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
-        if (msg.sender != $.TEEComputeManager) {
+        if (msg.sender != $.teeComputeManager) {
             if (!isAllowed(handle, msg.sender)) {
                 revert UnauthorizedSender(msg.sender);
             }
