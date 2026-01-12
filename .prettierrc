@@ -5,15 +5,18 @@
     "singleQuote": false,
     "trailingComma": "all",
     "endOfLine": "auto",
+    "plugins": ["prettier-plugin-solidity"],
     "overrides": [
-        {
-            "files": "*.sol",
-            "options": {}
-        },
         {
             "files": ["**/*.json", "**/*.yml"],
             "options": {
                 "tabWidth": 2
+            }
+        },
+        {
+            "files": "*.sol",
+            "options": {
+                "printWidth": 100
             }
         }
     ]

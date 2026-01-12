@@ -3,23 +3,35 @@
   "version": "0.1.0",
   "description": "Nox protocol smart contracts",
   "scripts": {
+    "prepare": "husky",
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
     "coverage": "pnpm hardhat test --coverage",
-    "deploy": "pnpm hardhat ignition deploy ignition/modules/Counter.ts",
+    "deploy": "pnpm hardhat ignition deploy ignition/modules/GatewayRegistry.ts",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check ."
+  },
+  "lint-staged": {
+    "*.{sol,js,ts,json,md,yml,yaml}": [
+      "prettier --write"
+    ]
   },
   "license": "Apache-2.0",
   "packageManager": "pnpm@10.7.0",
   "type": "module",
+  "dependencies": {
+    "@openzeppelin/contracts": "^5.4.0",
+    "@openzeppelin/contracts-upgradeable": "^5.4.0"
+  },
   "devDependencies": {
     "@nomicfoundation/hardhat-ignition": "^3.0.6",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
     "@types/node": "^22.8.5",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.1.2",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
     "prettier-plugin-solidity": "^2.2.1",
     "typescript": "~5.8.0",
