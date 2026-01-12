@@ -8,7 +8,7 @@
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
     "coverage": "pnpm hardhat test --coverage",
-    "deploy": "pnpm hardhat ignition deploy ignition/modules/ACL.ts",
+    "deploy": "pnpm hardhat ignition deploy ignition/modules/GatewayRegistry.ts",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check ."
   },
