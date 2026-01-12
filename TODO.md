@@ -1,7 +1,4 @@
-- Add pre-commit hook
-- Prettier: Format all files
-- Prettier: Check imports order
-- Add solidity linter
+- Linter: JS with imports sorting
+- Linter: Sol with imports sorting if relevant
 - Configure Solidity Solcover if required
-- Add JS linter if relevant
 - Update license

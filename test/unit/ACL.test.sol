@@ -15,11 +15,11 @@ contract ACLTest is Test {
         teeComputeManager = makeAddr("teeComputeManager");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
-        
+
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
-        
+
         acl = new ACL(teeComputeManager);
         vm.label(address(acl), "ACL");
     }
@@ -48,11 +48,11 @@ contract ACLTest is Test {
      */
     function test_Allow_RevertWhen_InvalidZeroAddress() public {
         bytes32 handle = keccak256("test-handle");
-        
+
         // First grant access to user1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
-        
+
         // Try to grant to zero address
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
@@ -65,10 +65,10 @@ contract ACLTest is Test {
      */
     function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
         bytes32 handle = keccak256("test-handle");
-        
+
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
-        
+
         // Transient access should be available in the same transaction
         assertTrue(acl.isAllowed(handle, user1));
     }
@@ -78,7 +78,7 @@ contract ACLTest is Test {
      */
     function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
         bytes32 handle = keccak256("test-handle");
-        
+
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.allowTransient(handle, user2);
@@ -89,15 +89,15 @@ contract ACLTest is Test {
      */
     function test_Allow_SucceedsAfterTransientAccess() public {
         bytes32 handle = keccak256("test-handle");
-        
+
         // TEEComputeManager grants transient access to user1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
-        
+
         // user1 can now grant permanent access to user2 (in same transaction due to transient)
         vm.prank(user1);
         acl.allow(handle, user2);
-        
+
         // user2 should have permanent access (persists across transactions)
         assertTrue(acl.isAllowed(handle, user2));
     }
@@ -107,24 +107,24 @@ contract ACLTest is Test {
      */
     function test_Allow_AdminCanGrantAccessToNewAdmin() public {
         bytes32 handle = keccak256("test-handle");
-        
+
         // Setup: TEEComputeManager grants transient access to user1, who converts it to permanent
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
-        
+
         vm.prank(user1);
         acl.allow(handle, user1);
-        
+
         // Verify user1 has permanent access
         assertTrue(acl.isAllowed(handle, user1));
-        
+
         // user2 should not have access yet
         assertFalse(acl.isAllowed(handle, user2));
-        
+
         // user1 can grant access to user2
         vm.prank(user1);
         acl.allow(handle, user2);
-        
+
         // Both admins should have permanent access
         assertTrue(acl.isAllowed(handle, user1));
         assertTrue(acl.isAllowed(handle, user2));
