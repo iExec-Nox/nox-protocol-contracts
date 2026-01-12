@@ -249,5 +249,85 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle, viewer));
     }
 
-    //TODO: Tests that permanent access persists while transient does not after the end of the transaction
+    /**
+     * @dev Tests that cleanTransientStorage clears all transient permissions.
+     * This is critical for Account Abstraction bundler integration.
+     */
+    function test_CleanTransientStorage_ClearsAllTransientPermissions() public {
+        bytes32 handle1 = keccak256("test-handle-1");
+        bytes32 handle2 = keccak256("test-handle-2");
+
+        // TEEComputeManager grants transient access to multiple users
+        vm.startPrank(teeComputeManager);
+        acl.allowTransient(handle1, user1);
+        acl.allowTransient(handle2, user2);
+        vm.stopPrank();
+
+        // Verify both have transient access
+        assertTrue(acl.isAllowed(handle1, user1));
+        assertTrue(acl.isAllowed(handle2, user2));
+
+        // Clean transient storage
+        acl.cleanTransientStorage();
+
+        // Verify all transient permissions are cleared
+        assertFalse(acl.isAllowed(handle1, user1));
+        assertFalse(acl.isAllowed(handle2, user2));
+    }
+
+    /**
+     * @dev Tests that cleanTransientStorage does not affect persistent permissions.
+     */
+    function test_CleanTransientStorage_DoesNotAffectPersistentPermissions() public {
+        bytes32 handle = keccak256("test-handle");
+
+        // Grant transient access to user1
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        // user1 converts it to persistent for themselves and grants persistent to user2
+        vm.startPrank(user1);
+        acl.allow(handle, user1);
+        vm.stopPrank();
+
+        // Verify user1 have persistent access
+        assertTrue(acl.isAllowed(handle, user1));
+
+        // Clean transient storage
+        acl.cleanTransientStorage();
+
+        // Verify persistent permissions remain
+        assertTrue(acl.isAllowed(handle, user1));
+    }
+
+    /**
+     * @dev Tests cleanTransientStorage in a complex Account Abstraction scenario.
+     * Multiple UserOps in a bundle need clean transient state between operations.
+     */
+    function test_CleanTransientStorage_AccountAbstractionScenario() public {
+        bytes32 handle1 = keccak256("userOp1-handle");
+        bytes32 handle2 = keccak256("userOp2-handle");
+        address bundler = makeAddr("bundler");
+
+        // Simulate UserOp 1: TEEComputeManager grants transient access
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle1, user1);
+
+        assertTrue(acl.isAllowed(handle1, user1));
+
+        // Bundler cleans transient storage between UserOps (critical for AA)
+        vm.prank(bundler);
+        acl.cleanTransientStorage();
+
+        // UserOp 1's transient access should be cleared
+        assertFalse(acl.isAllowed(handle1, user1));
+
+        // Simulate UserOp 2: Fresh transient access for different handle
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle2, user2);
+
+        assertTrue(acl.isAllowed(handle2, user2));
+        // Previous handle should still not have access
+        assertFalse(acl.isAllowed(handle1, user1));
+    }
 }
