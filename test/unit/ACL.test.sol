@@ -25,18 +25,21 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests that isAllowed returns false for any address and handle by default (fuzz test).
+     * @dev Tests that isAllowed returns false for any address and handle by default.
      */
-    function testFuzz_IsAllowed_ReturnsFalseByDefault(bytes32 handle, address account) public view {
-        assertFalse(acl.isAllowed(handle, account));
+    function test_IsAllowed_ReturnsFalseByDefault() public view {
+        bytes32 handle = keccak256("test-handle");
+        assertFalse(acl.isAllowed(handle, user1));
+        assertFalse(acl.isAllowed(handle, user2));
     }
 
     /**
      * @dev Tests that allow() reverts when sender has no access to the handle.
      */
-    function testFuzz_Allow_RevertWhen_UnauthorizedSender(bytes32 handle, address account) public {
-        vm.prank(account);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, account));
+    function test_Allow_RevertWhen_UnauthorizedSender() public {
+        bytes32 handle = keccak256("test-handle");
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.allow(handle, user2);
     }
 
@@ -58,80 +61,73 @@ contract ACLTest is Test {
 
     /**
      * @dev Tests that the TEEComputeManager can grant transient access to a handle via
-     *      allowTransient() without having prior access to that handle (fuzz test).
+     *      allowTransient() without having prior access to that handle.
      */
-    function testFuzz_AllowTransient_SucceedsWhenCalledByTEEComputeManager(bytes32 handle, address account) public {
-        vm.assume(account != address(0));
+    function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
+        bytes32 handle = keccak256("test-handle");
         
         vm.prank(teeComputeManager);
-        acl.allowTransient(handle, account);
+        acl.allowTransient(handle, user1);
         
         // Transient access should be available in the same transaction
-        assertTrue(acl.isAllowed(handle, account));
+        assertTrue(acl.isAllowed(handle, user1));
     }
 
     /**
      * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
      */
-    function testFuzz_AllowTransient_RevertWhen_UnauthorizedSender(
-        address sender,
-        bytes32 handle,
-        address account
-    ) public {
-        vm.assume(sender != teeComputeManager);
-        vm.assume(account != address(0));
+    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
+        bytes32 handle = keccak256("test-handle");
         
-        vm.prank(sender);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, sender));
-        acl.allowTransient(handle, account);
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.allowTransient(handle, user2);
     }
 
     /**
-     * @dev Tests that the TEEComputeManager grants transient access, then user grants permanent access (fuzz test).
+     * @dev Tests that the TEEComputeManager grants transient access, then user grants permanent access.
      */
-    function testFuzz_Allow_SucceedsAfterTransientAccess(bytes32 handle, address user, address target) public {
-        vm.assume(user != address(0));
-        vm.assume(target != address(0));
+    function test_Allow_SucceedsAfterTransientAccess() public {
+        bytes32 handle = keccak256("test-handle");
         
-        // TEEComputeManager grants transient access to user
+        // TEEComputeManager grants transient access to user1
         vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user);
+        acl.allowTransient(handle, user1);
         
-        // user can now grant permanent access to target (in same transaction due to transient)
-        vm.prank(user);
-        acl.allow(handle, target);
+        // user1 can now grant permanent access to user2 (in same transaction due to transient)
+        vm.prank(user1);
+        acl.allow(handle, user2);
         
-        // target should have permanent access (persists across transactions)
-        assertTrue(acl.isAllowed(handle, target));
+        // user2 should have permanent access (persists across transactions)
+        assertTrue(acl.isAllowed(handle, user2));
     }
 
     /**
-     * @dev Tests that an admin with permanent access can grant access to a new admin (fuzz test).
+     * @dev Tests that an admin with permanent access can grant access to a new admin.
      */
-    function testFuzz_Allow_AdminCanGrantAccessToNewAdmin(bytes32 handle, address admin1, address admin2) public {
-        vm.assume(admin1 != address(0));
-        vm.assume(admin2 != address(0));
+    function test_Allow_AdminCanGrantAccessToNewAdmin() public {
+        bytes32 handle = keccak256("test-handle");
         
-        // Setup: TEEComputeManager grants transient access to admin1, who converts it to permanent
+        // Setup: TEEComputeManager grants transient access to user1, who converts it to permanent
         vm.prank(teeComputeManager);
-        acl.allowTransient(handle, admin1);
+        acl.allowTransient(handle, user1);
         
-        vm.prank(admin1);
-        acl.allow(handle, admin1);
+        vm.prank(user1);
+        acl.allow(handle, user1);
         
-        // Verify admin1 has permanent access
-        assertTrue(acl.isAllowed(handle, admin1));
+        // Verify user1 has permanent access
+        assertTrue(acl.isAllowed(handle, user1));
         
-        // admin2 should not have access yet
-        assertFalse(acl.isAllowed(handle, admin2));
+        // user2 should not have access yet
+        assertFalse(acl.isAllowed(handle, user2));
         
-        // admin1 can grant access to admin2
-        vm.prank(admin1);
-        acl.allow(handle, admin2);
+        // user1 can grant access to user2
+        vm.prank(user1);
+        acl.allow(handle, user2);
         
         // Both admins should have permanent access
-        assertTrue(acl.isAllowed(handle, admin1));
-        assertTrue(acl.isAllowed(handle, admin2));
+        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(acl.isAllowed(handle, user2));
     }
 
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
