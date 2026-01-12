@@ -6,8 +6,8 @@ import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import {GatewayRegistry} from "../contracts/GatewayRegistry.sol";
-import {IGatewayRegistry} from "../contracts/interfaces/IGatewayRegistry.sol";
+import {GatewayRegistry} from "../../contracts/GatewayRegistry.sol";
+import {IGatewayRegistry} from "../../contracts/interfaces/IGatewayRegistry.sol";
 
 contract GatewayRegistryTest is Test {
     GatewayRegistry gatewayRegistry;
