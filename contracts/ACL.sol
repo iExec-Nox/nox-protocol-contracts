@@ -57,14 +57,20 @@ contract ACL is IACL {
 
     // ============ ALLOWANCE MANAGEMENT ============
     /// @inheritdoc IACL
-    function allow(bytes32 handle, address account) external override onlyAllowed(handle) notZeroAddress(account) {
+    function allow(
+        bytes32 handle,
+        address account
+    ) external override onlyAllowed(handle) notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
     }
 
     /// @inheritdoc IACL
-    function addViewer(bytes32 handle, address viewer) external override onlyAllowed(handle) notZeroAddress(viewer) {
+    function addViewer(
+        bytes32 handle,
+        address viewer
+    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
         ACLStorage storage $ = _getACLStorage();
         $.viewers[handle][viewer] = true;
         emit ViewerAdded(msg.sender, viewer, handle);
@@ -121,12 +127,12 @@ contract ACL is IACL {
      * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
      */
     function isAllowedTransient(bytes32 handle, address account) internal view returns (bool) {
-        bool isAllowedTransient;
+        bool isAllowedTransient_;
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
-            isAllowedTransient := tload(key)
+            isAllowedTransient_ := tload(key)
         }
-        return isAllowedTransient;
+        return isAllowedTransient_;
     }
 
     /**
