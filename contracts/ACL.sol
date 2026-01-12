@@ -94,6 +94,28 @@ contract ACL is IACL {
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
             tstore(key, 1)
+            let length := tload(0)
+            let lengthPlusOne := add(length, 1)
+            tstore(lengthPlusOne, key)
+            tstore(0, lengthPlusOne)
+        }
+    }
+
+    /// @inheritdoc IACL
+    function cleanTransientStorage() external override {
+        assembly {
+            let length := tload(0)
+            tstore(0, 0)
+            let lengthPlusOne := add(length, 1)
+            for {
+                let i := 1
+            } lt(i, lengthPlusOne) {
+                i := add(i, 1)
+            } {
+                let handle := tload(i)
+                tstore(i, 0)
+                tstore(handle, 0)
+            }
         }
     }
 
