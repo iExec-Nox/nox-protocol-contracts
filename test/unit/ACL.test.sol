@@ -35,29 +35,6 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests that allow() reverts when sender has no access to the handle.
-     */
-    function test_Allow_RevertWhen_UnauthorizedSender() public {
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
-        acl.allow(handle, user2);
-    }
-
-    /**
-     * @dev Tests that allow() reverts with zero address.
-     */
-    function test_Allow_RevertWhen_InvalidZeroAddress() public {
-        // First grant access to user1
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        // Try to grant to zero address
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
-        acl.allow(handle, address(0));
-    }
-
-    /**
      * @dev Tests that the TEEComputeManager can grant transient access to a handle via
      *      allowTransient() without having prior access to that handle.
      */
@@ -67,15 +44,6 @@ contract ACLTest is Test {
 
         // Transient access should be available in the same transaction
         assertTrue(acl.isAllowed(handle, user1));
-    }
-
-    /**
-     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
-     */
-    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
-        acl.allowTransient(handle, user2);
     }
 
     /**
@@ -121,33 +89,42 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests that isViewer returns false by default.
+     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
      */
-    function test_IsViewer_ReturnsFalseByDefault() public view {
-        assertFalse(acl.isViewer(handle, user1));
-    }
-
-    /**
-     * @dev Tests that addViewer() reverts when sender has no access to the handle.
-     */
-    function test_AddViewer_RevertWhen_UnauthorizedSender() public {
+    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
-        acl.addViewer(handle, user2);
+        acl.allowTransient(handle, user2);
     }
 
     /**
-     * @dev Tests that addViewer() reverts with zero address.
+     * @dev Tests that allow() reverts when sender has no access to the handle.
      */
-    function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
+    function test_Allow_RevertWhen_UnauthorizedSender() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.allow(handle, user2);
+    }
+
+    /**
+     * @dev Tests that allow() reverts with zero address.
+     */
+    function test_Allow_RevertWhen_InvalidZeroAddress() public {
         // First grant access to user1
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
 
-        // Try to add zero address as viewer
+        // Try to grant to zero address
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
-        acl.addViewer(handle, address(0));
+        acl.allow(handle, address(0));
+    }
+
+    /**
+     * @dev Tests that isViewer returns false by default.
+     */
+    function test_IsViewer_ReturnsFalseByDefault() public view {
+        assertFalse(acl.isViewer(handle, user1));
     }
 
     /**
@@ -174,6 +151,29 @@ contract ACLTest is Test {
 
         // Viewer should now be a viewer
         assertTrue(acl.isViewer(handle, viewer));
+    }
+
+    /**
+     * @dev Tests that addViewer() reverts when sender has no access to the handle.
+     */
+    function test_AddViewer_RevertWhen_UnauthorizedSender() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.addViewer(handle, user2);
+    }
+
+    /**
+     * @dev Tests that addViewer() reverts with zero address.
+     */
+    function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
+        // First grant access to user1
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        // Try to add zero address as viewer
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
+        acl.addViewer(handle, address(0));
     }
 
     /**
