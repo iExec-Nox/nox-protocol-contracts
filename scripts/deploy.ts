@@ -2,11 +2,11 @@ import hre from "hardhat";
 import GatewayRegistry from "../ignition/modules/GatewayRegistry.js";
 import ACL from "../ignition/modules/ACL.js";
 import config from "../config/config.js";
+import connection from "./ConnectionSingleton.js";
 
-async function main() {
-    const connection = await hre.network.connect();
+export async function deploy() {
     const chainConfig = config[connection.networkName];
-    console.log(`Deploying to network: ${connection.networkName} (chainId: ${chainConfig.chainId})`);
+    console.log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     console.log(`Chain config:`, chainConfig);
     // Deploy GatewayRegistry
     const { proxy: gatewayRegistryProxy } = await connection.ignition.deploy(GatewayRegistry, {
@@ -33,6 +33,14 @@ async function main() {
         },
     });
     console.log(`ACL: ${acl.address}`);
+    // Get contract instances as Viem contracts.
+    const { viem } = connection;
+    const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
+    const aclContract = await viem.getContractAt("ACL", acl.address);
+    return {
+        gatewayRegistry,
+        acl: aclContract,
+    };
 }
 
-main().catch(console.error);
+await deploy();

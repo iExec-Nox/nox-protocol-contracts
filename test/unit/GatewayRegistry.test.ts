@@ -1,14 +1,11 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
+import { loadFixture } from "../helpers/fixture.js";
 
-import { network } from "hardhat";
-import GatewayRegistryModule from "../../ignition/modules/GatewayRegistry.js";
-
-describe("GatewayRegistry", async function () {
-    const { ignition } = await network.connect();
-
+describe("GatewayRegistry", function () {
     it("Should deploy successfully", async function () {
-        const { gatewayRegistry } = await ignition.deploy(GatewayRegistryModule);
+        const { gatewayRegistry } = await loadFixture();
         assert.ok(gatewayRegistry.address);
+        assert.ok(await gatewayRegistry.read.defaultAdmin());
     });
 });
