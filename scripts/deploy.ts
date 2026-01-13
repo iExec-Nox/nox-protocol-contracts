@@ -11,7 +11,7 @@ import connection from "./utils/ConnectionSingleton.js";
 
 /**
  * Deployment function to be imported in other scripts.
- * @param log whether to logs deployment messages or not
+ * @param log whether to logs deployment messages or not, useful to get clean test logs
  * @returns addresses of deployed proxy contracts
  */
 export async function deploy(log = true) {
