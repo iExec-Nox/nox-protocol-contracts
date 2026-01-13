@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { loadFixture } from "../helpers/fixture.js";
+import { loadFixture } from "../utils/fixture.js";
 
 describe("GatewayRegistry", function () {
     describe("Deployment", function () {

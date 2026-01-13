@@ -1,7 +1,7 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { keccak256, toHex } from "viem";
-import { loadFixture } from "../helpers/fixture.js";
+import { loadFixture } from "../utils/fixture.js";
 
 describe("ACL", function () {
     describe("Deployment", function () {
