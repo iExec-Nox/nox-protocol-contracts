@@ -10,7 +10,7 @@ export async function loadFixture() {
  */
 async function deployFixture() {
     const viem = connection.viem;
-    const deployment = await deploy();
+    const deployment = await deploy(false); // disable logging for tests
     const [wallet0, wallet1] = await viem.getWalletClients();
     return {
         gatewayRegistry: deployment.gatewayRegistry,

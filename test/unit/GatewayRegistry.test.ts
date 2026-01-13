@@ -3,9 +3,11 @@ import { describe, it } from "node:test";
 import { loadFixture } from "../helpers/fixture.js";
 
 describe("GatewayRegistry", function () {
-    it("Should deploy successfully", async function () {
-        const { gatewayRegistry } = await loadFixture();
-        assert.ok(gatewayRegistry.address);
-        assert.ok(await gatewayRegistry.read.defaultAdmin());
+    describe("Deployment", function () {
+        it("Should deploy successfully", async function () {
+            const { gatewayRegistry } = await loadFixture();
+            assert.ok(gatewayRegistry.address);
+            assert.ok(await gatewayRegistry.read.defaultAdmin());
+        });
     });
 });

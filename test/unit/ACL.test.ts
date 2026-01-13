@@ -4,9 +4,11 @@ import { keccak256, toHex } from "viem";
 import { loadFixture } from "../helpers/fixture.js";
 
 describe("ACL", function () {
-    it("Should deploy successfully", async function () {
-        const { acl } = await loadFixture();
-        assert.ok(acl.address);
+    describe("Deployment", function () {
+        it("Should deploy successfully", async function () {
+            const { acl } = await loadFixture();
+            assert.ok(acl.address);
+        });
     });
 
     describe("isAllowed", function () {
