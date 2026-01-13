@@ -16,6 +16,7 @@ contract ACL is IACL {
         /// Admins can use a handle as input in computations, and can add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
         /// Viewers can decrypt the associated data
+        //TODO: Make viewer expirable
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         //TODO: Add Delegated Viewers
         address teeComputeManager;
@@ -37,6 +38,17 @@ contract ACL is IACL {
         _;
     }
 
+    /**
+     * Ensures the sender is allowed to access the handle
+     * @param handle The handle to check access for
+     */
+    modifier onlyAllowed(bytes32 handle) {
+        if (!isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
+        }
+        _;
+    }
+
     // ============ CONSTRUCTOR ============
     constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
@@ -45,13 +57,23 @@ contract ACL is IACL {
 
     // ============ ALLOWANCE MANAGEMENT ============
     /// @inheritdoc IACL
-    function allow(bytes32 handle, address account) external override notZeroAddress(account) {
-        if (!isAllowed(handle, msg.sender)) {
-            revert UnauthorizedSender(msg.sender);
-        }
+    function allow(
+        bytes32 handle,
+        address account
+    ) external override onlyAllowed(handle) notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
+    }
+
+    /// @inheritdoc IACL
+    function addViewer(
+        bytes32 handle,
+        address viewer
+    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
+        ACLStorage storage $ = _getACLStorage();
+        $.viewers[handle][viewer] = true;
+        emit ViewerAdded(msg.sender, viewer, handle);
     }
 
     /**
@@ -87,7 +109,13 @@ contract ACL is IACL {
     }
 
     // ============ ALLOWANCE QUERIES ============
-    // @inheritdoc IACL
+    /// @inheritdoc IACL
+    function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
+        ACLStorage storage $ = _getACLStorage();
+        return $.viewers[handle][viewer];
+    }
+
+    /// @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);
     }
