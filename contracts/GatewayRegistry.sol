@@ -14,6 +14,7 @@ contract GatewayRegistry is
     AccessControlDefaultAdminRulesUpgradeable
 {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    bytes32 public constant GATEWAY_ROLE = keccak256("GATEWAY_ROLE");
 
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
