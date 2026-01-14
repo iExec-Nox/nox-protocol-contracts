@@ -4,5 +4,19 @@
   // be very noisy so here we add words that are not spelling mistakes
   // (names, ...) to reduce noise while keeping the detection effective.
   // Note: keep alphabetical order when updating.
-  "cSpell.words": ["crytic", "IERC", "Initializable", "keccak", "nvmrc", "sarif", "upgrader", "UUPS", "viem"]
+  "cSpell.words": [
+    "crytic",
+    "IACL",
+    "IERC",
+    "inheritdoc",
+    "Initializable",
+    "keccak",
+    "nvmrc",
+    "sarif",
+    "tload",
+    "tstore",
+    "upgrader",
+    "UUPS",
+    "viem"
+  ]
 }
