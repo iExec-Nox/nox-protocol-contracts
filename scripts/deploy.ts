@@ -11,11 +11,14 @@ import connection from "./utils/ConnectionSingleton.js";
 
 /**
  * Deployment function to be imported in other scripts.
- * @param log whether to logs deployment messages or not, useful to get clean test logs
- * @returns addresses of deployed proxy contracts
+ * @param log whether to print deployment messages or not, useful to get clean test logs
+ * @returns Viem contract instances for the deployed proxy contracts
  */
 export async function deploy(log = true) {
     const chainConfig = config[connection.networkName];
+    if (!chainConfig) {
+        throw new Error(`No chain config found for network: ${connection.networkName}`);
+    }
     if (log) {
         console.log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
         console.log(`Chain config:`, chainConfig);
@@ -69,5 +72,5 @@ function _isHardhatRunCommand() {
     const filename = path.basename(import.meta.filename);
     // When running `hardhat run scripts/deploy.ts`, the argv looks like:
     // [ "/.../bin/node", "/.../cli.js", "run", "scripts/deploy.ts"];
-    return process.argv[2] === "run" && process.argv[3].includes(filename);
+    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes(filename);
 }

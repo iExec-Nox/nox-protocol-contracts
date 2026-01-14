@@ -3,6 +3,6 @@
   // Spellcheckers are essential to help detect code mistakes but they can
   // be very noisy so here we add words that are not spelling mistakes
   // (names, ...) to reduce noise while keeping the detection effective.
-  // Note: keep alphebetical order when updating.
+  // Note: keep alphabetical order when updating.
   "cSpell.words": ["crytic", "IERC", "Initializable", "keccak", "nvmrc", "sarif", "upgrader", "UUPS", "viem"]
 }

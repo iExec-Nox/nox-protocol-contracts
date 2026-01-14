@@ -6,7 +6,7 @@ export async function loadFixture() {
 }
 
 /**
- * This functions defines the fixture to deploy for tests. Update this function when needed.
+ * This function defines the fixture to deploy for tests. Update this function when needed.
  */
 async function deployFixture() {
     const viem = connection.viem;
