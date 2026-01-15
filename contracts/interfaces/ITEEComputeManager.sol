@@ -14,5 +14,5 @@ interface ITEEComputeManager {
      * @param teeType The type of the encrypted value
      * @return The encrypted value
      */
-    function trivialEncrypt(uint256 value, TEEType teeType) external returns (uint256);
+    function trivialEncrypt(uint256 value, TEEType teeType) external returns (bytes32);
 }
