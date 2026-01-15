@@ -14,6 +14,9 @@ importers:
       '@openzeppelin/contracts-upgradeable':
         specifier: ^5.4.0
         version: 5.4.0(@openzeppelin/contracts@5.4.0)
+      encrypted-types:
+        specifier: ^0.0.4
+        version: 0.0.4
     devDependencies:
       '@nomicfoundation/hardhat-ignition':
         specifier: ^3.0.6
@@ -649,6 +652,9 @@ packages:
 
   emoji-regex@10.6.0:
     resolution: {integrity: sha512-toUI84YS5YmxW219erniWD0CIVOo46xGKColeNQRgOzDorgBi1v4D71/OFzgD9GO2UGKIv1C3Sp8DAn0+j5w7A==}
+
+  encrypted-types@0.0.4:
+    resolution: {integrity: sha512-f55ccBBUwvqWqr3ymAVOLZ6bzjsSQZlDN0GcKFmzkvTpml4Vm3Y6BCaHhCuW/ctrabTJJ3DFnUsjtFOpokJUaQ==}
 
   enquirer@2.4.1:
     resolution: {integrity: sha512-rRqJg/6gd538VHvR3PSrdRBb/1Vy2YfzHqzvbhGIQpDRKIa4FgV/54b5Q1xYSxOOwKvjXweS26E0Q+nAMwp2pQ==}
@@ -1661,6 +1667,8 @@ snapshots:
       minimalistic-crypto-utils: 1.0.1
 
   emoji-regex@10.6.0: {}
+
+  encrypted-types@0.0.4: {}
 
   enquirer@2.4.1:
     dependencies:
