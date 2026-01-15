@@ -1,0 +1,37 @@
+// Tasks are defined here to avoid mistyping `npm` instead of `pnpm`.
+// It also simplifies switching between projects using different package managers.
+// Usage: Ctrl+Shift+P > Tasks: Run task > Select task.
+{
+  "version": "2.0.0",
+  "tasks": [
+    {
+      "label": "hardhat build",
+      "type": "npm",
+      "script": "build",
+      "group": "build",
+      "problemMatcher": [],
+      "presentation": {
+        "focus": true
+      }
+    },
+    {
+      "label": "hardhat test",
+      "type": "npm",
+      "script": "test",
+      "group": "test",
+      "problemMatcher": [],
+      "presentation": {
+        "focus": true
+      }
+    },
+    {
+      "label": "hardhat deploy",
+      "type": "npm",
+      "script": "deploy",
+      "problemMatcher": [],
+      "presentation": {
+        "focus": true
+      }
+    }
+  ]
+}
