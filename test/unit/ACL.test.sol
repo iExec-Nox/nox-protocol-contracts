@@ -13,6 +13,8 @@ contract ACLTest is Test {
     address internal viewer1;
     address internal viewer2;
     bytes32 internal handle;
+    bytes32 internal handle2;
+    bytes32 internal handle3;
 
     function setUp() public {
         teeComputeManager = makeAddr("teeComputeManager");
@@ -20,7 +22,9 @@ contract ACLTest is Test {
         user2 = makeAddr("user2");
         viewer1 = makeAddr("viewer1");
         viewer2 = makeAddr("viewer2");
-        handle = keccak256("test-handle");
+        handle = keccak256("handle-1");
+        handle2 = keccak256("handle-2");
+        handle3 = keccak256("handle-3");
 
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
@@ -237,6 +241,59 @@ contract ACLTest is Test {
         vm.prank(viewer1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, viewer1));
         acl.addViewer(handle, viewer2);
+    }
+
+    // ============ cleanTransientStorage ============
+
+    /**
+     * @dev Tests that cleanTransientStorage properly clears all transient permissions
+     *      for multiple handles and accounts in a userOp context.
+     */
+    function test_CleanTransientStorage_ClearsMultipleTransientPermissions() public {
+        // Simulate a userOp context where TEEComputeManager grants multiple transient permissions
+        vm.startPrank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+        acl.allowTransient(handle2, user2);
+        vm.stopPrank();
+
+        // Verify all transient permissions are active
+        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(acl.isAllowed(handle2, user2));
+
+        // Clean transient storage (simulating end of userOp)
+        acl.cleanTransientStorage();
+
+        // Verify all transient permissions are cleared
+        assertFalse(acl.isAllowed(handle, user1));
+        assertFalse(acl.isAllowed(handle2, user2));
+    }
+
+    /**
+     * @dev Tests that cleanTransientStorage only clears transient permissions
+     *      and does not affect persistent permissions in a userOp context.
+     */
+    function test_CleanTransientStorage_PreservesPersistentPermissions() public {
+        // Grant persistent permission to user1 for handle
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+        vm.prank(user1);
+        acl.allow(handle, user1);
+
+        // Grant multiple transient permissions in a userOp context
+        vm.startPrank(teeComputeManager);
+        acl.allowTransient(handle2, user2);
+        vm.stopPrank();
+
+        // Verify all permissions are active
+        assertTrue(acl.isAllowed(handle, user1)); // persistent
+        assertTrue(acl.isAllowed(handle2, user2)); // transient
+
+        // Clean transient storage (simulating end of userOp)
+        acl.cleanTransientStorage();
+
+        // Verify persistent permission remains while transient are cleared
+        assertTrue(acl.isAllowed(handle, user1)); // persistent - still there
+        assertFalse(acl.isAllowed(handle2, user2)); // transient - cleared
     }
 
     //TODO: Tests that permanent access persists while transient does not after the end of the transaction
