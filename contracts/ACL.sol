@@ -38,6 +38,17 @@ contract ACL is IACL {
         _;
     }
 
+    /**
+     * Ensures the sender is allowed to access the handle
+     * @param handle The handle to check access for
+     */
+    modifier onlyAllowed(bytes32 handle) {
+        if (!isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
+        }
+        _;
+    }
+
     // ============ CONSTRUCTOR ============
     constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
@@ -46,20 +57,20 @@ contract ACL is IACL {
 
     // ============ ALLOWANCE MANAGEMENT ============
     /// @inheritdoc IACL
-    function allow(bytes32 handle, address account) external override notZeroAddress(account) {
-        if (!isAllowed(handle, msg.sender)) {
-            revert UnauthorizedSender(msg.sender);
-        }
+    function allow(
+        bytes32 handle,
+        address account
+    ) external override onlyAllowed(handle) notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
     }
 
     /// @inheritdoc IACL
-    function addViewer(bytes32 handle, address viewer) external override notZeroAddress(viewer) {
-        if (!isAllowed(handle, msg.sender)) {
-            revert UnauthorizedSender(msg.sender);
-        }
+    function addViewer(
+        bytes32 handle,
+        address viewer
+    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
         ACLStorage storage $ = _getACLStorage();
         $.viewers[handle][viewer] = true;
         emit ViewerAdded(msg.sender, viewer, handle);

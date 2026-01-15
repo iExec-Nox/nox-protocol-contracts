@@ -1,49 +1,20 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import hre from "hardhat";
-import ACLModule from "../../ignition/modules/ACL.js";
 import { keccak256, toHex } from "viem";
+import { loadFixture } from "../utils/fixture.js";
 
-const { networkHelpers, viem, ignition } = await hre.network.connect();
-
-describe("ACL", async function () {
-    async function deployACLFixture() {
-        const [ownerWallet, unauthorizedWallet, teeComputeManager] = await viem.getWalletClients();
-        // Note: We use teeComputeManager as a wallet (instead of just an address) because we need
-        // to impersonate it and send transactions from it in tests
-
-        const { acl } = await ignition.deploy(ACLModule, {
-            parameters: {
-                ACLModule: {
-                    teeComputeManager: teeComputeManager.account.address,
-                },
-            },
+describe("ACL", function () {
+    describe("Deployment", function () {
+        it("Should deploy successfully", async function () {
+            const { acl } = await loadFixture();
+            assert.ok(acl.address);
         });
-
-        // Deploy ACLMock for testing transient/persistent in two different transactions
-        const aclMock = await viem.deployContract("ACLMock");
-
-        return {
-            acl,
-            aclMock,
-            teeComputeManager: teeComputeManager,
-            ownerWallet,
-            unauthorizedWallet,
-        };
-    }
-
-    it("Should deploy successfully the ACL contract", async function () {
-        const { acl } = await networkHelpers.loadFixture(deployACLFixture);
-
-        assert.ok(acl.address);
     });
 
     describe("isAllowed", function () {
         it("Should return false for addresses without permission", async function () {
-            const { acl, unauthorizedWallet } = await networkHelpers.loadFixture(deployACLFixture);
-
+            const { acl, wallet1: unauthorizedWallet } = await loadFixture();
             const handle = keccak256(toHex("test-handle"));
-
             const isAllowed = await acl.read.isAllowed([handle, unauthorizedWallet.account.address]);
             assert.strictEqual(isAllowed, false);
         });
