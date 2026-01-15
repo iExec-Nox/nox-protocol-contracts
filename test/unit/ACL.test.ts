@@ -34,8 +34,6 @@ describe("ACL", function () {
             const handlePersistent = keccak256(toHex("handle-persistent"));
 
             // Single transaction: Grant transient to one handle and persistent to another (same account)
-            // This uses the mock helper to do both in the same transaction
-            // The ACLMock contract itself is the teeComputeManager, so we use wallet0 to call it
             await aclMock.write.grantTransientAndPersistent([
                 handleTransient,
                 handlePersistent,
@@ -52,9 +50,7 @@ describe("ACL", function () {
             const isAllowedTransient = await aclContract.read.isAllowed([handleTransient, wallet0.account.address]);
             const isAllowedPersistent = await aclContract.read.isAllowed([handlePersistent, wallet0.account.address]);
 
-            // Transient permission should be cleared after the transaction
             assert.strictEqual(isAllowedTransient, false, "Transient permission should be cleared after tx");
-            // Persistent permission should remain
             assert.strictEqual(isAllowedPersistent, true, "Persistent permission should remain");
         });
     });
