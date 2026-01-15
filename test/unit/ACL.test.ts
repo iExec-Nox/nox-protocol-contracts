@@ -21,7 +21,7 @@ describe("ACL", function () {
         });
     });
 
-    describe("Transient vs Persistent permissions", function () {
+    describe("Transient & Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
             const { wallet0 } = await loadFixture();
             const viem = connection.viem;
