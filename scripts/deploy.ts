@@ -2,7 +2,7 @@ import path from "path";
 import GatewayRegistry from "../ignition/modules/GatewayRegistry.js";
 import ACL from "../ignition/modules/ACL.js";
 import config from "../config/config.js";
-import connection from "./utils/ConnectionSingleton.js";
+import connection from "./utils/hardhat-connection-singleton.js";
 
 // Deployment script for the Nox Contracts. It fetches the target chain config
 // from the config file and uses the Hardhat Ignition plugin to import and deploy
