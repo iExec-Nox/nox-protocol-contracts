@@ -4,11 +4,11 @@ pragma solidity ^0.8.0;
 import "../ACL.sol";
 
 /**
- * @title ACLMock
- * @dev Mock contract for testing ACL functionality with helper functions
- * This contract wraps ACL to provide test utilities that execute multiple operations in one transaction
+ * @title TEEComputeManagerMock
+ * @dev Mock TEEComputeManager contract for testing ACL functionality with helper functions
+ * This contract acts as a mock TEE Compute Manager to test ACL permissions
  */
-contract ACLMock {
+contract TEEComputeManagerMock {
     ACL public immutable acl;
 
     constructor() {
