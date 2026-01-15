@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { keccak256, toHex } from "viem";
 import { loadFixture } from "../utils/fixture.js";
+import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 
 describe("ACL", function () {
     describe("Deployment", function () {
@@ -22,33 +23,34 @@ describe("ACL", function () {
 
     describe("Transient vs Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
-            const { aclMock, teeComputeManager, ownerWallet } = await networkHelpers.loadFixture(deployACLFixture);
+            const { wallet0 } = await loadFixture();
+            const viem = connection.viem;
+            const networkHelpers = connection.networkHelpers;
+
+            // Deploy ACLMock for this test
+            const aclMock = await viem.deployContract("ACLMock");
 
             const handleTransient = keccak256(toHex("handle-transient"));
             const handlePersistent = keccak256(toHex("handle-persistent"));
 
             // Single transaction: Grant transient to one handle and persistent to another (same account)
             // This uses the mock helper to do both in the same transaction
-            await aclMock.write.grantTransientAndPersistent(
-                [handleTransient, handlePersistent, ownerWallet.account.address],
-                {
-                    account: teeComputeManager.account,
-                },
-            );
+            // The ACLMock contract itself is the teeComputeManager, so we use wallet0 to call it
+            await aclMock.write.grantTransientAndPersistent([
+                handleTransient,
+                handlePersistent,
+                wallet0.account.address,
+            ]);
 
             // Mine a new block to further verify persistence
             await networkHelpers.mine();
 
             // New transaction: Check permissions - transient should be gone, persistent should remain
-            const acl = aclMock.read.acl();
-            const aclAddress = await acl;
+            const aclAddress = await aclMock.read.acl();
             const aclContract = await viem.getContractAt("ACL", aclAddress);
 
-            const isAllowedTransient = await aclContract.read.isAllowed([handleTransient, ownerWallet.account.address]);
-            const isAllowedPersistent = await aclContract.read.isAllowed([
-                handlePersistent,
-                ownerWallet.account.address,
-            ]);
+            const isAllowedTransient = await aclContract.read.isAllowed([handleTransient, wallet0.account.address]);
+            const isAllowedPersistent = await aclContract.read.isAllowed([handlePersistent, wallet0.account.address]);
 
             // Transient permission should be cleared after the transaction
             assert.strictEqual(isAllowedTransient, false, "Transient permission should be cleared after tx");
