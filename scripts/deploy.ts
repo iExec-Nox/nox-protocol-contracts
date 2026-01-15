@@ -69,8 +69,7 @@ if (_isHardhatRunCommand()) {
 }
 
 function _isHardhatRunCommand() {
-    const filename = path.basename(import.meta.filename);
     // When running `hardhat run scripts/deploy.ts`, the argv looks like:
     // [ "/.../bin/node", "/.../cli.js", "run", "scripts/deploy.ts"];
-    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes(filename);
+    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/deploy.ts");
 }
