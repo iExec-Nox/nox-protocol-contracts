@@ -1,5 +1,5 @@
 import { deploy } from "../../scripts/deploy.js";
-import connection from "../../scripts/utils/ConnectionSingleton.js";
+import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 
 export async function loadFixture() {
     return await connection.networkHelpers.loadFixture(deployFixture);
