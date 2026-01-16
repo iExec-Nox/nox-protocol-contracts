@@ -56,6 +56,24 @@ contract ACL is IACL {
         ACLStorage storage $ = _getACLStorage();
         $.teeComputeManager = teeComputeManager;
     }
+    
+    // ============ PUBLIC DECRYPTION ============
+    /// @inheritdoc IACL
+    function allowPublicDecryption(bytes32 handle) external override {
+        if (!isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
+        }
+        
+        ACLStorage storage $ = _getACLStorage();
+        $.isPubliclyDecryptable[handle] = true;
+        emit MarkedPubliclyDecryptable(msg.sender, handle);
+    }
+
+    /// @inheritdoc IACL
+    function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
+        ACLStorage storage $ = _getACLStorage();
+        return $.isPubliclyDecryptable[handle];
+    }
 
     // ============ ALLOWANCE MANAGEMENT ============
     /// @inheritdoc IACL
@@ -168,24 +186,6 @@ contract ACL is IACL {
     function isAllowedPersistent(bytes32 handle, address account) internal view returns (bool) {
         ACLStorage storage $ = _getACLStorage();
         return $.admins[handle][account];
-    }
-
-    // ============ PUBLIC DECRYPTION ============
-    /// @inheritdoc IACL
-    function allowPublicDecryption(bytes32 handle) external override {
-        if (!isAllowed(handle, msg.sender)) {
-            revert UnauthorizedSender(msg.sender);
-        }
-        
-        ACLStorage storage $ = _getACLStorage();
-        $.isPubliclyDecryptable[handle] = true;
-        emit MarkedPubliclyDecryptable(msg.sender, handle);
-    }
-
-    /// @inheritdoc IACL
-    function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
-        ACLStorage storage $ = _getACLStorage();
-        return $.isPubliclyDecryptable[handle];
     }
 
     // ============ INTERNAL HELPERS ============
