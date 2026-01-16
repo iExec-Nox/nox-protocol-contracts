@@ -42,6 +42,13 @@ interface IACL {
     function allowTransient(bytes32 handle, address account) external;
 
     /**
+     * Removes all transient allowances. This is useful for integration with Account Abstraction
+     * when bundling several UserOps calling the TEEComputeManager.
+     * @dev Can be called by anyone (typically by AA bundlers between UserOps).
+     */
+    function cleanTransientStorage() external;
+
+    /**
      * Returns whether the account is allowed to use the `handle`, either due to
      * allowTransient() or allow().
      * @param handle Handle.
