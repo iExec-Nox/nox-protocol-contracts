@@ -18,6 +18,8 @@ contract ACL is IACL {
         /// Viewers can decrypt the associated data
         //TODO: Make viewer expirable
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
+        /// Handles that are publicly decryptable
+        mapping(bytes32 handle => bool) isPubliclyDecryptable;
         //TODO: Add Delegated Viewers
         address teeComputeManager;
     }
@@ -166,6 +168,31 @@ contract ACL is IACL {
     function isAllowedPersistent(bytes32 handle, address account) internal view returns (bool) {
         ACLStorage storage $ = _getACLStorage();
         return $.admins[handle][account];
+    }
+
+    // ============ PUBLIC DECRYPTION ============
+    /// @inheritdoc IACL
+    function allowPublicDecryption(bytes32[] memory handlesList) external override {
+        uint256 lenHandlesList = handlesList.length;
+        if (lenHandlesList == 0) {
+            revert HandlesListIsEmpty();
+        }
+
+        ACLStorage storage $ = _getACLStorage();
+        for (uint256 k = 0; k < lenHandlesList; k++) {
+            bytes32 handle = handlesList[k];
+            if (!isAllowed(handle, msg.sender)) {
+                revert UnauthorizedSender(msg.sender);
+            }
+            $.isPubliclyDecryptable[handle] = true;
+        }
+        emit MarkedPubliclyDecryptable(msg.sender, handlesList);
+    }
+
+    /// @inheritdoc IACL
+    function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
+        ACLStorage storage $ = _getACLStorage();
+        return $.isPubliclyDecryptable[handle];
     }
 
     // ============ INTERNAL HELPERS ============

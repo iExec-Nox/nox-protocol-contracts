@@ -296,5 +296,67 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle2, user2)); // transient - cleared
     }
 
-    //TODO: Tests that permanent access persists while transient does not after the end of the transaction
+    // ============ allowPublicDecryption ============
+
+    /**
+     * @dev Tests that an admin can mark handles as publicly decryptable.
+     */
+    function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
+        // Setup: grant user1 admin access to both handles
+        vm.startPrank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+        acl.allowTransient(handle2, user1);
+        vm.stopPrank();
+
+        vm.startPrank(user1);
+        acl.allow(handle, user1);
+        acl.allow(handle2, user1);
+        vm.stopPrank();
+
+        // Mark both handles as publicly decryptable
+        bytes32[] memory handlesList = new bytes32[](2);
+        handlesList[0] = handle;
+        handlesList[1] = handle2;
+
+        vm.prank(user1);
+        vm.expectEmit();
+        emit IACL.MarkedPubliclyDecryptable(user1, handlesList);
+        acl.allowPublicDecryption(handlesList);
+
+        // Verify both handles are marked as publicly decryptable
+        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(acl.isPubliclyDecryptable(handle2));
+    }
+
+    /**
+     * @dev Tests that allowPublicDecryption() reverts when sender doesn't have access to a handle.
+     */
+    function test_AllowPublicDecryption_RevertWhen_UnauthorizedSender() public {
+        bytes32[] memory handlesList = new bytes32[](1);
+        handlesList[0] = handle;
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.allowPublicDecryption(handlesList);
+    }
+
+    /**
+     * @dev Tests that allowPublicDecryption() reverts when handles list is empty.
+     */
+    function test_AllowPublicDecryption_RevertWhen_EmptyList() public {
+        bytes32[] memory handlesList = new bytes32[](0);
+
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.HandlesListIsEmpty.selector));
+        acl.allowPublicDecryption(handlesList);
+    }
+
+    // ============ isPubliclyDecryptable ============
+
+    /**
+     * @dev Tests that isPubliclyDecryptable returns false by default.
+     */
+    function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
+        assertFalse(acl.isPubliclyDecryptable(handle));
+    }
 }
