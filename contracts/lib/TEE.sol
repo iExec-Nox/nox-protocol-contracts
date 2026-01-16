@@ -3,11 +3,14 @@ pragma solidity ^0.8.0;
 
 import "../shared/TEEType.sol";
 import "../interfaces/ITEEComputeManager.sol";
+import "../interfaces/IACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
 /**
  * @title TEE
  * @notice Library providing convenient functions for TEE confidential computations.
+ * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
+ *      the transaction will revert as it will not be recognized by the ACL.
  */
 library TEE {
     /// @notice Reference to TEE services config
@@ -30,7 +33,7 @@ library TEE {
     /**
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
-    function asEbool(bool value) internal returns (ebool) {
+    function toEbool(bool value) internal returns (ebool) {
         TEEConfig storage $ = _getTEEStorage();
         if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
         return
@@ -42,7 +45,7 @@ library TEE {
     /**
      * @dev Convert a plaintext address to an encrypted address.
      */
-    function asEaddress(address value) internal returns (eaddress) {
+    function toEaddress(address value) internal returns (eaddress) {
         TEEConfig storage $ = _getTEEStorage();
         if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
         return
@@ -57,7 +60,7 @@ library TEE {
     /**
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
-    function asEuint256(uint256 value) internal returns (euint256) {
+    function toEuint256(uint256 value) internal returns (euint256) {
         TEEConfig storage $ = _getTEEStorage();
         if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
         return
@@ -69,13 +72,146 @@ library TEE {
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
-    function asEint256(int256 value) internal returns (eint256) {
+    function toEint256(int256 value) internal returns (eint256) {
         TEEConfig storage $ = _getTEEStorage();
         if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
         return
             eint256.wrap(
                 ITEEComputeManager($.computeManager).trivialEncrypt(uint256(value), TEEType.Int256)
             );
+    }
+
+    // ============ PERMISSION MANAGEMENT ============
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(ebool value, address account) internal returns (ebool) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(ebool.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(ebool value) internal returns (ebool) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(ebool.unwrap(value), address(this));
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(ebool value, address account) internal returns (ebool) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allowTransient(ebool.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(euint256 value, address account) internal returns (euint256) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(euint256.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(euint256 value) internal returns (euint256) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(euint256.unwrap(value), address(this));
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(euint256 value, address account) internal returns (euint256) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allowTransient(euint256.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(eint256 value, address account) internal returns (eint256) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(eint256.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(eint256 value) internal returns (eint256) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(eint256.unwrap(value), address(this));
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(eint256 value, address account) internal returns (eint256) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allowTransient(eint256.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(eaddress value, address account) internal returns (eaddress) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(eaddress.unwrap(value), account);
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(eaddress value) internal returns (eaddress) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(eaddress.unwrap(value), address(this));
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(eaddress value, address account) internal returns (eaddress) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allowTransient(eaddress.unwrap(value), account);
+        }
+        return value;
     }
 
     // ============ TEE CONFIGURATION ============
