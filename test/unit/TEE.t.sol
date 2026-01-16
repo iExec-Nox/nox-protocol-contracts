@@ -157,4 +157,50 @@ contract TEELibTest is Test {
         TEE.allowTransient(value, user2);
         assertTrue(acl.isAllowed(handle, user2));
     }
+
+    // ============ Public Decryption ============
+
+    function test_AllowPublicDecryption_Ebool_MarksAsPubliclyDecryptable() public {
+        ebool value = TEE.toEbool(true);
+        bytes32 handle = ebool.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEE.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    function test_AllowPublicDecryption_Eaddress_MarksAsPubliclyDecryptable() public {
+        eaddress value = TEE.toEaddress(user1);
+        bytes32 handle = eaddress.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEE.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    function test_AllowPublicDecryption_Euint256_MarksAsPubliclyDecryptable() public {
+        euint256 value = TEE.toEuint256(12345);
+        bytes32 handle = euint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEE.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    function test_AllowPublicDecryption_Eint256_MarksAsPubliclyDecryptable() public {
+        eint256 value = TEE.toEint256(-999);
+        bytes32 handle = eint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEE.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
 }
