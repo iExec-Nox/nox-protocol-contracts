@@ -1,6 +1,7 @@
 import path from "path";
 import GatewayRegistry from "../ignition/modules/GatewayRegistry.js";
 import ACL from "../ignition/modules/ACL.js";
+import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
 import config from "../config/config.js";
 import connection from "./utils/hardhat-connection-singleton.js";
 
@@ -38,27 +39,43 @@ export async function deploy(log = true) {
         console.log(`GatewayRegistry: ${gatewayRegistryProxy.address}`);
     }
     // TODO Deploy TEE Compute Manager
-    const teeComputeManager = "0x000000000000000000000000000000000000000a";
+    const teeComputeManagerTempAddress = "0x000000000000000000000000000000000000000a";
     // Deploy ACL
     const { acl } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
         displayUi: log,
         parameters: {
             ACL: {
-                teeComputeManager: teeComputeManager,
+                teeComputeManager: teeComputeManagerTempAddress,
             },
         },
     });
     if (log) {
         console.log(`ACL: ${acl.address}`);
     }
+    // Deploy TEEComputeManager with the deployed ACL address.
+    const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
+        deploymentId: connection.networkName,
+        displayUi: log,
+        parameters: {
+            TEEComputeManager: {
+                initialOwner: chainConfig.initialAdmin,
+                acl: acl.address,
+            },
+        },
+    });
+    if (log) {
+        console.log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
+    }
     // Get contract instances as Viem contracts.
     const { viem } = connection;
     const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
     const aclContract = await viem.getContractAt("ACL", acl.address);
+    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
     return {
         gatewayRegistry,
         acl: aclContract,
+        teeComputeManager,
     };
 }
 

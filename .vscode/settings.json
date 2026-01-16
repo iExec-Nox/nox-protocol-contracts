@@ -5,16 +5,19 @@
   // (names, ...) to reduce noise while keeping the detection effective.
   // Note: keep alphabetical order when updating.
   "cSpell.words": [
+    "CIPHERTEXT",
     "crytic",
     "IACL",
     "IERC",
     "inheritdoc",
     "Initializable",
+    "ITEE",
     "keccak",
     "nvmrc",
     "sarif",
     "tload",
     "tstore",
+    "TYPEHASH",
     "upgrader",
     "UUPS",
     "viem"

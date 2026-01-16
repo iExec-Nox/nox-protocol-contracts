@@ -1,0 +1,98 @@
+// SPDX-License-Identifier: Apache-2.0
+pragma solidity ^0.8.0;
+
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
+import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
+
+/**
+ * TODO
+ */
+contract TEEComputeManager is
+    ITEEComputeManager,
+    UUPSUpgradeable,
+    OwnableUpgradeable,
+    EIP712Upgradeable
+{
+    /// @custom:storage-location erc7201:nox.storage.TEEComputeManager
+    struct TEEComputeManagerStorage {
+        address acl;
+    }
+
+    // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant TEE_COMPUTE_MANGER_STORAGE_LOCATION =
+        0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
+
+    bytes32 CIPHERTEXT_VERIFICATION_TYPEHASH =
+        keccak256(
+            "CiphertextVerification(bytes32 handle,address owner,address ACL, uint256 createdAt)"
+        );
+
+    /**
+     * @custom:oz-upgrades-unsafe-allow constructor
+     */
+    constructor() {
+        _disableInitializers();
+    }
+
+    /**
+     * Initializes the proxy contract state.
+     * @param initialOwner Initial owner address
+     * @param acl ACL contract address
+     */
+    function initialize(address initialOwner, address acl) public initializer {
+        __UUPSUpgradeable_init();
+        __Ownable_init(initialOwner);
+        __EIP712_init("TEEComputeManager", "1");
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.acl = acl;
+    }
+
+    function validateProof(bytes32 handle, address signer, bytes calldata proof) public view {
+        // proof = owner || ACL || createdAt || EIP-712 signature (65 bytes)
+        //          20      20       32                    65
+        if (proof.length != 137) {
+            revert InvalidProof(proof, "Invalid length");
+        }
+        address owner = address(bytes20(proof[0:20]));
+        address acl = address(bytes20(proof[20:40]));
+        uint256 createdAt = uint256(bytes32(proof[40:72]));
+        bytes calldata signature = proof[72:137];
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        if (acl != $.acl) {
+            revert InvalidProof(proof, "ACL mismatch");
+        }
+        // TODO add checks for `createdAt`.
+        bytes32 eip712MessageHash = _hashTypedDataV4(
+            keccak256(abi.encode(CIPHERTEXT_VERIFICATION_TYPEHASH, handle, owner, acl, createdAt))
+        );
+        if (ECDSA.recover(eip712MessageHash, signature) != signer) {
+            revert InvalidProof(proof, "Signer mismatch");
+        }
+    }
+
+    // function add(euint256 a, euint256 b) external {
+    //     // check a and b types
+    //     // check caller permissions
+    //     // create resultHandle
+    //     // perform addition in TEE (emit event)
+    //     // return resultHandle
+    // }
+
+    /**
+     * Authorizes contract upgrades only by the owner.
+     */
+    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+
+    function _getTEEComputeManagerStorage()
+        private
+        pure
+        returns (TEEComputeManagerStorage storage $)
+    {
+        assembly {
+            $.slot := TEE_COMPUTE_MANGER_STORAGE_LOCATION
+        }
+    }
+}
