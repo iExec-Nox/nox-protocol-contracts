@@ -12,17 +12,14 @@ interface IACL {
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
 
-    /// Error thrown when handles list is empty
-    error HandlesListIsEmpty();
-
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
 
     /// Emitted when viewer role is granted
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
 
-    /// Emitted when handles are marked as publicly decryptable
-    event MarkedPubliclyDecryptable(address indexed sender, bytes32[] handles);
+    /// Emitted when a handle is marked as publicly decryptable
+    event MarkedPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
 
     /**
      * Grant admin role to another address for a specific handle
@@ -72,12 +69,12 @@ interface IACL {
     function isViewer(bytes32 handle, address viewer) external view returns (bool);
 
     /**
-     * Mark a list of handles as publicly decryptable.
-     * @dev The caller must be allowed to use each handle in handlesList.
+     * Mark a handle as publicly decryptable.
+     * @dev The caller must be allowed to use the handle.
      *      If not, the function reverts.
-     * @param handlesList List of handles to mark as publicly decryptable.
+     * @param handle Handle to mark as publicly decryptable.
      */
-    function allowPublicDecryption(bytes32[] memory handlesList) external;
+    function allowPublicDecryption(bytes32 handle) external;
 
     /**
      * Checks whether a handle is publicly decryptable.
