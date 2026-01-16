@@ -72,7 +72,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         // Now allow for user1
-        value = TEE.allow(value, user1);
+        TEE.allow(value, user1);
 
         assertTrue(acl.isAllowed(handle, user1));
     }
@@ -84,7 +84,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allow(value, user2);
+        TEE.allow(value, user2);
         assertTrue(acl.isAllowed(handle, user2));
     }
 
@@ -95,7 +95,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allow(value, user1);
+        TEE.allow(value, user1);
         assertTrue(acl.isAllowed(handle, user1));
     }
 
@@ -106,7 +106,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allow(value, user2);
+        TEE.allow(value, user2);
         assertTrue(acl.isAllowed(handle, user2));
     }
 
@@ -119,7 +119,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allowThis(value);
+        TEE.allowThis(value);
         assertTrue(acl.isAllowed(handle, address(this)));
     }
 
@@ -130,7 +130,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allowThis(value);
+        TEE.allowThis(value);
         assertTrue(acl.isAllowed(handle, address(this)));
     }
 
@@ -143,7 +143,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allowTransient(value, user1);
+        TEE.allowTransient(value, user1);
         assertTrue(acl.isAllowed(handle, user1));
     }
 
@@ -154,7 +154,7 @@ contract TEELibTest is Test {
         vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
-        value = TEE.allowTransient(value, user2);
+        TEE.allowTransient(value, user2);
         assertTrue(acl.isAllowed(handle, user2));
     }
 }
