@@ -28,6 +28,18 @@ contract TEEComputeManagerTest is Test {
     function test_Initialize() public view {
         assertTrue(teeComputeManager.owner() == owner);
         assertTrue(teeComputeManager.acl() == acl);
+        (
+            ,
+            /* bytes1 fields */ string memory name,
+            string memory version,
+            ,
+            /* uint256 chainId */ ,
+            /* address verifyingContract */ ,
+            /* bytes32 salt */
+        ) = /* uint256[] memory extensions */
+            teeComputeManager.eip712Domain();
+        assertTrue(keccak256(bytes(name)) == keccak256(bytes("TEEComputeManager")));
+        assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
 
     function test_RevertWhen_Initialize_WithZeroAddresses() public {
