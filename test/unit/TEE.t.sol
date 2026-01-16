@@ -10,25 +10,25 @@ import "encrypted-types/EncryptedTypes.sol";
 contract TEELibTest is Test {
     using TEE for *;
 
-    TEEComputeManagerMock internal computeManager;
+    TEEComputeManagerMock internal teeComputeManager;
     ACL internal acl;
     address internal user1;
     address internal user2;
 
     function setUp() public {
-        computeManager = new TEEComputeManagerMock();
-        acl = computeManager.acl();
+        teeComputeManager = new TEEComputeManagerMock();
+        acl = teeComputeManager.acl();
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
 
-        vm.label(address(computeManager), "ComputeManager");
+        vm.label(address(teeComputeManager), "TEEComputeManager");
         vm.label(address(acl), "ACL");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
 
         // Configure TEE storage
         TEE.TEEConfig memory config = TEE.TEEConfig({
-            computeManager: address(computeManager),
+            teeComputeManager: address(teeComputeManager),
             acl: address(acl)
         });
         TEE.setTEEStorage(config);
@@ -39,6 +39,11 @@ contract TEELibTest is Test {
     function test_ToEbool_SucceedsAndReturnsHandle() public {
         ebool encrypted = TEE.toEbool(true);
         assertTrue(ebool.unwrap(encrypted) != 0);
+    }
+
+    function test_ToEaddress_SucceedsAndReturnsHandle() public {
+        eaddress encrypted = TEE.toEaddress(user1);
+        assertTrue(eaddress.unwrap(encrypted) != 0);
     }
 
     function test_ToEbool_False_SucceedsAndReturnsHandle() public {
@@ -56,19 +61,14 @@ contract TEELibTest is Test {
         assertTrue(eint256.unwrap(encrypted) != 0);
     }
 
-    function test_ToEaddress_SucceedsAndReturnsHandle() public {
-        eaddress encrypted = TEE.toEaddress(user1);
-        assertTrue(eaddress.unwrap(encrypted) != 0);
-    }
-
     // ============ Permission Management - allow ============
 
     function test_Allow_Ebool_GrantsPermission() public {
         ebool value = TEE.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        // ComputeManager grants transient access first
-        vm.prank(address(computeManager));
+        // TEEComputeManager grants transient access first
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         // Now allow for user1
@@ -81,7 +81,7 @@ contract TEELibTest is Test {
         euint256 value = TEE.toEuint256(999);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allow(value, user2);
@@ -92,7 +92,7 @@ contract TEELibTest is Test {
         eint256 value = TEE.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allow(value, user1);
@@ -103,7 +103,7 @@ contract TEELibTest is Test {
         eaddress value = TEE.toEaddress(user1);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allow(value, user2);
@@ -116,7 +116,7 @@ contract TEELibTest is Test {
         ebool value = TEE.toEbool(false);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allowThis(value);
@@ -127,7 +127,7 @@ contract TEELibTest is Test {
         euint256 value = TEE.toEuint256(777);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allowThis(value);
@@ -140,7 +140,7 @@ contract TEELibTest is Test {
         ebool value = TEE.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allowTransient(value, user1);
@@ -151,7 +151,7 @@ contract TEELibTest is Test {
         euint256 value = TEE.toEuint256(555);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(computeManager));
+        vm.prank(address(teeComputeManager));
         acl.allowTransient(handle, address(this));
 
         value = TEE.allowTransient(value, user2);

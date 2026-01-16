@@ -15,7 +15,7 @@ import "encrypted-types/EncryptedTypes.sol";
 library TEE {
     /// @notice Reference to TEE services config
     struct TEEConfig {
-        address computeManager;
+        address teeComputeManager;
         address acl;
     }
 
@@ -24,7 +24,7 @@ library TEE {
         0x453ce9972f26c0909dff7e07a33068f25d542621580a28090c38444374459000;
 
     /// @notice Emitted when TEE services config is set
-    event TEEServicesConfigSet(address computeManager, address acl);
+    event TEEServicesConfigSet(address teeComputeManager, address acl);
 
     /// @notice Returned if TEE services are not configured
     error TEEServicesNotConfigured();
@@ -35,10 +35,10 @@ library TEE {
      */
     function toEbool(bool value) internal returns (ebool) {
         TEEConfig storage $ = _getTEEStorage();
-        if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
+        if ($.teeComputeManager == address(0)) revert TEEServicesNotConfigured();
         return
             ebool.wrap(
-                ITEEComputeManager($.computeManager).trivialEncrypt(value ? 1 : 0, TEEType.Bool)
+                ITEEComputeManager($.teeComputeManager).trivialEncrypt(value ? 1 : 0, TEEType.Bool)
             );
     }
 
@@ -47,10 +47,10 @@ library TEE {
      */
     function toEaddress(address value) internal returns (eaddress) {
         TEEConfig storage $ = _getTEEStorage();
-        if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
+        if ($.teeComputeManager == address(0)) revert TEEServicesNotConfigured();
         return
             eaddress.wrap(
-                ITEEComputeManager($.computeManager).trivialEncrypt(
+                ITEEComputeManager($.teeComputeManager).trivialEncrypt(
                     uint256(uint160(value)),
                     TEEType.Uint160
                 )
@@ -62,10 +62,10 @@ library TEE {
      */
     function toEuint256(uint256 value) internal returns (euint256) {
         TEEConfig storage $ = _getTEEStorage();
-        if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
+        if ($.teeComputeManager == address(0)) revert TEEServicesNotConfigured();
         return
             euint256.wrap(
-                ITEEComputeManager($.computeManager).trivialEncrypt(value, TEEType.Uint256)
+                ITEEComputeManager($.teeComputeManager).trivialEncrypt(value, TEEType.Uint256)
             );
     }
 
@@ -74,14 +74,39 @@ library TEE {
      */
     function toEint256(int256 value) internal returns (eint256) {
         TEEConfig storage $ = _getTEEStorage();
-        if ($.computeManager == address(0)) revert TEEServicesNotConfigured();
+        if ($.teeComputeManager == address(0)) revert TEEServicesNotConfigured();
         return
             eint256.wrap(
-                ITEEComputeManager($.computeManager).trivialEncrypt(uint256(value), TEEType.Int256)
+                ITEEComputeManager($.teeComputeManager).trivialEncrypt(
+                    uint256(value),
+                    TEEType.Int256
+                )
             );
     }
 
     // ============ PERMISSION MANAGEMENT ============
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(eaddress value) internal returns (eaddress) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allow(eaddress.unwrap(value), address(this));
+        }
+        return value;
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(eaddress value, address account) internal returns (eaddress) {
+        TEEConfig storage $ = _getTEEStorage();
+        if ($.acl != address(0)) {
+            IACL($.acl).allowTransient(eaddress.unwrap(value), account);
+        }
+        return value;
+    }
+
     /**
      * @dev Allows the use of value for the address account.
      */
@@ -192,28 +217,6 @@ library TEE {
         return value;
     }
 
-    /**
-     * @dev Allows the use of value for this address (address(this)).
-     */
-    function allowThis(eaddress value) internal returns (eaddress) {
-        TEEConfig storage $ = _getTEEStorage();
-        if ($.acl != address(0)) {
-            IACL($.acl).allow(eaddress.unwrap(value), address(this));
-        }
-        return value;
-    }
-
-    /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(eaddress value, address account) internal returns (eaddress) {
-        TEEConfig storage $ = _getTEEStorage();
-        if ($.acl != address(0)) {
-            IACL($.acl).allowTransient(eaddress.unwrap(value), account);
-        }
-        return value;
-    }
-
     // ============ TEE CONFIGURATION ============
     /**
      * @notice Sets the TEE services configuration
@@ -221,9 +224,9 @@ library TEE {
      */
     function setTEEStorage(TEEConfig memory _config) internal {
         TEEConfig storage $ = _getTEEStorage();
-        $.computeManager = _config.computeManager;
+        $.teeComputeManager = _config.teeComputeManager;
         $.acl = _config.acl;
-        emit TEEServicesConfigSet(_config.computeManager, _config.acl);
+        emit TEEServicesConfigSet(_config.teeComputeManager, _config.acl);
     }
 
     /**
