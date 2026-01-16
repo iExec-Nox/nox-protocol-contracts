@@ -40,16 +40,37 @@ contract TEEComputeManager is
     /**
      * Initializes the proxy contract state.
      * @param initialOwner Initial owner address
-     * @param acl ACL contract address
+     * @param initialAcl ACL contract address
      */
-    function initialize(address initialOwner, address acl) public initializer {
+    function initialize(address initialOwner, address initialAcl) public initializer {
+        if (initialAcl == address(0)) {
+            revert InvalidZeroAddress();
+        }
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         __EIP712_init("TEEComputeManager", "1");
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl = acl;
+        $.acl = initialAcl;
     }
 
+    /**
+     * Sets a new ACL contract address.
+     * Only callable by the owner.
+     * @param newACL New ACL contract address
+     */
+    function setACL(address newACL) external onlyOwner {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.acl = newACL;
+        emit ACLUpdated(newACL);
+    }
+
+    /**
+     * Validates a ciphertext handle proof.
+     * Reverts if the proof is invalid.
+     * @param handle Ciphertext handle
+     * @param signer Expected signer address
+     * @param proof Proof data
+     */
     function validateProof(bytes32 handle, address signer, bytes calldata proof) public view {
         // proof = owner || ACL || createdAt || EIP-712 signature (65 bytes)
         //          20      20       32                    65
@@ -57,16 +78,18 @@ contract TEEComputeManager is
             revert InvalidProof(proof, "Invalid length");
         }
         address owner = address(bytes20(proof[0:20]));
-        address acl = address(bytes20(proof[20:40]));
+        address proofAcl = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        if (acl != $.acl) {
+        if (proofAcl != $.acl) {
             revert InvalidProof(proof, "ACL mismatch");
         }
         // TODO add checks for `createdAt`.
         bytes32 eip712MessageHash = _hashTypedDataV4(
-            keccak256(abi.encode(CIPHERTEXT_VERIFICATION_TYPEHASH, handle, owner, acl, createdAt))
+            keccak256(
+                abi.encode(CIPHERTEXT_VERIFICATION_TYPEHASH, handle, owner, proofAcl, createdAt)
+            )
         );
         if (ECDSA.recover(eip712MessageHash, signature) != signer) {
             revert InvalidProof(proof, "Signer mismatch");
@@ -85,6 +108,14 @@ contract TEEComputeManager is
      * Authorizes contract upgrades only by the owner.
      */
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+
+    /**
+     * Returns the configured ACL contract address.
+     */
+    function acl() external view returns (address) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.acl;
+    }
 
     function _getTEEComputeManagerStorage()
         private

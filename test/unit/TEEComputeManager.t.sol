@@ -6,47 +6,46 @@ import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 
 contract TEEComputeManagerTest is Test {
     TEEComputeManager teeComputeManager;
-    address initialOwner = makeAddr("owner");
+    address owner = makeAddr("owner");
     address acl = makeAddr("acl");
 
     function setUp() public {
         teeComputeManager = _deployNewProxy();
-        teeComputeManager.initialize(initialOwner, initialUpgrader);
-        vm.label(initialOwner, "initialOwner");
-        vm.label(initialUpgrader, "initialUpgrader");
+        teeComputeManager.initialize(owner, acl);
+        vm.label(owner, "owner");
+        vm.label(acl, "acl");
         vm.label(address(teeComputeManager), "teeComputeManager");
     }
 
     // initialize
 
     function test_Initialize() public view {
-        assertTrue(teeComputeManager.hasRole(teeComputeManager.DEFAULT_ADMIN_ROLE(), initialOwner));
-        assertTrue(teeComputeManager.hasRole(teeComputeManager.UPGRADER_ROLE(), initialUpgrader));
+        assertTrue(teeComputeManager.owner() == owner);
+        assertTrue(teeComputeManager.acl() == acl);
     }
 
     function test_RevertWhen_Initialize_WithZeroAddresses() public {
         TEEComputeManager proxy = _deployNewProxy();
         vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
-        proxy.initialize(address(0), initialUpgrader);
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
-        proxy.initialize(initialOwner, address(0));
+        proxy.initialize(owner, address(0));
     }
 
     function test_RevertWhen_Initialize_Twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        teeComputeManager.initialize(initialOwner, initialUpgrader);
+        teeComputeManager.initialize(owner, acl);
     }
 
     // _authorizeUpgrade
 
     function test_AuthorizeUpgrade() public {
         address newImplementation = address(new TEEComputeManager());
-        vm.prank(initialUpgrader);
+        vm.prank(owner);
         vm.expectEmit();
         emit IERC1967.Upgraded(newImplementation);
         teeComputeManager.upgradeToAndCall(newImplementation, "");
@@ -56,9 +55,9 @@ contract TEEComputeManagerTest is Test {
         address unauthorizedUpgrader = makeAddr("unauthorized");
         vm.expectRevert(
             abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
                 unauthorizedUpgrader,
-                teeComputeManager.UPGRADER_ROLE()
+                teeComputeManager
             )
         );
         vm.prank(unauthorizedUpgrader);

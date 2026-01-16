@@ -5,4 +5,6 @@ interface ITEEComputeManager {
     // TODO put common errors in a shared interface.
     error InvalidZeroAddress();
     error InvalidProof(bytes proof, string reason);
+
+    event ACLUpdated(address newACL);
 }
