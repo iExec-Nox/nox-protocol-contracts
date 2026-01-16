@@ -105,17 +105,17 @@ contract TEEComputeManager is
     // }
 
     /**
-     * Authorizes contract upgrades only by the owner.
-     */
-    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
-
-    /**
      * Returns the configured ACL contract address.
      */
     function acl() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         return $.acl;
     }
+
+    /**
+     * Authorizes contract upgrades only by the owner.
+     */
+    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
 
     function _getTEEComputeManagerStorage()
         private

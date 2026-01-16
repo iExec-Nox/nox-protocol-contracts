@@ -29,7 +29,7 @@ contract GatewayRegistry is
      * @param initialUpgrader Initial upgrader address
      */
     function initialize(address initialAdmin, address initialUpgrader) public initializer {
-        if (initialAdmin == address(0) || initialUpgrader == address(0)) {
+        if (initialUpgrader == address(0)) {
             revert InvalidZeroAddress();
         }
         __UUPSUpgradeable_init();
@@ -38,7 +38,7 @@ contract GatewayRegistry is
     }
 
     /**
-     * Authorizes contract upgrades. Can only be called by accounts with the UPGRADER_ROLE.
+     * Authorizes contract upgrades only by accounts with the role `UPGRADER_ROLE`.
      */
     function _authorizeUpgrade(
         address /*newImplementation*/

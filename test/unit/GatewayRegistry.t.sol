@@ -6,47 +6,47 @@ import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IAccessControlDefaultAdminRules} from "@openzeppelin/contracts/access/extensions/IAccessControlDefaultAdminRules.sol";
 import {GatewayRegistry} from "../../contracts/GatewayRegistry.sol";
 import {IGatewayRegistry} from "../../contracts/interfaces/IGatewayRegistry.sol";
 
 contract GatewayRegistryTest is Test {
     GatewayRegistry gatewayRegistry;
-    address initialAdmin = makeAddr("admin");
-    address initialUpgrader = makeAddr("upgrader");
+    address admin = makeAddr("admin");
+    address upgrader = makeAddr("upgrader");
 
     function setUp() public {
         gatewayRegistry = _deployNewProxy();
-        gatewayRegistry.initialize(initialAdmin, initialUpgrader);
-        vm.label(initialAdmin, "initialAdmin");
-        vm.label(initialUpgrader, "initialUpgrader");
+        gatewayRegistry.initialize(admin, upgrader);
+        vm.label(admin, "admin");
+        vm.label(upgrader, "upgrader");
         vm.label(address(gatewayRegistry), "gatewayRegistry");
     }
 
     // initialize
 
     function test_Initialize() public view {
-        assertTrue(gatewayRegistry.hasRole(gatewayRegistry.DEFAULT_ADMIN_ROLE(), initialAdmin));
-        assertTrue(gatewayRegistry.hasRole(gatewayRegistry.UPGRADER_ROLE(), initialUpgrader));
+        assertTrue(gatewayRegistry.hasRole(gatewayRegistry.DEFAULT_ADMIN_ROLE(), admin));
+        assertTrue(gatewayRegistry.hasRole(gatewayRegistry.UPGRADER_ROLE(), upgrader));
     }
 
     function test_RevertWhen_Initialize_WithZeroAddresses() public {
         GatewayRegistry proxy = _deployNewProxy();
         vm.expectRevert(IGatewayRegistry.InvalidZeroAddress.selector);
-        proxy.initialize(address(0), initialUpgrader);
-        vm.expectRevert(IGatewayRegistry.InvalidZeroAddress.selector);
-        proxy.initialize(initialAdmin, address(0));
+        proxy.initialize(admin, address(0)); // initialAdmin is checked by OZ code.
     }
 
     function test_RevertWhen_Initialize_Twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        gatewayRegistry.initialize(initialAdmin, initialUpgrader);
+        gatewayRegistry.initialize(admin, upgrader);
     }
 
     // _authorizeUpgrade
 
     function test_AuthorizeUpgrade() public {
         address newImplementation = address(new GatewayRegistry());
-        vm.prank(initialUpgrader);
+        vm.prank(upgrader);
         vm.expectEmit();
         emit IERC1967.Upgraded(newImplementation);
         gatewayRegistry.upgradeToAndCall(newImplementation, "");
