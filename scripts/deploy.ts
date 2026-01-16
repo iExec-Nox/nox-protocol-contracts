@@ -16,6 +16,7 @@ import connection from "./utils/hardhat-connection-singleton.js";
  * @returns Viem contract instances for the deployed proxy contracts
  */
 export async function deploy(log = true) {
+    const { viem } = connection;
     const chainConfig = config[connection.networkName];
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
@@ -38,40 +39,40 @@ export async function deploy(log = true) {
     if (log) {
         console.log(`GatewayRegistry: ${gatewayRegistryProxy.address}`);
     }
-    // TODO Deploy TEE Compute Manager
-    const teeComputeManagerTempAddress = "0x000000000000000000000000000000000000000a";
-    // Deploy ACL
-    const { acl } = await connection.ignition.deploy(ACL, {
-        deploymentId: connection.networkName,
-        displayUi: log,
-        parameters: {
-            ACL: {
-                teeComputeManager: teeComputeManagerTempAddress,
-            },
-        },
-    });
-    if (log) {
-        console.log(`ACL: ${acl.address}`);
-    }
-    // Deploy TEEComputeManager with the deployed ACL address.
+    // Deploy TEEComputeManager.
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
         displayUi: log,
         parameters: {
             TEEComputeManager: {
                 initialOwner: chainConfig.initialAdmin,
-                acl: acl.address,
+                acl: "0x0000000000000000000000000000000000000000", // Temporary, will be updated after ACL deployment
             },
         },
     });
     if (log) {
         console.log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
     }
+    // Deploy ACL
+    const { acl } = await connection.ignition.deploy(ACL, {
+        deploymentId: connection.networkName,
+        displayUi: log,
+        parameters: {
+            ACL: {
+                teeComputeManager: teeComputeManagerProxy.address,
+            },
+        },
+    });
+    if (log) {
+        console.log(`ACL: ${acl.address}`);
+    }
+    // Update ACL address in TEEComputeManager.
+    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
+    await teeComputeManager.write.setACL([acl.address]); // Wait for tx ??
+
     // Get contract instances as Viem contracts.
-    const { viem } = connection;
     const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
     const aclContract = await viem.getContractAt("ACL", acl.address);
-    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
     return {
         gatewayRegistry,
         acl: aclContract,

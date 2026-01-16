@@ -33,19 +33,13 @@ contract TEEComputeManagerTest is Test {
             /* bytes1 fields */ string memory name,
             string memory version,
             ,
+            ,
             /* uint256 chainId */ ,
-            /* address verifyingContract */ ,
-            /* bytes32 salt */
-        ) = /* uint256[] memory extensions */
+            /* address verifyingContract */
+         /* uint256[] memory extensions */) = /* bytes32 salt */
             teeComputeManager.eip712Domain();
         assertTrue(keccak256(bytes(name)) == keccak256(bytes("TEEComputeManager")));
         assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
-    }
-
-    function test_RevertWhen_Initialize_WithZeroAddresses() public {
-        TEEComputeManager proxy = _deployNewProxy();
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
-        proxy.initialize(owner, address(0));
     }
 
     function test_RevertWhen_Initialize_Twice() public {

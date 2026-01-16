@@ -43,9 +43,6 @@ contract TEEComputeManager is
      * @param initialAcl ACL contract address
      */
     function initialize(address initialOwner, address initialAcl) public initializer {
-        if (initialAcl == address(0)) {
-            revert InvalidZeroAddress();
-        }
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         __EIP712_init("TEEComputeManager", "1");
