@@ -49,6 +49,7 @@ contract TEEComputeManagerTest is Test {
     // setACL
 
     function test_SetACL() public {
+        assertTrue(teeComputeManager.acl() == acl);
         address newACL = makeAddr("newACL");
         vm.prank(owner);
         vm.expectEmit();
