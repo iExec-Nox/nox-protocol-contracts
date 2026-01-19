@@ -25,9 +25,9 @@ contract TEEComputeManager is
     bytes32 private constant TEE_COMPUTE_MANGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
 
-    bytes32 CIPHERTEXT_VERIFICATION_TYPEHASH =
+    bytes32 public constant CIPHERTEXT_VERIFICATION_TYPEHASH =
         keccak256(
-            "CiphertextVerification(bytes32 handle,address owner,address ACL, uint256 createdAt)"
+            "CiphertextVerification(bytes32 handle,address owner,address acl,uint256 createdAt)"
         );
 
     /**
@@ -92,6 +92,14 @@ contract TEEComputeManager is
             revert InvalidProof(proof, "Signer mismatch");
         }
     }
+
+    // function add(euint256 a, euint256 b) external {
+    //     // check a and b types
+    //     // check caller permissions
+    //     // create resultHandle
+    //     // perform addition in TEE (emit event)
+    //     // return resultHandle
+    // }
 
     /**
      * Returns the configured ACL contract address.
