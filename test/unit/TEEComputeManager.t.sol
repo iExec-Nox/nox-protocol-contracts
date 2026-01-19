@@ -29,15 +29,14 @@ contract TEEComputeManagerTest is Test {
         assertTrue(teeComputeManager.owner() == owner);
         assertTrue(teeComputeManager.acl() == acl);
         (
-            ,
-            /* bytes1 fields */ string memory name,
+            , // bytes1 fields
+            string memory name,
             string memory version,
-            ,
-            ,
-            /* uint256 chainId */ ,
-            /* address verifyingContract */
-         /* uint256[] memory extensions */) = /* bytes32 salt */
-            teeComputeManager.eip712Domain();
+            , // uint256 chainId
+            , // address verifyingContract
+            , // uint256[] memory extensions, // bytes32 salt
+
+        ) = teeComputeManager.eip712Domain();
         assertTrue(keccak256(bytes(name)) == keccak256(bytes("TEEComputeManager")));
         assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
