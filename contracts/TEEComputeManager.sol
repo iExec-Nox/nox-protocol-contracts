@@ -67,6 +67,7 @@ contract TEEComputeManager is
      * @param proof Proof data
      */
     function validateProof(bytes32 handle, address signer, bytes calldata proof) public view {
+        // TODO use a struct Proof { owner, acl, createdAt, signature }
         // proof = owner || ACL || createdAt || EIP-712 signature (65 bytes)
         //          20      20       32                    65
         if (proof.length != 137) {
