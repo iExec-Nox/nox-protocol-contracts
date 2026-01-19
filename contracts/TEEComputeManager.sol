@@ -89,14 +89,6 @@ contract TEEComputeManager is
         }
     }
 
-    // function add(euint256 a, euint256 b) external {
-    //     // check a and b types
-    //     // check caller permissions
-    //     // create resultHandle
-    //     // perform addition in TEE (emit event)
-    //     // return resultHandle
-    // }
-
     /**
      * Returns the configured ACL contract address.
      */
