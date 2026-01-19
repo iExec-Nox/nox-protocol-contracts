@@ -5,15 +5,14 @@ import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { concatHex, toHex } from "viem";
 
 const viem = connection.viem;
+const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate input proof", async function () {
         const { teeComputeManager, wallet0: owner, wallet1: user } = await loadFixture();
-        const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
         const userAddress = user.account.address;
         const aclAddress = await teeComputeManager.read.acl();
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
-        // const createdAt = 1768585272n;
         const chainId = BigInt(await user.getChainId());
 
         const domain = {
@@ -23,7 +22,7 @@ describe("[IT] TEEComputeManager", function () {
             verifyingContract: teeComputeManager.address,
         } as const;
         const types = {
-            CiphertextVerification: [
+            HandleOwnership: [
                 { name: "handle", type: "bytes32" },
                 { name: "owner", type: "address" },
                 { name: "acl", type: "address" },
@@ -40,7 +39,7 @@ describe("[IT] TEEComputeManager", function () {
         const signature = await user.signTypedData({
             domain,
             types,
-            primaryType: "CiphertextVerification",
+            primaryType: "HandleOwnership",
             message,
         });
         // Construct proof
