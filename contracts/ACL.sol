@@ -56,14 +56,14 @@ contract ACL is IACL {
         ACLStorage storage $ = _getACLStorage();
         $.teeComputeManager = teeComputeManager;
     }
-    
+
     // ============ PUBLIC DECRYPTION ============
     /// @inheritdoc IACL
     function allowPublicDecryption(bytes32 handle) external override {
         if (!isAllowed(handle, msg.sender)) {
             revert UnauthorizedSender(msg.sender);
         }
-        
+
         ACLStorage storage $ = _getACLStorage();
         $.isPubliclyDecryptable[handle] = true;
         emit MarkedPubliclyDecryptable(msg.sender, handle);
