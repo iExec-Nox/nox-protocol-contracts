@@ -189,7 +189,9 @@ library TEEPrimitives {
      * @param _config TEE services configuration struct
      */
     function setTEEStorage(TEEConfig memory _config) internal {
-        if (_config.teeComputeManager == address(0)) revert TEEServicesNotConfigured();
+        if (_config.teeComputeManager == address(0)) {
+            revert InvalidZeroAddress();
+        }
         if (_config.acl == address(0)) revert ACLNotConfigured();
         TEEConfig storage $ = _getTEEStorage();
         $.teeComputeManager = _config.teeComputeManager;
