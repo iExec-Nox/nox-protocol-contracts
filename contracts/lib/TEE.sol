@@ -53,7 +53,7 @@ library TEE {
         TEEConfig storage $ = _getTEEStorage();
         return
             ebool.wrap(
-                ITEEComputeManager($.teeComputeManager).trivialEncrypt(value ? 1 : 0, TEEType.Bool)
+                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(value ? 1 : 0, TEEType.Bool)
             );
     }
 
@@ -64,7 +64,7 @@ library TEE {
         TEEConfig storage $ = _getTEEStorage();
         return
             eaddress.wrap(
-                ITEEComputeManager($.teeComputeManager).trivialEncrypt(
+                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(
                     uint256(uint160(value)),
                     TEEType.Uint160
                 )
@@ -78,7 +78,7 @@ library TEE {
         TEEConfig storage $ = _getTEEStorage();
         return
             euint256.wrap(
-                ITEEComputeManager($.teeComputeManager).trivialEncrypt(value, TEEType.Uint256)
+                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(value, TEEType.Uint256)
             );
     }
 
@@ -89,7 +89,7 @@ library TEE {
         TEEConfig storage $ = _getTEEStorage();
         return
             eint256.wrap(
-                ITEEComputeManager($.teeComputeManager).trivialEncrypt(
+                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(
                     uint256(value),
                     TEEType.Int256
                 )
