@@ -7,12 +7,12 @@ import "../interfaces/IACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
 /**
- * @title TEE
+ * @title TEEPrimitives
  * @notice Library providing convenient functions for TEE confidential computations.
  * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
  *      the transaction will revert as it will not be recognized by the ACL.
  */
-library TEE {
+library TEEPrimitives {
     /// @notice Reference to TEE services config
     struct TEEConfig {
         address teeComputeManager;
