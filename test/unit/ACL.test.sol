@@ -2,12 +2,17 @@
 pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
+import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract ACLTest is Test {
     ACL internal acl;
+    address internal owner;
     address internal teeComputeManager;
     address internal user1;
     address internal user2;
@@ -18,6 +23,7 @@ contract ACLTest is Test {
     bytes32 internal handle3;
 
     function setUp() public {
+        owner = makeAddr("owner");
         teeComputeManager = makeAddr("teeComputeManager");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
@@ -27,47 +33,101 @@ contract ACLTest is Test {
         handle2 = keccak256("handle-2");
         handle3 = keccak256("handle-3");
 
+        acl = _deployNewProxy();
+        acl.initialize(owner, teeComputeManager);
+
+        vm.label(owner, "Owner");
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
         vm.label(viewer2, "Viewer2");
-
-        acl = new ACL(teeComputeManager);
         vm.label(address(acl), "ACL");
     }
 
-    // ============ isAllowed ============
+    // ============ initialize ============
 
     /**
-     * @dev Tests that isAllowed returns false for any address and handle by default.
+     * @dev Tests that initialize sets up the contract correctly.
      */
-    function test_IsAllowed_ReturnsFalseByDefault() public view {
-        assertFalse(acl.isAllowed(handle, user1));
-        assertFalse(acl.isAllowed(handle, user2));
+    function test_Initialize() public view {
+        assertEq(acl.owner(), owner);
     }
 
-    // ============ allowTransient ============
+    /**
+     * @dev Tests that initialize reverts with zero addresses.
+     */
+    function test_RevertWhen_Initialize_WithZeroAddress() public {
+        ACL proxy = _deployNewProxy();
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        proxy.initialize(owner, address(0));
+    }
 
     /**
-     * @dev Tests that the TEEComputeManager can grant transient access to a handle via
-     *      allowTransient() without having prior access to that handle.
+     * @dev Tests that initialize reverts when called twice.
      */
-    function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
+    function test_RevertWhen_Initialize_Twice() public {
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        acl.initialize(owner, teeComputeManager);
+    }
+
+    // ============ allowPublicDecryption ============
+
+    /**
+     * @dev Tests that an admin can mark a handle as publicly decryptable.
+     */
+    function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
+        // Setup: grant user1 admin access to handle
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
 
-        // Transient access should be available in the same transaction
-        assertTrue(acl.isAllowed(handle, user1));
+        vm.prank(user1);
+        acl.allow(handle, user1);
+
+        // Mark handle as publicly decryptable
+        vm.prank(user1);
+        vm.expectEmit();
+        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
+        acl.allowPublicDecryption(handle);
+
+        // Verify handle is marked as publicly decryptable
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     /**
-     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
+     * @dev Tests that a user with transient access can mark a handle as publicly decryptable.
      */
-    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
+    function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
+        // Setup: grant user1 transient access to handle
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        // Mark handle as publicly decryptable (in same transaction)
+        vm.prank(user1);
+        vm.expectEmit();
+        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
+        acl.allowPublicDecryption(handle);
+
+        // Verify handle is marked as publicly decryptable
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    /**
+     * @dev Tests that allowPublicDecryption() reverts when sender doesn't have access to a handle.
+     */
+    function test_AllowPublicDecryption_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
-        acl.allowTransient(handle, user2);
+        acl.allowPublicDecryption(handle);
+    }
+
+    // ============ isPubliclyDecryptable ============
+
+    /**
+     * @dev Tests that isPubliclyDecryptable returns false by default.
+     */
+    function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
+        assertFalse(acl.isPubliclyDecryptable(handle));
     }
 
     // ============ allow ============
@@ -163,15 +223,6 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle, viewer1));
     }
 
-    // ============ isViewer ============
-
-    /**
-     * @dev Tests that isViewer returns false by default.
-     */
-    function test_IsViewer_ReturnsFalseByDefault() public view {
-        assertFalse(acl.isViewer(handle, user1));
-    }
-
     // ============ addViewer ============
 
     /**
@@ -244,6 +295,29 @@ contract ACLTest is Test {
         acl.addViewer(handle, viewer2);
     }
 
+    // ============ allowTransient ============
+
+    /**
+     * @dev Tests that the TEEComputeManager can grant transient access to a handle via
+     *      allowTransient() without having prior access to that handle.
+     */
+    function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        // Transient access should be available in the same transaction
+        assertTrue(acl.isAllowed(handle, user1));
+    }
+
+    /**
+     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
+     */
+    function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.allowTransient(handle, user2);
+    }
+
     // ============ cleanTransientStorage ============
 
     /**
@@ -297,62 +371,55 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle2, user2)); // transient - cleared
     }
 
-    // ============ allowPublicDecryption ============
+    // ============ isViewer ============
 
     /**
-     * @dev Tests that an admin can mark a handle as publicly decryptable.
+     * @dev Tests that isViewer returns false by default.
      */
-    function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
-        // Setup: grant user1 admin access to handle
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
+    function test_IsViewer_ReturnsFalseByDefault() public view {
+        assertFalse(acl.isViewer(handle, user1));
+    }
 
-        vm.prank(user1);
-        acl.allow(handle, user1);
+    // ============ isAllowed ============
 
-        // Mark handle as publicly decryptable
-        vm.prank(user1);
+    /**
+     * @dev Tests that isAllowed returns false for any address and handle by default.
+     */
+    function test_IsAllowed_ReturnsFalseByDefault() public view {
+        assertFalse(acl.isAllowed(handle, user1));
+        assertFalse(acl.isAllowed(handle, user2));
+    }
+
+    // ============ _authorizeUpgrade ============
+
+    /**
+     * @dev Tests that owner can upgrade the contract.
+     */
+    function test_AuthorizeUpgrade() public {
+        address newImplementation = address(new ACL());
+        vm.prank(owner);
         vm.expectEmit();
-        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
-        acl.allowPublicDecryption(handle);
-
-        // Verify handle is marked as publicly decryptable
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        emit IERC1967.Upgraded(newImplementation);
+        acl.upgradeToAndCall(newImplementation, "");
     }
 
     /**
-     * @dev Tests that a user with transient access can mark a handle as publicly decryptable.
+     * @dev Tests that non-owner cannot upgrade the contract.
      */
-    function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
-        // Setup: grant user1 transient access to handle
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        // Mark handle as publicly decryptable (in same transaction)
-        vm.prank(user1);
-        vm.expectEmit();
-        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
-        acl.allowPublicDecryption(handle);
-
-        // Verify handle is marked as publicly decryptable
-        assertTrue(acl.isPubliclyDecryptable(handle));
+    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedAccount() public {
+        address unauthorized = makeAddr("unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
+        );
+        vm.prank(unauthorized);
+        acl.upgradeToAndCall(makeAddr("newImpl"), "");
     }
 
-    /**
-     * @dev Tests that allowPublicDecryption() reverts when sender doesn't have access to a handle.
-     */
-    function test_AllowPublicDecryption_RevertWhen_UnauthorizedSender() public {
-        vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
-        acl.allowPublicDecryption(handle);
-    }
+    // ============ HELPERS ============
 
-    // ============ isPubliclyDecryptable ============
-
-    /**
-     * @dev Tests that isPubliclyDecryptable returns false by default.
-     */
-    function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
-        assertFalse(acl.isPubliclyDecryptable(handle));
+    function _deployNewProxy() internal returns (ACL) {
+        ACL implementation = new ACL();
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
+        return ACL(address(proxy));
     }
 }

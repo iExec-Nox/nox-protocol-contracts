@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import "./interfaces/IACL.sol";
 
 /**
@@ -10,7 +12,7 @@ import "./interfaces/IACL.sol";
  * the ACL ensures that sensitive data remains protected while enabling authorized parties to interact with
  * encrypted resources in a secure and controlled manner.
  */
-contract ACL is IACL {
+contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     /// Main storage structure following ERC-7201 pattern
     struct ACLStorage {
         /// Admins can use a handle as input in computations, and can add other admins and viewers
@@ -52,7 +54,24 @@ contract ACL is IACL {
     }
 
     // ============ CONSTRUCTOR ============
-    constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
+    /**
+     * @custom:oz-upgrades-unsafe-allow constructor
+     */
+    constructor() {
+        _disableInitializers();
+    }
+
+    /**
+     * Initializes the proxy contract state.
+     * @param initialOwner Initial owner address
+     * @param teeComputeManager Address of the TEE Compute Manager
+     */
+    function initialize(address initialOwner, address teeComputeManager) public initializer {
+        if (teeComputeManager == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        __UUPSUpgradeable_init();
+        __Ownable_init(initialOwner);
         ACLStorage storage $ = _getACLStorage();
         $.teeComputeManager = teeComputeManager;
     }
@@ -185,6 +204,11 @@ contract ACL is IACL {
     }
 
     // ============ INTERNAL HELPERS ============
+    /**
+     * Authorizes contract upgrades only by the owner.
+     */
+    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+
     /**
      * Get the storage location for ACL data
      * @return $ The storage pointer
