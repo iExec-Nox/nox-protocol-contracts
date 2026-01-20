@@ -17,6 +17,9 @@ interface IACL is IErrors {
     /// Emitted when viewer role is granted
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
 
+    /// Emitted when a handle is marked as publicly decryptable
+    event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
+
     /**
      * Grant admin role to another address for a specific handle
      * @dev Caller must have access (transient OR persistent) to the handle
@@ -63,4 +66,19 @@ interface IACL is IErrors {
      * @return Whether the account is a viewer for the handle.
      */
     function isViewer(bytes32 handle, address viewer) external view returns (bool);
+
+    /**
+     * Mark a handle as publicly decryptable.
+     * @dev The caller must be allowed to use the handle.
+     *      If not, the function reverts.
+     * @param handle Handle to mark as publicly decryptable.
+     */
+    function allowPublicDecryption(bytes32 handle) external;
+
+    /**
+     * Checks whether a handle is publicly decryptable.
+     * @param handle Handle.
+     * @return Whether the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
 }

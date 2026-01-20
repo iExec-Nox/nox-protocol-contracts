@@ -297,5 +297,62 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle2, user2)); // transient - cleared
     }
 
-    //TODO: Tests that permanent access persists while transient does not after the end of the transaction
+    // ============ allowPublicDecryption ============
+
+    /**
+     * @dev Tests that an admin can mark a handle as publicly decryptable.
+     */
+    function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
+        // Setup: grant user1 admin access to handle
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        vm.prank(user1);
+        acl.allow(handle, user1);
+
+        // Mark handle as publicly decryptable
+        vm.prank(user1);
+        vm.expectEmit();
+        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
+        acl.allowPublicDecryption(handle);
+
+        // Verify handle is marked as publicly decryptable
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    /**
+     * @dev Tests that a user with transient access can mark a handle as publicly decryptable.
+     */
+    function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
+        // Setup: grant user1 transient access to handle
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        // Mark handle as publicly decryptable (in same transaction)
+        vm.prank(user1);
+        vm.expectEmit();
+        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
+        acl.allowPublicDecryption(handle);
+
+        // Verify handle is marked as publicly decryptable
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    /**
+     * @dev Tests that allowPublicDecryption() reverts when sender doesn't have access to a handle.
+     */
+    function test_AllowPublicDecryption_RevertWhen_UnauthorizedSender() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
+        acl.allowPublicDecryption(handle);
+    }
+
+    // ============ isPubliclyDecryptable ============
+
+    /**
+     * @dev Tests that isPubliclyDecryptable returns false by default.
+     */
+    function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
+        assertFalse(acl.isPubliclyDecryptable(handle));
+    }
 }
