@@ -26,7 +26,7 @@ contract ACL is IACL {
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.ACL")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant ACL_STORAGE_LOCATION =
-        0xed401488ebb59e3713b284243aa87272e78f75cf6500206003b8bf39f01abd00;
+        0x5fa92c526386e73fafd299993c824ec0066c31df37611b1c3fad8e9fb5701800;
 
     // ============ MODIFIERS ============
     /**

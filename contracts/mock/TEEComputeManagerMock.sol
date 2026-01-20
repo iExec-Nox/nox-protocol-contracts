@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 import "../ACL.sol";
 import "../shared/TEEType.sol";
-import "forge-std/Test.sol";
-
+import {Vm} from "forge-std/src/Vm.sol";
 /**
  * @title TEEComputeManagerMock
  * @dev Mock TEEComputeManager contract for testing ACL functionality with helper functions
  * This contract acts as a mock TEE Compute Manager to test ACL permissions
  */
-contract TEEComputeManagerMock is Test {
+contract TEEComputeManagerMock {
+    Vm constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     ACL public immutable acl;
 
     constructor() {
@@ -19,12 +19,12 @@ contract TEEComputeManagerMock is Test {
     }
 
     /**
-     * @dev Mock trivialEncrypt function that returns sequential handles
+     * @dev Mock plaintextToEncrypted function that returns sequential handles
      * @param value The plaintext value to encrypt (unused in mock)
      * @param teeType The type of the encrypted value (unused in mock)
      * @return A unique handle for the encrypted value
      */
-    function trivialEncrypt(uint256 value, TEEType teeType) external returns (bytes32) {
+    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32) {
         return bytes32(vm.randomUint());
     }
 
