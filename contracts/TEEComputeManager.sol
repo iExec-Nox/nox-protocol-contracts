@@ -69,16 +69,15 @@ contract TEEComputeManager is
     }
 
     /**
-     * Validates a handle's ownership proof.
-     * Reverts if the proof is invalid.
+     * Validates a handle's ownership proof. Reverts if the proof is invalid.
+     * Proof format:
+     *    owner (20 bytes) || ACL (20 bytes) || createdAt (32 bytes) || EIP-712 signature (65 bytes)
+     *
      * @param handle handle id
      * @param signer Expected signer address
      * @param proof Proof data
      */
     function validateProof(bytes32 handle, address signer, bytes calldata proof) public view {
-        // TODO use a struct Proof { owner, acl, createdAt, signature }
-        // proof = owner || ACL || createdAt || EIP-712 signature (65 bytes)
-        //          20      20       32                    65
         if (proof.length != 137) {
             revert InvalidProof(proof, "Invalid length");
         }
