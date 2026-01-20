@@ -4,6 +4,7 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
+import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract ACLTest is Test {
     ACL internal acl;
@@ -132,7 +133,7 @@ contract ACLTest is Test {
 
         // Try to grant to zero address
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
+        vm.expectRevert(abi.encodeWithSelector(IErrors.InvalidZeroAddress.selector));
         acl.allow(handle, address(0));
     }
 
@@ -216,7 +217,7 @@ contract ACLTest is Test {
 
         // Try to add zero address as viewer
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IACL.InvalidZeroAddress.selector));
+        vm.expectRevert(abi.encodeWithSelector(IErrors.InvalidZeroAddress.selector));
         acl.addViewer(handle, address(0));
     }
 
