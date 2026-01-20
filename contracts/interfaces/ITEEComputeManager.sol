@@ -19,7 +19,7 @@ interface ITEEComputeManager {
     function acl() external view returns (address);
 
     /**
-     * @notice Trivially encrypts a plaintext value into an encrypted value
+     * @notice Converts a plaintext value into an encrypted value
      * @param value The plaintext value to encrypt
      * @param teeType The type of the encrypted value
      * @return The encrypted value

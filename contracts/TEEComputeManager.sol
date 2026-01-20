@@ -6,6 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
+import {TEEType} from "./shared/TEEType.sol";
 
 /**
  * TODO
@@ -57,6 +58,14 @@ contract TEEComputeManager is
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl = newAcl;
         emit ACLUpdated(newAcl);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
+        // TODO
+        value;
+        teeType;
+        return bytes32(uint256(0));
     }
 
     /**
