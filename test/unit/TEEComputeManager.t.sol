@@ -46,21 +46,21 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.initialize(owner, acl);
     }
 
-    // setACL
+    // setAcl
 
-    function test_SetACL() public {
+    function test_SetAcl() public {
         assertTrue(teeComputeManager.acl() == acl);
-        address newACL = makeAddr("newACL");
+        address newAcl = makeAddr("newAcl");
         vm.prank(owner);
         vm.expectEmit();
-        emit ITEEComputeManager.ACLUpdated(newACL);
-        teeComputeManager.setACL(newACL);
-        assertTrue(teeComputeManager.acl() == newACL);
+        emit ITEEComputeManager.ACLUpdated(newAcl);
+        teeComputeManager.setAcl(newAcl);
+        assertTrue(teeComputeManager.acl() == newAcl);
     }
 
-    function test_RevertWhen_SetACL_WithUnauthorizedCaller() public {
+    function test_RevertWhen_SetAcl_WithUnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        address newACL = makeAddr("newACL");
+        address newAcl = makeAddr("newAcl");
         vm.expectRevert(
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
@@ -69,7 +69,7 @@ contract TEEComputeManagerTest is Test {
             )
         );
         vm.prank(unauthorizedCaller);
-        teeComputeManager.setACL(newACL);
+        teeComputeManager.setAcl(newAcl);
     }
 
     // _authorizeUpgrade

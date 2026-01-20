@@ -68,7 +68,7 @@ export async function deploy(log = true) {
     }
     // Update ACL address in TEEComputeManager.
     const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
-    await teeComputeManager.write.setACL([acl.address]); // Wait for tx ??
+    await teeComputeManager.write.setAcl([acl.address]); // Wait for tx ??
 
     // Get contract instances as Viem contracts.
     const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);

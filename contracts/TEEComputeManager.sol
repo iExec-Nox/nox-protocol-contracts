@@ -22,7 +22,7 @@ contract TEEComputeManager is
     }
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant TEE_COMPUTE_MANGER_STORAGE_LOCATION =
+    bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
 
     bytes32 public constant HANDLE_OWNERSHIP_TYPEHASH =
@@ -51,12 +51,15 @@ contract TEEComputeManager is
     /**
      * Sets a new ACL contract address.
      * Only callable by the owner.
-     * @param newACL New ACL contract address
+     * @param newAcl New ACL contract address
      */
-    function setACL(address newACL) external onlyOwner {
+    function setAcl(address newAcl) external onlyOwner {
+        if (newAcl == address(0)) {
+            revert InvalidZeroAddress();
+        }
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl = newACL;
-        emit ACLUpdated(newACL);
+        $.acl = newAcl;
+        emit ACLUpdated(newAcl);
     }
 
     /**
@@ -109,7 +112,7 @@ contract TEEComputeManager is
         returns (TEEComputeManagerStorage storage $)
     {
         assembly {
-            $.slot := TEE_COMPUTE_MANGER_STORAGE_LOCATION
+            $.slot := TEE_COMPUTE_MANAGER_STORAGE_LOCATION
         }
     }
 }

@@ -6,5 +6,5 @@ interface ITEEComputeManager {
     error InvalidZeroAddress();
     error InvalidProof(bytes proof, string reason);
 
-    event ACLUpdated(address newACL);
+    event ACLUpdated(address indexed newACL);
 }
