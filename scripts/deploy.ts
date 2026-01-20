@@ -59,8 +59,7 @@ export async function deploy(log = true) {
         displayUi: log,
         parameters: {
             ACL: {
-                initialAdmin: chainConfig.initialAdmin,
-                initialUpgrader: chainConfig.initialUpgrader,
+                initialOwner: chainConfig.initialAdmin,
                 teeComputeManager: teeComputeManagerProxy.address,
             },
         },

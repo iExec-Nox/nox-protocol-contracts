@@ -19,8 +19,8 @@ contract TEEComputeManagerMock {
         ACL implementation = new ACL();
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
         acl = ACL(address(proxy));
-        // Initialize with this contract as teeComputeManager, admin, and upgrader
-        acl.initialize(address(this), address(this), address(this));
+        // Initialize with this contract as owner and teeComputeManager
+        acl.initialize(address(this), address(this));
     }
 
     /**

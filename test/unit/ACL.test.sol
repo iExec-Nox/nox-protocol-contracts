@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ACL} from "../../contracts/ACL.sol";
@@ -12,8 +12,7 @@ import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract ACLTest is Test {
     ACL internal acl;
-    address internal admin;
-    address internal upgrader;
+    address internal owner;
     address internal teeComputeManager;
     address internal user1;
     address internal user2;
@@ -24,8 +23,7 @@ contract ACLTest is Test {
     bytes32 internal handle3;
 
     function setUp() public {
-        admin = makeAddr("admin");
-        upgrader = makeAddr("upgrader");
+        owner = makeAddr("owner");
         teeComputeManager = makeAddr("teeComputeManager");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
@@ -36,10 +34,9 @@ contract ACLTest is Test {
         handle3 = keccak256("handle-3");
 
         acl = _deployNewProxy();
-        acl.initialize(admin, upgrader, teeComputeManager);
+        acl.initialize(owner, teeComputeManager);
 
-        vm.label(admin, "Admin");
-        vm.label(upgrader, "Upgrader");
+        vm.label(owner, "Owner");
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
@@ -54,21 +51,16 @@ contract ACLTest is Test {
      * @dev Tests that initialize sets up the contract correctly.
      */
     function test_Initialize() public view {
-        assertTrue(acl.hasRole(acl.DEFAULT_ADMIN_ROLE(), admin));
-        assertTrue(acl.hasRole(acl.UPGRADER_ROLE(), upgrader));
+        assertEq(acl.owner(), owner);
     }
 
     /**
      * @dev Tests that initialize reverts with zero addresses.
      */
-    function test_RevertWhen_Initialize_WithZeroAddresses() public {
+    function test_RevertWhen_Initialize_WithZeroAddress() public {
         ACL proxy = _deployNewProxy();
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
-        proxy.initialize(admin, address(0), teeComputeManager);
-
-        ACL proxy2 = _deployNewProxy();
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
-        proxy2.initialize(admin, upgrader, address(0));
+        proxy.initialize(owner, address(0));
     }
 
     /**
@@ -76,35 +68,31 @@ contract ACLTest is Test {
      */
     function test_RevertWhen_Initialize_Twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        acl.initialize(admin, upgrader, teeComputeManager);
+        acl.initialize(owner, teeComputeManager);
     }
 
     // ============ _authorizeUpgrade ============
 
     /**
-     * @dev Tests that authorized upgrader can upgrade the contract.
+     * @dev Tests that owner can upgrade the contract.
      */
     function test_AuthorizeUpgrade() public {
         address newImplementation = address(new ACL());
-        vm.prank(upgrader);
+        vm.prank(owner);
         vm.expectEmit();
         emit IERC1967.Upgraded(newImplementation);
         acl.upgradeToAndCall(newImplementation, "");
     }
 
     /**
-     * @dev Tests that unauthorized account cannot upgrade the contract.
+     * @dev Tests that non-owner cannot upgrade the contract.
      */
-    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedUpgrader() public {
-        address unauthorizedUpgrader = makeAddr("unauthorized");
+    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedAccount() public {
+        address unauthorized = makeAddr("unauthorized");
         vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControl.AccessControlUnauthorizedAccount.selector,
-                unauthorizedUpgrader,
-                acl.UPGRADER_ROLE()
-            )
+            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
         );
-        vm.prank(unauthorizedUpgrader);
+        vm.prank(unauthorized);
         acl.upgradeToAndCall(makeAddr("newImpl"), "");
     }
 
