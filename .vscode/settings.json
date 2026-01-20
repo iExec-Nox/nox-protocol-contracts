@@ -10,11 +10,13 @@
     "IERC",
     "inheritdoc",
     "Initializable",
+    "ITEE",
     "keccak",
     "nvmrc",
     "sarif",
     "tload",
     "tstore",
+    "TYPEHASH",
     "upgrader",
     "UUPS",
     "viem"
