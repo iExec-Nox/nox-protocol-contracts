@@ -320,6 +320,24 @@ contract ACLTest is Test {
     }
 
     /**
+     * @dev Tests that a user with transient access can mark a handle as publicly decryptable.
+     */
+    function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
+        // Setup: grant user1 transient access to handle
+        vm.prank(teeComputeManager);
+        acl.allowTransient(handle, user1);
+
+        // Mark handle as publicly decryptable (in same transaction)
+        vm.prank(user1);
+        vm.expectEmit();
+        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
+        acl.allowPublicDecryption(handle);
+
+        // Verify handle is marked as publicly decryptable
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    /**
      * @dev Tests that allowPublicDecryption() reverts when sender doesn't have access to a handle.
      */
     function test_AllowPublicDecryption_RevertWhen_UnauthorizedSender() public {
