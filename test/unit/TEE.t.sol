@@ -201,8 +201,4 @@ contract TEELibTest is Test {
         TEE.allowTransient(value, user1);
         assertTrue(acl.isAllowed(handle, user1));
     }
-
-        TEE.allowTransient(value, user1);
-        assertTrue(acl.isAllowed(handle, user1));
-    }
 }

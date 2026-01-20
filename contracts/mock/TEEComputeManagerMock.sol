@@ -3,14 +3,14 @@ pragma solidity ^0.8.0;
 
 import "../ACL.sol";
 import "../shared/TEEType.sol";
-import "forge-std/Test.sol";
-
+import {Vm} from "forge-std/src/Vm.sol";
 /**
  * @title TEEComputeManagerMock
  * @dev Mock TEEComputeManager contract for testing ACL functionality with helper functions
  * This contract acts as a mock TEE Compute Manager to test ACL permissions
  */
-contract TEEComputeManagerMock is Test {
+contract TEEComputeManagerMock {
+    Vm constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     ACL public immutable acl;
 
     constructor() {
