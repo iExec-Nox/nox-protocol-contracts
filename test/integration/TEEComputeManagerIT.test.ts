@@ -19,7 +19,7 @@ describe("[IT] TEEComputeManager", function () {
             verifyingContract: teeComputeManager.address,
         } as const;
         const types = {
-            HandleOwnership: [
+            HandleProof: [
                 { name: "handle", type: "bytes32" },
                 { name: "owner", type: "address" },
                 { name: "acl", type: "address" },
@@ -36,7 +36,7 @@ describe("[IT] TEEComputeManager", function () {
         const signature = await user.signTypedData({
             domain,
             types,
-            primaryType: "HandleOwnership",
+            primaryType: "HandleProof",
             message,
         });
         // Construct proof

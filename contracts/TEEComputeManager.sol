@@ -25,8 +25,8 @@ contract TEEComputeManager is
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
 
-    bytes32 public constant HANDLE_OWNERSHIP_TYPEHASH =
-        keccak256("HandleOwnership(bytes32 handle,address owner,address acl,uint256 createdAt)");
+    bytes32 public constant HANDLE_PROOF_TYPEHASH =
+        keccak256("HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)");
 
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
@@ -86,7 +86,7 @@ contract TEEComputeManager is
         }
         // TODO add checks for `createdAt`.
         bytes32 eip712MessageHash = _hashTypedDataV4(
-            keccak256(abi.encode(HANDLE_OWNERSHIP_TYPEHASH, handle, owner, proofAcl, createdAt))
+            keccak256(abi.encode(HANDLE_PROOF_TYPEHASH, handle, owner, proofAcl, createdAt))
         );
         if (ECDSA.recover(eip712MessageHash, signature) != signer) {
             revert InvalidProof(proof, "Signer mismatch");
