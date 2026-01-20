@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import "../ACL.sol";
 import "../shared/TEEType.sol";
 import {Vm} from "forge-std/src/Vm.sol";
@@ -14,8 +15,12 @@ contract TEEComputeManagerMock {
     ACL public immutable acl;
 
     constructor() {
-        // Set this contract as teeComputeManager so it can call allowTransient/allow
-        acl = new ACL(address(this));
+        // Deploy ACL as upgradeable proxy
+        ACL implementation = new ACL();
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
+        acl = ACL(address(proxy));
+        // Initialize with this contract as owner and teeComputeManager
+        acl.initialize(address(this), address(this));
     }
 
     /**
