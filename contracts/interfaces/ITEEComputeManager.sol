@@ -15,7 +15,6 @@ interface ITEEComputeManager {
     event ACLUpdated(address indexed newACL);
 
     function setAcl(address newAcl) external;
-    function validateProof(bytes32 handle, address signer, bytes calldata proof) external view;
     function acl() external view returns (address);
 
     /**
@@ -25,4 +24,6 @@ interface ITEEComputeManager {
      * @return The encrypted value
      */
     function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32);
+
+    function validateProof(bytes32 handle, address signer, bytes calldata proof) external view;
 }

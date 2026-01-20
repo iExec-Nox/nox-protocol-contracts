@@ -20,11 +20,9 @@ contract TEEComputeManagerMock {
 
     /**
      * @dev Mock plaintextToEncrypted function that returns sequential handles
-     * @param value The plaintext value to encrypt (unused in mock)
-     * @param teeType The type of the encrypted value (unused in mock)
      * @return A unique handle for the encrypted value
      */
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32) {
+    function plaintextToEncrypted(uint256, TEEType) external returns (bytes32) {
         return bytes32(vm.randomUint());
     }
 
