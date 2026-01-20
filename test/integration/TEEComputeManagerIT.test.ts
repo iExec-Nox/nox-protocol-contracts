@@ -1,15 +1,12 @@
-import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadFixture } from "../utils/fixture.js";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { concatHex, toHex } from "viem";
 
-const viem = connection.viem;
 const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate input proof", async function () {
-        const { teeComputeManager, wallet0: owner, wallet1: user } = await loadFixture();
+        const { teeComputeManager, wallet1: user } = await loadFixture();
         const userAddress = user.account.address;
         const aclAddress = await teeComputeManager.read.acl();
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
