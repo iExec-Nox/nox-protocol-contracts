@@ -21,7 +21,7 @@ library TEEPrimitives {
 
     /// keccak256(abi.encode(uint256(keccak256("nox.storage.TEEConfig")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_CONFIG_SLOT =
-        0xe62ace9d5e38a7cc1c4b32793b4903144d8216801be242610d55d7ec48c6ff00;
+        0x55fc6f3f35af33b9f7b1cd69927b3b40430f605ab4fc44fcf6cbc2ec120ec900;
 
     /// @notice Emitted when TEE services config is set
     event TEEServicesConfigSet(address teeComputeManager, address acl);
