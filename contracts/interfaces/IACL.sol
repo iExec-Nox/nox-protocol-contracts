@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import "./IErrors.sol";
+
 /**
  * @title IACL
  * @dev Interface for the ACL (Access Control List) permission management system
  */
-interface IACL {
+interface IACL is IErrors {
     /// Error thrown when sender doesn't have access to the handle
     error UnauthorizedSender(address sender);
-
-    /// Error thrown when account address is zero
-    error InvalidZeroAddress();
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);

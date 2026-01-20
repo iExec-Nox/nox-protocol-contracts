@@ -1,9 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import "../shared/TEEType.sol";
-import "../interfaces/ITEEComputeManager.sol";
-import "../interfaces/IACL.sol";
+import {TEEType} from "../shared/TEEType.sol";
+import {ITEEComputeManager} from "../interfaces/ITEEComputeManager.sol";
+import {IACL} from "../interfaces/IACL.sol";
+import {IErrors} from "../interfaces/IErrors.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
 /**
@@ -25,12 +26,6 @@ library TEEPrimitives {
 
     /// @notice Emitted when TEE services config is set
     event TEEServicesConfigSet(address teeComputeManager, address acl);
-
-    /// @notice Returned if TEE services are not configured
-    error TEEServicesNotConfigured();
-
-    /// @notice Returned if ACL is not configured
-    error ACLNotConfigured();
 
     // ============ Trivial Encryption Functions ============
     /**
@@ -190,9 +185,11 @@ library TEEPrimitives {
      */
     function setTEEStorage(TEEConfig memory _config) internal {
         if (_config.teeComputeManager == address(0)) {
-            revert InvalidZeroAddress();
+            revert IErrors.InvalidZeroAddress();
         }
-        if (_config.acl == address(0)) revert ACLNotConfigured();
+        if (_config.acl == address(0)) {
+            revert IErrors.InvalidZeroAddress();
+        }
         TEEConfig storage $ = _getTEEStorage();
         $.teeComputeManager = _config.teeComputeManager;
         $.acl = _config.acl;
