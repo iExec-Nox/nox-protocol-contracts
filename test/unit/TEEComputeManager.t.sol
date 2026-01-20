@@ -17,7 +17,9 @@ contract TEEComputeManagerTest is Test {
 
     function setUp() public {
         teeComputeManager = _deployNewProxy();
-        teeComputeManager.initialize(owner, acl);
+        teeComputeManager.initialize(owner);
+        vm.prank(owner);
+        teeComputeManager.setAcl(acl);
         vm.label(owner, "owner");
         vm.label(acl, "acl");
         vm.label(address(teeComputeManager), "teeComputeManager");
@@ -43,7 +45,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_RevertWhen_Initialize_Twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        teeComputeManager.initialize(owner, acl);
+        teeComputeManager.initialize(owner);
     }
 
     // setAcl

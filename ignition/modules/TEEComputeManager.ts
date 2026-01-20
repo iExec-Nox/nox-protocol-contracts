@@ -5,12 +5,10 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
  */
 export default buildModule("TEEComputeManager", (m) => {
     const initialOwner = m.getParameter("initialOwner");
-    const acl = m.getParameter("acl");
-
     const implementation = m.contract("TEEComputeManager", [], {
         id: "implementation",
     });
-    const initData = m.encodeFunctionCall(implementation, "initialize", [initialOwner, acl]);
+    const initData = m.encodeFunctionCall(implementation, "initialize", [initialOwner]);
     const proxy = m.contract("ERC1967Proxy", [implementation, initData], {
         id: "proxy",
     });

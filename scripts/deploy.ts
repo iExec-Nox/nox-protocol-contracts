@@ -47,7 +47,6 @@ export async function deploy(log = true) {
         parameters: {
             TEEComputeManager: {
                 initialOwner: chainConfig.initialAdmin,
-                acl: "0x0000000000000000000000000000000000000000", // Temporary, will be updated after ACL deployment
             },
         },
     });

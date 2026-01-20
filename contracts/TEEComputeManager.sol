@@ -38,14 +38,11 @@ contract TEEComputeManager is
     /**
      * Initializes the proxy contract state.
      * @param initialOwner Initial owner address
-     * @param initialAcl ACL contract address
      */
-    function initialize(address initialOwner, address initialAcl) public initializer {
+    function initialize(address initialOwner) public initializer {
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         __EIP712_init("TEEComputeManager", "1");
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl = initialAcl;
     }
 
     /**
