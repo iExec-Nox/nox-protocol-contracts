@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
+import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
+import {AccessControlDefaultAdminRulesUpgradeable} from "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
 import "./interfaces/IACL.sol";
 
 /**
@@ -10,7 +12,9 @@ import "./interfaces/IACL.sol";
  * the ACL ensures that sensitive data remains protected while enabling authorized parties to interact with
  * encrypted resources in a secure and controlled manner.
  */
-contract ACL is IACL {
+contract ACL is IACL, UUPSUpgradeable, AccessControlDefaultAdminRulesUpgradeable {
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+
     /// Main storage structure following ERC-7201 pattern
     struct ACLStorage {
         /// Admins can use a handle as input in computations, and can add other admins and viewers
@@ -52,7 +56,34 @@ contract ACL is IACL {
     }
 
     // ============ CONSTRUCTOR ============
-    constructor(address teeComputeManager) notZeroAddress(teeComputeManager) {
+    /**
+     * @custom:oz-upgrades-unsafe-allow constructor
+     */
+    constructor() {
+        _disableInitializers();
+    }
+
+    /**
+     * Initializes the proxy contract state.
+     * @param initialAdmin Initial default admin address
+     * @param initialUpgrader Initial upgrader address
+     * @param teeComputeManager Address of the TEE Compute Manager
+     */
+    function initialize(
+        address initialAdmin,
+        address initialUpgrader,
+        address teeComputeManager
+    ) public initializer {
+        if (initialUpgrader == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        if (teeComputeManager == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        __UUPSUpgradeable_init();
+        __AccessControlDefaultAdminRules_init(0, initialAdmin);
+        _grantRole(UPGRADER_ROLE, initialUpgrader);
+
         ACLStorage storage $ = _getACLStorage();
         $.teeComputeManager = teeComputeManager;
     }
@@ -185,6 +216,13 @@ contract ACL is IACL {
     }
 
     // ============ INTERNAL HELPERS ============
+    /**
+     * Authorizes contract upgrades only by accounts with the role `UPGRADER_ROLE`.
+     */
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal override onlyRole(UPGRADER_ROLE) {}
+
     /**
      * Get the storage location for ACL data
      * @return $ The storage pointer

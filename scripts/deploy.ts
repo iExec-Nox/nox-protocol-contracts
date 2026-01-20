@@ -54,26 +54,28 @@ export async function deploy(log = true) {
         console.log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
     }
     // Deploy ACL
-    const { acl } = await connection.ignition.deploy(ACL, {
+    const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
         displayUi: log,
         parameters: {
             ACL: {
+                initialAdmin: chainConfig.initialAdmin,
+                initialUpgrader: chainConfig.initialUpgrader,
                 teeComputeManager: teeComputeManagerProxy.address,
             },
         },
     });
     if (log) {
-        console.log(`ACL: ${acl.address}`);
+        console.log(`ACL: ${aclProxy.address}`);
     }
     // Update ACL address in TEEComputeManager.
     const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
-    const setAclTxHash = await teeComputeManager.write.setAcl([acl.address]);
+    const setAclTxHash = await teeComputeManager.write.setAcl([aclProxy.address]);
     await publicClient.waitForTransactionReceipt({ hash: setAclTxHash });
 
     // Get contract instances as Viem contracts.
     const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
-    const aclContract = await viem.getContractAt("ACL", acl.address);
+    const aclContract = await viem.getContractAt("ACL", aclProxy.address);
     return {
         gatewayRegistry,
         acl: aclContract,

@@ -2,12 +2,18 @@
 pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
+import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
+import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract ACLTest is Test {
     ACL internal acl;
+    address internal admin;
+    address internal upgrader;
     address internal teeComputeManager;
     address internal user1;
     address internal user2;
@@ -18,6 +24,8 @@ contract ACLTest is Test {
     bytes32 internal handle3;
 
     function setUp() public {
+        admin = makeAddr("admin");
+        upgrader = makeAddr("upgrader");
         teeComputeManager = makeAddr("teeComputeManager");
         user1 = makeAddr("user1");
         user2 = makeAddr("user2");
@@ -27,14 +35,77 @@ contract ACLTest is Test {
         handle2 = keccak256("handle-2");
         handle3 = keccak256("handle-3");
 
+        acl = _deployNewProxy();
+        acl.initialize(admin, upgrader, teeComputeManager);
+
+        vm.label(admin, "Admin");
+        vm.label(upgrader, "Upgrader");
         vm.label(teeComputeManager, "TEEComputeManager");
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
         vm.label(viewer2, "Viewer2");
-
-        acl = new ACL(teeComputeManager);
         vm.label(address(acl), "ACL");
+    }
+
+    // ============ initialize ============
+
+    /**
+     * @dev Tests that initialize sets up the contract correctly.
+     */
+    function test_Initialize() public view {
+        assertTrue(acl.hasRole(acl.DEFAULT_ADMIN_ROLE(), admin));
+        assertTrue(acl.hasRole(acl.UPGRADER_ROLE(), upgrader));
+    }
+
+    /**
+     * @dev Tests that initialize reverts with zero addresses.
+     */
+    function test_RevertWhen_Initialize_WithZeroAddresses() public {
+        ACL proxy = _deployNewProxy();
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        proxy.initialize(admin, address(0), teeComputeManager);
+
+        ACL proxy2 = _deployNewProxy();
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        proxy2.initialize(admin, upgrader, address(0));
+    }
+
+    /**
+     * @dev Tests that initialize reverts when called twice.
+     */
+    function test_RevertWhen_Initialize_Twice() public {
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        acl.initialize(admin, upgrader, teeComputeManager);
+    }
+
+    // ============ _authorizeUpgrade ============
+
+    /**
+     * @dev Tests that authorized upgrader can upgrade the contract.
+     */
+    function test_AuthorizeUpgrade() public {
+        address newImplementation = address(new ACL());
+        vm.prank(upgrader);
+        vm.expectEmit();
+        emit IERC1967.Upgraded(newImplementation);
+        acl.upgradeToAndCall(newImplementation, "");
+    }
+
+    /**
+     * @dev Tests that unauthorized account cannot upgrade the contract.
+     */
+    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedUpgrader() public {
+        address unauthorizedUpgrader = makeAddr("unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                unauthorizedUpgrader,
+                acl.UPGRADER_ROLE()
+            )
+        );
+        vm.prank(unauthorizedUpgrader);
+        acl.upgradeToAndCall(makeAddr("newImpl"), "");
     }
 
     // ============ isAllowed ============
@@ -354,5 +425,13 @@ contract ACLTest is Test {
      */
     function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
         assertFalse(acl.isPubliclyDecryptable(handle));
+    }
+
+    // ============ HELPERS ============
+
+    function _deployNewProxy() internal returns (ACL) {
+        ACL implementation = new ACL();
+        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
+        return ACL(address(proxy));
     }
 }
