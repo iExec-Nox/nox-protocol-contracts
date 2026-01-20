@@ -98,6 +98,14 @@ library TEE {
     /**
      * @dev Allows the use of value for the address account.
      */
+    function allow(eaddress value, address account) internal {
+        TEEConfig storage $ = _getTEEStorage();
+        IACL($.acl).allow(eaddress.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
     function allow(euint256 value, address account) internal {
         TEEConfig storage $ = _getTEEStorage();
         IACL($.acl).allow(euint256.unwrap(value), account);
@@ -109,14 +117,6 @@ library TEE {
     function allow(eint256 value, address account) internal {
         TEEConfig storage $ = _getTEEStorage();
         IACL($.acl).allow(eint256.unwrap(value), account);
-    }
-
-    /**
-     * @dev Allows the use of value for the address account.
-     */
-    function allow(eaddress value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(eaddress.unwrap(value), account);
     }
 
     /**
@@ -162,6 +162,14 @@ library TEE {
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
+    function allowTransient(eaddress value, address account) internal {
+        TEEConfig storage $ = _getTEEStorage();
+        IACL($.acl).allowTransient(eaddress.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
     function allowTransient(euint256 value, address account) internal {
         TEEConfig storage $ = _getTEEStorage();
         IACL($.acl).allowTransient(euint256.unwrap(value), account);
@@ -173,14 +181,6 @@ library TEE {
     function allowTransient(eint256 value, address account) internal {
         TEEConfig storage $ = _getTEEStorage();
         IACL($.acl).allowTransient(eint256.unwrap(value), account);
-    }
-
-    /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(eaddress value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowTransient(eaddress.unwrap(value), account);
     }
 
     // ============ TEE CONFIGURATION ============
