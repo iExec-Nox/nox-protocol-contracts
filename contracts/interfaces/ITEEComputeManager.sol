@@ -7,4 +7,8 @@ interface ITEEComputeManager {
     error InvalidProof(bytes proof, string reason);
 
     event ACLUpdated(address indexed newACL);
+
+    function setAcl(address newAcl) external;
+    function validateProof(bytes32 handle, address signer, bytes calldata proof) external view;
+    function acl() external view returns (address);
 }
