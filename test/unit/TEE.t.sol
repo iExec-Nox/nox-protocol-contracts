@@ -201,4 +201,50 @@ contract TEELibTest is Test {
         TEEPrimitives.allowTransient(value, user1);
         assertTrue(acl.isAllowed(handle, user1));
     }
+
+    // ============ Public Decryption ============
+
+    function test_AllowPublicDecryption_Ebool_MarksAsPubliclyDecryptable() public {
+        ebool value = TEEPrimitives.toEbool(true);
+        bytes32 handle = ebool.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    function test_AllowPublicDecryption_Eaddress_MarksAsPubliclyDecryptable() public {
+        eaddress value = TEEPrimitives.toEaddress(user1);
+        bytes32 handle = eaddress.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    function test_AllowPublicDecryption_Euint256_MarksAsPubliclyDecryptable() public {
+        euint256 value = TEEPrimitives.toEuint256(12345);
+        bytes32 handle = euint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    function test_AllowPublicDecryption_Eint256_MarksAsPubliclyDecryptable() public {
+        eint256 value = TEEPrimitives.toEint256(-999);
+        bytes32 handle = eint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(acl.isPubliclyDecryptable(handle));
+    }
 }

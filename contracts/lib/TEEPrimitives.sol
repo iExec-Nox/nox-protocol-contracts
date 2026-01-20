@@ -178,6 +178,39 @@ library TEEPrimitives {
         IACL($.acl).allowTransient(eint256.unwrap(value), account);
     }
 
+    // ============ PUBLIC DECRYPTION ============
+    /**
+     * @dev Marks an ebool handle as publicly decryptable.
+     */
+    function allowPublicDecryption(ebool value) internal {
+        TEEConfig storage $ = _getTEEStorage();
+        IACL($.acl).allowPublicDecryption(ebool.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an eaddress handle as publicly decryptable.
+     */
+    function allowPublicDecryption(eaddress value) internal {
+        TEEConfig storage $ = _getTEEStorage();
+        IACL($.acl).allowPublicDecryption(eaddress.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an euint256 handle as publicly decryptable.
+     */
+    function allowPublicDecryption(euint256 value) internal {
+        TEEConfig storage $ = _getTEEStorage();
+        IACL($.acl).allowPublicDecryption(euint256.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an eint256 handle as publicly decryptable.
+     */
+    function allowPublicDecryption(eint256 value) internal {
+        TEEConfig storage $ = _getTEEStorage();
+        IACL($.acl).allowPublicDecryption(eint256.unwrap(value));
+    }
+
     // ============ TEE CONFIGURATION ============
     /**
      * @notice Sets the TEE services configuration
