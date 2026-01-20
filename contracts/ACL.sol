@@ -59,14 +59,10 @@ contract ACL is IACL {
 
     // ============ PUBLIC DECRYPTION ============
     /// @inheritdoc IACL
-    function allowPublicDecryption(bytes32 handle) external override {
-        if (!isAllowed(handle, msg.sender)) {
-            revert UnauthorizedSender(msg.sender);
-        }
-
+    function allowPublicDecryption(bytes32 handle) external override onlyAllowed(handle) {
         ACLStorage storage $ = _getACLStorage();
         $.isPubliclyDecryptable[handle] = true;
-        emit MarkedPubliclyDecryptable(msg.sender, handle);
+        emit MarkedAsPubliclyDecryptable(msg.sender, handle);
     }
 
     /// @inheritdoc IACL

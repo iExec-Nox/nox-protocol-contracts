@@ -312,7 +312,7 @@ contract ACLTest is Test {
         // Mark handle as publicly decryptable
         vm.prank(user1);
         vm.expectEmit();
-        emit IACL.MarkedPubliclyDecryptable(user1, handle);
+        emit IACL.MarkedAsPubliclyDecryptable(user1, handle);
         acl.allowPublicDecryption(handle);
 
         // Verify handle is marked as publicly decryptable

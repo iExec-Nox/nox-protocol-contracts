@@ -19,7 +19,7 @@ interface IACL {
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
 
     /// Emitted when a handle is marked as publicly decryptable
-    event MarkedPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
+    event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
 
     /**
      * Grant admin role to another address for a specific handle
