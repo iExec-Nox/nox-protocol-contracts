@@ -19,9 +19,9 @@ library TEE {
         address acl;
     }
 
-    /// keccak256(abi.encode(uint256(keccak256("nox.storage.TEE.config")) - 1)) & ~bytes32(uint256(0xff))
+    /// keccak256(abi.encode(uint256(keccak256("nox.storage.TEEConfig")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_CONFIG_SLOT =
-        0x453ce9972f26c0909dff7e07a33068f25d542621580a28090c38444374459000;
+        0xe62ace9d5e38a7cc1c4b32793b4903144d8216801be242610d55d7ec48c6ff00;
 
     /// @notice Emitted when TEE services config is set
     event TEEServicesConfigSet(address teeComputeManager, address acl);
@@ -53,7 +53,10 @@ library TEE {
         TEEConfig storage $ = _getTEEStorage();
         return
             ebool.wrap(
-                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(value ? 1 : 0, TEEType.Bool)
+                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(
+                    value ? 1 : 0,
+                    TEEType.Bool
+                )
             );
     }
 
