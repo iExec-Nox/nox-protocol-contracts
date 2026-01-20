@@ -71,31 +71,6 @@ contract ACLTest is Test {
         acl.initialize(owner, teeComputeManager);
     }
 
-    // ============ _authorizeUpgrade ============
-
-    /**
-     * @dev Tests that owner can upgrade the contract.
-     */
-    function test_AuthorizeUpgrade() public {
-        address newImplementation = address(new ACL());
-        vm.prank(owner);
-        vm.expectEmit();
-        emit IERC1967.Upgraded(newImplementation);
-        acl.upgradeToAndCall(newImplementation, "");
-    }
-
-    /**
-     * @dev Tests that non-owner cannot upgrade the contract.
-     */
-    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedAccount() public {
-        address unauthorized = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
-        );
-        vm.prank(unauthorized);
-        acl.upgradeToAndCall(makeAddr("newImpl"), "");
-    }
-
     // ============ isAllowed ============
 
     /**
@@ -413,6 +388,31 @@ contract ACLTest is Test {
      */
     function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
         assertFalse(acl.isPubliclyDecryptable(handle));
+    }
+
+    // ============ _authorizeUpgrade ============
+
+    /**
+     * @dev Tests that owner can upgrade the contract.
+     */
+    function test_AuthorizeUpgrade() public {
+        address newImplementation = address(new ACL());
+        vm.prank(owner);
+        vm.expectEmit();
+        emit IERC1967.Upgraded(newImplementation);
+        acl.upgradeToAndCall(newImplementation, "");
+    }
+
+    /**
+     * @dev Tests that non-owner cannot upgrade the contract.
+     */
+    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedAccount() public {
+        address unauthorized = makeAddr("unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
+        );
+        vm.prank(unauthorized);
+        acl.upgradeToAndCall(makeAddr("newImpl"), "");
     }
 
     // ============ HELPERS ============
