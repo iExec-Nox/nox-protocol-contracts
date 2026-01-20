@@ -17,6 +17,7 @@ import connection from "./utils/hardhat-connection-singleton.js";
  */
 export async function deploy(log = true) {
     const { viem } = connection;
+    const publicClient = await viem.getPublicClient();
     const chainConfig = config[connection.networkName];
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
@@ -68,7 +69,8 @@ export async function deploy(log = true) {
     }
     // Update ACL address in TEEComputeManager.
     const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
-    await teeComputeManager.write.setAcl([acl.address]); // Wait for tx ??
+    const setAclTxHash = await teeComputeManager.write.setAcl([acl.address]);
+    await publicClient.waitForTransactionReceipt({ hash: setAclTxHash });
 
     // Get contract instances as Viem contracts.
     const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
