@@ -5,7 +5,7 @@ import { concatHex, toHex } from "viem";
 const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
 
 describe("[IT] TEEComputeManager", function () {
-    it("Should validate input proof", async function () {
+    it("Should validate handle proof", async function () {
         const { teeComputeManager, wallet1: user, gateway } = await loadFixture();
         const userAddress = user.account.address;
         const aclAddress = await teeComputeManager.read.acl();
