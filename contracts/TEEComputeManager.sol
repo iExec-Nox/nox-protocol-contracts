@@ -121,9 +121,16 @@ contract TEEComputeManager is
             )
         );
         if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
-            revert InvalidProof(proof, "Signer mismatch");
+            revert InvalidProof(proof, "Invalid signature");
         }
         // TODO call ACL to allow here
+    }
+
+    /**
+     * Returns the EIP-712 domain separator.
+     */
+    function domainSeparator() external view returns (bytes32) {
+        return _domainSeparatorV4();
     }
 
     /**

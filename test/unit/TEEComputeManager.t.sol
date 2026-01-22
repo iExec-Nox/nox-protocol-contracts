@@ -14,7 +14,10 @@ contract TEEComputeManagerTest is Test {
     TEEComputeManager teeComputeManager;
     address owner = makeAddr("owner");
     address acl = makeAddr("acl");
-    address gateway = makeAddr("gateway");
+    uint256 gatewayPrivateKey = 123456789;
+    address gateway = vm.addr(gatewayPrivateKey);
+    bytes32 handle = keccak256("handle");
+    uint256 createdAt = block.timestamp;
 
     function setUp() public {
         teeComputeManager = _deployNewProxy();
@@ -102,6 +105,69 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setGateway(newGateway);
     }
 
+    // validateProof
+
+    function test_ValidateProof() public view {
+        bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        teeComputeManager.validateProof(handle, owner, proof);
+    }
+
+    function test_ValidateProof_RevertWhen_InvalidProofLength() public {
+        bytes memory longProof = new bytes(138);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                longProof,
+                "Invalid length"
+            )
+        );
+        teeComputeManager.validateProof(handle, owner, longProof);
+        bytes memory shortProof = new bytes(136);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                shortProof,
+                "Invalid length"
+            )
+        );
+        teeComputeManager.validateProof(handle, owner, shortProof);
+    }
+
+    function test_ValidateProof_RevertWhen_InvalidAclInProof() public {
+        address badAcl = makeAddr("badAcl");
+        bytes memory proof = _buildProof(handle, owner, badAcl, createdAt, gatewayPrivateKey);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "ACL mismatch")
+        );
+        teeComputeManager.validateProof(handle, owner, proof);
+    }
+
+    function test_ValidateProof_RevertWhen_InvalidOwnerInProof() public {
+        address badOwner = makeAddr("badOwner");
+        bytes memory proof = _buildProof(handle, badOwner, acl, createdAt, gatewayPrivateKey);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Owner mismatch"
+            )
+        );
+        teeComputeManager.validateProof(handle, owner, proof);
+    }
+
+    function test_ValidateProof_RevertWhen_InvalidSigner() public {
+        uint256 badSigner = 9999;
+        bytes memory proof = _buildProof(handle, owner, acl, createdAt, badSigner);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Invalid signature"
+            )
+        );
+        teeComputeManager.validateProof(handle, owner, proof);
+    }
+
     // _authorizeUpgrade
 
     function test_AuthorizeUpgrade() public {
@@ -129,5 +195,37 @@ contract TEEComputeManagerTest is Test {
         TEEComputeManager implementation = new TEEComputeManager();
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
         return TEEComputeManager(address(proxy));
+    }
+
+    function _buildProof(
+        bytes32 handle_,
+        address owner_,
+        address acl_,
+        uint256 createdAt_,
+        uint256 signerPrivateKey
+    ) internal view returns (bytes memory) {
+        // HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)
+        bytes32 digest = _buildDigest(handle_, owner_, acl_, createdAt_);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
+        bytes memory signature = abi.encodePacked(r, s, v);
+        // Proof format:
+        //   owner (20 bytes) || ACL (20 bytes) || createdAt (32 bytes) || EIP-712 signature (65 bytes)
+
+        return bytes.concat(bytes20(owner_), bytes20(acl_), bytes32(createdAt_), signature);
+    }
+
+    function _buildDigest(
+        bytes32 handle_,
+        address owner_,
+        address acl_,
+        uint256 createdAt_
+    ) internal view returns (bytes32) {
+        bytes32 structHash = keccak256(
+            abi.encode(teeComputeManager.HANDLE_PROOF_TYPEHASH(), handle_, owner_, acl_, createdAt_)
+        );
+        return
+            keccak256(
+                abi.encodePacked("\x19\x01", teeComputeManager.domainSeparator(), structHash)
+            );
     }
 }
