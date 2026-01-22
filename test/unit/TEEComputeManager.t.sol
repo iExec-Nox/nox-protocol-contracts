@@ -208,9 +208,6 @@ contract TEEComputeManagerTest is Test {
         bytes32 digest = _buildDigest(handle_, owner_, acl_, createdAt_);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         bytes memory signature = abi.encodePacked(r, s, v);
-        // Proof format:
-        //   owner (20 bytes) || ACL (20 bytes) || createdAt (32 bytes) || EIP-712 signature (65 bytes)
-
         return bytes.concat(bytes20(owner_), bytes20(acl_), bytes32(createdAt_), signature);
     }
 

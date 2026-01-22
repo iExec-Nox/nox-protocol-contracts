@@ -102,13 +102,13 @@ contract TEEComputeManager is
         if (proof.length != 137) {
             revert InvalidProof(proof, "Invalid length");
         }
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         address ownerInProof = address(bytes20(proof[0:20]));
         address aclInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
         // TODO check handle type.
         // TODO add checks for `createdAt`.
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         if (aclInProof != $.acl) {
             revert InvalidProof(proof, "ACL mismatch");
         }
