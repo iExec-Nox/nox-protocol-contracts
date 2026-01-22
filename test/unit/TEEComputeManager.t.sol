@@ -93,6 +93,8 @@ contract TEEComputeManagerTest is Test {
         assertTrue(teeComputeManager.gateway() == gateway);
         address newGateway = makeAddr("newGateway");
         vm.prank(owner);
+        vm.expectEmit();
+        emit ITEEComputeManager.GatewayUpdated(newGateway);
         teeComputeManager.setGateway(newGateway);
         assertTrue(teeComputeManager.gateway() == newGateway);
     }

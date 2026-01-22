@@ -134,7 +134,7 @@ contract TEEComputeManager is
     }
 
     /**
-     * Returns the configured ACL contract address.
+     * Returns the ACL contract address.
      */
     function acl() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
@@ -142,7 +142,7 @@ contract TEEComputeManager is
     }
 
     /**
-     * Returns the configured ACL contract address.
+     * Returns the Gateway wallet address.
      */
     function gateway() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
