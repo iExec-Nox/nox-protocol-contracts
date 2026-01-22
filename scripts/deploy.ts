@@ -53,14 +53,14 @@ export async function deploy(log = true) {
         console.log(`ACL: ${aclProxy.address}`);
     }
     // Update ACL address in TEEComputeManager.
-    const teeComputeManager = await viem.getContractAt("ITEEComputeManager", teeComputeManagerProxy.address);
+    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
     const setAclTxHash = await teeComputeManager.write.setAcl([aclProxy.address]);
     await publicClient.waitForTransactionReceipt({ hash: setAclTxHash });
 
     // Get contract instances as Viem contracts.
-    const aclContract = await viem.getContractAt("ACL", aclProxy.address);
+    const acl = await viem.getContractAt("ACL", aclProxy.address);
     return {
-        acl: aclContract,
+        acl,
         teeComputeManager,
     };
 }
