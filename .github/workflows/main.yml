@@ -30,12 +30,11 @@ jobs:
         run: pnpm run deploy
       - name: Run coverage
         run: pnpm run coverage
-      # TODO when Codecov token is available
-      # - name: Upload coverage reports to Codecov
-      #   uses: codecov/codecov-action@v4.0.1
-      #   with:
-      #     token: ${{ secrets.CODECOV_TOKEN }}
-      #     slug: iExecBlockchainComputing/nox-contracts
+      - name: Upload coverage reports to Codecov
+        uses: codecov/codecov-action@v4.0.1
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
+          slug: iExecBlockchainComputing/nox-contracts
       - name: Run static analysis with Slither
         uses: crytic/slither-action@v0.4.1
         with:
