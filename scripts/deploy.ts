@@ -31,7 +31,7 @@ export async function deploy(log = true) {
         displayUi: log,
         parameters: {
             TEEComputeManager: {
-                initialOwner: chainConfig.initialAdmin,
+                initialOwner: chainConfig.initialOwner,
             },
         },
     });
@@ -44,7 +44,7 @@ export async function deploy(log = true) {
         displayUi: log,
         parameters: {
             ACL: {
-                initialOwner: chainConfig.initialAdmin,
+                initialOwner: chainConfig.initialOwner,
                 teeComputeManager: teeComputeManagerProxy.address,
             },
         },
