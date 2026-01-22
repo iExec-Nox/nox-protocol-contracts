@@ -1,5 +1,4 @@
 import path from "path";
-import GatewayRegistry from "../ignition/modules/GatewayRegistry.js";
 import ACL from "../ignition/modules/ACL.js";
 import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
 import config from "../config/config.js";
@@ -25,20 +24,6 @@ export async function deploy(log = true) {
     if (log) {
         console.log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
         console.log(`Chain config:`, chainConfig);
-    }
-    // Deploy GatewayRegistry
-    const { proxy: gatewayRegistryProxy } = await connection.ignition.deploy(GatewayRegistry, {
-        deploymentId: connection.networkName,
-        displayUi: log,
-        parameters: {
-            GatewayRegistry: {
-                initialAdmin: chainConfig.initialAdmin,
-                initialUpgrader: chainConfig.initialUpgrader,
-            },
-        },
-    });
-    if (log) {
-        console.log(`GatewayRegistry: ${gatewayRegistryProxy.address}`);
     }
     // Deploy TEEComputeManager.
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
@@ -68,15 +53,13 @@ export async function deploy(log = true) {
         console.log(`ACL: ${aclProxy.address}`);
     }
     // Update ACL address in TEEComputeManager.
-    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
+    const teeComputeManager = await viem.getContractAt("ITEEComputeManager", teeComputeManagerProxy.address);
     const setAclTxHash = await teeComputeManager.write.setAcl([aclProxy.address]);
     await publicClient.waitForTransactionReceipt({ hash: setAclTxHash });
 
     // Get contract instances as Viem contracts.
-    const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
     const aclContract = await viem.getContractAt("ACL", aclProxy.address);
     return {
-        gatewayRegistry,
         acl: aclContract,
         teeComputeManager,
     };

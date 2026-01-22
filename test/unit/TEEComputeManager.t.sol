@@ -81,6 +81,12 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setAcl(newAcl);
     }
 
+    function test_SetAcl_RevertWhen_ZeroAddress() public {
+        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.prank(owner);
+        teeComputeManager.setAcl(address(0));
+    }
+
     // setGateway
 
     function test_SetGateway() public {
@@ -103,6 +109,12 @@ contract TEEComputeManagerTest is Test {
         );
         vm.prank(unauthorizedCaller);
         teeComputeManager.setGateway(newGateway);
+    }
+
+    function test_SetGateway_RevertWhen_ZeroAddress() public {
+        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.prank(owner);
+        teeComputeManager.setGateway(address(0));
     }
 
     // validateProof
