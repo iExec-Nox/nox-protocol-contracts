@@ -14,14 +14,17 @@ contract TEEComputeManagerTest is Test {
     TEEComputeManager teeComputeManager;
     address owner = makeAddr("owner");
     address acl = makeAddr("acl");
+    address gateway = makeAddr("gateway");
 
     function setUp() public {
         teeComputeManager = _deployNewProxy();
         teeComputeManager.initialize(owner);
         vm.prank(owner);
         teeComputeManager.setAcl(acl);
+        teeComputeManager.setGateway(gateway);
         vm.label(owner, "owner");
         vm.label(acl, "acl");
+        vm.label(gateway, "gateway");
         vm.label(address(teeComputeManager), "teeComputeManager");
     }
 
@@ -43,7 +46,7 @@ contract TEEComputeManagerTest is Test {
         assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
 
-    function test_RevertWhen_Initialize_Twice() public {
+    function test_Initialize_RevertWhen_DoubleInit() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         teeComputeManager.initialize(owner);
     }
@@ -60,7 +63,7 @@ contract TEEComputeManagerTest is Test {
         assertTrue(teeComputeManager.acl() == newAcl);
     }
 
-    function test_RevertWhen_SetAcl_WithUnauthorizedCaller() public {
+    function test_SetAcl_RevertWhen_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         address newAcl = makeAddr("newAcl");
         vm.expectRevert(
@@ -72,6 +75,30 @@ contract TEEComputeManagerTest is Test {
         );
         vm.prank(unauthorizedCaller);
         teeComputeManager.setAcl(newAcl);
+    }
+
+    // setGateway
+
+    function test_SetGateway() public {
+        assertTrue(teeComputeManager.gateway() == gateway);
+        address newGateway = makeAddr("newGateway");
+        vm.prank(owner);
+        teeComputeManager.setGateway(newGateway);
+        assertTrue(teeComputeManager.gateway() == newGateway);
+    }
+
+    function test_SetGateway_RevertWhen_UnauthorizedCaller() public {
+        address unauthorizedCaller = makeAddr("unauthorized");
+        address newGateway = makeAddr("newGateway");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
+                unauthorizedCaller,
+                teeComputeManager
+            )
+        );
+        vm.prank(unauthorizedCaller);
+        teeComputeManager.setGateway(newGateway);
     }
 
     // _authorizeUpgrade
