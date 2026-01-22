@@ -39,9 +39,6 @@ describe("[IT] TEEComputeManager", function () {
             primaryType: "HandleProof",
             message,
         });
-        // Construct proof
-        // proof = owner || ACL || createdAt || EIP712Signature (65 bytes)
-        //          20      20       32                    65
         const proof = concatHex([userAddress, aclAddress, toHex(createdAt, { size: 32 }), signature]);
         await teeComputeManager.read.validateProof([handle, userAddress, proof]);
     });
