@@ -6,7 +6,7 @@ const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefab
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate input proof", async function () {
-        const { teeComputeManager, wallet1: user } = await loadFixture();
+        const { teeComputeManager, wallet1: user, gateway } = await loadFixture();
         const userAddress = user.account.address;
         const aclAddress = await teeComputeManager.read.acl();
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
@@ -33,7 +33,7 @@ describe("[IT] TEEComputeManager", function () {
             createdAt,
         } as const;
 
-        const signature = await user.signTypedData({
+        const signature = await gateway.signTypedData({
             domain,
             types,
             primaryType: "HandleProof",

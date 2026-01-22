@@ -19,9 +19,10 @@ contract TEEComputeManagerTest is Test {
     function setUp() public {
         teeComputeManager = _deployNewProxy();
         teeComputeManager.initialize(owner);
-        vm.prank(owner);
+        vm.startPrank(owner);
         teeComputeManager.setAcl(acl);
         teeComputeManager.setGateway(gateway);
+        vm.stopPrank();
         vm.label(owner, "owner");
         vm.label(acl, "acl");
         vm.label(gateway, "gateway");
