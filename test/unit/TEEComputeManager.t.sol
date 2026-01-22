@@ -11,22 +11,7 @@ import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
-
-contract MockACL {
-    mapping(bytes32 => mapping(address => bool)) public allowed;
-
-    function setAllowed(bytes32 handle, address account, bool value) external {
-        allowed[handle][account] = value;
-    }
-
-    function isAllowed(bytes32 handle, address account) external view returns (bool) {
-        return allowed[handle][account];
-    }
-
-    function allowTransient(bytes32, address) external pure {
-        // No-op for testing
-    }
-}
+import {MockACL} from "../../contracts/mock/MockACL.sol";
 
 contract TEEComputeManagerTest is Test {
     TEEComputeManager teeComputeManager;
