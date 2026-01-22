@@ -135,6 +135,18 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
+    function test_ValidateProof_RevertWhen_InvalidHandleType() public {
+        bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Handle type mismatch"
+            )
+        );
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Bool); // Wrong type
+    }
+
     function test_ValidateProof_RevertWhen_InvalidProofLength() public {
         bytes memory longProof = new bytes(138);
         vm.expectRevert(
