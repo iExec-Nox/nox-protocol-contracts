@@ -17,11 +17,37 @@ interface ITEEComputeManager {
     error ACLNotAllowed(bytes32 handle, address account);
 
     event ACLUpdated(address indexed newACL);
-    event PlaintextToEncrypted(address indexed caller, uint256 plaintext, uint8 toType, bytes32 result);
-    event Add(address indexed caller, bytes32 leftHandOperand, bytes32 rightHandOperand, bytes32 result);
-    event Sub(address indexed caller, bytes32 leftHandOperand, bytes32 rightHandOperand, bytes32 result);
-    event Div(address indexed caller, bytes32 leftHandOperand, bytes32 rightHandOperand, bytes32 result);
-    event Select(address indexed caller, bytes32 condition, bytes32 ifTrue, bytes32 ifFalse, bytes32 result);
+    event PlaintextToEncrypted(
+        address indexed caller,
+        uint256 plaintext,
+        uint8 toType,
+        bytes32 result
+    );
+    event Add(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Sub(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Div(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Select(
+        address indexed caller,
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse,
+        bytes32 result
+    );
 
     function setAcl(address newAcl) external;
     function validateProof(bytes32 handle, address signer, bytes calldata proof) external view;
@@ -41,7 +67,10 @@ interface ITEEComputeManager {
      * @param rightHandOperand Right-hand side operand
      * @return result Result handle
      */
-    function add(bytes32 leftHandOperand, bytes32 rightHandOperand) external returns (bytes32 result);
+    function add(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
 
     /**
      * @notice Computes TEE Sub operation
@@ -49,7 +78,10 @@ interface ITEEComputeManager {
      * @param rightHandOperand Right-hand side operand
      * @return result Result handle
      */
-    function sub(bytes32 leftHandOperand, bytes32 rightHandOperand) external returns (bytes32 result);
+    function sub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
 
     /**
      * @notice Computes TEE Div operation
@@ -57,7 +89,10 @@ interface ITEEComputeManager {
      * @param rightHandOperand Right-hand side operand (must be non-zero)
      * @return result Result handle
      */
-    function div(bytes32 leftHandOperand, bytes32 rightHandOperand) external returns (bytes32 result);
+    function div(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
 
     /**
      * @notice Computes TEE Select operation (if-then-else)
@@ -66,7 +101,11 @@ interface ITEEComputeManager {
      * @param ifFalse Value if condition is false
      * @return result Result handle
      */
-    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32 result);
+    function select(
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse
+    ) external returns (bytes32 result);
 
     /**
      * @notice Does trivial encryption

@@ -82,7 +82,10 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function add(bytes32 leftHandOperand, bytes32 rightHandOperand) external returns (bytes32 result) {
+    function add(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
         uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
             (1 << uint8(TEEType.Uint256)) +
             (1 << uint8(TEEType.Int256));
@@ -92,7 +95,10 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function sub(bytes32 leftHandOperand, bytes32 rightHandOperand) external returns (bytes32 result) {
+    function sub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
         uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
             (1 << uint8(TEEType.Uint256)) +
             (1 << uint8(TEEType.Int256));
@@ -102,7 +108,10 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function div(bytes32 leftHandOperand, bytes32 rightHandOperand) external returns (bytes32 result) {
+    function div(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
         if (rightHandOperand == 0) revert DivisionByZero();
         uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
             (1 << uint8(TEEType.Uint256)) +
@@ -113,7 +122,11 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32 result) {
+    function select(
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse
+    ) external returns (bytes32 result) {
         uint256 supportedTypes = (1 << uint8(TEEType.Bool)) +
             (1 << uint8(TEEType.Address)) +
             (1 << uint8(TEEType.Uint160)) +
@@ -134,7 +147,9 @@ contract TEEComputeManager is
 
         if ((1 << uint8(toType)) & supportedTypes == 0) revert UnsupportedType();
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        result = keccak256(abi.encodePacked(Operators.teeTrivialEncrypt, pt, toType, $.acl, block.chainid));
+        result = keccak256(
+            abi.encodePacked(Operators.teeTrivialEncrypt, pt, toType, $.acl, block.chainid)
+        );
         result = _appendMetadataToPrehandle(result, toType);
         IACL($.acl).allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, pt, uint8(toType), result);
