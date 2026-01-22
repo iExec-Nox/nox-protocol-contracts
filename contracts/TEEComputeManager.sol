@@ -20,12 +20,12 @@ contract TEEComputeManager is
     /// @custom:storage-location erc7201:nox.storage.TEEComputeManager
     struct TEEComputeManagerStorage {
         address acl;
+        address gateway;
     }
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
-
     bytes32 public constant HANDLE_PROOF_TYPEHASH =
         keccak256("HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)");
 
@@ -60,6 +60,20 @@ contract TEEComputeManager is
         emit ACLUpdated(newAcl);
     }
 
+    /**
+     * Sets Gateway wallet address.
+     * Only callable by the owner.
+     * @param gatewayAddress New Gateway wallet address
+     */
+    function setGateway(address gatewayAddress) external onlyOwner {
+        if (gatewayAddress == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.gateway = gatewayAddress;
+        emit GatewayUpdated(gatewayAddress);
+    }
+
     /// @inheritdoc ITEEComputeManager
     function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
         // TODO
@@ -69,33 +83,47 @@ contract TEEComputeManager is
     }
 
     /**
-     * Validates a handle's ownership proof. Reverts if the proof is invalid.
+     * Validates that a handle provided by a user is:
+     *   - of expected type (TODO)
+     *   - not expired (TODO)
+     *   - issued for the correct ACL
+     *   - issued for the correct owner
+     *   - issued by the configured gateway (signed by the gateway wallet)
+     * or reverts otherwise.
+     *
      * Proof format:
      *    owner (20 bytes) || ACL (20 bytes) || createdAt (32 bytes) || EIP-712 signature (65 bytes)
      *
      * @param handle handle id
-     * @param signer Expected signer address
+     * @param owner The address of the handle owner
      * @param proof Proof data
      */
-    function validateProof(bytes32 handle, address signer, bytes calldata proof) public view {
+    function validateProof(bytes32 handle, address owner, bytes calldata proof) public view {
         if (proof.length != 137) {
             revert InvalidProof(proof, "Invalid length");
         }
-        address owner = address(bytes20(proof[0:20]));
-        address proofAcl = address(bytes20(proof[20:40]));
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        address ownerInProof = address(bytes20(proof[0:20]));
+        address aclInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        if (proofAcl != $.acl) {
+        // TODO check handle type.
+        // TODO add checks for `createdAt`.
+        if (aclInProof != $.acl) {
             revert InvalidProof(proof, "ACL mismatch");
         }
-        // TODO add checks for `createdAt`.
+        if (ownerInProof != owner) {
+            revert InvalidProof(proof, "Owner mismatch");
+        }
         bytes32 eip712MessageHash = _hashTypedDataV4(
-            keccak256(abi.encode(HANDLE_PROOF_TYPEHASH, handle, owner, proofAcl, createdAt))
+            keccak256(
+                abi.encode(HANDLE_PROOF_TYPEHASH, handle, ownerInProof, aclInProof, createdAt)
+            )
         );
-        if (ECDSA.recover(eip712MessageHash, signature) != signer) {
+        if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
             revert InvalidProof(proof, "Signer mismatch");
         }
+        // TODO call ACL to allow here
     }
 
     /**
@@ -104,6 +132,14 @@ contract TEEComputeManager is
     function acl() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         return $.acl;
+    }
+
+    /**
+     * Returns the configured ACL contract address.
+     */
+    function gateway() external view returns (address) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.gateway;
     }
 
     /**
