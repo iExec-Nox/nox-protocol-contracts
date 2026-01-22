@@ -15,6 +15,22 @@ This example project includes:
 - TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
 - Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
 
+## Project setup
+
+Checkout the NodeJS version specified in `.nvmrc` file:
+
+```
+nvm install && nvm use
+```
+
+The project uses `pnpm` package manager:
+
+```
+npm install -g pnpm
+pnpm config set ignore-scripts=true
+pnpm install
+```
+
 ## Usage
 
 ### Running Tests
