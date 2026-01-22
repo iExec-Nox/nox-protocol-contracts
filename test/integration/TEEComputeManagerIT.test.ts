@@ -2,7 +2,8 @@ import { describe, it } from "node:test";
 import { loadFixture } from "../utils/fixture.js";
 import { concatHex, toHex } from "viem";
 
-const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd";
+// Random handle of type uint256 (3) and version 0
+const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0300";
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate handle proof", async function () {
@@ -40,6 +41,6 @@ describe("[IT] TEEComputeManager", function () {
             message,
         });
         const proof = concatHex([userAddress, aclAddress, toHex(createdAt, { size: 32 }), signature]);
-        await teeComputeManager.read.validateProof([handle, userAddress, proof]);
+        await teeComputeManager.read.validateProof([handle, userAddress, proof, 3]); // TEEType.Uint256
     });
 });

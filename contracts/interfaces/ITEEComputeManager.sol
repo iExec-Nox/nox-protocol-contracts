@@ -26,7 +26,12 @@ interface ITEEComputeManager {
      */
     function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32);
 
-    function validateProof(bytes32 handle, address owner, bytes calldata proof) external view;
+    function validateProof(
+        bytes32 handle,
+        address owner,
+        bytes calldata proof,
+        TEEType teeType
+    ) external view;
     function domainSeparator() external view returns (bytes32);
     function acl() external view returns (address);
     function gateway() external view returns (address);

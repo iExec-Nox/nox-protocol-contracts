@@ -9,6 +9,7 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
+import {TEEType} from "../../contracts/shared/TEEType.sol";
 
 contract TEEComputeManagerTest is Test {
     TEEComputeManager teeComputeManager;
@@ -16,8 +17,16 @@ contract TEEComputeManagerTest is Test {
     address acl = makeAddr("acl");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
-    bytes32 handle = keccak256("handle");
     uint256 createdAt = block.timestamp;
+    bytes32 handle =
+        bytes32(
+            bytes.concat(
+                bytes26(uint208(1234567890)), // Random pre-handle
+                bytes4(uint32(block.chainid)),
+                bytes1(uint8(TEEType.Uint256)), // Type 3
+                bytes1(0x00) // Version 0
+            )
+        );
 
     function setUp() public {
         teeComputeManager = _deployNewProxy();
@@ -123,7 +132,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_ValidateProof() public view {
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
-        teeComputeManager.validateProof(handle, owner, proof);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_InvalidProofLength() public {
@@ -132,19 +141,19 @@ contract TEEComputeManagerTest is Test {
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
                 longProof,
-                "Invalid length"
+                "Invalid proof length"
             )
         );
-        teeComputeManager.validateProof(handle, owner, longProof);
+        teeComputeManager.validateProof(handle, owner, longProof, TEEType.Uint256);
         bytes memory shortProof = new bytes(136);
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
                 shortProof,
-                "Invalid length"
+                "Invalid proof length"
             )
         );
-        teeComputeManager.validateProof(handle, owner, shortProof);
+        teeComputeManager.validateProof(handle, owner, shortProof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_InvalidAclInProof() public {
@@ -153,7 +162,7 @@ contract TEEComputeManagerTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "ACL mismatch")
         );
-        teeComputeManager.validateProof(handle, owner, proof);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_InvalidOwnerInProof() public {
@@ -166,7 +175,7 @@ contract TEEComputeManagerTest is Test {
                 "Owner mismatch"
             )
         );
-        teeComputeManager.validateProof(handle, owner, proof);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_InvalidSigner() public {
@@ -179,7 +188,7 @@ contract TEEComputeManagerTest is Test {
                 "Invalid signature"
             )
         );
-        teeComputeManager.validateProof(handle, owner, proof);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     // _authorizeUpgrade
