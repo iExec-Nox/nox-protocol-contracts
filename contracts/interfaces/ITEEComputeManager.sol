@@ -11,8 +11,30 @@ interface ITEEComputeManager {
     // TODO put common errors in a shared interface.
     error InvalidZeroAddress();
     error InvalidProof(bytes proof, string reason);
+    error DivisionByZero();
+    error IncompatibleTypes();
+    error UnsupportedType();
+    error ACLNotAllowed(bytes32 handle, address account);
 
     event ACLUpdated(address indexed newACL);
+    event Add(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Sub(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Div(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
 
     function setAcl(address newAcl) external;
     function validateProof(bytes32 handle, address signer, bytes calldata proof) external view;

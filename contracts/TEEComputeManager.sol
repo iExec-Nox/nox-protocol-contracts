@@ -6,6 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
+import {IACL} from "./interfaces/IACL.sol";
 import {TEEType} from "./shared/TEEType.sol";
 
 /**
@@ -22,6 +23,14 @@ contract TEEComputeManager is
     struct TEEComputeManagerStorage {
         address acl;
     }
+
+    enum Operators {
+        teeAdd,
+        teeSub,
+        teeDiv
+    }
+
+    uint8 private constant HANDLE_VERSION = 0;
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
@@ -73,33 +82,34 @@ contract TEEComputeManager is
     function add(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32) {
-        // TODO
-        leftHandOperand;
-        rightHandOperand;
-        return bytes32(0);
+    ) external returns (bytes32 result) {
+        uint256 supportedTypes = _numericTypesMask();
+        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
+        result = _binaryOp(Operators.teeAdd, leftHandOperand, rightHandOperand, lhsType);
+        emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
     /// @inheritdoc ITEEComputeManager
     function sub(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32) {
-        // TODO
-        leftHandOperand;
-        rightHandOperand;
-        return bytes32(0);
+    ) external returns (bytes32 result) {
+        uint256 supportedTypes = _numericTypesMask();
+        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
+        result = _binaryOp(Operators.teeSub, leftHandOperand, rightHandOperand, lhsType);
+        emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
     /// @inheritdoc ITEEComputeManager
     function div(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32) {
-        // TODO
-        leftHandOperand;
-        rightHandOperand;
-        return bytes32(0);
+    ) external returns (bytes32 result) {
+        if (rightHandOperand == 0) revert DivisionByZero();
+        uint256 supportedTypes = _numericTypesMask();
+        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
+        result = _binaryOp(Operators.teeDiv, leftHandOperand, rightHandOperand, lhsType);
+        emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
     /**
@@ -153,5 +163,54 @@ contract TEEComputeManager is
         assembly {
             $.slot := TEE_COMPUTE_MANAGER_STORAGE_LOCATION
         }
+    }
+
+    function _numericTypesMask() private pure returns (uint256) {
+        return
+            (1 << uint8(TEEType.Uint160)) +
+            (1 << uint8(TEEType.Uint256)) +
+            (1 << uint8(TEEType.Int256));
+    }
+
+    function _typeOf(bytes32 handle) private pure returns (TEEType) {
+        return TEEType(uint8(handle[30]));
+    }
+
+    function _verifyAndReturnType(
+        bytes32 handle,
+        uint256 supportedTypes
+    ) private pure returns (TEEType typeCt) {
+        typeCt = _typeOf(handle);
+        if ((1 << uint8(typeCt)) & supportedTypes == 0) revert UnsupportedType();
+    }
+
+    function _appendMetadataToPrehandle(
+        bytes32 prehandle,
+        TEEType handleType
+    ) private view returns (bytes32 result) {
+        result = prehandle & 0xffffffffffffffffffffffffffffffffffffffffff0000000000000000000000;
+        result = result | (bytes32(uint256(0xff)) << 80);
+        result = result | (bytes32(uint256(uint64(block.chainid))) << 16);
+        result = result | (bytes32(uint256(uint8(handleType))) << 8);
+        result = result | bytes32(uint256(HANDLE_VERSION));
+    }
+
+    function _binaryOp(
+        Operators op,
+        bytes32 lhs,
+        bytes32 rhs,
+        TEEType resultType
+    ) private returns (bytes32 result) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        IACL aclContract = IACL($.acl);
+
+        if (!aclContract.isAllowed(lhs, msg.sender)) revert ACLNotAllowed(lhs, msg.sender);
+        if (!aclContract.isAllowed(rhs, msg.sender)) revert ACLNotAllowed(rhs, msg.sender);
+
+        if (_typeOf(lhs) != _typeOf(rhs)) revert IncompatibleTypes();
+
+        result = keccak256(abi.encodePacked(op, lhs, rhs, $.acl, block.chainid));
+        result = _appendMetadataToPrehandle(result, resultType);
+        aclContract.allowTransient(result, msg.sender);
     }
 }
