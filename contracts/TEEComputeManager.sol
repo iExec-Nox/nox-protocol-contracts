@@ -109,7 +109,10 @@ contract TEEComputeManager is
         bytes calldata proof,
         TEEType teeType
     ) public view {
-        // TODO check chainId
+        bytes4 chainIdInHandle = bytes4(handle << (26 * 8));
+        if (chainIdInHandle != bytes4(uint32(block.chainid))) {
+            revert InvalidProof(proof, "Handle chain id mismatch");
+        }
         if (handle[30] != bytes1(uint8(teeType))) {
             revert InvalidProof(proof, "Handle type mismatch");
         }

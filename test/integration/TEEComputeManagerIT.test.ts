@@ -2,8 +2,8 @@ import { describe, it } from "node:test";
 import { loadFixture } from "../utils/fixture.js";
 import { concatHex, toHex } from "viem";
 
-// Random handle of type uint256 (3) and version 0
-const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdef0300";
+// Random handle wih chain id 31337 (0x00007a69) of type uint256 (3) and version 0
+const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd00007a690300";
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate handle proof", async function () {
