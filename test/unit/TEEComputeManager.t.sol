@@ -11,7 +11,7 @@ import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
-import {TestSetup} from "../utils/TestSetup.sol";
+import {TestHelper} from "../utils/TestHelper.sol";
 
 contract TEEComputeManagerTest is Test {
     address owner = makeAddr("owner");
@@ -32,7 +32,7 @@ contract TEEComputeManagerTest is Test {
 
     function setUp() public {
         ACL aclContract;
-        (aclContract, teeComputeManager) = TestSetup.deploy(owner, gateway);
+        (aclContract, teeComputeManager) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
     }
 

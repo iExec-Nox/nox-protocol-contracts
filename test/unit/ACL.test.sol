@@ -10,7 +10,7 @@ import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
-import {TestSetup} from "../utils/TestSetup.sol";
+import {TestHelper} from "../utils/TestHelper.sol";
 
 contract ACLTest is Test {
     address internal owner = address(this);
@@ -26,7 +26,7 @@ contract ACLTest is Test {
 
     function setUp() public {
         TEEComputeManager teeComputeManagerContract;
-        (acl, teeComputeManagerContract) = TestSetup.deploy(owner, makeAddr("gateway"));
+        (acl, teeComputeManagerContract) = TestHelper.deploy(owner, makeAddr("gateway"));
         teeComputeManager = address(teeComputeManagerContract);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
@@ -47,7 +47,7 @@ contract ACLTest is Test {
      * @dev Tests that initialize reverts with zero addresses.
      */
     function test_RevertWhen_Initialize_WithZeroAddress() public {
-        ACL proxy = ACL(TestSetup.deployProxy(address(new ACL())));
+        ACL proxy = ACL(TestHelper.deployProxy(address(new ACL())));
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         proxy.initialize(owner, address(0));
     }

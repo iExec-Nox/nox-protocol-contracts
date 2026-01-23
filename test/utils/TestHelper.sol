@@ -6,7 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 
-library TestSetup {
+library TestHelper {
     function deploy(
         address owner,
         address gateway

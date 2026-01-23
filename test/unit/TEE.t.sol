@@ -6,7 +6,7 @@ import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
-import {TestSetup} from "../utils/TestSetup.sol";
+import {TestHelper} from "../utils/TestHelper.sol";
 
 contract TEELibTest is Test {
     using TEEPrimitives for *;
@@ -19,7 +19,7 @@ contract TEELibTest is Test {
     address internal user2 = makeAddr("user2");
 
     function setUp() public {
-        (acl, teeComputeManager) = TestSetup.deploy(owner, gateway);
+        (acl, teeComputeManager) = TestHelper.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
 
