@@ -84,23 +84,39 @@ contract TEEComputeManager is
 
     /**
      * Validates that a handle provided by a user is:
-     *   - of expected type (TODO)
+     *   - of expected type
      *   - not expired (TODO)
      *   - issued for the correct ACL
      *   - issued for the correct owner
      *   - issued by the configured gateway (signed by the gateway wallet)
      * or reverts otherwise.
      *
+     * Handle format:
+     *    26 bytes          4 bytes     1 byte  1 byte
+     * [0----------25]    [26-----29]    [30]    [31]
+     *   Pre-handle         ChainId      Type   Version
+     *
      * Proof format:
-     *    owner (20 bytes) || ACL (20 bytes) || createdAt (32 bytes) || EIP-712 signature (65 bytes)
+     *  20 bytes       20 bytes        32 bytes            65 bytes
+     * [0-----19]    [20-----39]    [40--------71]    [72------------136]
+     *   Owner           ACL           CreatedAt       EIP-712 signature
      *
      * @param handle handle id
      * @param owner The address of the handle owner
      * @param proof Proof data
      */
-    function validateProof(bytes32 handle, address owner, bytes calldata proof) public view {
+    function validateProof(
+        bytes32 handle,
+        address owner,
+        bytes calldata proof,
+        TEEType teeType
+    ) public view {
+        // TODO check chainId
+        if (handle[30] != bytes1(uint8(teeType))) {
+            revert InvalidProof(proof, "Handle type mismatch");
+        }
         if (proof.length != 137) {
-            revert InvalidProof(proof, "Invalid length");
+            revert InvalidProof(proof, "Invalid proof length");
         }
         address ownerInProof = address(bytes20(proof[0:20]));
         address aclInProof = address(bytes20(proof[20:40]));
