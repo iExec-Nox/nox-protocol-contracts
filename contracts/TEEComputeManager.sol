@@ -24,14 +24,6 @@ contract TEEComputeManager is
         address acl;
     }
 
-    enum Operators {
-        teeAdd,
-        teeSub,
-        teeDiv,
-        teeSelect,
-        teeTrivialEncrypt
-    }
-
     /// @notice Handle version for generated handles
     uint8 private constant HANDLE_VERSION = 0;
 
@@ -74,11 +66,21 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
-        // TODO
-        value;
-        teeType;
-        return bytes32(uint256(0));
+    function plaintextToEncrypted(uint256 pt, TEEType toType) external returns (bytes32 result) {
+        uint256 supportedTypes = (1 << uint8(TEEType.Bool)) +
+            (1 << uint8(TEEType.Address)) +
+            (1 << uint8(TEEType.Uint160)) +
+            (1 << uint8(TEEType.Uint256)) +
+            (1 << uint8(TEEType.Int256));
+
+        if ((1 << uint8(toType)) & supportedTypes == 0) revert UnsupportedType();
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        result = keccak256(
+            abi.encodePacked(Operators.teePlaintextToEncrypted, pt, toType, $.acl, block.chainid)
+        );
+        result = _appendMetadataToPrehandle(result, toType);
+        IACL($.acl).allowTransient(result, msg.sender);
+        emit PlaintextToEncrypted(msg.sender, pt, uint8(toType), result);
     }
 
     /// @inheritdoc ITEEComputeManager
@@ -135,24 +137,6 @@ contract TEEComputeManager is
         _verifyAndReturnType(ifTrue, supportedTypes);
         result = _ternaryOp(Operators.teeSelect, condition, ifTrue, ifFalse);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
-    }
-
-    /// @inheritdoc ITEEComputeManager
-    function trivialEncrypt(uint256 pt, TEEType toType) external returns (bytes32 result) {
-        uint256 supportedTypes = (1 << uint8(TEEType.Bool)) +
-            (1 << uint8(TEEType.Address)) +
-            (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-
-        if ((1 << uint8(toType)) & supportedTypes == 0) revert UnsupportedType();
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        result = keccak256(
-            abi.encodePacked(Operators.teeTrivialEncrypt, pt, toType, $.acl, block.chainid)
-        );
-        result = _appendMetadataToPrehandle(result, toType);
-        IACL($.acl).allowTransient(result, msg.sender);
-        emit PlaintextToEncrypted(msg.sender, pt, uint8(toType), result);
     }
 
     /**

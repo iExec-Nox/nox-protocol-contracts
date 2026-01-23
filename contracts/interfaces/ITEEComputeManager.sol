@@ -8,6 +8,14 @@ import "../shared/TEEType.sol";
  * @notice Interface for the TEE Compute Manager contract
  */
 interface ITEEComputeManager {
+    enum Operators {
+        teeAdd,
+        teeSub,
+        teeDiv,
+        teeSelect,
+        teePlaintextToEncrypted
+    }
+
     // TODO put common errors in a shared interface.
     error InvalidZeroAddress();
     error InvalidProof(bytes proof, string reason);
@@ -106,12 +114,4 @@ interface ITEEComputeManager {
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result);
-
-    /**
-     * @notice Does trivial encryption
-     * @param pt Plaintext value to encrypt
-     * @param toType Target TEE type
-     * @return result Result handle
-     */
-    function trivialEncrypt(uint256 pt, TEEType toType) external returns (bytes32 result);
 }

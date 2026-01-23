@@ -291,13 +291,13 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
-    // ============ trivialEncrypt Tests ============
+    // ============ plaintextToEncrypted Tests ============
 
-    function test_TrivialEncrypt_Uint256() public {
+    function test_PlaintextToEncrypted_Uint256() public {
         uint256 plaintext = 12345;
         vm.prank(caller);
         vm.recordLogs();
-        bytes32 result = teeComputeManager.trivialEncrypt(plaintext, TEEType.Uint256);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(plaintext, TEEType.Uint256);
         assertTrue(result != bytes32(0));
 
         Vm.Log[] memory logs = vm.getRecordedLogs();
@@ -309,17 +309,17 @@ contract TEEComputeManagerTest is Test {
         assertEq(logs[0].topics[1], bytes32(uint256(uint160(caller))));
     }
 
-    function test_TrivialEncrypt_Bool() public {
+    function test_PlaintextToEncrypted_Bool() public {
         uint256 plaintext = 1;
         vm.prank(caller);
-        bytes32 result = teeComputeManager.trivialEncrypt(plaintext, TEEType.Bool);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(plaintext, TEEType.Bool);
         assertTrue(result != bytes32(0));
     }
 
-    function test_TrivialEncrypt_Address() public {
+    function test_PlaintextToEncrypted_Address() public {
         uint256 plaintext = uint256(uint160(makeAddr("someAddress")));
         vm.prank(caller);
-        bytes32 result = teeComputeManager.trivialEncrypt(plaintext, TEEType.Address);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(plaintext, TEEType.Address);
         assertTrue(result != bytes32(0));
     }
 
