@@ -62,11 +62,11 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function plaintextToEncrypted(uint256 pt, TEEType toType) external pure returns (bytes32) {
+    function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
         // TODO
-        pt;
-        toType;
-        return bytes32(0);
+        value;
+        teeType;
+        return bytes32(uint256(0));
     }
 
     /// @inheritdoc ITEEComputeManager
