@@ -1,5 +1,4 @@
 import path from "path";
-import GatewayRegistry from "../ignition/modules/GatewayRegistry.js";
 import ACL from "../ignition/modules/ACL.js";
 import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
 import config from "../config/config.js";
@@ -26,27 +25,13 @@ export async function deploy(log = true) {
         console.log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
         console.log(`Chain config:`, chainConfig);
     }
-    // Deploy GatewayRegistry
-    const { proxy: gatewayRegistryProxy } = await connection.ignition.deploy(GatewayRegistry, {
-        deploymentId: connection.networkName,
-        displayUi: log,
-        parameters: {
-            GatewayRegistry: {
-                initialAdmin: chainConfig.initialAdmin,
-                initialUpgrader: chainConfig.initialUpgrader,
-            },
-        },
-    });
-    if (log) {
-        console.log(`GatewayRegistry: ${gatewayRegistryProxy.address}`);
-    }
     // Deploy TEEComputeManager.
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
         displayUi: log,
         parameters: {
             TEEComputeManager: {
-                initialOwner: chainConfig.initialAdmin,
+                initialOwner: chainConfig.initialOwner,
             },
         },
     });
@@ -59,7 +44,7 @@ export async function deploy(log = true) {
         displayUi: log,
         parameters: {
             ACL: {
-                initialOwner: chainConfig.initialAdmin,
+                initialOwner: chainConfig.initialOwner,
                 teeComputeManager: teeComputeManagerProxy.address,
             },
         },
@@ -73,11 +58,9 @@ export async function deploy(log = true) {
     await publicClient.waitForTransactionReceipt({ hash: setAclTxHash });
 
     // Get contract instances as Viem contracts.
-    const gatewayRegistry = await viem.getContractAt("GatewayRegistry", gatewayRegistryProxy.address);
-    const aclContract = await viem.getContractAt("ACL", aclProxy.address);
+    const acl = await viem.getContractAt("ACL", aclProxy.address);
     return {
-        gatewayRegistry,
-        acl: aclContract,
+        acl,
         teeComputeManager,
     };
 }
