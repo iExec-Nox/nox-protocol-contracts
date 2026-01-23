@@ -6,7 +6,6 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
-import {IACL} from "./interfaces/IACL.sol";
 import {TEEType} from "./shared/TEEType.sol";
 
 /**
@@ -23,9 +22,6 @@ contract TEEComputeManager is
     struct TEEComputeManagerStorage {
         address acl;
     }
-
-    /// @notice Handle version for generated handles
-    uint8 private constant HANDLE_VERSION = 0;
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
@@ -66,77 +62,44 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function plaintextToEncrypted(uint256 pt, TEEType toType) external returns (bytes32 result) {
-        uint256 supportedTypes = (1 << uint8(TEEType.Bool)) +
-            (1 << uint8(TEEType.Address)) +
-            (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-
-        if ((1 << uint8(toType)) & supportedTypes == 0) revert UnsupportedType();
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        result = keccak256(
-            abi.encodePacked(Operators.teePlaintextToEncrypted, pt, toType, $.acl, block.chainid)
-        );
-        result = _appendMetadataToPrehandle(result, toType);
-        IACL($.acl).allowTransient(result, msg.sender);
-        emit PlaintextToEncrypted(msg.sender, pt, uint8(toType), result);
+    function plaintextToEncrypted(uint256 pt, TEEType toType) external pure returns (bytes32) {
+        // TODO
+        pt;
+        toType;
+        return bytes32(0);
     }
 
     /// @inheritdoc ITEEComputeManager
     function add(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
-        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeAdd, leftHandOperand, rightHandOperand, lhsType);
-        emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
+    ) external pure returns (bytes32) {
+        // TODO
+        leftHandOperand;
+        rightHandOperand;
+        return bytes32(0);
     }
 
     /// @inheritdoc ITEEComputeManager
     function sub(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
-        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeSub, leftHandOperand, rightHandOperand, lhsType);
-        emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
+    ) external pure returns (bytes32) {
+        // TODO
+        leftHandOperand;
+        rightHandOperand;
+        return bytes32(0);
     }
 
     /// @inheritdoc ITEEComputeManager
     function div(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
-        if (rightHandOperand == 0) revert DivisionByZero();
-        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeDiv, leftHandOperand, rightHandOperand, lhsType);
-        emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
-    }
-
-    /// @inheritdoc ITEEComputeManager
-    function select(
-        bytes32 condition,
-        bytes32 ifTrue,
-        bytes32 ifFalse
-    ) external returns (bytes32 result) {
-        uint256 supportedTypes = (1 << uint8(TEEType.Bool)) +
-            (1 << uint8(TEEType.Address)) +
-            (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-        _verifyAndReturnType(ifTrue, supportedTypes);
-        result = _ternaryOp(Operators.teeSelect, condition, ifTrue, ifFalse);
-        emit Select(msg.sender, condition, ifTrue, ifFalse, result);
+    ) external pure returns (bytes32) {
+        // TODO
+        leftHandOperand;
+        rightHandOperand;
+        return bytes32(0);
     }
 
     /**
@@ -190,113 +153,5 @@ contract TEEComputeManager is
         assembly {
             $.slot := TEE_COMPUTE_MANAGER_STORAGE_LOCATION
         }
-    }
-
-    /**
-     * @dev Extracts the type from a handle.
-     * @param handle The handle to extract the type from.
-     * @return typeCt The TEEType encoded in the handle.
-     */
-    function _typeOf(bytes32 handle) internal pure returns (TEEType typeCt) {
-        typeCt = TEEType(uint8(handle[30]));
-    }
-
-    /**
-     * @dev Verifies the handle type is supported and returns the type.
-     * @param handle The handle to verify.
-     * @param supportedTypes Bitmask of supported types.
-     * @return typeCt The TEEType of the handle.
-     */
-    function _verifyAndReturnType(
-        bytes32 handle,
-        uint256 supportedTypes
-    ) internal pure returns (TEEType typeCt) {
-        typeCt = _typeOf(handle);
-        if ((1 << uint8(typeCt)) & supportedTypes == 0) revert UnsupportedType();
-    }
-
-    /**
-     * @dev Appends metadata to a pre-handle to create a full handle.
-     * @param prehandle The pre-handle (hash) to append metadata to.
-     * @param handleType The type to encode in the handle.
-     * @return result The full handle with metadata.
-     */
-    function _appendMetadataToPrehandle(
-        bytes32 prehandle,
-        TEEType handleType
-    ) internal view returns (bytes32 result) {
-        /// @dev Clear bytes 21-31.
-        result = prehandle & 0xffffffffffffffffffffffffffffffffffffffffff0000000000000000000000;
-        /// @dev Set byte 21 to 0xff since the new handle comes from computation.
-        result = result | (bytes32(uint256(0xff)) << 80);
-        /// @dev chainId is cast to uint64 first to make sure it does not take more than 8 bytes before shifting.
-        result = result | (bytes32(uint256(uint64(block.chainid))) << 16);
-        /// @dev Insert handleType into byte 30.
-        result = result | (bytes32(uint256(uint8(handleType))) << 8);
-        /// @dev Insert HANDLE_VERSION into byte 31.
-        result = result | bytes32(uint256(HANDLE_VERSION));
-    }
-
-    /**
-     * @dev Executes a binary operation on two handles.
-     * @param op The operator to apply.
-     * @param lhs Left-hand side handle.
-     * @param rhs Right-hand side handle.
-     * @param resultType The type of the result handle.
-     * @return result The resulting handle.
-     */
-    function _binaryOp(
-        Operators op,
-        bytes32 lhs,
-        bytes32 rhs,
-        TEEType resultType
-    ) internal returns (bytes32 result) {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        IACL aclContract = IACL($.acl);
-
-        if (!aclContract.isAllowed(lhs, msg.sender)) revert ACLNotAllowed(lhs, msg.sender);
-        if (!aclContract.isAllowed(rhs, msg.sender)) revert ACLNotAllowed(rhs, msg.sender);
-
-        TEEType rhsType = _typeOf(rhs);
-        TEEType lhsType = _typeOf(lhs);
-        if (lhsType != rhsType) revert IncompatibleTypes();
-
-        result = keccak256(abi.encodePacked(op, lhs, rhs, $.acl, block.chainid));
-        result = _appendMetadataToPrehandle(result, resultType);
-        aclContract.allowTransient(result, msg.sender);
-    }
-
-    /**
-     * @dev Executes a ternary operation (select/if-then-else).
-     * @param op The operator to apply.
-     * @param control The control handle (must be Bool type).
-     * @param ifTrue The handle to return if control is true.
-     * @param ifFalse The handle to return if control is false.
-     * @return result The resulting handle.
-     */
-    function _ternaryOp(
-        Operators op,
-        bytes32 control,
-        bytes32 ifTrue,
-        bytes32 ifFalse
-    ) internal returns (bytes32 result) {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        IACL aclContract = IACL($.acl);
-
-        if (!aclContract.isAllowed(control, msg.sender)) revert ACLNotAllowed(control, msg.sender);
-        if (!aclContract.isAllowed(ifTrue, msg.sender)) revert ACLNotAllowed(ifTrue, msg.sender);
-        if (!aclContract.isAllowed(ifFalse, msg.sender)) revert ACLNotAllowed(ifFalse, msg.sender);
-
-        TEEType controlType = _typeOf(control);
-        TEEType ifTrueType = _typeOf(ifTrue);
-        TEEType ifFalseType = _typeOf(ifFalse);
-
-        /// @dev control must be Bool
-        if (controlType != TEEType.Bool) revert UnsupportedType();
-        if (ifTrueType != ifFalseType) revert IncompatibleTypes();
-
-        result = keccak256(abi.encodePacked(op, control, ifTrue, ifFalse, $.acl, block.chainid));
-        result = _appendMetadataToPrehandle(result, ifTrueType);
-        aclContract.allowTransient(result, msg.sender);
     }
 }
