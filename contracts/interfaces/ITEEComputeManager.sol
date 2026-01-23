@@ -19,12 +19,12 @@ interface ITEEComputeManager {
     function acl() external view returns (address);
 
     /**
-     * @notice Converts a plaintext value into an encrypted handle
-     * @param pt Plaintext value to encrypt
-     * @param toType Target TEE type
-     * @return result Result handle
+     * @notice Converts a plaintext value into an encrypted value
+     * @param value The plaintext value to encrypt
+     * @param teeType The type of the encrypted value
+     * @return The encrypted value
      */
-    function plaintextToEncrypted(uint256 pt, TEEType toType) external returns (bytes32 result);
+    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32);
 
     /**
      * @notice Computes TEE Add operation
