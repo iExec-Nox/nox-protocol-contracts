@@ -6,6 +6,10 @@
   // Note: keep alphabetical order when updating.
   "cSpell.words": [
     "crytic",
+    "eaddress",
+    "ebool",
+    "eint",
+    "euint",
     "IACL",
     "IERC",
     "inheritdoc",

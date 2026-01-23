@@ -4,7 +4,7 @@ import { loadFixture } from "../utils/fixture.js";
 
 describe("[IT] GatewayRegistry", function () {
     it("Should register and remove gateway successfully", async function () {
-        const { gatewayRegistry, wallet0: admin } = await loadFixture();
+        const { gatewayRegistry, admin } = await loadFixture();
         const gatewayAddress = "0x1234567890123456789012345678901234567890";
         const defaultAdminRoleId = await gatewayRegistry.read.DEFAULT_ADMIN_ROLE();
         const gatewayRoleId = await gatewayRegistry.read.GATEWAY_ROLE();

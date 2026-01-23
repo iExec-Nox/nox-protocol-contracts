@@ -13,10 +13,10 @@ interface ITEEComputeManager {
     error InvalidProof(bytes proof, string reason);
 
     event ACLUpdated(address indexed newACL);
+    event GatewayUpdated(address indexed newGateway);
 
     function setAcl(address newAcl) external;
-    function validateProof(bytes32 handle, address signer, bytes calldata proof) external view;
-    function acl() external view returns (address);
+    function setGateway(address gatewayAddress) external;
 
     /**
      * @notice Converts a plaintext value into an encrypted value
@@ -25,4 +25,9 @@ interface ITEEComputeManager {
      * @return The encrypted value
      */
     function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32);
+
+    function validateProof(bytes32 handle, address owner, bytes calldata proof) external view;
+    function domainSeparator() external view returns (bytes32);
+    function acl() external view returns (address);
+    function gateway() external view returns (address);
 }
