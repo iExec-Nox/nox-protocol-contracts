@@ -8,6 +8,12 @@ import "../shared/TEEType.sol";
  * @notice Interface for the TEE Compute Manager contract
  */
 interface ITEEComputeManager {
+    enum Operators {
+        teeAdd,
+        teeSub,
+        teeDiv
+    }
+
     // TODO put common errors in a shared interface.
     error InvalidZeroAddress();
     error InvalidProof(bytes proof, string reason);

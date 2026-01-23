@@ -24,12 +24,6 @@ contract TEEComputeManager is
         address acl;
     }
 
-    enum Operators {
-        teeAdd,
-        teeSub,
-        teeDiv
-    }
-
     uint8 private constant HANDLE_VERSION = 0;
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
@@ -84,8 +78,8 @@ contract TEEComputeManager is
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
         uint256 supportedTypes = _numericTypesMask();
-        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeAdd, leftHandOperand, rightHandOperand, lhsType);
+        TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
+        result = _binaryOp(Operators.teeAdd, leftHandOperand, rightHandOperand, leftHandOperandType);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -95,8 +89,8 @@ contract TEEComputeManager is
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
         uint256 supportedTypes = _numericTypesMask();
-        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeSub, leftHandOperand, rightHandOperand, lhsType);
+        TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
+        result = _binaryOp(Operators.teeSub, leftHandOperand, rightHandOperand, leftHandOperandType);
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -107,8 +101,8 @@ contract TEEComputeManager is
     ) external returns (bytes32 result) {
         if (rightHandOperand == 0) revert DivisionByZero();
         uint256 supportedTypes = _numericTypesMask();
-        TEEType lhsType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeDiv, leftHandOperand, rightHandOperand, lhsType);
+        TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
+        result = _binaryOp(Operators.teeDiv, leftHandOperand, rightHandOperand, leftHandOperandType);
         emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -184,6 +178,25 @@ contract TEEComputeManager is
         if ((1 << uint8(typeCt)) & supportedTypes == 0) revert UnsupportedType();
     }
 
+        function _binaryOp(
+        Operators op,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        TEEType resultType
+    ) private returns (bytes32 result) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        IACL aclContract = IACL($.acl);
+
+        if (!aclContract.isAllowed(leftHandOperand, msg.sender)) revert ACLNotAllowed(leftHandOperand, msg.sender);
+        if (!aclContract.isAllowed(rightHandOperand, msg.sender)) revert ACLNotAllowed(rightHandOperand, msg.sender);
+
+        if (_typeOf(leftHandOperand) != _typeOf(rightHandOperand)) revert IncompatibleTypes();
+
+        result = keccak256(abi.encodePacked(op, leftHandOperand, rightHandOperand, $.acl, block.chainid));
+        result = _appendMetadataToPrehandle(result, resultType);
+        aclContract.allowTransient(result, msg.sender);
+    }
+
     function _appendMetadataToPrehandle(
         bytes32 prehandle,
         TEEType handleType
@@ -193,24 +206,5 @@ contract TEEComputeManager is
         result = result | (bytes32(uint256(uint64(block.chainid))) << 16);
         result = result | (bytes32(uint256(uint8(handleType))) << 8);
         result = result | bytes32(uint256(HANDLE_VERSION));
-    }
-
-    function _binaryOp(
-        Operators op,
-        bytes32 lhs,
-        bytes32 rhs,
-        TEEType resultType
-    ) private returns (bytes32 result) {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        IACL aclContract = IACL($.acl);
-
-        if (!aclContract.isAllowed(lhs, msg.sender)) revert ACLNotAllowed(lhs, msg.sender);
-        if (!aclContract.isAllowed(rhs, msg.sender)) revert ACLNotAllowed(rhs, msg.sender);
-
-        if (_typeOf(lhs) != _typeOf(rhs)) revert IncompatibleTypes();
-
-        result = keccak256(abi.encodePacked(op, lhs, rhs, $.acl, block.chainid));
-        result = _appendMetadataToPrehandle(result, resultType);
-        aclContract.allowTransient(result, msg.sender);
     }
 }
