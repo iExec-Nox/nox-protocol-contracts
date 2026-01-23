@@ -135,7 +135,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    function test_ValidateProof_RevertWhen_InvalidHandleType() public {
+    function test_ValidateProof_RevertWhen_HandleTypeMismatch() public {
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
         vm.expectRevert(
             abi.encodeWithSelector(
