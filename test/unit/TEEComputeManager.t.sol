@@ -7,6 +7,7 @@ import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol"
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
@@ -229,24 +230,14 @@ contract TEEComputeManagerTest is Test {
         uint256 signerPrivateKey
     ) internal view returns (bytes memory) {
         // HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)
-        bytes32 digest = _buildDigest(handle_, owner_, acl_, createdAt_);
-        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
-        bytes memory signature = abi.encodePacked(r, s, v);
-        return bytes.concat(bytes20(owner_), bytes20(acl_), bytes32(createdAt_), signature);
-    }
-
-    function _buildDigest(
-        bytes32 handle_,
-        address owner_,
-        address acl_,
-        uint256 createdAt_
-    ) internal view returns (bytes32) {
         bytes32 structHash = keccak256(
             abi.encode(teeComputeManager.HANDLE_PROOF_TYPEHASH(), handle_, owner_, acl_, createdAt_)
         );
-        return
-            keccak256(
-                abi.encodePacked("\x19\x01", teeComputeManager.domainSeparator(), structHash)
-            );
+        bytes32 digest = MessageHashUtils.toTypedDataHash(
+            teeComputeManager.domainSeparator(),
+            structHash
+        );
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
+        return abi.encodePacked(bytes20(owner_), bytes20(acl_), bytes32(createdAt_), r, s, v);
     }
 }
