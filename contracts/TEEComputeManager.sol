@@ -77,9 +77,7 @@ contract TEEComputeManager is
     /// @inheritdoc ITEEComputeManager
     function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
         // TODO
-        value;
-        teeType;
-        return bytes32(uint256(0));
+        return keccak256(abi.encodePacked(value, teeType));
     }
 
     /**

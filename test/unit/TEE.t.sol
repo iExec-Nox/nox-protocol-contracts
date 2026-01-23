@@ -3,26 +3,23 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
-import {TEEComputeManagerMock} from "../../contracts/mock/TEEComputeManagerMock.sol";
+import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
+import {TestSetup} from "../utils/TestSetup.sol";
 
 contract TEELibTest is Test {
     using TEEPrimitives for *;
 
-    TEEComputeManagerMock internal teeComputeManager;
+    address owner = makeAddr("owner");
+    address gateway = makeAddr("gateway");
+    TEEComputeManager internal teeComputeManager;
     ACL internal acl;
-    address internal user1;
-    address internal user2;
+    address internal user1 = makeAddr("user1");
+    address internal user2 = makeAddr("user2");
 
     function setUp() public {
-        teeComputeManager = new TEEComputeManagerMock();
-        acl = teeComputeManager.acl();
-        user1 = makeAddr("user1");
-        user2 = makeAddr("user2");
-
-        vm.label(address(teeComputeManager), "TEEComputeManager");
-        vm.label(address(acl), "ACL");
+        (acl, teeComputeManager) = TestSetup.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
 

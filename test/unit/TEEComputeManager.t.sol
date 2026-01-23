@@ -8,15 +8,17 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
+import {TestSetup} from "../utils/TestSetup.sol";
 
 contract TEEComputeManagerTest is Test {
-    TEEComputeManager teeComputeManager;
     address owner = makeAddr("owner");
-    address acl = makeAddr("acl");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
+    address acl;
+    TEEComputeManager teeComputeManager;
     uint256 createdAt = block.timestamp;
     bytes32 handle =
         bytes32(
@@ -29,23 +31,16 @@ contract TEEComputeManagerTest is Test {
         );
 
     function setUp() public {
-        teeComputeManager = _deployNewProxy();
-        teeComputeManager.initialize(owner);
-        vm.startPrank(owner);
-        teeComputeManager.setAcl(acl);
-        teeComputeManager.setGateway(gateway);
-        vm.stopPrank();
-        vm.label(owner, "owner");
-        vm.label(acl, "acl");
-        vm.label(gateway, "gateway");
-        vm.label(address(teeComputeManager), "teeComputeManager");
+        ACL aclContract;
+        (aclContract, teeComputeManager) = TestSetup.deploy(owner, gateway);
+        acl = address(aclContract);
     }
 
     // initialize
 
     function test_Initialize() public view {
         assertTrue(teeComputeManager.owner() == owner);
-        assertTrue(teeComputeManager.acl() == acl);
+        assertTrue(teeComputeManager.acl() == address(acl));
         (
             , // bytes1 fields
             string memory name,
@@ -67,7 +62,7 @@ contract TEEComputeManagerTest is Test {
     // setAcl
 
     function test_SetAcl() public {
-        assertTrue(teeComputeManager.acl() == acl);
+        assertTrue(teeComputeManager.acl() == address(acl));
         address newAcl = makeAddr("newAcl");
         vm.prank(owner);
         vm.expectEmit();
@@ -224,12 +219,6 @@ contract TEEComputeManagerTest is Test {
         );
         vm.prank(unauthorizedUpgrader);
         teeComputeManager.upgradeToAndCall(makeAddr("newImpl"), "");
-    }
-
-    function _deployNewProxy() internal returns (TEEComputeManager) {
-        TEEComputeManager implementation = new TEEComputeManager();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
-        return TEEComputeManager(address(proxy));
     }
 
     function _buildProof(
