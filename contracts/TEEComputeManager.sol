@@ -85,22 +85,6 @@ contract TEEComputeManager is
         return bytes32(uint256(0));
     }
 
-    /// @inheritdoc ITEEComputeManager
-    function add(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
-        uint256 supportedTypes = _numericTypesMask();
-        TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(
-            Operators.teeAdd,
-            leftHandOperand,
-            rightHandOperand,
-            leftHandOperandType
-        );
-        emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
-    }
-
     /**
      * Validates that a handle provided by a user is:
      *   - of expected type
@@ -113,7 +97,8 @@ contract TEEComputeManager is
      * Handle format:
      *    26 bytes          4 bytes     1 byte  1 byte
      * [0----------25]    [26-----29]    [30]    [31]
-     *   Pre-handle         ChainId      Type   Version
+     *   Prehandle          ChainId      Type   Version
+     *   (truncated)
      *
      * Proof format:
      *  20 bytes       20 bytes        32 bytes            65 bytes
@@ -159,6 +144,22 @@ contract TEEComputeManager is
             revert InvalidProof(proof, "Invalid signature");
         }
         // TODO call ACL to allow here
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function add(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        uint256 supportedTypes = _numericTypesMask();
+        TEEType leftHandOperandType = _extractAndValidateType(leftHandOperand, supportedTypes);
+        result = _executeBinaryOperation(
+            Operators.teeAdd,
+            leftHandOperand,
+            rightHandOperand,
+            leftHandOperandType
+        );
+        emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
     /**
@@ -223,32 +224,44 @@ contract TEEComputeManager is
 
     /**
      * Verifies that a handle's type is within the set of supported types.
+     * @dev Reverts with UnsupportedType if the handle's type is not in the supported set
+     *
      * @param handle The handle to verify
      * @param supportedTypes Bitmask of supported types (bit N set means TEEType(N) is supported)
      * @return handleType The TEEType of the handle if supported
-     * @dev Reverts with UnsupportedType if the handle's type is not in the supported set
      */
-    function _verifyAndReturnType(
+    function _extractAndValidateType(
         bytes32 handle,
         uint256 supportedTypes
     ) private pure returns (TEEType handleType) {
         handleType = _typeOf(handle);
-        if ((1 << uint8(handleType)) & supportedTypes == 0) revert UnsupportedType();
+        if (((1 << uint8(handleType)) & supportedTypes) == 0) {
+            revert UnsupportedType();
+        }
     }
 
     /**
      * Executes a binary operation on two encrypted handles.
      * Verifies ACL permissions for both operands, checks type compatibility,
      * generates a new result handle, and grants transient access to the caller.
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
+     * @dev Reverts with IncompatibleTypes if operand types don't match
+     * @dev Prehandle is computed as:
+     *      keccak256(abi.encodePacked(
+     *          primitiveId,   // Operator identifier (e.g., teeAdd)
+     *          operands,      // Array of operand handles [leftHandOperand, rightHandOperand]
+     *          outputIndex,   // Index of the output (0 for binary ops with single output)
+     *          acl,           // ACL contract address
+     *          block.chainid,
+     *      ))
+     *
      * @param op The operator to apply (teeAdd, teeSub, teeDiv)
      * @param leftHandOperand Left-hand side encrypted handle
      * @param rightHandOperand Right-hand side encrypted handle
      * @param resultType The TEE type for the result handle
      * @return result The resulting encrypted handle
-     * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
-     * @dev Reverts with IncompatibleTypes if operand types don't match
      */
-    function _binaryOp(
+    function _executeBinaryOperation(
         Operators op,
         bytes32 leftHandOperand,
         bytes32 rightHandOperand,
@@ -264,9 +277,13 @@ contract TEEComputeManager is
 
         if (_typeOf(leftHandOperand) != _typeOf(rightHandOperand)) revert IncompatibleTypes();
 
-        result = keccak256(
-            abi.encodePacked(op, leftHandOperand, rightHandOperand, $.acl, block.chainid)
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        //TODO: support multiple outputs
+        uint8 outputIndex = 0;
+
+        result = keccak256(abi.encodePacked(op, operands, outputIndex, $.acl, block.chainid));
         result = _appendMetadataToPrehandle(result, resultType);
         aclContract.allowTransient(result, msg.sender);
     }
@@ -275,9 +292,8 @@ contract TEEComputeManager is
      * Appends metadata to a pre-handle hash to create a complete handle.
      *
      * Handle format (32 bytes):
-     *   [0-20]  : First 21 bytes of prehandle (truncated hash)
-     *   [21]    : 0xff marker (indicates handle from computation)
-     *   [22-29] : Chain ID (8 bytes, from uint64)
+     *   [0-25]  : First 26 bytes of prehandle (truncated hash)
+     *   [26-29] : Chain ID (4 bytes, from uint32)
      *   [30]    : TEE type
      *   [31]    : Handle version
      *
@@ -289,9 +305,8 @@ contract TEEComputeManager is
         bytes32 prehandle,
         TEEType handleType
     ) private view returns (bytes32 result) {
-        result = prehandle & 0xffffffffffffffffffffffffffffffffffffffffff0000000000000000000000;
-        result = result | (bytes32(uint256(0xff)) << 80);
-        result = result | (bytes32(uint256(uint64(block.chainid))) << 16);
+        result = prehandle & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
+        result = result | (bytes32(uint256(uint32(block.chainid))) << 16);
         result = result | (bytes32(uint256(uint8(handleType))) << 8);
         result = result | bytes32(uint256(HANDLE_VERSION));
     }
