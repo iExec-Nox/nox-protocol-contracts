@@ -153,12 +153,11 @@ contract TEEComputeManager is
     ) external returns (bytes32 result) {
         uint256 supportedTypes = _numericTypesMask();
         TEEType leftHandOperandType = _extractAndValidateType(leftHandOperand, supportedTypes);
-        result = _executeBinaryOperation(
-            Operators.teeAdd,
-            leftHandOperand,
-            rightHandOperand,
-            leftHandOperandType
-        );
+        if (_typeOf(leftHandOperand) != _typeOf(rightHandOperand)) revert IncompatibleTypes();
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        result = _executeBinaryOperation(Operators.teeAdd, operands, leftHandOperandType);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -256,33 +255,24 @@ contract TEEComputeManager is
      *      ))
      *
      * @param op The operator to apply (teeAdd, teeSub, teeDiv)
-     * @param leftHandOperand Left-hand side encrypted handle
-     * @param rightHandOperand Right-hand side encrypted handle
+     * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
      * @param resultType The TEE type for the result handle
      * @return result The resulting encrypted handle
      */
     function _executeBinaryOperation(
         Operators op,
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand,
+        bytes32[] memory operands,
         TEEType resultType
     ) private returns (bytes32 result) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         IACL aclContract = IACL($.acl);
-
-        if (!aclContract.isAllowed(leftHandOperand, msg.sender))
-            revert ACLNotAllowed(leftHandOperand, msg.sender);
-        if (!aclContract.isAllowed(rightHandOperand, msg.sender))
-            revert ACLNotAllowed(rightHandOperand, msg.sender);
-
-        if (_typeOf(leftHandOperand) != _typeOf(rightHandOperand)) revert IncompatibleTypes();
-
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
+        for (uint256 i = 0; i < operands.length; i++) {
+            if (!aclContract.isAllowed(operands[i], msg.sender)) {
+                revert ACLNotAllowed(operands[i], msg.sender);
+            }
+        }
         //TODO: support multiple outputs
         uint8 outputIndex = 0;
-
         result = keccak256(abi.encodePacked(op, operands, outputIndex, $.acl, block.chainid));
         result = _appendMetadataToPrehandle(result, resultType);
         aclContract.allowTransient(result, msg.sender);
