@@ -36,6 +36,7 @@ export default defineConfig({
         tenderlyVirtualArbitrumSepolia: {
             type: "http",
             chainType: "op",
+            chainId: 421614,
             url: configVariable("RPC_URL"),
             accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
         },
