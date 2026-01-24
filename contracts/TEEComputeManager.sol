@@ -306,6 +306,7 @@ contract TEEComputeManager is
         TEEType handleType
     ) private view returns (bytes32 result) {
         result = prehandle & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
+        /// If EIP2294 gets approved, it will force the chainID's size to be lower than MAX_UINT64.
         result = result | (bytes32(uint256(uint32(block.chainid))) << 16);
         result = result | (bytes32(uint256(uint8(handleType))) << 8);
         result = result | bytes32(uint256(HANDLE_VERSION));
