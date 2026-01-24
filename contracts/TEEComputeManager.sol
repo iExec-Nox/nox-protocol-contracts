@@ -10,8 +10,7 @@ import {IACL} from "./interfaces/IACL.sol";
 import {TEEType} from "./shared/TEEType.sol";
 
 /**
- * @title TEEComputeManager
- * @notice Manages TEE-based encrypted computations and handle generation
+ * TODO
  */
 contract TEEComputeManager is
     ITEEComputeManager,
@@ -165,7 +164,7 @@ contract TEEComputeManager is
         TEEType teeType
     ) public view {
         // TODO check chainId
-        if (handle[30] != bytes1(uint8(teeType))) {
+        if (_typeOf(handle) != teeType) {
             revert InvalidProof(proof, "Handle type mismatch");
         }
         if (proof.length != 137) {
@@ -233,6 +232,11 @@ contract TEEComputeManager is
         }
     }
 
+    /**
+     * Returns a bitmask representing numeric TEE types (Uint160, Uint256, Int256).
+     * Used to validate that operands are of supported numeric types for arithmetic operations.
+     * @return Bitmask where bit at position N is set if TEEType(N) is a numeric type
+     */
     function _numericTypesMask() private pure returns (uint256) {
         return
             (1 << uint8(TEEType.Uint160)) +
@@ -240,18 +244,43 @@ contract TEEComputeManager is
             (1 << uint8(TEEType.Int256));
     }
 
+    /**
+     * Extracts the TEE type from a handle.
+     * The type is stored at byte position 30 in the handle.
+     * @param handle The handle to extract the type from
+     * @return The TEEType encoded in the handle
+     */
     function _typeOf(bytes32 handle) private pure returns (TEEType) {
         return TEEType(uint8(handle[30]));
     }
 
+    /**
+     * Verifies that a handle's type is within the set of supported types.
+     * @param handle The handle to verify
+     * @param supportedTypes Bitmask of supported types (bit N set means TEEType(N) is supported)
+     * @return handleType The TEEType of the handle if supported
+     * @dev Reverts with UnsupportedType if the handle's type is not in the supported set
+     */
     function _verifyAndReturnType(
         bytes32 handle,
         uint256 supportedTypes
-    ) private pure returns (TEEType typeCt) {
-        typeCt = _typeOf(handle);
-        if ((1 << uint8(typeCt)) & supportedTypes == 0) revert UnsupportedType();
+    ) private pure returns (TEEType handleType) {
+        handleType = _typeOf(handle);
+        if ((1 << uint8(handleType)) & supportedTypes == 0) revert UnsupportedType();
     }
 
+    /**
+     * Executes a binary operation on two encrypted handles.
+     * Verifies ACL permissions for both operands, checks type compatibility,
+     * generates a new result handle, and grants transient access to the caller.
+     * @param op The operator to apply (teeAdd, teeSub, teeDiv)
+     * @param leftHandOperand Left-hand side encrypted handle
+     * @param rightHandOperand Right-hand side encrypted handle
+     * @param resultType The TEE type for the result handle
+     * @return result The resulting encrypted handle
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
+     * @dev Reverts with IncompatibleTypes if operand types don't match
+     */
     function _binaryOp(
         Operators op,
         bytes32 leftHandOperand,
@@ -275,6 +304,20 @@ contract TEEComputeManager is
         aclContract.allowTransient(result, msg.sender);
     }
 
+    /**
+     * Appends metadata to a pre-handle hash to create a complete handle.
+     *
+     * Handle format (32 bytes):
+     *   [0-20]  : First 21 bytes of prehandle (truncated hash)
+     *   [21]    : 0xff marker (indicates handle from computation)
+     *   [22-29] : Chain ID (8 bytes, from uint64)
+     *   [30]    : TEE type
+     *   [31]    : Handle version
+     *
+     * @param prehandle The hash to use as the base of the handle
+     * @param handleType The TEE type to encode in the handle
+     * @return result The complete handle with metadata appended
+     */
     function _appendMetadataToPrehandle(
         bytes32 prehandle,
         TEEType handleType

@@ -23,10 +23,10 @@ contract TEEComputeManagerTest is Test {
     bytes32 handle =
         bytes32(
             bytes.concat(
-                bytes26(uint208(1234567890)),
+                bytes26(uint208(1234567890)), // Random pre-handle
                 bytes4(uint32(block.chainid)),
-                bytes1(uint8(TEEType.Uint256)),
-                bytes1(0x00)
+                bytes1(uint8(TEEType.Uint256)), // Type 3
+                bytes1(0x00) // Version 0
             )
         );
 
@@ -38,6 +38,12 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setAcl(address(mockAcl));
         teeComputeManager.setGateway(gateway);
         vm.stopPrank();
+
+        vm.label(owner, "owner");
+        vm.label(caller, "caller");
+        vm.label(address(mockAcl), "mockAcl");
+        vm.label(gateway, "gateway");
+        vm.label(address(teeComputeManager), "teeComputeManager");
     }
 
     // ============ initialize Tests ============
@@ -45,9 +51,17 @@ contract TEEComputeManagerTest is Test {
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
         assertEq(teeComputeManager.acl(), address(mockAcl));
-        (, string memory name, string memory version, , , , ) = teeComputeManager.eip712Domain();
-        assertEq(keccak256(bytes(name)), keccak256(bytes("TEEComputeManager")));
-        assertEq(keccak256(bytes(version)), keccak256(bytes("1")));
+        (
+            , // bytes1 fields
+            string memory name,
+            string memory version,
+            , // uint256 chainId
+            , // address verifyingContract
+            , // uint256[] memory extensions, // bytes32 salt
+
+        ) = teeComputeManager.eip712Domain();
+        assertTrue(keccak256(bytes(name)) == keccak256(bytes("TEEComputeManager")));
+        assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
@@ -145,7 +159,7 @@ contract TEEComputeManagerTest is Test {
                 "Handle type mismatch"
             )
         );
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Bool);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Bool); // Wrong type
     }
 
     function test_RevertWhen_ValidateProof_InvalidProofLength() public {
@@ -359,6 +373,14 @@ contract TEEComputeManagerTest is Test {
     }
 
     // ============ Test Helpers ============
+    /**
+     * TODO: Add tests for private helper functions:
+     *   - _numericTypesMask
+     *   - _typeOf
+     *   - _verifyAndReturnType
+     *   - _binaryOp
+     *   - _appendMetadataToPrehandle
+     **/
 
     function _deployNewProxy() internal returns (TEEComputeManager) {
         TEEComputeManager implementation = new TEEComputeManager();
@@ -380,6 +402,7 @@ contract TEEComputeManagerTest is Test {
         uint256 createdAt_,
         uint256 signerPrivateKey
     ) internal view returns (bytes memory) {
+        // HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)
         bytes32 structHash = keccak256(
             abi.encode(teeComputeManager.HANDLE_PROOF_TYPEHASH(), handle_, owner_, acl_, createdAt_)
         );
