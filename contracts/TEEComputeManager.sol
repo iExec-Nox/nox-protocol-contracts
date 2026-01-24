@@ -101,39 +101,6 @@ contract TEEComputeManager is
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
-    function sub(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
-        uint256 supportedTypes = _numericTypesMask();
-        TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(
-            Operators.teeSub,
-            leftHandOperand,
-            rightHandOperand,
-            leftHandOperandType
-        );
-        emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
-    }
-
-    /// @inheritdoc ITEEComputeManager
-    function div(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
-        if (rightHandOperand == 0) revert DivisionByZero();
-        uint256 supportedTypes = _numericTypesMask();
-        TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(
-            Operators.teeDiv,
-            leftHandOperand,
-            rightHandOperand,
-            leftHandOperandType
-        );
-        emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
-    }
-
     /**
      * Validates that a handle provided by a user is:
      *   - of expected type

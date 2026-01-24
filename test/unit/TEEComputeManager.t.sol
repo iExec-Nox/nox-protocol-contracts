@@ -227,126 +227,71 @@ contract TEEComputeManagerTest is Test {
     // ============ add Tests ============
 
     function test_Add() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(lhs, caller, true);
-        mockAcl.setAllowed(rhs, caller, true);
+        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
+        bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
+        mockAcl.setAllowed(leftHandOperand, caller, true);
+        mockAcl.setAllowed(rightHandOperand, caller, true);
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
-        emit ITEEComputeManager.Add(caller, lhs, rhs, bytes32(0));
-        bytes32 result = teeComputeManager.add(lhs, rhs);
+        emit ITEEComputeManager.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.add(leftHandOperand, rightHandOperand);
 
         assertTrue(result != bytes32(0));
     }
 
     function test_RevertWhen_Add_LhsNotAllowed() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(rhs, caller, true);
+        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
+        bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
+        mockAcl.setAllowed(rightHandOperand, caller, true);
 
         vm.prank(caller);
         vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, lhs, caller)
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
         );
-        teeComputeManager.add(lhs, rhs);
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
     function test_RevertWhen_Add_RhsNotAllowed() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(lhs, caller, true);
+        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
+        bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
+        mockAcl.setAllowed(leftHandOperand, caller, true);
 
         vm.prank(caller);
         vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, rhs, caller)
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                rightHandOperand,
+                caller
+            )
         );
-        teeComputeManager.add(lhs, rhs);
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
     function test_RevertWhen_Add_IncompatibleTypes() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Int256, 2);
-        mockAcl.setAllowed(lhs, caller, true);
-        mockAcl.setAllowed(rhs, caller, true);
+        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
+        bytes32 rightHandOperand = _createHandle(TEEType.Int256, 2);
+        mockAcl.setAllowed(leftHandOperand, caller, true);
+        mockAcl.setAllowed(rightHandOperand, caller, true);
 
         vm.prank(caller);
         vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
-        teeComputeManager.add(lhs, rhs);
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
     function test_RevertWhen_Add_UnsupportedType() public {
-        bytes32 lhs = _createHandle(TEEType.Bool, 1);
-        bytes32 rhs = _createHandle(TEEType.Bool, 2);
-        mockAcl.setAllowed(lhs, caller, true);
-        mockAcl.setAllowed(rhs, caller, true);
+        bytes32 leftHandOperand = _createHandle(TEEType.Bool, 1);
+        bytes32 rightHandOperand = _createHandle(TEEType.Bool, 2);
+        mockAcl.setAllowed(leftHandOperand, caller, true);
+        mockAcl.setAllowed(rightHandOperand, caller, true);
 
         vm.prank(caller);
         vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
-        teeComputeManager.add(lhs, rhs);
-    }
-
-    // ============ sub Tests ============
-
-    function test_Sub() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(lhs, caller, true);
-        mockAcl.setAllowed(rhs, caller, true);
-
-        vm.prank(caller);
-        vm.expectEmit(true, false, false, false);
-        emit ITEEComputeManager.Sub(caller, lhs, rhs, bytes32(0));
-        bytes32 result = teeComputeManager.sub(lhs, rhs);
-
-        assertTrue(result != bytes32(0));
-    }
-
-    function test_RevertWhen_Sub_ACLNotAllowed() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-
-        vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, lhs, caller)
-        );
-        teeComputeManager.sub(lhs, rhs);
-    }
-
-    // ============ div Tests ============
-
-    function test_Div() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(lhs, caller, true);
-        mockAcl.setAllowed(rhs, caller, true);
-
-        vm.prank(caller);
-        vm.expectEmit(true, false, false, false);
-        emit ITEEComputeManager.Div(caller, lhs, rhs, bytes32(0));
-        bytes32 result = teeComputeManager.div(lhs, rhs);
-
-        assertTrue(result != bytes32(0));
-    }
-
-    function test_RevertWhen_Div_DivisionByZero() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        mockAcl.setAllowed(lhs, caller, true);
-
-        vm.prank(caller);
-        vm.expectRevert(ITEEComputeManager.DivisionByZero.selector);
-        teeComputeManager.div(lhs, bytes32(0));
-    }
-
-    function test_RevertWhen_Div_ACLNotAllowed() public {
-        bytes32 lhs = _createHandle(TEEType.Uint256, 1);
-        bytes32 rhs = _createHandle(TEEType.Uint256, 2);
-
-        vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, lhs, caller)
-        );
-        teeComputeManager.div(lhs, rhs);
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
     // ============ _authorizeUpgrade Tests ============

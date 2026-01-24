@@ -9,15 +9,12 @@ import "../shared/TEEType.sol";
  */
 interface ITEEComputeManager {
     enum Operators {
-        teeAdd,
-        teeSub,
-        teeDiv
+        teeAdd
     }
 
     // TODO put common errors in a shared interface.
     error InvalidZeroAddress();
     error InvalidProof(bytes proof, string reason);
-    error DivisionByZero();
     error IncompatibleTypes();
     error UnsupportedType();
     error ACLNotAllowed(bytes32 handle, address account);
@@ -25,18 +22,6 @@ interface ITEEComputeManager {
     event ACLUpdated(address indexed newACL);
     event GatewayUpdated(address indexed newGateway);
     event Add(
-        address indexed caller,
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand,
-        bytes32 result
-    );
-    event Sub(
-        address indexed caller,
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand,
-        bytes32 result
-    );
-    event Div(
         address indexed caller,
         bytes32 leftHandOperand,
         bytes32 rightHandOperand,
@@ -61,28 +46,6 @@ interface ITEEComputeManager {
      * @return result Result handle
      */
     function add(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 result);
-
-    /**
-     * @notice Computes TEE Sub operation
-     * @param leftHandOperand Left-hand side operand
-     * @param rightHandOperand Right-hand side operand
-     * @return result Result handle
-     */
-    function sub(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 result);
-
-    /**
-     * @notice Computes TEE Div operation
-     * @param leftHandOperand Left-hand side operand
-     * @param rightHandOperand Right-hand side operand (must be non-zero)
-     * @return result Result handle
-     */
-    function div(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
