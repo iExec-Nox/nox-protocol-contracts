@@ -97,7 +97,7 @@ contract TEEComputeManager is
      * Handle format:
      *    26 bytes          4 bytes     1 byte  1 byte
      * [0----------25]    [26-----29]    [30]    [31]
-     *   Prehandle          ChainId      Type   Version
+     *   Pre-handle         ChainId      Type   Version
      *
      * Proof format:
      *  20 bytes       20 bytes        32 bytes            65 bytes
