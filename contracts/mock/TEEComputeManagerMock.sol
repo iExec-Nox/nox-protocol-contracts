@@ -30,6 +30,8 @@ contract TEEComputeManagerMock {
      * @return A unique handle for the encrypted value
      */
     function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32) {
+        value;
+        teeType;
         return bytes32(vm.randomUint());
     }
 

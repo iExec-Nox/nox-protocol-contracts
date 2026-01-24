@@ -14,6 +14,7 @@ import "encrypted-types/EncryptedTypes.sol";
  *      the transaction will revert as it will not be recognized by the ACL.
  */
 library TEEPrimitives {
+    // TODO use CreateX and hardcode addresses in library.
     /// @notice Reference to TEE services config
     struct TEEConfig {
         address teeComputeManager;

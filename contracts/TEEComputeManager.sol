@@ -22,6 +22,7 @@ contract TEEComputeManager is
     /// @custom:storage-location erc7201:nox.storage.TEEComputeManager
     struct TEEComputeManagerStorage {
         address acl;
+        address gateway;
     }
 
     uint8 private constant HANDLE_VERSION = 0;
@@ -29,7 +30,6 @@ contract TEEComputeManager is
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
-
     bytes32 public constant HANDLE_PROOF_TYPEHASH =
         keccak256("HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)");
 
@@ -64,6 +64,20 @@ contract TEEComputeManager is
         emit ACLUpdated(newAcl);
     }
 
+    /**
+     * Sets Gateway wallet address.
+     * Only callable by the owner.
+     * @param gatewayAddress New Gateway wallet address
+     */
+    function setGateway(address gatewayAddress) external onlyOwner {
+        if (gatewayAddress == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.gateway = gatewayAddress;
+        emit GatewayUpdated(gatewayAddress);
+    }
+
     /// @inheritdoc ITEEComputeManager
     function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
         // TODO
@@ -79,7 +93,12 @@ contract TEEComputeManager is
     ) external returns (bytes32 result) {
         uint256 supportedTypes = _numericTypesMask();
         TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeAdd, leftHandOperand, rightHandOperand, leftHandOperandType);
+        result = _binaryOp(
+            Operators.teeAdd,
+            leftHandOperand,
+            rightHandOperand,
+            leftHandOperandType
+        );
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -90,7 +109,12 @@ contract TEEComputeManager is
     ) external returns (bytes32 result) {
         uint256 supportedTypes = _numericTypesMask();
         TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeSub, leftHandOperand, rightHandOperand, leftHandOperandType);
+        result = _binaryOp(
+            Operators.teeSub,
+            leftHandOperand,
+            rightHandOperand,
+            leftHandOperandType
+        );
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -102,46 +126,96 @@ contract TEEComputeManager is
         if (rightHandOperand == 0) revert DivisionByZero();
         uint256 supportedTypes = _numericTypesMask();
         TEEType leftHandOperandType = _verifyAndReturnType(leftHandOperand, supportedTypes);
-        result = _binaryOp(Operators.teeDiv, leftHandOperand, rightHandOperand, leftHandOperandType);
+        result = _binaryOp(
+            Operators.teeDiv,
+            leftHandOperand,
+            rightHandOperand,
+            leftHandOperandType
+        );
         emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
     /**
-     * Validates a handle's ownership proof. Reverts if the proof is invalid.
+     * Validates that a handle provided by a user is:
+     *   - of expected type
+     *   - not expired (TODO)
+     *   - issued for the correct ACL
+     *   - issued for the correct owner
+     *   - issued by the configured gateway (signed by the gateway wallet)
+     * or reverts otherwise.
+     *
+     * Handle format:
+     *    26 bytes          4 bytes     1 byte  1 byte
+     * [0----------25]    [26-----29]    [30]    [31]
+     *   Pre-handle         ChainId      Type   Version
+     *
      * Proof format:
-     *    owner (20 bytes) || ACL (20 bytes) || createdAt (32 bytes) || EIP-712 signature (65 bytes)
+     *  20 bytes       20 bytes        32 bytes            65 bytes
+     * [0-----19]    [20-----39]    [40--------71]    [72------------136]
+     *   Owner           ACL           CreatedAt       EIP-712 signature
      *
      * @param handle handle id
-     * @param signer Expected signer address
+     * @param owner The address of the handle owner
      * @param proof Proof data
      */
-    function validateProof(bytes32 handle, address signer, bytes calldata proof) public view {
-        if (proof.length != 137) {
-            revert InvalidProof(proof, "Invalid length");
+    function validateProof(
+        bytes32 handle,
+        address owner,
+        bytes calldata proof,
+        TEEType teeType
+    ) public view {
+        // TODO check chainId
+        if (handle[30] != bytes1(uint8(teeType))) {
+            revert InvalidProof(proof, "Handle type mismatch");
         }
-        address owner = address(bytes20(proof[0:20]));
-        address proofAcl = address(bytes20(proof[20:40]));
+        if (proof.length != 137) {
+            revert InvalidProof(proof, "Invalid proof length");
+        }
+        address ownerInProof = address(bytes20(proof[0:20]));
+        address aclInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
+        // TODO check handle type.
+        // TODO add checks for `createdAt`.
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        if (proofAcl != $.acl) {
+        if (aclInProof != $.acl) {
             revert InvalidProof(proof, "ACL mismatch");
         }
-        // TODO add checks for `createdAt`.
-        bytes32 eip712MessageHash = _hashTypedDataV4(
-            keccak256(abi.encode(HANDLE_PROOF_TYPEHASH, handle, owner, proofAcl, createdAt))
-        );
-        if (ECDSA.recover(eip712MessageHash, signature) != signer) {
-            revert InvalidProof(proof, "Signer mismatch");
+        if (ownerInProof != owner) {
+            revert InvalidProof(proof, "Owner mismatch");
         }
+        bytes32 eip712MessageHash = _hashTypedDataV4(
+            keccak256(
+                abi.encode(HANDLE_PROOF_TYPEHASH, handle, ownerInProof, aclInProof, createdAt)
+            )
+        );
+        if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
+            revert InvalidProof(proof, "Invalid signature");
+        }
+        // TODO call ACL to allow here
     }
 
     /**
-     * Returns the configured ACL contract address.
+     * Returns the EIP-712 domain separator.
+     */
+    function domainSeparator() external view returns (bytes32) {
+        return _domainSeparatorV4();
+    }
+
+    /**
+     * Returns the ACL contract address.
      */
     function acl() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         return $.acl;
+    }
+
+    /**
+     * Returns the Gateway wallet address.
+     */
+    function gateway() external view returns (address) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.gateway;
     }
 
     /**
@@ -178,7 +252,7 @@ contract TEEComputeManager is
         if ((1 << uint8(typeCt)) & supportedTypes == 0) revert UnsupportedType();
     }
 
-        function _binaryOp(
+    function _binaryOp(
         Operators op,
         bytes32 leftHandOperand,
         bytes32 rightHandOperand,
@@ -187,12 +261,16 @@ contract TEEComputeManager is
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         IACL aclContract = IACL($.acl);
 
-        if (!aclContract.isAllowed(leftHandOperand, msg.sender)) revert ACLNotAllowed(leftHandOperand, msg.sender);
-        if (!aclContract.isAllowed(rightHandOperand, msg.sender)) revert ACLNotAllowed(rightHandOperand, msg.sender);
+        if (!aclContract.isAllowed(leftHandOperand, msg.sender))
+            revert ACLNotAllowed(leftHandOperand, msg.sender);
+        if (!aclContract.isAllowed(rightHandOperand, msg.sender))
+            revert ACLNotAllowed(rightHandOperand, msg.sender);
 
         if (_typeOf(leftHandOperand) != _typeOf(rightHandOperand)) revert IncompatibleTypes();
 
-        result = keccak256(abi.encodePacked(op, leftHandOperand, rightHandOperand, $.acl, block.chainid));
+        result = keccak256(
+            abi.encodePacked(op, leftHandOperand, rightHandOperand, $.acl, block.chainid)
+        );
         result = _appendMetadataToPrehandle(result, resultType);
         aclContract.allowTransient(result, msg.sender);
     }

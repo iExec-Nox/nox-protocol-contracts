@@ -5,7 +5,12 @@
   // (names, ...) to reduce noise while keeping the detection effective.
   // Note: keep alphabetical order when updating.
   "cSpell.words": [
+    "chainid",
     "crytic",
+    "eaddress",
+    "ebool",
+    "eint",
+    "euint",
     "IACL",
     "IERC",
     "inheritdoc",

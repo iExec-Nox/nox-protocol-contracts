@@ -1,3 +1,4 @@
+import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { deploy } from "../../scripts/deploy.js";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 
@@ -10,11 +11,20 @@ export async function loadFixture() {
  */
 async function deployFixture() {
     const viem = connection.viem;
-    const deployment = await deploy(false); // disable logging for tests
-    const [wallet0, wallet1] = await viem.getWalletClients();
+    const publicClient = await viem.getPublicClient();
+    // disable deployment logging for tests (more readable logs)
+    const deployment = await deploy(false);
+    const accounts = await viem.getWalletClients();
+    const gateway = privateKeyToAccount(generatePrivateKey());
+    const tx = await deployment.teeComputeManager.write.setGateway([gateway.address]);
+    await publicClient.waitForTransactionReceipt({ hash: tx });
     return {
         ...deployment,
-        wallet0,
-        wallet1,
+        admin: accounts[0],
+        wallet1: accounts[1],
+        wallet2: accounts[2],
+        wallet3: accounts[3],
+        wallet4: accounts[4],
+        gateway,
     };
 }
