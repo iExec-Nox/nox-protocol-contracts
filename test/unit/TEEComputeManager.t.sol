@@ -21,15 +21,7 @@ contract TEEComputeManagerTest is Test {
     address acl;
     TEEComputeManager teeComputeManager;
     uint256 createdAt = block.timestamp;
-    bytes32 handle =
-        bytes32(
-            bytes.concat(
-                bytes26(uint208(1234567890)), // Random pre-handle
-                bytes4(uint32(block.chainid)),
-                bytes1(uint8(TEEType.Uint256)), // Type 3
-                bytes1(0x00) // Version 0
-            )
-        );
+    bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
     function setUp() public {
         ACL aclContract;
@@ -129,6 +121,19 @@ contract TEEComputeManagerTest is Test {
     function test_ValidateProof() public view {
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
+        bytes32 badHandle = TestHelper.createHandle(type(uint32).max, TEEType.Uint256);
+        bytes memory proof = _buildProof(badHandle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Handle chain id mismatch"
+            )
+        );
+        teeComputeManager.validateProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_HandleTypeMismatch() public {
