@@ -12,12 +12,12 @@ import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
  */
 contract TEEComputeManagerMock is TEEComputeManager {
     constructor() {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         // Deploy ACL as a proxy
         address implementation = address(new ACL());
         ACL acl = ACL(address(new ERC1967Proxy(implementation, "")));
         // Initialize with this contract as owner and teeComputeManager
         acl.initialize(address(this), address(this));
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl = acl;
     }
 
