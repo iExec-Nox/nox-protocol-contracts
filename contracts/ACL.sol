@@ -31,6 +31,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         0x5fa92c526386e73fafd299993c824ec0066c31df37611b1c3fad8e9fb5701800;
 
     // ============ MODIFIERS ============
+
     /**
      * Ensures the account address is not zero
      * @param account The address to validate
@@ -54,6 +55,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     // ============ CONSTRUCTOR ============
+
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
@@ -77,6 +79,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     // ============ PUBLIC DECRYPTION ============
+
     /// @inheritdoc IACL
     function allowPublicDecryption(bytes32 handle) external override onlyAllowed(handle) {
         ACLStorage storage $ = _getACLStorage();
@@ -90,7 +93,8 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         return $.isPubliclyDecryptable[handle];
     }
 
-    // ============ ALLOWANCE MANAGEMENT ============
+    // ============ AUTHORIZATION MANAGEMENT ============
+
     /// @inheritdoc IACL
     function allow(
         bytes32 handle,
@@ -99,16 +103,6 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         ACLStorage storage $ = _getACLStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
-    }
-
-    /// @inheritdoc IACL
-    function addViewer(
-        bytes32 handle,
-        address viewer
-    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
-        ACLStorage storage $ = _getACLStorage();
-        $.viewers[handle][viewer] = true;
-        emit ViewerAdded(msg.sender, viewer, handle);
     }
 
     /**
@@ -131,12 +125,9 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         address account
     ) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
-        if (msg.sender != $.teeComputeManager) {
-            if (!isAllowed(handle, msg.sender)) {
-                revert UnauthorizedSender(msg.sender);
-            }
+        if (msg.sender != $.teeComputeManager && !isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
         }
-
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
             tstore(key, 1)
@@ -165,7 +156,18 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         }
     }
 
-    // ============ ALLOWANCE QUERIES ============
+    /// @inheritdoc IACL
+    function addViewer(
+        bytes32 handle,
+        address viewer
+    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
+        ACLStorage storage $ = _getACLStorage();
+        $.viewers[handle][viewer] = true;
+        emit ViewerAdded(msg.sender, viewer, handle);
+    }
+
+    // ============ AUTHORIZATION QUERIES ============
+
     /// @inheritdoc IACL
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
         ACLStorage storage $ = _getACLStorage();
@@ -174,7 +176,8 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
 
     /// @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
-        return isAllowedPersistent(handle, account) || isAllowedTransient(handle, account);
+        // Read transient allowance first to save gas (no unnecessary storage reads).
+        return isAllowedTransient(handle, account) || isAllowedPersistent(handle, account);
     }
 
     /**

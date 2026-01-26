@@ -21,20 +21,27 @@ interface IACL is IErrors {
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
 
     /**
+     * Mark a handle as publicly decryptable.
+     * @dev The caller must be allowed to use the handle.
+     *      If not, the function reverts.
+     * @param handle Handle to mark as publicly decryptable.
+     */
+    function allowPublicDecryption(bytes32 handle) external;
+
+    /**
+     * Checks whether a handle is publicly decryptable.
+     * @param handle Handle.
+     * @return Whether the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
+
+    /**
      * Grant admin role to another address for a specific handle
      * @dev Caller must have access (transient OR persistent) to the handle
      * @param handle The handle identifier
      * @param account The address to grant admin role
      */
     function allow(bytes32 handle, address account) external;
-
-    /**
-     * Add a viewer for a specific handle
-     * @dev Only an admin can add a viewer. The viewer address cannot be address(0).
-     * @param handle The handle identifier
-     * @param viewer The address to grant viewer role
-     */
-    function addViewer(bytes32 handle, address viewer) external;
 
     /**
      * Allows the use of `handle` by address `account` for this transaction.
@@ -49,6 +56,14 @@ interface IACL is IErrors {
      * @dev Can be called by anyone (typically by AA bundlers between UserOps).
      */
     function cleanTransientStorage() external;
+
+    /**
+     * Add a viewer for a specific handle
+     * @dev Only an admin can add a viewer. The viewer address cannot be address(0).
+     * @param handle The handle identifier
+     * @param viewer The address to grant viewer role
+     */
+    function addViewer(bytes32 handle, address viewer) external;
 
     /**
      * Returns whether the account is allowed to use the `handle`, either due to
@@ -66,19 +81,4 @@ interface IACL is IErrors {
      * @return Whether the account is a viewer for the handle.
      */
     function isViewer(bytes32 handle, address viewer) external view returns (bool);
-
-    /**
-     * Mark a handle as publicly decryptable.
-     * @dev The caller must be allowed to use the handle.
-     *      If not, the function reverts.
-     * @param handle Handle to mark as publicly decryptable.
-     */
-    function allowPublicDecryption(bytes32 handle) external;
-
-    /**
-     * Checks whether a handle is publicly decryptable.
-     * @param handle Handle.
-     * @return Whether the handle is publicly decryptable.
-     */
-    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
 }
