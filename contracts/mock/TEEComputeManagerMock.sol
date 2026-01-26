@@ -2,8 +2,8 @@
 pragma solidity ^0.8.0;
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
+import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 
 /**
  * @title TEEComputeManagerMock
@@ -15,17 +15,10 @@ contract TEEComputeManagerMock is TEEComputeManager {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         // Deploy ACL as a proxy
         address implementation = address(new ACL());
-        bytes memory initData = abi.encodeWithSignature(
-            "initialize(address, address)",
-            address(this),
-            address(this)
-        );
-        $.acl = ACL(address(new ERC1967Proxy(implementation, initData)));
+        ACL acl = ACL(address(new ERC1967Proxy(implementation, "")));
         // Initialize with this contract as owner and teeComputeManager
-        // (bool success, ) = address($.acl).call(
-        //     abi.encodeWithSignature("initialize(address, address)", address(this), address(this))
-        // );
-        // require(success, "ACL initialization failed");
+        acl.initialize(address(this), address(this));
+        $.acl = acl;
     }
 
     /**
