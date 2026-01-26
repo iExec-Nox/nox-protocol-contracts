@@ -46,7 +46,7 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-        run: pnpm hardhat run scripts/deploy.ts --network ${{ inputs.network }}
+        run: pnpm run deploy --network ${{ inputs.network }}
 
       - name: Save deployment artifacts
         if: inputs.network != 'hardhat' && inputs.network != 'tenderlyVirtualArbitrumSepolia'
