@@ -176,7 +176,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
 
     /// @inheritdoc IACL
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
-        // Read transient allowance first to save gas (no unnecessary storage reads).
+        // Read transient authorization first to save gas (no unnecessary storage reads).
         return isAllowedTransient(handle, account) || isAllowedPersistent(handle, account);
     }
 

@@ -51,7 +51,7 @@ interface IACL is IErrors {
     function allowTransient(bytes32 handle, address account) external;
 
     /**
-     * Removes all transient allowances. This is useful for integration with Account Abstraction
+     * Removes all transient authorizations. This is useful for integration with Account Abstraction
      * when bundling several UserOps calling the TEEComputeManager.
      * @dev Can be called by anyone (typically by AA bundlers between UserOps).
      */

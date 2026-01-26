@@ -11,12 +11,12 @@ import {TestHelper} from "../utils/TestHelper.sol";
 contract TEELibTest is Test {
     using TEEPrimitives for *;
 
-    address owner = makeAddr("owner");
-    address gateway = makeAddr("gateway");
     TEEComputeManager internal teeComputeManager;
     ACL internal acl;
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");
+    address internal owner = makeAddr("owner");
+    address internal gateway = makeAddr("gateway");
 
     function setUp() public {
         (acl, teeComputeManager) = TestHelper.deploy(owner, gateway);

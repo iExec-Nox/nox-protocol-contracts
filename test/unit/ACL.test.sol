@@ -47,7 +47,8 @@ contract ACLTest is Test {
      * @dev Tests that initialize reverts with zero addresses.
      */
     function test_RevertWhen_Initialize_WithZeroAddress() public {
-        ACL proxy = ACL(TestHelper.deployProxy(address(new ACL())));
+        address implementation = address(new ACL());
+        ACL proxy = ACL(TestHelper.deployProxy(implementation));
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         proxy.initialize(owner, address(0));
     }
