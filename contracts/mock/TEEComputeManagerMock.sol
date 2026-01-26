@@ -2,37 +2,23 @@
 pragma solidity ^0.8.0;
 
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import "../ACL.sol";
-import "../shared/TEEType.sol";
-import {Vm} from "forge-std/src/Vm.sol";
+import {ACL} from "../../contracts/ACL.sol";
+import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+
 /**
  * @title TEEComputeManagerMock
  * @dev Mock TEEComputeManager contract for testing ACL functionality with helper functions
  * This contract acts as a mock TEE Compute Manager to test ACL permissions
  */
-contract TEEComputeManagerMock {
-    Vm constant vm = Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
-    ACL public immutable acl;
-
+contract TEEComputeManagerMock is TEEComputeManager {
     constructor() {
-        // Deploy ACL as upgradeable proxy
-        ACL implementation = new ACL();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
-        acl = ACL(address(proxy));
+        // Deploy ACL as a proxy
+        address implementation = address(new ACL());
+        ACL acl = ACL(address(new ERC1967Proxy(implementation, "")));
         // Initialize with this contract as owner and teeComputeManager
         acl.initialize(address(this), address(this));
-    }
-
-    /**
-     * @dev Mock plaintextToEncrypted function that returns sequential handles
-     * @param value The plaintext value to encrypt (unused in mock)
-     * @param teeType The type of the encrypted value (unused in mock)
-     * @return A unique handle for the encrypted value
-     */
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32) {
-        value;
-        teeType;
-        return bytes32(vm.randomUint());
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.acl = acl;
     }
 
     /**
@@ -47,13 +33,12 @@ contract TEEComputeManagerMock {
         bytes32 handlePersistent,
         address account
     ) external {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         // Grant transient access (will be cleared after transaction)
-        acl.allowTransient(handleTransient, account);
-
+        $.acl.allowTransient(handleTransient, account);
         // Grant transient access to THIS CONTRACT so it can call allow()
-        acl.allowTransient(handlePersistent, address(this));
-
+        $.acl.allowTransient(handlePersistent, address(this));
         // Convert to persistent access (will survive after transaction)
-        acl.allow(handlePersistent, account);
+        $.acl.allow(handlePersistent, account);
     }
 }

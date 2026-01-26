@@ -6,6 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
+import {IACL} from "./interfaces/IACL.sol";
 import {TEEType} from "./shared/TEEType.sol";
 
 /**
@@ -19,7 +20,7 @@ contract TEEComputeManager is
 {
     /// @custom:storage-location erc7201:nox.storage.TEEComputeManager
     struct TEEComputeManagerStorage {
-        address acl;
+        IACL acl;
         address gateway;
     }
 
@@ -56,7 +57,7 @@ contract TEEComputeManager is
             revert InvalidZeroAddress();
         }
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl = newAcl;
+        $.acl = IACL(newAcl);
         emit ACLUpdated(newAcl);
     }
 
@@ -77,9 +78,7 @@ contract TEEComputeManager is
     /// @inheritdoc ITEEComputeManager
     function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
         // TODO
-        value;
-        teeType;
-        return bytes32(uint256(0));
+        return keccak256(abi.encodePacked(value, teeType));
     }
 
     /**
@@ -111,7 +110,10 @@ contract TEEComputeManager is
         bytes calldata proof,
         TEEType teeType
     ) public view {
-        // TODO check chainId
+        bytes4 chainIdInHandle = bytes4(handle << (26 * 8));
+        if (chainIdInHandle != bytes4(uint32(block.chainid))) {
+            revert InvalidProof(proof, "Handle chain id mismatch");
+        }
         if (handle[30] != bytes1(uint8(teeType))) {
             revert InvalidProof(proof, "Handle type mismatch");
         }
@@ -125,7 +127,7 @@ contract TEEComputeManager is
         // TODO check handle type.
         // TODO add checks for `createdAt`.
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        if (aclInProof != $.acl) {
+        if (aclInProof != address($.acl)) {
             revert InvalidProof(proof, "ACL mismatch");
         }
         if (ownerInProof != owner) {
@@ -154,7 +156,7 @@ contract TEEComputeManager is
      */
     function acl() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        return $.acl;
+        return address($.acl);
     }
 
     /**
@@ -171,7 +173,7 @@ contract TEEComputeManager is
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
 
     function _getTEEComputeManagerStorage()
-        private
+        internal
         pure
         returns (TEEComputeManagerStorage storage $)
     {

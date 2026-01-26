@@ -9,44 +9,31 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
+import {TestHelper} from "../utils/TestHelper.sol";
 
 contract TEEComputeManagerTest is Test {
-    TEEComputeManager teeComputeManager;
     address owner = makeAddr("owner");
-    address acl = makeAddr("acl");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
+    address acl;
+    TEEComputeManager teeComputeManager;
     uint256 createdAt = block.timestamp;
-    bytes32 handle =
-        bytes32(
-            bytes.concat(
-                bytes26(uint208(1234567890)), // Random pre-handle
-                bytes4(uint32(block.chainid)),
-                bytes1(uint8(TEEType.Uint256)), // Type 3
-                bytes1(0x00) // Version 0
-            )
-        );
+    bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
     function setUp() public {
-        teeComputeManager = _deployNewProxy();
-        teeComputeManager.initialize(owner);
-        vm.startPrank(owner);
-        teeComputeManager.setAcl(acl);
-        teeComputeManager.setGateway(gateway);
-        vm.stopPrank();
-        vm.label(owner, "owner");
-        vm.label(acl, "acl");
-        vm.label(gateway, "gateway");
-        vm.label(address(teeComputeManager), "teeComputeManager");
+        ACL aclContract;
+        (aclContract, teeComputeManager) = TestHelper.deploy(owner, gateway);
+        acl = address(aclContract);
     }
 
     // initialize
 
     function test_Initialize() public view {
         assertTrue(teeComputeManager.owner() == owner);
-        assertTrue(teeComputeManager.acl() == acl);
+        assertTrue(teeComputeManager.acl() == address(acl));
         (
             , // bytes1 fields
             string memory name,
@@ -68,7 +55,7 @@ contract TEEComputeManagerTest is Test {
     // setAcl
 
     function test_SetAcl() public {
-        assertTrue(teeComputeManager.acl() == acl);
+        assertTrue(teeComputeManager.acl() == address(acl));
         address newAcl = makeAddr("newAcl");
         vm.prank(owner);
         vm.expectEmit();
@@ -134,6 +121,19 @@ contract TEEComputeManagerTest is Test {
     function test_ValidateProof() public view {
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
+        bytes32 badHandle = TestHelper.createHandle(type(uint32).max, TEEType.Uint256);
+        bytes memory proof = _buildProof(badHandle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Handle chain id mismatch"
+            )
+        );
+        teeComputeManager.validateProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_HandleTypeMismatch() public {
@@ -225,12 +225,6 @@ contract TEEComputeManagerTest is Test {
         );
         vm.prank(unauthorizedUpgrader);
         teeComputeManager.upgradeToAndCall(makeAddr("newImpl"), "");
-    }
-
-    function _deployNewProxy() internal returns (TEEComputeManager) {
-        TEEComputeManager implementation = new TEEComputeManager();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
-        return TEEComputeManager(address(proxy));
     }
 
     function _buildProof(
