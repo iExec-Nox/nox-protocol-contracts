@@ -10,7 +10,10 @@ import {IACL} from "./interfaces/IACL.sol";
 import {TEEType} from "./shared/TEEType.sol";
 
 /**
- * TODO
+ * @title TEEComputeManager
+ * This contract is the main entry point to the TEE compute functionalities of the Nox protocol.
+ * It manages the access control list (ACL) for encrypted handles, validates handle proofs,
+ * and facilitates the conversion of plaintext values to encrypted values.
  */
 contract TEEComputeManager is
     ITEEComputeManager,
@@ -109,7 +112,7 @@ contract TEEComputeManager is
         address owner,
         bytes calldata proof,
         TEEType teeType
-    ) public view {
+    ) public {
         bytes4 chainIdInHandle = bytes4(handle << (26 * 8));
         if (chainIdInHandle != bytes4(uint32(block.chainid))) {
             revert InvalidProof(proof, "Handle chain id mismatch");
@@ -124,7 +127,6 @@ contract TEEComputeManager is
         address aclInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
-        // TODO check handle type.
         // TODO add checks for `createdAt`.
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         if (aclInProof != address($.acl)) {
@@ -141,7 +143,7 @@ contract TEEComputeManager is
         if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
             revert InvalidProof(proof, "Invalid signature");
         }
-        // TODO call ACL to allow here
+        $.acl.allowTransient(handle, msg.sender);
     }
 
     /**

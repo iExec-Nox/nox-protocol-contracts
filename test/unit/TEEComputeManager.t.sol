@@ -13,6 +13,7 @@ import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
+import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract TEEComputeManagerTest is Test {
     address owner = makeAddr("owner");
@@ -79,7 +80,7 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_SetAcl_RevertWhen_ZeroAddress() public {
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setAcl(address(0));
     }
@@ -111,15 +112,18 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_SetGateway_RevertWhen_ZeroAddress() public {
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setGateway(address(0));
     }
 
     // validateProof
 
-    function test_ValidateProof() public view {
+    function test_ValidateProof() public {
+        address app = makeAddr("app");
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
+        vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
