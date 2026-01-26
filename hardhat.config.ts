@@ -33,7 +33,7 @@ export default defineConfig({
             url: configVariable("RPC_URL"),
             accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
         },
-        tenderlyVirtualArbitrumSepolia: {
+        tenderlyArbitrumSepolia: {
             type: "http",
             chainType: "op",
             url: configVariable("RPC_URL"),

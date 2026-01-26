@@ -8,7 +8,7 @@ export default {
         chainId: 421614,
         initialOwner: "0x9990cfb1feb7f47297f54bef4d4ebedf6c5463a3", // TODO: Replace before real deployment
     },
-    tenderlyVirtualArbitrumSepolia: {
+    tenderlyArbitrumSepolia: {
         chainId: 421614, // Same chainId as Arbitrum Sepolia
         initialOwner: "0x9990cfb1feb7f47297f54bef4d4ebedf6c5463a3", // TODO: Replace before real deployment
     },
