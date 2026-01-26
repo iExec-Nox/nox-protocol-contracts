@@ -14,7 +14,7 @@ on:
         default: "hardhat"
 
 jobs:
-  build-and-test:
+  pre-deploy:
     uses: ./.github/workflows/main.yml
 
   deploy:
