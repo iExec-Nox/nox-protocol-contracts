@@ -17,12 +17,17 @@ contract TEEComputeManagerMock is TEEComputeManager {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         // Deploy ACL as a proxy
         address implementation = address(new ACL());
-        $.acl = ACL(address(new ERC1967Proxy(implementation, "")));
-        // Initialize with this contract as owner and teeComputeManager
-        (bool success, ) = address($.acl).call(
-            abi.encodeWithSignature("initialize(address, address)", address(this), address(this))
+        bytes memory initData = abi.encodeWithSignature(
+            "initialize(address, address)",
+            address(this),
+            address(this)
         );
-        success;
+        $.acl = ACL(address(new ERC1967Proxy(implementation, initData)));
+        // Initialize with this contract as owner and teeComputeManager
+        // (bool success, ) = address($.acl).call(
+        //     abi.encodeWithSignature("initialize(address, address)", address(this), address(this))
+        // );
+        // require(success, "ACL initialization failed");
     }
 
     /**
