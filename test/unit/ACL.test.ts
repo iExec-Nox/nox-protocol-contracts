@@ -25,9 +25,10 @@ describe("ACL", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
             const { wallet1 } = await loadFixture();
             const viem = connection.viem;
+            // Deploy TEEComputeManagerMock for this test
+            const teeComputeManagerMock = await viem.deployContract("TEEComputeManagerMock");
             const handleTransient = keccak256(toHex("handle-transient"));
             const handlePersistent = keccak256(toHex("handle-persistent"));
-            const teeComputeManagerMock = await viem.deployContract("TEEComputeManagerMock");
 
             // Single transaction: Grant transient to one handle and persistent to another (same account)
             await teeComputeManagerMock.write.grantTransientAndPersistent([

@@ -4,9 +4,7 @@ pragma solidity ^0.8.0;
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
-// import "../ACL.sol";
-// import "../shared/TEEType.sol";
-// import {Vm} from "forge-std/src/Vm.sol";
+
 /**
  * @title TEEComputeManagerMock
  * @dev Mock TEEComputeManager contract for testing ACL functionality with helper functions
