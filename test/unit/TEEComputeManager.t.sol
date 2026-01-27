@@ -280,7 +280,7 @@ contract TEEComputeManagerTest is Test {
 
     // ============ _authorizeUpgrade Tests ============
 
-    function test_UpgradeToAndCall() public {
+    function test_AuthorizeUpgrade() public {
         address newImplementation = address(new TEEComputeManager());
         vm.prank(owner);
         vm.expectEmit();
