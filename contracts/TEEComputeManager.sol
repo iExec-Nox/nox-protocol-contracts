@@ -157,13 +157,10 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        uint256 supportedTypes = _numericTypesMask();
-        TEEType leftHandOperandType = _extractAndValidateType(leftHandOperand, supportedTypes);
-        if (_typeOf(leftHandOperand) != _typeOf(rightHandOperand)) revert IncompatibleTypes();
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operators.Add, operands, leftHandOperandType);
+        result = _executeArithmeticOperation(Operators.Add, operands);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -206,18 +203,6 @@ contract TEEComputeManager is
     }
 
     /**
-     * Returns a bitmask representing numeric TEE types (Uint160, Uint256, Int256).
-     * Used to validate that operands are of supported numeric types for arithmetic operations.
-     * @return Bitmask where bit at position N is set if TEEType(N) is a numeric type
-     */
-    function _numericTypesMask() private pure returns (uint256) {
-        return
-            (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-    }
-
-    /**
      * Extracts the TEE type from a handle.
      * The type is stored at byte position 30 in the handle.
      * @param handle The handle to extract the type from
@@ -225,24 +210,6 @@ contract TEEComputeManager is
      */
     function _typeOf(bytes32 handle) private pure returns (TEEType) {
         return TEEType(uint8(handle[30]));
-    }
-
-    /**
-     * Verifies that a handle's type is within the set of supported types.
-     * @dev Reverts with UnsupportedType if the handle's type is not in the supported set
-     *
-     * @param handle The handle to verify
-     * @param supportedTypes Bitmask of supported types (bit N set means TEEType(N) is supported)
-     * @return handleType The TEEType of the handle if supported
-     */
-    function _extractAndValidateType(
-        bytes32 handle,
-        uint256 supportedTypes
-    ) private pure returns (TEEType handleType) {
-        handleType = _typeOf(handle);
-        if (((1 << uint8(handleType)) & supportedTypes) == 0) {
-            revert UnsupportedType();
-        }
     }
 
     /**
@@ -262,14 +229,24 @@ contract TEEComputeManager is
      *
      * @param operator The operator to apply (Add, teeSub, teeDiv)
      * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
-     * @param resultType The TEE type for the result handle
      * @return result The resulting encrypted handle
      */
     function _executeArithmeticOperation(
         Operators operator,
-        bytes32[] memory operands,
-        TEEType resultType
+        bytes32[] memory operands
     ) private returns (bytes32 result) {
+        // Validate operand types are numeric
+        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
+            (1 << uint8(TEEType.Uint256)) +
+            (1 << uint8(TEEType.Int256));
+        TEEType resultType = _typeOf(operands[0]);
+        if (((1 << uint8(resultType)) & supportedTypes) == 0) {
+            revert UnsupportedType();
+        }
+        if (_typeOf(operands[0]) != _typeOf(operands[1])) {
+            revert IncompatibleTypes();
+        }
+
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         IACL aclContract = $.acl;
         for (uint256 i = 0; i < operands.length; i++) {
