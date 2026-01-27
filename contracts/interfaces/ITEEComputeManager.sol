@@ -37,7 +37,7 @@ interface ITEEComputeManager is IErrors {
     event PlaintextToEncrypted(
         address indexed caller,
         uint256 plaintext,
-        uint8 toType,
+        TEEType toType,
         bytes32 result
     );
 

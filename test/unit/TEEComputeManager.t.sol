@@ -116,6 +116,56 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setGateway(address(0));
     }
 
+    // ============ plaintextToEncrypted ============
+
+    function test_PlaintextToEncrypted_Bool() public {
+        uint256 value = 1;
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Bool));
+        assertTrue(aclContract.isAllowed(result, caller));
+    }
+
+    function test_PlaintextToEncrypted_Uint160() public {
+        uint256 value = 123456789;
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Uint160));
+        assertTrue(aclContract.isAllowed(result, caller));
+    }
+
+    function test_PlaintextToEncrypted_Uint256() public {
+        uint256 value = 42;
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Uint256));
+        assertEq(uint8(result[31]), 0);
+        assertTrue(aclContract.isAllowed(result, caller));
+    }
+
+    function test_PlaintextToEncrypted_Int256() public {
+        uint256 value = 999;
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Int256);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Int256));
+        assertTrue(aclContract.isAllowed(result, caller));
+    }
+
+    function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
+        uint256 value = 42;
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
+        teeComputeManager.plaintextToEncrypted(value, TEEType.Address);
+    }
+
     // ============ validateProof ============
 
     function test_ValidateProof() public {
@@ -217,7 +267,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectEmit(true, false, false, false);
+        vm.expectEmit();
         emit ITEEComputeManager.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
         bytes32 result = teeComputeManager.add(leftHandOperand, rightHandOperand);
 
@@ -416,56 +466,6 @@ contract TEEComputeManagerTest is Test {
         vm.prank(caller);
         vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
         teeComputeManager.div(leftHandOperand, rightHandOperand);
-    }
-
-    // ============ plaintextToEncrypted ============
-
-    function test_PlaintextToEncrypted_Bool() public {
-        uint256 value = 1;
-        vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
-
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(result[30]), uint8(TEEType.Bool));
-        assertTrue(aclContract.isAllowed(result, caller));
-    }
-
-    function test_PlaintextToEncrypted_Uint160() public {
-        uint256 value = 123456789;
-        vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
-
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(result[30]), uint8(TEEType.Uint160));
-        assertTrue(aclContract.isAllowed(result, caller));
-    }
-
-    function test_PlaintextToEncrypted_Uint256() public {
-        uint256 value = 42;
-        vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
-
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(result[30]), uint8(TEEType.Uint256));
-        assertEq(uint8(result[31]), 0);
-        assertTrue(aclContract.isAllowed(result, caller));
-    }
-
-    function test_PlaintextToEncrypted_Int256() public {
-        uint256 value = 999;
-        vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Int256);
-
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(result[30]), uint8(TEEType.Int256));
-        assertTrue(aclContract.isAllowed(result, caller));
-    }
-
-    function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
-        uint256 value = 42;
-        vm.prank(caller);
-        vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
-        teeComputeManager.plaintextToEncrypted(value, TEEType.Address);
     }
 
     // ============ _authorizeUpgrade ============

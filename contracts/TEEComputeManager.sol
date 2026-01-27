@@ -100,7 +100,7 @@ contract TEEComputeManager is
         result = _generateHandle(Operators.PlaintextToEncrypted, operands, teeType);
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl.allowTransient(result, msg.sender);
-        emit PlaintextToEncrypted(msg.sender, value, uint8(teeType), result);
+        emit PlaintextToEncrypted(msg.sender, value, teeType, result);
     }
 
     /**
