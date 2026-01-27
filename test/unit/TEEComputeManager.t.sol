@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: UNLICENSED
 pragma solidity ^0.8.0;
 
-import {Test, Vm} from "forge-std/Test.sol";
+import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
@@ -304,10 +304,8 @@ contract TEEComputeManagerTest is Test {
     // ============ Test Helpers ============
     /**
      * TODO: Add tests for private helper functions:
-     *   - _numericTypesMask
      *   - _typeOf
-     *   - _verifyAndReturnType
-     *   - _binaryOp
+     *   - _executeArithmeticOperation
      *   - _appendMetadataToPrehandle
      **/
 
