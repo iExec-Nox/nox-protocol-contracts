@@ -243,10 +243,11 @@ contract TEEComputeManager is
         if (((1 << uint8(resultType)) & supportedTypes) == 0) {
             revert UnsupportedType();
         }
-        if (_typeOf(operands[0]) != _typeOf(operands[1])) {
-            revert IncompatibleTypes();
+        for (uint256 i = 1; i < operands.length; i++) {
+            if (_typeOf(operands[0]) != _typeOf(operands[i])) {
+                revert IncompatibleTypes();
+            }
         }
-
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         IACL aclContract = $.acl;
         for (uint256 i = 0; i < operands.length; i++) {
