@@ -22,9 +22,29 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand,
         bytes32 result
     );
+    event Sub(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Div(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event PlaintextToEncrypted(
+        address indexed caller,
+        uint256 plaintext,
+        uint8 toType,
+        bytes32 result
+    );
 
     enum Operators {
-        Add
+        Add,
+        Sub,
+        Div
     }
 
     function setAcl(address newAcl) external;
@@ -45,6 +65,28 @@ interface ITEEComputeManager is IErrors {
      * @return result Result handle
      */
     function add(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Computes TEE Sub operation
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Result handle
+     */
+    function sub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Computes TEE Div operation
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Result handle
+     */
+    function div(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result);

@@ -84,9 +84,20 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external pure returns (bytes32) {
-        // TODO
-        return keccak256(abi.encodePacked(value, teeType));
+    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32) {
+        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
+            (1 << uint8(TEEType.Uint256)) +
+            (1 << uint8(TEEType.Int256)) +
+            (1 << uint8(TEEType.Bool));
+        if (((1 << uint8(teeType)) & supportedTypes) == 0) {
+            revert UnsupportedType();
+        }
+        bytes32 prehandle = keccak256(abi.encodePacked(value, teeType, msg.sender, block.timestamp));
+        bytes32 handle = _appendMetadataToPrehandle(prehandle, teeType);
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.acl.allowTransient(handle, msg.sender);
+        emit PlaintextToEncrypted(msg.sender, value, uint8(teeType), handle);
+        return handle;
     }
 
     /**
@@ -164,6 +175,30 @@ contract TEEComputeManager is
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
+    /// @inheritdoc ITEEComputeManager
+    function sub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        result = _executeArithmeticOperation(Operators.Sub, operands);
+        emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function div(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        result = _executeArithmeticOperation(Operators.Div, operands);
+        emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
     /**
      * Returns the EIP-712 domain separator.
      */
@@ -222,7 +257,7 @@ contract TEEComputeManager is
      *      keccak256(abi.encodePacked(
      *          primitiveId,   // Operator identifier (e.g., Add)
      *          operands,      // Array of operand handles [leftHandOperand, rightHandOperand]
-     *          outputIndex,   // Index of the output (0 for binary ops with single output)
+     *          outputIndex,
      *          acl,           // ACL contract address
      *          block.chainid,
      *      ))

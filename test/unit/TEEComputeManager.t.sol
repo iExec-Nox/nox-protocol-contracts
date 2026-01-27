@@ -278,6 +278,200 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
+    // ============ sub Tests ============
+
+    function test_Sub() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Sub(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.sub(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+    }
+
+    function test_RevertWhen_Sub_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.sub(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Sub_RhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                rightHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.sub(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Sub_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.sub(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Sub_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
+        teeComputeManager.sub(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ div Tests ============
+
+    function test_Div() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Div(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.div(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+    }
+
+    function test_RevertWhen_Div_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.div(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Div_RhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                rightHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.div(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Div_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.div(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Div_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
+        teeComputeManager.div(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ plaintextToEncrypted Tests ============
+
+    function test_PlaintextToEncrypted_Bool() public {
+        uint256 value = 1;
+        vm.prank(caller);
+        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
+        
+        assertTrue(handle != bytes32(0));
+        assertEq(uint8(handle[30]), uint8(TEEType.Bool));
+        assertTrue(aclContract.isAllowed(handle, caller));
+    }
+
+    function test_PlaintextToEncrypted_Uint160() public {
+        uint256 value = 123456789;
+        vm.prank(caller);
+        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
+        
+        assertTrue(handle != bytes32(0));
+        assertEq(uint8(handle[30]), uint8(TEEType.Uint160));
+        assertTrue(aclContract.isAllowed(handle, caller));
+    }
+
+    function test_PlaintextToEncrypted_Uint256() public {
+        uint256 value = 42;
+        vm.prank(caller);
+        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+        
+        assertTrue(handle != bytes32(0));
+        // Verify handle has correct type
+        assertEq(uint8(handle[30]), uint8(TEEType.Uint256));
+        // Verify handle has correct version
+        assertEq(uint8(handle[31]), 0);
+        // Verify caller has transient access
+        assertTrue(aclContract.isAllowed(handle, caller));
+    }
+
+    function test_PlaintextToEncrypted_Int256() public {
+        uint256 value = 999;
+        vm.prank(caller);
+        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Int256);
+        
+        assertTrue(handle != bytes32(0));
+        assertEq(uint8(handle[30]), uint8(TEEType.Int256));
+        assertTrue(aclContract.isAllowed(handle, caller));
+    }
+
+    function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
+        uint256 value = 42;
+        // Using Address type which is not supported for arithmetic operations
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
+        teeComputeManager.plaintextToEncrypted(value, TEEType.Address);
+    }
+
     // ============ _authorizeUpgrade Tests ============
 
     function test_UpgradeToAndCall() public {
