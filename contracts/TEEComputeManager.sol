@@ -289,15 +289,22 @@ contract TEEComputeManager is
                 revert ACLNotAllowed(operands[i], msg.sender);
             }
         }
-        //TODO: support multiple outputs
-        uint8 outputIndex = 0;
-        result = keccak256(abi.encodePacked(operator, operands, outputIndex, $.acl, block.chainid));
-        result = _appendMetadataToPrehandle(result, resultType);
+        result = _generateHandle(operator, operands, resultType);
         aclContract.allowTransient(result, msg.sender);
     }
 
     /**
-     * Appends metadata to a pre-handle hash to create a complete handle.
+     * Generates a complete handle from an operator and its operands.
+     *
+     * Pre-handle format:
+     *   keccak256(abi.encodePacked(
+     *       operator,        // Operator identifier (e.g., Add, Sub, Div)
+     *       operands,        // Array of operand handles
+     *       address(this),   // TEEComputeManager contract address
+     *       msg.sender,      // Caller address
+     *       block.timestamp, // Current block timestamp
+     *       0                // For operations that return multiple outputs (can be 0 when needed)
+     *   ))
      *
      * Handle format (32 bytes):
      *   [0-25]  : First 26 bytes of prehandle (truncated hash)
@@ -305,15 +312,27 @@ contract TEEComputeManager is
      *   [30]    : TEE type
      *   [31]    : Handle version
      *
-     * @param prehandle The hash to use as the base of the handle
+     * @param operator The operator to apply
+     * @param operands Array of operand handles
      * @param handleType The TEE type to encode in the handle
      * @return result The complete handle with metadata appended
      */
-    function _appendMetadataToPrehandle(
-        bytes32 prehandle,
+    function _generateHandle(
+        Operators operator,
+        bytes32[] memory operands,
         TEEType handleType
     ) private view returns (bytes32 result) {
-        result = prehandle & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
+        result = keccak256(
+            abi.encodePacked(
+                operator,
+                operands,
+                address(this),
+                msg.sender,
+                block.timestamp,
+                uint8(0)
+            )
+        );
+        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
         /// If EIP2294 gets approved, it will force the chainID's size to be lower than MAX_UINT64.
         result = result | (bytes32(uint256(uint32(block.chainid))) << 16);
         result = result | (bytes32(uint256(uint8(handleType))) << 8);
