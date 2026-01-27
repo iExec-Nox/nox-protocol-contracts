@@ -84,7 +84,7 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32) {
+    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32 result) {
         uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
             (1 << uint8(TEEType.Uint256)) +
             (1 << uint8(TEEType.Int256)) +
@@ -92,12 +92,11 @@ contract TEEComputeManager is
         if (((1 << uint8(teeType)) & supportedTypes) == 0) {
             revert UnsupportedType();
         }
-        bytes32 prehandle = keccak256(abi.encodePacked(value, teeType, msg.sender, block.timestamp));
-        bytes32 handle = _appendMetadataToPrehandle(prehandle, teeType);
+        result = keccak256(abi.encodePacked(value, teeType, msg.sender, block.timestamp));
+        result = _appendMetadataToPrehandle(result, teeType);
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl.allowTransient(handle, msg.sender);
-        emit PlaintextToEncrypted(msg.sender, value, uint8(teeType), handle);
-        return handle;
+        $.acl.allowTransient(result, msg.sender);
+        emit PlaintextToEncrypted(msg.sender, value, uint8(teeType), result);
     }
 
     /**
