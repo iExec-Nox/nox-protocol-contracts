@@ -31,7 +31,7 @@ contract TEEComputeManagerTest is Test {
         vm.label(caller, "caller");
     }
 
-    // ============ initialize Tests ============
+    // ============ initialize ============
 
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
@@ -54,7 +54,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.initialize(owner);
     }
 
-    // ============ setAcl Tests ============
+    // ============ setAcl ============
 
     function test_SetAcl() public {
         address newAcl = makeAddr("newAcl");
@@ -84,7 +84,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setAcl(address(0));
     }
 
-    // ============ setGateway Tests ============
+    // ============ setGateway ============
 
     function test_SetGateway() public {
         assertTrue(teeComputeManager.gateway() == gateway);
@@ -116,7 +116,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setGateway(address(0));
     }
 
-    // ============ validateProof Tests ============
+    // ============ validateProof ============
 
     function test_ValidateProof() public {
         address app = makeAddr("app");
@@ -208,7 +208,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    // ============ add Tests ============
+    // ============ add ============
 
     function test_Add() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
@@ -278,7 +278,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
-    // ============ sub Tests ============
+    // ============ sub ============
 
     function test_Sub() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
@@ -348,7 +348,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.sub(leftHandOperand, rightHandOperand);
     }
 
-    // ============ div Tests ============
+    // ============ div ============
 
     function test_Div() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
@@ -418,63 +418,59 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.div(leftHandOperand, rightHandOperand);
     }
 
-    // ============ plaintextToEncrypted Tests ============
+    // ============ plaintextToEncrypted ============
 
     function test_PlaintextToEncrypted_Bool() public {
         uint256 value = 1;
         vm.prank(caller);
-        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
-        
-        assertTrue(handle != bytes32(0));
-        assertEq(uint8(handle[30]), uint8(TEEType.Bool));
-        assertTrue(aclContract.isAllowed(handle, caller));
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Bool));
+        assertTrue(aclContract.isAllowed(result, caller));
     }
 
     function test_PlaintextToEncrypted_Uint160() public {
         uint256 value = 123456789;
         vm.prank(caller);
-        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
-        
-        assertTrue(handle != bytes32(0));
-        assertEq(uint8(handle[30]), uint8(TEEType.Uint160));
-        assertTrue(aclContract.isAllowed(handle, caller));
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Uint160));
+        assertTrue(aclContract.isAllowed(result, caller));
     }
 
     function test_PlaintextToEncrypted_Uint256() public {
         uint256 value = 42;
         vm.prank(caller);
-        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
-        
-        assertTrue(handle != bytes32(0));
-        // Verify handle has correct type
-        assertEq(uint8(handle[30]), uint8(TEEType.Uint256));
-        // Verify handle has correct version
-        assertEq(uint8(handle[31]), 0);
-        // Verify caller has transient access
-        assertTrue(aclContract.isAllowed(handle, caller));
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Uint256));
+        assertEq(uint8(result[31]), 0);
+        assertTrue(aclContract.isAllowed(result, caller));
     }
 
     function test_PlaintextToEncrypted_Int256() public {
         uint256 value = 999;
         vm.prank(caller);
-        bytes32 handle = teeComputeManager.plaintextToEncrypted(value, TEEType.Int256);
-        
-        assertTrue(handle != bytes32(0));
-        assertEq(uint8(handle[30]), uint8(TEEType.Int256));
-        assertTrue(aclContract.isAllowed(handle, caller));
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Int256);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(result[30]), uint8(TEEType.Int256));
+        assertTrue(aclContract.isAllowed(result, caller));
     }
 
     function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
         uint256 value = 42;
-        // Using Address type which is not supported for arithmetic operations
         vm.prank(caller);
         vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
         teeComputeManager.plaintextToEncrypted(value, TEEType.Address);
     }
 
-    // ============ _authorizeUpgrade Tests ============
+    // ============ _authorizeUpgrade ============
 
-    function test_UpgradeToAndCall() public {
+    function test_AuthorizeUpgrade() public {
         address newImplementation = address(new TEEComputeManager());
         vm.prank(owner);
         vm.expectEmit();

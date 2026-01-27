@@ -248,18 +248,11 @@ contract TEEComputeManager is
 
     /**
      * Executes a binary operation on two encrypted handles.
+     * All operands must share the same type as the first operand, which also determines the result type.
      * Verifies ACL permissions for both operands, checks type compatibility,
      * generates a new result handle, and grants transient access to the caller.
      * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
-     * @dev Prehandle is computed as:
-     *      keccak256(abi.encodePacked(
-     *          primitiveId,   // Operator identifier (e.g., Add)
-     *          operands,      // Array of operand handles [leftHandOperand, rightHandOperand]
-     *          outputIndex,
-     *          acl,           // ACL contract address
-     *          block.chainid,
-     *      ))
      *
      * @param operator The operator to apply (Add, Sub, Div)
      * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
@@ -332,10 +325,33 @@ contract TEEComputeManager is
                 uint8(0)
             )
         );
-        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
-        /// If EIP2294 gets approved, it will force the chainID's size to be lower than MAX_UINT64.
-        result = result | (bytes32(uint256(uint32(block.chainid))) << 16);
-        result = result | (bytes32(uint256(uint8(handleType))) << 8);
-        result = result | bytes32(uint256(HANDLE_VERSION));
+        result = _appendMetadataToPrehandle(result, handleType);
+    }
+
+    /**
+     * Appends metadata to a pre-handle hash to create a complete handle.
+     *
+     * Handle format (32 bytes):
+     *   [0-25]  : First 26 bytes of prehandle (truncated hash)
+     *   [26-29] : Chain ID (4 bytes, from uint32)
+     *   [30]    : TEE type
+     *   [31]    : Handle version
+     *
+     * @param prehandle The hash to use as the base of the handle
+     * @param handleType The TEE type to encode in the handle
+     * @return result The complete handle with metadata appended
+     */
+    function _appendMetadataToPrehandle(
+        bytes32 prehandle,
+        TEEType handleType
+    ) private view returns (bytes32 result) {
+        result = bytes32(
+            abi.encodePacked(
+                bytes26(prehandle),
+                bytes4(uint32(block.chainid)),
+                bytes1(uint8(handleType)),
+                bytes1(uint8(HANDLE_VERSION))
+            )
+        );
     }
 }
