@@ -22,19 +22,23 @@ export default defineConfig({
         npmFilesToBuild: ["@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"],
     },
     networks: {
-        hardhatMainnet: {
-            type: "edr-simulated",
-            chainType: "l1",
-        },
-        hardhatOp: {
+        hardhat: {
             type: "edr-simulated",
             chainType: "op",
         },
-        sepolia: {
+        arbitrumSepolia: {
             type: "http",
-            chainType: "l1",
-            url: configVariable("SEPOLIA_RPC_URL"),
-            accounts: [configVariable("SEPOLIA_PRIVATE_KEY")],
+            chainType: "op",
+            chainId: 421614,
+            url: configVariable("RPC_URL"),
+            accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
+        },
+        tenderlyArbitrumSepolia: {
+            type: "http",
+            chainType: "op",
+            chainId: 421614,
+            url: configVariable("RPC_URL"),
+            accounts: [configVariable("DEPLOYER_PRIVATE_KEY")],
         },
     },
 });

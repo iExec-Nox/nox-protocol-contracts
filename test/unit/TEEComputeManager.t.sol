@@ -8,49 +8,34 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
-import {MockACL} from "../../contracts/mock/MockACL.sol";
+import {TestHelper} from "../utils/TestHelper.sol";
+import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract TEEComputeManagerTest is Test {
-    TEEComputeManager teeComputeManager;
-    MockACL mockAcl;
     address owner = makeAddr("owner");
     address caller = makeAddr("caller");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
+    ACL aclContract;
+    address acl;
+    TEEComputeManager teeComputeManager;
     uint256 createdAt = block.timestamp;
-    bytes32 handle =
-        bytes32(
-            bytes.concat(
-                bytes26(uint208(1234567890)), // Random pre-handle
-                bytes4(uint32(block.chainid)),
-                bytes1(uint8(TEEType.Uint256)), // Type 3
-                bytes1(0x00) // Version 0
-            )
-        );
+    bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
     function setUp() public {
-        mockAcl = new MockACL();
-        teeComputeManager = _deployNewProxy();
-        teeComputeManager.initialize(owner);
-        vm.startPrank(owner);
-        teeComputeManager.setAcl(address(mockAcl));
-        teeComputeManager.setGateway(gateway);
-        vm.stopPrank();
-
-        vm.label(owner, "owner");
+        (aclContract, teeComputeManager) = TestHelper.deploy(owner, gateway);
+        acl = address(aclContract);
         vm.label(caller, "caller");
-        vm.label(address(mockAcl), "mockAcl");
-        vm.label(gateway, "gateway");
-        vm.label(address(teeComputeManager), "teeComputeManager");
     }
 
     // ============ initialize Tests ============
 
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
-        assertEq(teeComputeManager.acl(), address(mockAcl));
+        assertEq(teeComputeManager.acl(), acl);
         (
             , // bytes1 fields
             string memory name,
@@ -94,7 +79,7 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_SetAcl_ZeroAddress() public {
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setAcl(address(0));
     }
@@ -126,32 +111,37 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_SetGateway_ZeroAddress() public {
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setGateway(address(0));
     }
 
     // ============ validateProof Tests ============
 
-    function test_ValidateProof() public view {
-        bytes memory proof = _buildProof(
-            handle,
-            owner,
-            address(mockAcl),
-            createdAt,
-            gatewayPrivateKey
-        );
+    function test_ValidateProof() public {
+        address app = makeAddr("app");
+        bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
+        vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        assertTrue(ACL(acl).isAllowed(handle, app));
+    }
+
+    function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
+        bytes32 badHandle = TestHelper.createHandle(type(uint32).max, TEEType.Uint256);
+        bytes memory proof = _buildProof(badHandle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Handle chain id mismatch"
+            )
+        );
+        teeComputeManager.validateProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_HandleTypeMismatch() public {
-        bytes memory proof = _buildProof(
-            handle,
-            owner,
-            address(mockAcl),
-            createdAt,
-            gatewayPrivateKey
-        );
+        bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -194,13 +184,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_RevertWhen_ValidateProof_InvalidOwnerInProof() public {
         address badOwner = makeAddr("badOwner");
-        bytes memory proof = _buildProof(
-            handle,
-            badOwner,
-            address(mockAcl),
-            createdAt,
-            gatewayPrivateKey
-        );
+        bytes memory proof = _buildProof(handle, badOwner, acl, createdAt, gatewayPrivateKey);
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -213,7 +197,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_RevertWhen_ValidateProof_InvalidSigner() public {
         uint256 badSigner = 9999;
-        bytes memory proof = _buildProof(handle, owner, address(mockAcl), createdAt, badSigner);
+        bytes memory proof = _buildProof(handle, owner, acl, createdAt, badSigner);
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -229,8 +213,8 @@ contract TEEComputeManagerTest is Test {
     function test_Add() public {
         bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
         bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(leftHandOperand, caller, true);
-        mockAcl.setAllowed(rightHandOperand, caller, true);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
@@ -243,7 +227,7 @@ contract TEEComputeManagerTest is Test {
     function test_RevertWhen_Add_LhsNotAllowed() public {
         bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
         bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(rightHandOperand, caller, true);
+        _allow(rightHandOperand, caller);
 
         vm.prank(caller);
         vm.expectRevert(
@@ -259,7 +243,7 @@ contract TEEComputeManagerTest is Test {
     function test_RevertWhen_Add_RhsNotAllowed() public {
         bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
         bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
-        mockAcl.setAllowed(leftHandOperand, caller, true);
+        _allow(leftHandOperand, caller);
 
         vm.prank(caller);
         vm.expectRevert(
@@ -275,8 +259,8 @@ contract TEEComputeManagerTest is Test {
     function test_RevertWhen_Add_IncompatibleTypes() public {
         bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
         bytes32 rightHandOperand = _createHandle(TEEType.Int256, 2);
-        mockAcl.setAllowed(leftHandOperand, caller, true);
-        mockAcl.setAllowed(rightHandOperand, caller, true);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
 
         vm.prank(caller);
         vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
@@ -286,8 +270,8 @@ contract TEEComputeManagerTest is Test {
     function test_RevertWhen_Add_UnsupportedType() public {
         bytes32 leftHandOperand = _createHandle(TEEType.Bool, 1);
         bytes32 rightHandOperand = _createHandle(TEEType.Bool, 2);
-        mockAcl.setAllowed(leftHandOperand, caller, true);
-        mockAcl.setAllowed(rightHandOperand, caller, true);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
 
         vm.prank(caller);
         vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
@@ -326,6 +310,12 @@ contract TEEComputeManagerTest is Test {
      *   - _binaryOp
      *   - _appendMetadataToPrehandle
      **/
+
+    function _allow(bytes32 h, address account) internal {
+        vm.prank(address(teeComputeManager));
+        aclContract.allowTransient(h, address(this));
+        aclContract.allow(h, account);
+    }
 
     function _deployNewProxy() internal returns (TEEComputeManager) {
         TEEComputeManager implementation = new TEEComputeManager();

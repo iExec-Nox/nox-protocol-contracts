@@ -18,7 +18,7 @@
     ]
   },
   "license": "Apache-2.0",
-  "packageManager": "pnpm@10.7.0",
+  "packageManager": "pnpm@10.28.2",
   "type": "module",
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",

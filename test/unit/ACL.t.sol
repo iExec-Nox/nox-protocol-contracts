@@ -7,42 +7,31 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ACL} from "../../contracts/ACL.sol";
+import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
+import {TestHelper} from "../utils/TestHelper.sol";
 
 contract ACLTest is Test {
+    address internal owner = address(this);
+    address internal user1 = makeAddr("user1");
+    address internal user2 = makeAddr("user2");
+    address internal viewer1 = makeAddr("viewer1");
+    address internal viewer2 = makeAddr("viewer2");
+    bytes32 internal handle = keccak256("handle1");
+    bytes32 internal handle2 = keccak256("handle2");
+    bytes32 internal handle3 = keccak256("handle3");
     ACL internal acl;
-    address internal owner;
     address internal teeComputeManager;
-    address internal user1;
-    address internal user2;
-    address internal viewer1;
-    address internal viewer2;
-    bytes32 internal handle;
-    bytes32 internal handle2;
-    bytes32 internal handle3;
 
     function setUp() public {
-        owner = makeAddr("owner");
-        teeComputeManager = makeAddr("teeComputeManager");
-        user1 = makeAddr("user1");
-        user2 = makeAddr("user2");
-        viewer1 = makeAddr("viewer1");
-        viewer2 = makeAddr("viewer2");
-        handle = keccak256("handle-1");
-        handle2 = keccak256("handle-2");
-        handle3 = keccak256("handle-3");
-
-        acl = _deployNewProxy();
-        acl.initialize(owner, teeComputeManager);
-
-        vm.label(owner, "Owner");
-        vm.label(teeComputeManager, "TEEComputeManager");
+        TEEComputeManager teeComputeManagerContract;
+        (acl, teeComputeManagerContract) = TestHelper.deploy(owner, makeAddr("gateway"));
+        teeComputeManager = address(teeComputeManagerContract);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
         vm.label(viewer2, "Viewer2");
-        vm.label(address(acl), "ACL");
     }
 
     // ============ initialize ============
@@ -58,7 +47,8 @@ contract ACLTest is Test {
      * @dev Tests that initialize reverts with zero addresses.
      */
     function test_RevertWhen_Initialize_WithZeroAddress() public {
-        ACL proxy = _deployNewProxy();
+        address implementation = address(new ACL());
+        ACL proxy = ACL(TestHelper.deployProxy(implementation));
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         proxy.initialize(owner, address(0));
     }
@@ -413,13 +403,5 @@ contract ACLTest is Test {
         );
         vm.prank(unauthorized);
         acl.upgradeToAndCall(makeAddr("newImpl"), "");
-    }
-
-    // ============ HELPERS ============
-
-    function _deployNewProxy() internal returns (ACL) {
-        ACL implementation = new ACL();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
-        return ACL(address(proxy));
     }
 }

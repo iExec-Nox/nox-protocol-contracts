@@ -1,19 +1,14 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import "../shared/TEEType.sol";
+import {IErrors} from "./IErrors.sol";
+import {TEEType} from "../shared/TEEType.sol";
 
 /**
  * @title ITEEComputeManager
  * @notice Interface for the TEE Compute Manager contract
  */
-interface ITEEComputeManager {
-    enum Operators {
-        teeAdd
-    }
-
-    // TODO put common errors in a shared interface.
-    error InvalidZeroAddress();
+interface ITEEComputeManager is IErrors {
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
     error UnsupportedType();
@@ -27,6 +22,10 @@ interface ITEEComputeManager {
         bytes32 rightHandOperand,
         bytes32 result
     );
+
+    enum Operators {
+        teeAdd
+    }
 
     function setAcl(address newAcl) external;
     function setGateway(address gatewayAddress) external;
@@ -55,7 +54,7 @@ interface ITEEComputeManager {
         address owner,
         bytes calldata proof,
         TEEType teeType
-    ) external view;
+    ) external;
     function domainSeparator() external view returns (bytes32);
     function acl() external view returns (address);
     function gateway() external view returns (address);
