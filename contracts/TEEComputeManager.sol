@@ -84,7 +84,10 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32 result) {
+    function plaintextToEncrypted(
+        uint256 value,
+        TEEType teeType
+    ) external returns (bytes32 result) {
         uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
             (1 << uint8(TEEType.Uint256)) +
             (1 << uint8(TEEType.Int256)) +
@@ -92,8 +95,9 @@ contract TEEComputeManager is
         if (((1 << uint8(teeType)) & supportedTypes) == 0) {
             revert UnsupportedType();
         }
-        result = keccak256(abi.encodePacked(value, teeType, msg.sender, block.timestamp));
-        result = _appendMetadataToPrehandle(result, teeType);
+        bytes32[] memory operands = new bytes32[](1);
+        operands[0] = bytes32(value);
+        result = _generateHandle(Operators.PlaintextToEncrypted, operands, teeType);
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, uint8(teeType), result);
@@ -325,29 +329,9 @@ contract TEEComputeManager is
                 uint8(0)
             )
         );
-        result = _appendMetadataToPrehandle(result, handleType);
-    }
-
-    /**
-     * Appends metadata to a pre-handle hash to create a complete handle.
-     *
-     * Handle format (32 bytes):
-     *   [0-25]  : First 26 bytes of prehandle (truncated hash)
-     *   [26-29] : Chain ID (4 bytes, from uint32)
-     *   [30]    : TEE type
-     *   [31]    : Handle version
-     *
-     * @param prehandle The hash to use as the base of the handle
-     * @param handleType The TEE type to encode in the handle
-     * @return result The complete handle with metadata appended
-     */
-    function _appendMetadataToPrehandle(
-        bytes32 prehandle,
-        TEEType handleType
-    ) private view returns (bytes32 result) {
         result = bytes32(
             abi.encodePacked(
-                bytes26(prehandle),
+                bytes26(result),
                 bytes4(uint32(block.chainid)),
                 bytes1(uint8(handleType)),
                 bytes1(uint8(HANDLE_VERSION))
