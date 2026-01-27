@@ -214,6 +214,7 @@ contract TEEComputeManager is
 
     /**
      * Executes a binary operation on two encrypted handles.
+     * All operands must share the same type as the first operand, which also determines the result type.
      * Verifies ACL permissions for both operands, checks type compatibility,
      * generates a new result handle, and grants transient access to the caller.
      * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
@@ -298,10 +299,13 @@ contract TEEComputeManager is
                 uint8(0)
             )
         );
-        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
-        /// If EIP2294 gets approved, it will force the chainID's size to be lower than MAX_UINT64.
-        result = result | (bytes32(uint256(uint32(block.chainid))) << 16);
-        result = result | (bytes32(uint256(uint8(handleType))) << 8);
-        result = result | bytes32(uint256(HANDLE_VERSION));
+        result = bytes32(
+            abi.encodePacked(
+                bytes26(result),
+                bytes4(uint32(block.chainid)),
+                bytes1(uint8(handleType)),
+                bytes1(uint8(HANDLE_VERSION))
+            )
+        );
     }
 }

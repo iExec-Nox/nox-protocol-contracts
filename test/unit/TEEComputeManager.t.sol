@@ -54,7 +54,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.initialize(owner);
     }
 
-    // ============ setAcl Tests ============
+    // ============ setAcl ============
 
     function test_SetAcl() public {
         address newAcl = makeAddr("newAcl");
@@ -84,7 +84,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setAcl(address(0));
     }
 
-    // ============ setGateway Tests ============
+    // ============ setGateway ============
 
     function test_SetGateway() public {
         assertTrue(teeComputeManager.gateway() == gateway);
@@ -116,7 +116,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setGateway(address(0));
     }
 
-    // ============ validateProof Tests ============
+    // ============ validateProof ============
 
     function test_ValidateProof() public {
         address app = makeAddr("app");
@@ -208,7 +208,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    // ============ add Tests ============
+    // ============ add ============
 
     function test_Add() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
@@ -278,7 +278,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
-    // ============ _authorizeUpgrade Tests ============
+    // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
         address newImplementation = address(new TEEComputeManager());
