@@ -34,7 +34,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_Initialize() public view {
         assertTrue(teeComputeManager.owner() == owner);
-        assertTrue(teeComputeManager.acl() == address(acl));
+        assertTrue(teeComputeManager.acl() == acl);
         (
             , // bytes1 fields
             string memory name,
@@ -56,7 +56,7 @@ contract TEEComputeManagerTest is Test {
     // setAcl
 
     function test_SetAcl() public {
-        assertTrue(teeComputeManager.acl() == address(acl));
+        assertTrue(teeComputeManager.acl() == acl);
         address newAcl = makeAddr("newAcl");
         vm.prank(owner);
         vm.expectEmit();
@@ -125,6 +125,7 @@ contract TEEComputeManagerTest is Test {
         vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
         vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        assertTrue(ACL(acl).isAllowed(handle, app));
     }
 
     function test_ValidateProof_RevertWhen_ChainIdMismatch() public {

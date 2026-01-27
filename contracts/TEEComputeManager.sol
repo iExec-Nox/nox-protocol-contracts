@@ -143,6 +143,7 @@ contract TEEComputeManager is
         if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
             revert InvalidProof(proof, "Invalid signature");
         }
+        // Give caller contract transient access to the handle.
         $.acl.allowTransient(handle, msg.sender);
     }
 
