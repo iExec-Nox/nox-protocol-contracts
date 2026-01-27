@@ -217,7 +217,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectEmit(true, false, false, false);
+        vm.expectEmit();
         emit ITEEComputeManager.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
         bytes32 result = teeComputeManager.add(leftHandOperand, rightHandOperand);
 
