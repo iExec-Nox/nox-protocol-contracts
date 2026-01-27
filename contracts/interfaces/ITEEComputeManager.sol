@@ -41,8 +41,8 @@ interface ITEEComputeManager {
 
     /**
      * @notice Computes TEE Add operation
-     * @param leftHandOperand Left-hand side operand
-     * @param rightHandOperand Right-hand side operand
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
      */
     function add(
