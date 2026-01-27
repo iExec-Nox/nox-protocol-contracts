@@ -163,7 +163,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeBinaryOperation(Operators.teeAdd, operands, leftHandOperandType);
+        result = _executeArithmeticOperation(Operators.Add, operands, leftHandOperandType);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -253,20 +253,20 @@ contract TEEComputeManager is
      * @dev Reverts with IncompatibleTypes if operand types don't match
      * @dev Prehandle is computed as:
      *      keccak256(abi.encodePacked(
-     *          primitiveId,   // Operator identifier (e.g., teeAdd)
+     *          primitiveId,   // Operator identifier (e.g., Add)
      *          operands,      // Array of operand handles [leftHandOperand, rightHandOperand]
      *          outputIndex,   // Index of the output (0 for binary ops with single output)
      *          acl,           // ACL contract address
      *          block.chainid,
      *      ))
      *
-     * @param op The operator to apply (teeAdd, teeSub, teeDiv)
+     * @param operator The operator to apply (Add, teeSub, teeDiv)
      * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
      * @param resultType The TEE type for the result handle
      * @return result The resulting encrypted handle
      */
-    function _executeBinaryOperation(
-        Operators op,
+    function _executeArithmeticOperation(
+        Operators operator,
         bytes32[] memory operands,
         TEEType resultType
     ) private returns (bytes32 result) {
@@ -279,7 +279,7 @@ contract TEEComputeManager is
         }
         //TODO: support multiple outputs
         uint8 outputIndex = 0;
-        result = keccak256(abi.encodePacked(op, operands, outputIndex, $.acl, block.chainid));
+        result = keccak256(abi.encodePacked(operator, operands, outputIndex, $.acl, block.chainid));
         result = _appendMetadataToPrehandle(result, resultType);
         aclContract.allowTransient(result, msg.sender);
     }

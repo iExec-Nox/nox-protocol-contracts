@@ -24,7 +24,7 @@ interface ITEEComputeManager is IErrors {
     );
 
     enum Operators {
-        teeAdd
+        Add
     }
 
     function setAcl(address newAcl) external;
