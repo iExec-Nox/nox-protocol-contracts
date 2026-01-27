@@ -271,7 +271,7 @@ contract TEEComputeManager is
         TEEType resultType
     ) private returns (bytes32 result) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        IACL aclContract = IACL($.acl);
+        IACL aclContract = $.acl;
         for (uint256 i = 0; i < operands.length; i++) {
             if (!aclContract.isAllowed(operands[i], msg.sender)) {
                 revert ACLNotAllowed(operands[i], msg.sender);
