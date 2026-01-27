@@ -220,7 +220,7 @@ contract TEEComputeManager is
      * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The operator to apply (Add, teeSub, teeDiv)
+     * @param operator The operator to apply (Add, Sub, Div, etc.)
      * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
      * @return result The resulting encrypted handle
      */
