@@ -31,7 +31,7 @@ contract TEEComputeManagerTest is Test {
         vm.label(caller, "caller");
     }
 
-    // ============ initialize Tests ============
+    // ============ initialize ============
 
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
