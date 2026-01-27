@@ -261,7 +261,7 @@ contract TEEComputeManager is
      *          block.chainid,
      *      ))
      *
-     * @param operator The operator to apply (Add, teeSub, teeDiv)
+     * @param operator The operator to apply (Add, Sub, Div)
      * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
      * @return result The resulting encrypted handle
      */
