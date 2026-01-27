@@ -12,8 +12,11 @@ import {TEEType} from "./shared/TEEType.sol";
 /**
  * @title TEEComputeManager
  * This contract is the main entry point to the TEE compute functionalities of the Nox protocol.
- * It manages the access control list (ACL) for encrypted handles, validates handle proofs,
- * and facilitates the conversion of plaintext values to encrypted values.
+ * It's role includes:
+ * - Managing the access control list (ACL) for encrypted handles
+ * - Validating handle proofs issued by a trusted gateway
+ * - Facilitating the conversion of plaintext values to encrypted values
+ * - Triggering off-chain TEE computations through event emissions
  */
 contract TEEComputeManager is
     ITEEComputeManager,
