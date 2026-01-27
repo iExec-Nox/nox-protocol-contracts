@@ -13,6 +13,7 @@ import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TEEType.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
+import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract TEEComputeManagerTest is Test {
     address owner = makeAddr("owner");
@@ -33,7 +34,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_Initialize() public view {
         assertTrue(teeComputeManager.owner() == owner);
-        assertTrue(teeComputeManager.acl() == address(acl));
+        assertTrue(teeComputeManager.acl() == acl);
         (
             , // bytes1 fields
             string memory name,
@@ -55,7 +56,7 @@ contract TEEComputeManagerTest is Test {
     // setAcl
 
     function test_SetAcl() public {
-        assertTrue(teeComputeManager.acl() == address(acl));
+        assertTrue(teeComputeManager.acl() == acl);
         address newAcl = makeAddr("newAcl");
         vm.prank(owner);
         vm.expectEmit();
@@ -79,7 +80,7 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_SetAcl_RevertWhen_ZeroAddress() public {
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setAcl(address(0));
     }
@@ -111,16 +112,20 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_SetGateway_RevertWhen_ZeroAddress() public {
-        vm.expectRevert(ITEEComputeManager.InvalidZeroAddress.selector);
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setGateway(address(0));
     }
 
     // validateProof
 
-    function test_ValidateProof() public view {
+    function test_ValidateProof() public {
+        address app = makeAddr("app");
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
+        vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        assertTrue(ACL(acl).isAllowed(handle, app));
     }
 
     function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
