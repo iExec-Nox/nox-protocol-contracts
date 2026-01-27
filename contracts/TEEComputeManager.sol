@@ -219,14 +219,6 @@ contract TEEComputeManager is
      * generates a new result handle, and grants transient access to the caller.
      * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
-     * @dev Prehandle is computed as:
-     *      keccak256(abi.encodePacked(
-     *          primitiveId,   // Operator identifier (e.g., Add)
-     *          operands,      // Array of operand handles [leftHandOperand, rightHandOperand]
-     *          outputIndex,   // Index of the output (0 for binary ops with single output)
-     *          acl,           // ACL contract address
-     *          block.chainid,
-     *      ))
      *
      * @param operator The operator to apply (Add, teeSub, teeDiv)
      * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
