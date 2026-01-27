@@ -211,8 +211,8 @@ contract TEEComputeManagerTest is Test {
     // ============ add Tests ============
 
     function test_Add() public {
-        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
-        bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -225,8 +225,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Add_LhsNotAllowed() public {
-        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
-        bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
@@ -241,8 +241,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Add_RhsNotAllowed() public {
-        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
-        bytes32 rightHandOperand = _createHandle(TEEType.Uint256, 2);
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(leftHandOperand, caller);
 
         vm.prank(caller);
@@ -257,8 +257,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Add_IncompatibleTypes() public {
-        bytes32 leftHandOperand = _createHandle(TEEType.Uint256, 1);
-        bytes32 rightHandOperand = _createHandle(TEEType.Int256, 2);
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -268,8 +268,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Add_UnsupportedType() public {
-        bytes32 leftHandOperand = _createHandle(TEEType.Bool, 1);
-        bytes32 rightHandOperand = _createHandle(TEEType.Bool, 2);
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -315,19 +315,6 @@ contract TEEComputeManagerTest is Test {
         vm.prank(address(teeComputeManager));
         aclContract.allowTransient(h, address(this));
         aclContract.allow(h, account);
-    }
-
-    function _deployNewProxy() internal returns (TEEComputeManager) {
-        TEEComputeManager implementation = new TEEComputeManager();
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
-        return TEEComputeManager(address(proxy));
-    }
-
-    function _createHandle(TEEType teeType, uint256 seed) internal pure returns (bytes32) {
-        bytes32 h = keccak256(abi.encodePacked(seed));
-        h = h & 0xffffffffffffffffffffffffffffffffffffffffff0000000000000000000000;
-        h = h | (bytes32(uint256(uint8(teeType))) << 8);
-        return h;
     }
 
     function _buildProof(
