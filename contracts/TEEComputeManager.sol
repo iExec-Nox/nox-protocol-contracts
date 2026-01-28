@@ -237,7 +237,7 @@ contract TEEComputeManager is
             revert UnsupportedType();
         }
         for (uint256 i = 1; i < operands.length; i++) {
-            if (_typeOf(operands[0]) != _typeOf(operands[i])) {
+            if (resultType != _typeOf(operands[i])) {
                 revert IncompatibleTypes();
             }
         }
