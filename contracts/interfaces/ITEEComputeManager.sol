@@ -41,7 +41,7 @@ interface ITEEComputeManager is IErrors {
         bytes32 result
     );
 
-    enum Operators {
+    enum Operator {
         PlaintextToEncrypted,
         Add,
         Sub,

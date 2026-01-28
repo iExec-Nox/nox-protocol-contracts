@@ -97,7 +97,7 @@ contract TEEComputeManager is
         }
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
-        result = _generateHandle(Operators.PlaintextToEncrypted, operands, teeType);
+        result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);
@@ -174,7 +174,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operators.Add, operands);
+        result = _executeArithmeticOperation(Operator.Add, operands);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -186,7 +186,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operators.Sub, operands);
+        result = _executeArithmeticOperation(Operator.Sub, operands);
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -198,7 +198,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operators.Div, operands);
+        result = _executeArithmeticOperation(Operator.Div, operands);
         emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -263,7 +263,7 @@ contract TEEComputeManager is
      * @return result The resulting encrypted handle
      */
     function _executeArithmeticOperation(
-        Operators operator,
+        Operator operator,
         bytes32[] memory operands
     ) private returns (bytes32 result) {
         // Validate operand types are numeric
@@ -315,7 +315,7 @@ contract TEEComputeManager is
      * @return result The complete handle with metadata appended
      */
     function _generateHandle(
-        Operators operator,
+        Operator operator,
         bytes32[] memory operands,
         TEEType handleType
     ) private view returns (bytes32 result) {
