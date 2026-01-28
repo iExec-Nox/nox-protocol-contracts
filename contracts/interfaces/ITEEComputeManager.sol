@@ -31,6 +31,11 @@ interface ITEEComputeManager is IErrors {
         bytes calldata proof,
         TEEType teeType
     ) external;
+
+    function safeAdd(bytes32 a, bytes32 b) external returns (bytes32 success, bytes32 result);
+    function safeSub(bytes32 a, bytes32 b) external returns (bytes32 success, bytes32 result);
+    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
+
     function domainSeparator() external view returns (bytes32);
     function acl() external view returns (address);
     function gateway() external view returns (address);

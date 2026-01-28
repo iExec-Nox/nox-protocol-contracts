@@ -150,6 +150,21 @@ contract TEEComputeManager is
         $.acl.allowTransient(handle, msg.sender);
     }
 
+    // TODO
+    function safeAdd(
+        bytes32 a,
+        bytes32 b
+    ) external pure returns (bytes32 success, bytes32 result) {}
+    function safeSub(
+        bytes32 a,
+        bytes32 b
+    ) external pure returns (bytes32 success, bytes32 result) {}
+    function select(
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse
+    ) external pure returns (bytes32 result) {}
+
     /**
      * Returns the EIP-712 domain separator.
      */
