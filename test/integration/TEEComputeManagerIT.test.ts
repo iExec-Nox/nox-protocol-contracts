@@ -42,7 +42,7 @@ describe("[IT] TEEComputeManager", function () {
         });
         const proof = concatHex([userAddress, appAddress, toHex(createdAt, { size: 32 }), signature]);
         await teeComputeManager.simulate.validateProof([handle, userAddress, proof, 3], {
-            account: user.account,
+            account: app.account,
         }); // TEEType.Uint256
     });
 });
