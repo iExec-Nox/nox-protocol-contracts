@@ -306,7 +306,7 @@ contract TEEComputeManagerTest is Test {
      * TODO: Add tests for private helper functions:
      *   - _typeOf
      *   - _executeArithmeticOperation
-     *   - _appendMetadataToPrehandle
+     *   - _generateHandle
      **/
 
     function _allow(bytes32 h, address account) internal {
