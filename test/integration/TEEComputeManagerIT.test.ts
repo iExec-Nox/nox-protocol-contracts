@@ -7,9 +7,9 @@ const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd00007a6903
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate handle proof", async function () {
-        const { teeComputeManager, wallet1: user, gateway } = await loadFixture();
+        const { teeComputeManager, wallet1: user, wallet2: app, gateway } = await loadFixture();
         const userAddress = user.account.address;
-        const appAddress = userAddress; // The caller (app) is the user in this test
+        const appAddress = app.account.address; // The caller (app) is the user in this test
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const chainId = BigInt(await user.getChainId());
 

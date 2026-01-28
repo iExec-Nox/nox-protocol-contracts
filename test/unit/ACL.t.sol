@@ -350,15 +350,16 @@ contract ACLTest is Test {
     /**
      * @dev Tests that isViewer returns true when handle is publicly decryptable.
      */
-    function test_IsViewer_WhenPubliclyDecryptable() public {
-        assertFalse(acl.isViewer(handle, user1));
+    function test_IsViewer_ByAnyoneWhenPubliclyDecryptable() public {
+        address anyone = makeAddr("anyon");
+        assertFalse(acl.isViewer(handle, anyone));
 
         _allow(handle, owner);
 
         vm.prank(owner);
         acl.allowPublicDecryption(handle);
 
-        assertTrue(acl.isViewer(handle, user1));
+        assertTrue(acl.isViewer(handle, anyone));
     }
 
     // ============ isAllowed ============
