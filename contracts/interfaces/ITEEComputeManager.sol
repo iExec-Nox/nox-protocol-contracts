@@ -49,16 +49,49 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
 
+    // TODO for all safe operations, determine which handle to return
+    // as result in case of failure.
+    /**
+     * @notice Computes addition operation with safety checks.
+     * The operation fails in the case of overflows.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Computes subtraction operation with safety checks.
+     * The operation fails in the case of underflow.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Selects between two encrypted values based on a condition
+     * @param condition Condition handle
+     * @param ifTrue Value handle if condition is true
+     * @param ifFalse Value handle if condition is false
+     * @return result Selected value handle
+     */
+    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
+
     function validateProof(
         bytes32 handle,
         address owner,
         bytes calldata proof,
         TEEType teeType
     ) external;
-
-    function safeAdd(bytes32 a, bytes32 b) external returns (bytes32 success, bytes32 result);
-    function safeSub(bytes32 a, bytes32 b) external returns (bytes32 success, bytes32 result);
-    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
 
     function domainSeparator() external view returns (bytes32);
     function acl() external view returns (address);
