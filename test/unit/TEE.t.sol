@@ -31,7 +31,7 @@ contract TEELibTest is Test {
         TEEPrimitives.setTEEStorage(config);
     }
 
-    // ============ Trivial Encryption Tests ============
+    // ============ Trivial Encryption ============
 
     function test_ToEbool_SucceedsAndReturnsHandle() public {
         ebool encrypted = TEEPrimitives.toEbool(true);

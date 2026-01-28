@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
-import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -17,24 +16,26 @@ import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract TEEComputeManagerTest is Test {
     address owner = makeAddr("owner");
+    address caller = makeAddr("caller");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
+    ACL aclContract;
     address acl;
     TEEComputeManager teeComputeManager;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
     function setUp() public {
-        ACL aclContract;
         (aclContract, teeComputeManager) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
+        vm.label(caller, "caller");
     }
 
-    // initialize
+    // ============ initialize ============
 
     function test_Initialize() public view {
-        assertTrue(teeComputeManager.owner() == owner);
-        assertTrue(teeComputeManager.acl() == acl);
+        assertEq(teeComputeManager.owner(), owner);
+        assertEq(teeComputeManager.acl(), acl);
         (
             , // bytes1 fields
             string memory name,
@@ -48,26 +49,24 @@ contract TEEComputeManagerTest is Test {
         assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
 
-    function test_Initialize_RevertWhen_DoubleInit() public {
+    function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         teeComputeManager.initialize(owner);
     }
 
-    // setAcl
+    // ============ setAcl ============
 
     function test_SetAcl() public {
-        assertTrue(teeComputeManager.acl() == acl);
         address newAcl = makeAddr("newAcl");
         vm.prank(owner);
         vm.expectEmit();
         emit ITEEComputeManager.ACLUpdated(newAcl);
         teeComputeManager.setAcl(newAcl);
-        assertTrue(teeComputeManager.acl() == newAcl);
+        assertEq(teeComputeManager.acl(), newAcl);
     }
 
-    function test_SetAcl_RevertWhen_UnauthorizedCaller() public {
+    function test_RevertWhen_SetAcl_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        address newAcl = makeAddr("newAcl");
         vm.expectRevert(
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
@@ -76,16 +75,16 @@ contract TEEComputeManagerTest is Test {
             )
         );
         vm.prank(unauthorizedCaller);
-        teeComputeManager.setAcl(newAcl);
+        teeComputeManager.setAcl(makeAddr("newAcl"));
     }
 
-    function test_SetAcl_RevertWhen_ZeroAddress() public {
+    function test_RevertWhen_SetAcl_ZeroAddress() public {
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setAcl(address(0));
     }
 
-    // setGateway
+    // ============ setGateway ============
 
     function test_SetGateway() public {
         assertTrue(teeComputeManager.gateway() == gateway);
@@ -97,7 +96,7 @@ contract TEEComputeManagerTest is Test {
         assertTrue(teeComputeManager.gateway() == newGateway);
     }
 
-    function test_SetGateway_RevertWhen_UnauthorizedCaller() public {
+    function test_RevertWhen_SetGateway_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         address newGateway = makeAddr("newGateway");
         vm.expectRevert(
@@ -111,13 +110,13 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setGateway(newGateway);
     }
 
-    function test_SetGateway_RevertWhen_ZeroAddress() public {
+    function test_RevertWhen_SetGateway_ZeroAddress() public {
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
         teeComputeManager.setGateway(address(0));
     }
 
-    // validateProof
+    // ============ validateProof ============
 
     function test_ValidateProof() public {
         address app = makeAddr("app");
@@ -141,7 +140,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
-    function test_ValidateProof_RevertWhen_HandleTypeMismatch() public {
+    function test_RevertWhen_ValidateProof_HandleTypeMismatch() public {
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -153,7 +152,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Bool); // Wrong type
     }
 
-    function test_ValidateProof_RevertWhen_InvalidProofLength() public {
+    function test_RevertWhen_ValidateProof_InvalidProofLength() public {
         bytes memory longProof = new bytes(138);
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -174,7 +173,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, shortProof, TEEType.Uint256);
     }
 
-    function test_ValidateProof_RevertWhen_InvalidAclInProof() public {
+    function test_RevertWhen_ValidateProof_InvalidAclInProof() public {
         address badAcl = makeAddr("badAcl");
         bytes memory proof = _buildProof(handle, owner, badAcl, createdAt, gatewayPrivateKey);
         vm.expectRevert(
@@ -183,7 +182,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    function test_ValidateProof_RevertWhen_InvalidOwnerInProof() public {
+    function test_RevertWhen_ValidateProof_InvalidOwnerInProof() public {
         address badOwner = makeAddr("badOwner");
         bytes memory proof = _buildProof(handle, badOwner, acl, createdAt, gatewayPrivateKey);
         vm.expectRevert(
@@ -196,7 +195,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    function test_ValidateProof_RevertWhen_InvalidSigner() public {
+    function test_RevertWhen_ValidateProof_InvalidSigner() public {
         uint256 badSigner = 9999;
         bytes memory proof = _buildProof(handle, owner, acl, createdAt, badSigner);
         vm.expectRevert(
@@ -209,7 +208,77 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    // _authorizeUpgrade
+    // ============ add ============
+
+    function test_Add() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.add(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+    }
+
+    function test_RevertWhen_Add_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Add_RhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                rightHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Add_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Add_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.UnsupportedType.selector);
+        teeComputeManager.add(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
         address newImplementation = address(new TEEComputeManager());
@@ -219,7 +288,7 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.upgradeToAndCall(newImplementation, "");
     }
 
-    function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedUpgrader() public {
+    function test_RevertWhen_UpgradeToAndCall_UnauthorizedCaller() public {
         address unauthorizedUpgrader = makeAddr("unauthorized");
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -230,6 +299,20 @@ contract TEEComputeManagerTest is Test {
         );
         vm.prank(unauthorizedUpgrader);
         teeComputeManager.upgradeToAndCall(makeAddr("newImpl"), "");
+    }
+
+    // ============ Test Helpers ============
+    /**
+     * TODO: Add tests for private helper functions:
+     *   - _typeOf
+     *   - _executeArithmeticOperation
+     *   - _generateHandle
+     **/
+
+    function _allow(bytes32 h, address account) internal {
+        vm.prank(address(teeComputeManager));
+        aclContract.allowTransient(h, address(this));
+        aclContract.allow(h, account);
     }
 
     function _buildProof(

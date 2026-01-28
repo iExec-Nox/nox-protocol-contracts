@@ -30,6 +30,8 @@ contract TEEComputeManager is
         address gateway;
     }
 
+    uint8 private constant HANDLE_VERSION = 0;
+
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
@@ -120,7 +122,7 @@ contract TEEComputeManager is
         if (chainIdInHandle != bytes4(uint32(block.chainid))) {
             revert InvalidProof(proof, "Handle chain id mismatch");
         }
-        if (handle[30] != bytes1(uint8(teeType))) {
+        if (_typeOf(handle) != teeType) {
             revert InvalidProof(proof, "Handle type mismatch");
         }
         if (proof.length != 137) {
@@ -148,6 +150,18 @@ contract TEEComputeManager is
         }
         // Give caller contract transient access to the handle.
         $.acl.allowTransient(handle, msg.sender);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function add(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        result = _executeArithmeticOperation(Operator.Add, operands);
+        emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
     // TODO
@@ -201,5 +215,104 @@ contract TEEComputeManager is
         assembly {
             $.slot := TEE_COMPUTE_MANAGER_STORAGE_LOCATION
         }
+    }
+
+    /**
+     * Extracts the TEE type from a handle.
+     * The type is stored at byte position 30 in the handle.
+     * @param handle The handle to extract the type from
+     * @return The TEEType encoded in the handle
+     */
+    function _typeOf(bytes32 handle) private pure returns (TEEType) {
+        return TEEType(uint8(handle[30]));
+    }
+
+    /**
+     * Executes a binary operation on N encrypted handles.
+     * All operands must share the same type as the first operand, which also determines the result type.
+     * Verifies ACL permissions for all operands, checks type compatibility,
+     * generates a new result handle, and grants transient access to the caller.
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
+     * @dev Reverts with IncompatibleTypes if operand types don't match
+     *
+     * @param operator The operator to apply (Add, Sub, Div, etc.)
+     * @param operands Array of operand handles
+     * @return result The resulting encrypted handle
+     */
+    function _executeArithmeticOperation(
+        Operator operator,
+        bytes32[] memory operands
+    ) private returns (bytes32 result) {
+        // Validate operand types are numeric
+        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
+            (1 << uint8(TEEType.Uint256)) +
+            (1 << uint8(TEEType.Int256));
+        TEEType resultType = _typeOf(operands[0]);
+        if (((1 << uint8(resultType)) & supportedTypes) == 0) {
+            revert UnsupportedType();
+        }
+        for (uint256 i = 1; i < operands.length; i++) {
+            if (resultType != _typeOf(operands[i])) {
+                revert IncompatibleTypes();
+            }
+        }
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        IACL aclContract = $.acl;
+        for (uint256 i = 0; i < operands.length; i++) {
+            if (!aclContract.isAllowed(operands[i], msg.sender)) {
+                revert ACLNotAllowed(operands[i], msg.sender);
+            }
+        }
+        result = _generateHandle(operator, operands, resultType);
+        aclContract.allowTransient(result, msg.sender);
+    }
+
+    /**
+     * Generates a complete handle from an operator and its operands.
+     *
+     * Pre-handle format:
+     *   keccak256(abi.encodePacked(
+     *       operator,        // Operator identifier (e.g., Add, Sub, Div)
+     *       operands,        // Array of operand handles
+     *       address(this),   // TEEComputeManager contract address
+     *       msg.sender,      // Caller address
+     *       block.timestamp, // Current block timestamp
+     *       0                // For operations that return multiple outputs (can be 0 when needed)
+     *   ))
+     *
+     * Handle format (32 bytes):
+     *   [0-25]  : First 26 bytes of prehandle (truncated hash)
+     *   [26-29] : Chain ID (4 bytes, from uint32)
+     *   [30]    : TEE type
+     *   [31]    : Handle version
+     *
+     * @param operator The operator to apply
+     * @param operands Array of operand handles
+     * @param handleType The TEE type to encode in the handle
+     * @return result The complete handle with metadata appended
+     */
+    function _generateHandle(
+        Operator operator,
+        bytes32[] memory operands,
+        TEEType handleType
+    ) private view returns (bytes32 result) {
+        result = keccak256(
+            abi.encodePacked(
+                operator,
+                operands,
+                address(this),
+                msg.sender,
+                block.timestamp,
+                uint8(0)
+            )
+        );
+        result = bytes32(
+            abi.encodePacked(
+                bytes26(result),
+                bytes4(uint32(block.chainid)),
+                bytes1(uint8(handleType)),
+                bytes1(uint8(HANDLE_VERSION))
+            )
+        );
     }
 }
