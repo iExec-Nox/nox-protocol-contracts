@@ -52,7 +52,7 @@ interface ITEEComputeManager is IErrors {
     // TODO for all safe operations, determine which handle to return
     // as result in case of failure.
     /**
-     * @notice Computes addition operation with safety checks.
+     * @notice Performs an addition between two encrypted values with safety checks.
      * The operation fails in the case of overflows.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
@@ -65,7 +65,7 @@ interface ITEEComputeManager is IErrors {
     ) external returns (bytes32 success, bytes32 result);
 
     /**
-     * @notice Computes subtraction operation with safety checks.
+     * @notice Performs a subtraction between two encrypted values with safety checks.
      * The operation fails in the case of underflow.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle

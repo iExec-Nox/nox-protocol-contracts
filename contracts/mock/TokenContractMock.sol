@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import "encrypted-types/EncryptedTypes.sol";
-import {TEEType} from "../shared/TEEType.sol";
 import {TEEPrimitives} from "../lib/TEEPrimitives.sol";
 
 // TODO remove this interface and use @openzeppelin/contracts when the rest
