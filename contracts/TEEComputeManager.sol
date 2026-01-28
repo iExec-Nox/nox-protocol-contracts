@@ -251,15 +251,15 @@ contract TEEComputeManager is
     }
 
     /**
-     * Executes a binary operation on two encrypted handles.
+     * Executes a binary operation on N encrypted handles.
      * All operands must share the same type as the first operand, which also determines the result type.
-     * Verifies ACL permissions for both operands, checks type compatibility,
+     * Verifies ACL permissions for all operands, checks type compatibility,
      * generates a new result handle, and grants transient access to the caller.
-     * @dev Reverts with ACLNotAllowed if caller lacks permission on either operand
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The operator to apply (Add, Sub, Div, etc.)
-     * @param operands Array of operand handles [leftHandOperand, rightHandOperand]
+     * @param operands Array of operand handles
      * @return result The resulting encrypted handle
      */
     function _executeArithmeticOperation(
@@ -275,7 +275,7 @@ contract TEEComputeManager is
             revert UnsupportedType();
         }
         for (uint256 i = 1; i < operands.length; i++) {
-            if (_typeOf(operands[0]) != _typeOf(operands[i])) {
+            if (resultType != _typeOf(operands[i])) {
                 revert IncompatibleTypes();
             }
         }
