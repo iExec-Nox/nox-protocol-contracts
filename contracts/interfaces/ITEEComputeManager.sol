@@ -10,9 +10,22 @@ import {TEEType} from "../shared/TEEType.sol";
  */
 interface ITEEComputeManager is IErrors {
     error InvalidProof(bytes proof, string reason);
+    error IncompatibleTypes();
+    error UnsupportedType();
+    error ACLNotAllowed(bytes32 handle, address account);
 
     event ACLUpdated(address indexed newACL);
     event GatewayUpdated(address indexed newGateway);
+    event Add(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+
+    enum Operator {
+        Add
+    }
 
     function setAcl(address newAcl) external;
     function setGateway(address gatewayAddress) external;
@@ -24,6 +37,17 @@ interface ITEEComputeManager is IErrors {
      * @return The encrypted value
      */
     function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32);
+
+    /**
+     * @notice Computes TEE Add operation
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Result handle
+     */
+    function add(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
 
     function validateProof(
         bytes32 handle,
