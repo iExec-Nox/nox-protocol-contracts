@@ -15,18 +15,18 @@ import "encrypted-types/EncryptedTypes.sol";
  */
 library TEEPrimitives {
     // TODO use CreateX and hardcode addresses in library.
-    /// @notice Reference to TEE services config
-    struct TEEConfig {
+    /// @notice Reference to Nox protocol contracts
+    struct NoxConfigStorage {
         address teeComputeManager;
         address acl;
     }
 
-    /// keccak256(abi.encode(uint256(keccak256("nox.storage.TEEConfig")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant TEE_CONFIG_SLOT =
-        0x55fc6f3f35af33b9f7b1cd69927b3b40430f605ab4fc44fcf6cbc2ec120ec900;
+    /// keccak256(abi.encode(uint256(keccak256("nox.storage.NoxConfig")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant NOX_CONFIG_SLOT =
+        0xc012b247b131c2f4d52be19d2c9d06153fabbe1dd8bf07b88202b0c16b15ee00;
 
-    /// @notice Emitted when TEE services config is set
-    event TEEServicesConfigSet(address teeComputeManager, address acl);
+    /// @notice Emitted when Nox protocol config is updated
+    event NoxConfigSet(address teeComputeManager, address acl);
 
     // ============ Trivial Encryption Functions ============
 
@@ -228,27 +228,24 @@ library TEEPrimitives {
         return _acl().isAllowed(euint256.unwrap(handle), account);
     }
 
-    // ============ TEE CONFIGURATION ============
+    // ============ NOX CONFIGURATION ============
 
-    /**
-     * @notice Sets the TEE services configuration
-     * @param _config TEE services configuration struct
-     */
-    function setTEEStorage(TEEConfig memory _config) internal {
-        if (_config.teeComputeManager == address(0)) {
+    function setNoxConfig(address teeComputeManager) internal {
+        if (teeComputeManager == address(0)) {
             revert IErrors.InvalidZeroAddress();
         }
-        if (_config.acl == address(0)) {
+        address acl = ITEEComputeManager(teeComputeManager).acl();
+        if (acl == address(0)) {
             revert IErrors.InvalidZeroAddress();
         }
-        TEEConfig storage $ = _getTEEStorage();
-        $.teeComputeManager = _config.teeComputeManager;
-        $.acl = _config.acl;
-        emit TEEServicesConfigSet(_config.teeComputeManager, _config.acl);
+        NoxConfigStorage storage $ = _getNoxConfigStorage();
+        $.teeComputeManager = teeComputeManager;
+        $.acl = acl;
+        emit NoxConfigSet(teeComputeManager, acl);
     }
 
-    function _getTEEStorage() private pure returns (TEEConfig storage config) {
-        bytes32 slot = TEE_CONFIG_SLOT;
+    function _getNoxConfigStorage() private pure returns (NoxConfigStorage storage config) {
+        bytes32 slot = NOX_CONFIG_SLOT;
         assembly {
             config.slot := slot
         }
@@ -256,12 +253,12 @@ library TEEPrimitives {
 
     function _teeComputeManager() private view returns (ITEEComputeManager) {
         // TODO read from constant address to save gas.
-        TEEConfig storage $ = _getTEEStorage();
+        NoxConfigStorage storage $ = _getNoxConfigStorage();
         return ITEEComputeManager($.teeComputeManager);
     }
 
     function _acl() private view returns (IACL) {
-        TEEConfig storage $ = _getTEEStorage();
+        NoxConfigStorage storage $ = _getNoxConfigStorage();
         return IACL($.acl);
     }
 }
