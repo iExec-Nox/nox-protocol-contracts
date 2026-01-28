@@ -68,11 +68,7 @@ contract ACLTest is Test {
      */
     function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
         // Setup: grant user1 admin access to handle
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        vm.prank(user1);
-        acl.allow(handle, user1);
+        _allow(handle, user1);
 
         // Mark handle as publicly decryptable
         vm.prank(user1);
@@ -142,12 +138,8 @@ contract ACLTest is Test {
      * @dev Tests that an admin with permanent access can grant access to a new admin.
      */
     function test_Allow_AdminCanGrantAccessToNewAdmin() public {
-        // Setup: TEEComputeManager grants transient access to user1, who converts it to permanent
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        vm.prank(user1);
-        acl.allow(handle, user1);
+        // Setup: grant user1 admin access
+        _allow(handle, user1);
 
         // Verify user1 has permanent access
         assertTrue(acl.isAllowed(handle, user1));
@@ -192,11 +184,7 @@ contract ACLTest is Test {
      */
     function test_Allow_RevertWhen_CalledByViewer() public {
         // Setup: user1 is admin and adds viewer
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        vm.prank(user1);
-        acl.allow(handle, user1);
+        _allow(handle, user1);
 
         vm.prank(user1);
         acl.addViewer(handle, viewer1);
@@ -220,11 +208,7 @@ contract ACLTest is Test {
      */
     function test_AddViewer_SucceedsWhenCalledByAdmin() public {
         // Setup: grant user1 admin access
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        vm.prank(user1);
-        acl.allow(handle, user1);
+        _allow(handle, user1);
 
         // Viewer should not be a viewer yet
         assertFalse(acl.isViewer(handle, viewer1));
@@ -267,11 +251,7 @@ contract ACLTest is Test {
      */
     function test_AddViewer_RevertWhen_CalledByViewer() public {
         // Setup: user1 is admin and adds viewer1
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-
-        vm.prank(user1);
-        acl.allow(handle, user1);
+        _allow(handle, user1);
 
         vm.prank(user1);
         acl.addViewer(handle, viewer1);
@@ -339,10 +319,7 @@ contract ACLTest is Test {
      */
     function test_CleanTransientStorage_PreservesPersistentPermissions() public {
         // Grant persistent permission to user1 for handle
-        vm.prank(teeComputeManager);
-        acl.allowTransient(handle, user1);
-        vm.prank(user1);
-        acl.allow(handle, user1);
+        _allow(handle, user1);
 
         // Grant multiple transient permissions in a userOp context
         vm.startPrank(teeComputeManager);
@@ -368,6 +345,20 @@ contract ACLTest is Test {
      */
     function test_IsViewer_ReturnsFalseByDefault() public view {
         assertFalse(acl.isViewer(handle, user1));
+    }
+
+    /**
+     * @dev Tests that isViewer returns true when handle is publicly decryptable.
+     */
+    function test_IsViewer_WhenPubliclyDecryptable() public {
+        assertFalse(acl.isViewer(handle, user1));
+
+        _allow(handle, owner);
+
+        vm.prank(owner);
+        acl.allowPublicDecryption(handle);
+
+        assertTrue(acl.isViewer(handle, user1));
     }
 
     // ============ isAllowed ============
@@ -403,5 +394,14 @@ contract ACLTest is Test {
         );
         vm.prank(unauthorized);
         acl.upgradeToAndCall(makeAddr("newImpl"), "");
+    }
+
+    // ============ Test Helpers ============
+
+    function _allow(bytes32 h, address account) internal {
+        vm.prank(teeComputeManager);
+        acl.allowTransient(h, account);
+        vm.prank(account);
+        acl.allow(h, account);
     }
 }

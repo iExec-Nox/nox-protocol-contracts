@@ -58,4 +58,13 @@ interface ITEEComputeManager is IErrors {
     function domainSeparator() external view returns (bytes32);
     function acl() external view returns (address);
     function gateway() external view returns (address);
+
+    /// @dev See {IACL-isAllowed}
+    function isAllowed(bytes32 handle, address account) external view returns (bool);
+
+    /// @dev See {IACL-isViewer}
+    function isViewer(bytes32 handle, address viewer) external view returns (bool);
+
+    /// @dev See {IACL-isPubliclyDecryptable}
+    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
 }
