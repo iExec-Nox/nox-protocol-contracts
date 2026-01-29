@@ -30,15 +30,13 @@ interface IERC7984 {
  * A mock client contract to simulate client interactions with
  * the Nox protocol contracts.
  */
-contract TokenContractMock is IERC7984 {
+contract ConfidentialTokenMock is IERC7984 {
     mapping(address holder => euint256) private _balances;
     euint256 private _totalSupply;
 
-    constructor() {
-        TEEPrimitives.setTEEStorage(
-            TEEPrimitives.TEEConfig({teeComputeManager: address(0x1234), acl: address(0x5678)})
-        );
-        _totalSupply = TEEPrimitives.toEuint256(1000000);
+    constructor(address teeComputeManager) {
+        TEEPrimitives.setNoxConfig(teeComputeManager);
+        _totalSupply = TEEPrimitives.toEuint256(1_000_000);
         _balances[msg.sender] = _totalSupply;
     }
 
