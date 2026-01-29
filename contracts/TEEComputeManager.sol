@@ -7,7 +7,7 @@ import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/crypt
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
 import {IACL} from "./interfaces/IACL.sol";
-import {TEEType} from "./shared/TEEType.sol";
+import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
 
 /**
  * @title TEEComputeManager
@@ -88,13 +88,7 @@ contract TEEComputeManager is
         uint256 value,
         TEEType teeType
     ) external returns (bytes32 result) {
-        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256)) +
-            (1 << uint8(TEEType.Bool));
-        if (((1 << uint8(teeType)) & supportedTypes) == 0) {
-            revert UnsupportedType();
-        }
+        TypeUtils.validateEncryptableType(teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
@@ -136,7 +130,7 @@ contract TEEComputeManager is
         if (chainIdInHandle != bytes4(uint32(block.chainid))) {
             revert InvalidProof(proof, "Handle chain id mismatch");
         }
-        if (_typeOf(handle) != teeType) {
+        if (TypeUtils.typeOf(handle) != teeType) {
             revert InvalidProof(proof, "Handle type mismatch");
         }
         if (proof.length != 137) {
@@ -191,16 +185,14 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
-    function div(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 result) {
+    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result) {
         bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
+        operands[0] = numerator;
+        operands[1] = denominator;
         result = _executeArithmeticOperation(Operator.Div, operands);
-        emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
+        emit Div(msg.sender, numerator, denominator, result);
     }
+
     // TODO
     function safeAdd(
         bytes32 leftHandOperand,
@@ -273,16 +265,6 @@ contract TEEComputeManager is
     }
 
     /**
-     * Extracts the TEE type from a handle.
-     * The type is stored at byte position 30 in the handle.
-     * @param handle The handle to extract the type from
-     * @return The TEEType encoded in the handle
-     */
-    function _typeOf(bytes32 handle) private pure returns (TEEType) {
-        return TEEType(uint8(handle[30]));
-    }
-
-    /**
      * Executes a binary operation on N encrypted handles.
      * All operands must share the same type as the first operand, which also determines the result type.
      * Verifies ACL permissions for all operands, checks type compatibility,
@@ -298,16 +280,10 @@ contract TEEComputeManager is
         Operator operator,
         bytes32[] memory operands
     ) private returns (bytes32 result) {
-        // Validate operand types are numeric
-        uint256 supportedTypes = (1 << uint8(TEEType.Uint160)) +
-            (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256));
-        TEEType resultType = _typeOf(operands[0]);
-        if (((1 << uint8(resultType)) & supportedTypes) == 0) {
-            revert UnsupportedType();
-        }
+        TEEType resultType = TypeUtils.typeOf(operands[0]);
+        TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
-            if (resultType != _typeOf(operands[i])) {
+            if (resultType != TypeUtils.typeOf(operands[i])) {
                 revert IncompatibleTypes();
             }
         }

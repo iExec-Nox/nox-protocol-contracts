@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IErrors} from "./IErrors.sol";
-import {TEEType} from "../shared/TEEType.sol";
+import {TEEType} from "../shared/TypeUtils.sol";
 
 /**
  * @title ITEEComputeManager
@@ -11,7 +11,7 @@ import {TEEType} from "../shared/TEEType.sol";
 interface ITEEComputeManager is IErrors {
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
-    error UnsupportedType();
+
     error ACLNotAllowed(bytes32 handle, address account);
 
     event ACLUpdated(address indexed newACL);
@@ -87,10 +87,7 @@ interface ITEEComputeManager is IErrors {
      * @param denominator Value to divide by
      * @return result Result handle
      */
-    function div(
-        bytes32 numerator,
-        bytes32 denominator
-    ) external returns (bytes32 result);
+    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
 
     // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
     // as result in case of failure.

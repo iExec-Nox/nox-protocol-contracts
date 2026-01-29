@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {TEEType} from "../shared/TEEType.sol";
+import {TEEType} from "../shared/TypeUtils.sol";
 import {ITEEComputeManager} from "../interfaces/ITEEComputeManager.sol";
 import {IACL} from "../interfaces/IACL.sol";
 import {IErrors} from "../interfaces/IErrors.sol";
