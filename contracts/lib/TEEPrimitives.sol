@@ -29,31 +29,21 @@ library TEEPrimitives {
     event TEEServicesConfigSet(address teeComputeManager, address acl);
 
     // ============ Trivial Encryption Functions ============
+
     /**
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
     function toEbool(bool value) internal returns (ebool) {
-        TEEConfig storage $ = _getTEEStorage();
-        return
-            ebool.wrap(
-                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(
-                    value ? 1 : 0,
-                    TEEType.Bool
-                )
-            );
+        return ebool.wrap(_teeComputeManager().plaintextToEncrypted(value ? 1 : 0, TEEType.Bool));
     }
 
     /**
      * @dev Convert a plaintext address to an encrypted address.
      */
     function toEaddress(address value) internal returns (eaddress) {
-        TEEConfig storage $ = _getTEEStorage();
         return
             eaddress.wrap(
-                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(
-                    uint256(uint160(value)),
-                    TEEType.Uint160
-                )
+                _teeComputeManager().plaintextToEncrypted(uint256(uint160(value)), TEEType.Address)
             );
     }
 
@@ -61,122 +51,145 @@ library TEEPrimitives {
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
-        TEEConfig storage $ = _getTEEStorage();
-        return
-            euint256.wrap(
-                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(value, TEEType.Uint256)
-            );
+        return euint256.wrap(_teeComputeManager().plaintextToEncrypted(value, TEEType.Uint256));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
     function toEint256(int256 value) internal returns (eint256) {
-        TEEConfig storage $ = _getTEEStorage();
         return
-            eint256.wrap(
-                ITEEComputeManager($.teeComputeManager).plaintextToEncrypted(
-                    uint256(value),
-                    TEEType.Int256
+            eint256.wrap(_teeComputeManager().plaintextToEncrypted(uint256(value), TEEType.Int256));
+    }
+
+    // ============ Handle conversion ============
+
+    function fromExternal(
+        externalEuint256 externalHandle,
+        bytes calldata handleProof
+    ) internal returns (euint256) {
+        bytes32 handle = externalEuint256.unwrap(externalHandle);
+        _teeComputeManager().validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
+        return euint256.wrap(handle);
+    }
+
+    // ============ Arithmetic primitives ============
+
+    function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
+        (bytes32 success, bytes32 result) = _teeComputeManager().safeAdd(
+            euint256.unwrap(a),
+            euint256.unwrap(b)
+        );
+        return (ebool.wrap(success), euint256.wrap(result));
+    }
+
+    function safeSub(euint256 a, euint256 b) internal returns (ebool, euint256) {
+        (bytes32 success, bytes32 result) = _teeComputeManager().safeSub(
+            euint256.unwrap(a),
+            euint256.unwrap(b)
+        );
+        return (ebool.wrap(success), euint256.wrap(result));
+    }
+
+    function select(
+        ebool condition,
+        euint256 ifTrue,
+        euint256 ifFalse
+    ) internal returns (euint256) {
+        return
+            euint256.wrap(
+                _teeComputeManager().select(
+                    ebool.unwrap(condition),
+                    euint256.unwrap(ifTrue),
+                    euint256.unwrap(ifFalse)
                 )
             );
     }
 
     // ============ PERMISSION MANAGEMENT ============
+
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(ebool value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(ebool.unwrap(value), account);
+        _acl().allow(ebool.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(eaddress value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(eaddress.unwrap(value), account);
+        _acl().allow(eaddress.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(euint256 value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(euint256.unwrap(value), account);
+        _acl().allow(euint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(eint256 value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(eint256.unwrap(value), account);
+        _acl().allow(eint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(ebool value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(ebool.unwrap(value), address(this));
+        _acl().allow(ebool.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(euint256 value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(euint256.unwrap(value), address(this));
+        _acl().allow(euint256.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(eint256 value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(eint256.unwrap(value), address(this));
+        _acl().allow(eint256.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(eaddress value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allow(eaddress.unwrap(value), address(this));
+        _acl().allow(eaddress.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(ebool value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowTransient(ebool.unwrap(value), account);
+        _acl().allowTransient(ebool.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(eaddress value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowTransient(eaddress.unwrap(value), account);
+        _acl().allowTransient(eaddress.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(euint256 value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowTransient(euint256.unwrap(value), account);
+        _acl().allowTransient(euint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(eint256 value, address account) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowTransient(eint256.unwrap(value), account);
+        _acl().allowTransient(eint256.unwrap(value), account);
     }
 
     // ============ PUBLIC DECRYPTION ============
@@ -184,35 +197,39 @@ library TEEPrimitives {
      * @dev Marks an ebool handle as publicly decryptable.
      */
     function allowPublicDecryption(ebool value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowPublicDecryption(ebool.unwrap(value));
+        _acl().allowPublicDecryption(ebool.unwrap(value));
     }
 
     /**
      * @dev Marks an eaddress handle as publicly decryptable.
      */
     function allowPublicDecryption(eaddress value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowPublicDecryption(eaddress.unwrap(value));
+        _acl().allowPublicDecryption(eaddress.unwrap(value));
     }
 
     /**
      * @dev Marks an euint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint256 value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowPublicDecryption(euint256.unwrap(value));
+        _acl().allowPublicDecryption(euint256.unwrap(value));
     }
 
     /**
      * @dev Marks an eint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(eint256 value) internal {
-        TEEConfig storage $ = _getTEEStorage();
-        IACL($.acl).allowPublicDecryption(eint256.unwrap(value));
+        _acl().allowPublicDecryption(eint256.unwrap(value));
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(euint256 handle, address account) internal view returns (bool) {
+        return _acl().isAllowed(euint256.unwrap(handle), account);
     }
 
     // ============ TEE CONFIGURATION ============
+
     /**
      * @notice Sets the TEE services configuration
      * @param _config TEE services configuration struct
@@ -230,14 +247,21 @@ library TEEPrimitives {
         emit TEEServicesConfigSet(_config.teeComputeManager, _config.acl);
     }
 
-    /**
-     * @notice Gets the TEE services configuration
-     * @return config The TEE services configuration
-     */
     function _getTEEStorage() private pure returns (TEEConfig storage config) {
         bytes32 slot = TEE_CONFIG_SLOT;
         assembly {
             config.slot := slot
         }
+    }
+
+    function _teeComputeManager() private view returns (ITEEComputeManager) {
+        // TODO read from constant address to save gas.
+        TEEConfig storage $ = _getTEEStorage();
+        return ITEEComputeManager($.teeComputeManager);
+    }
+
+    function _acl() private view returns (IACL) {
+        TEEConfig storage $ = _getTEEStorage();
+        return IACL($.acl);
     }
 }

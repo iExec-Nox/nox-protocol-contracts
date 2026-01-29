@@ -164,6 +164,21 @@ contract TEEComputeManager is
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
+    // TODO
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external pure returns (bytes32 success, bytes32 result) {}
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external pure returns (bytes32 success, bytes32 result) {}
+    function select(
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse
+    ) external pure returns (bytes32 result) {}
+
     /**
      * Returns the EIP-712 domain separator.
      */
