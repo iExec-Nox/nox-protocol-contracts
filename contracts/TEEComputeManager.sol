@@ -36,7 +36,7 @@ contract TEEComputeManager is
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
         0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
     bytes32 public constant HANDLE_PROOF_TYPEHASH =
-        keccak256("HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)");
+        keccak256("HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)");
 
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
@@ -107,7 +107,7 @@ contract TEEComputeManager is
      * Validates that a handle provided by a user is:
      *   - of expected type
      *   - not expired (TODO)
-     *   - issued for the correct ACL
+     *   - issued for the correct app (caller)
      *   - issued for the correct owner
      *   - issued by the configured gateway (signed by the gateway wallet)
      * or reverts otherwise.
@@ -120,7 +120,7 @@ contract TEEComputeManager is
      * Proof format:
      *  20 bytes       20 bytes        32 bytes            65 bytes
      * [0-----19]    [20-----39]    [40--------71]    [72------------136]
-     *   Owner           ACL           CreatedAt       EIP-712 signature
+     *   Owner           App           CreatedAt       EIP-712 signature
      *
      * @param handle handle id
      * @param owner The address of the handle owner
@@ -143,22 +143,22 @@ contract TEEComputeManager is
             revert InvalidProof(proof, "Invalid proof length");
         }
         address ownerInProof = address(bytes20(proof[0:20]));
-        address aclInProof = address(bytes20(proof[20:40]));
+        address appInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
         // TODO add checks for `createdAt`.
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        if (aclInProof != address($.acl)) {
-            revert InvalidProof(proof, "ACL mismatch");
+        if (appInProof != msg.sender) {
+            revert InvalidProof(proof, "App mismatch");
         }
         if (ownerInProof != owner) {
             revert InvalidProof(proof, "Owner mismatch");
         }
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(
-                abi.encode(HANDLE_PROOF_TYPEHASH, handle, ownerInProof, aclInProof, createdAt)
+                abi.encode(HANDLE_PROOF_TYPEHASH, handle, ownerInProof, appInProof, createdAt)
             )
         );
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
             revert InvalidProof(proof, "Invalid signature");
         }
@@ -201,6 +201,20 @@ contract TEEComputeManager is
         result = _executeArithmeticOperation(Operator.Div, operands);
         emit Div(msg.sender, leftHandOperand, rightHandOperand, result);
     }
+    // TODO
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external pure returns (bytes32 success, bytes32 result) {}
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external pure returns (bytes32 success, bytes32 result) {}
+    function select(
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse
+    ) external pure returns (bytes32 result) {}
 
     /**
      * Returns the EIP-712 domain separator.
@@ -223,6 +237,24 @@ contract TEEComputeManager is
     function gateway() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         return $.gateway;
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function isAllowed(bytes32 handle, address account) external view returns (bool) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.acl.isAllowed(handle, account);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function isViewer(bytes32 handle, address viewer) external view returns (bool) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.acl.isViewer(handle, viewer);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function isPubliclyDecryptable(bytes32 handle) external view returns (bool) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.acl.isPubliclyDecryptable(handle);
     }
 
     /**

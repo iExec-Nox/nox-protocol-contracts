@@ -170,7 +170,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_ValidateProof() public {
         address app = makeAddr("app");
-        bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        bytes memory proof = _buildProof(handle, owner, app, createdAt, gatewayPrivateKey);
         vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
         vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
@@ -179,7 +179,13 @@ contract TEEComputeManagerTest is Test {
 
     function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
         bytes32 badHandle = TestHelper.createHandle(type(uint32).max, TEEType.Uint256);
-        bytes memory proof = _buildProof(badHandle, owner, acl, createdAt, gatewayPrivateKey);
+        bytes memory proof = _buildProof(
+            badHandle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -191,7 +197,13 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_ValidateProof_HandleTypeMismatch() public {
-        bytes memory proof = _buildProof(handle, owner, acl, createdAt, gatewayPrivateKey);
+        bytes memory proof = _buildProof(
+            handle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -223,18 +235,24 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, shortProof, TEEType.Uint256);
     }
 
-    function test_RevertWhen_ValidateProof_InvalidAclInProof() public {
-        address badAcl = makeAddr("badAcl");
-        bytes memory proof = _buildProof(handle, owner, badAcl, createdAt, gatewayPrivateKey);
+    function test_RevertWhen_ValidateProof_InvalidAppInProof() public {
+        address badApp = makeAddr("badApp");
+        bytes memory proof = _buildProof(handle, owner, badApp, createdAt, gatewayPrivateKey);
         vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "ACL mismatch")
+            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "App mismatch")
         );
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidOwnerInProof() public {
         address badOwner = makeAddr("badOwner");
-        bytes memory proof = _buildProof(handle, badOwner, acl, createdAt, gatewayPrivateKey);
+        bytes memory proof = _buildProof(
+            handle,
+            badOwner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -247,7 +265,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_RevertWhen_ValidateProof_InvalidSigner() public {
         uint256 badSigner = 9999;
-        bytes memory proof = _buildProof(handle, owner, acl, createdAt, badSigner);
+        bytes memory proof = _buildProof(handle, owner, address(this), createdAt, badSigner);
         vm.expectRevert(
             abi.encodeWithSelector(
                 ITEEComputeManager.InvalidProof.selector,
@@ -468,6 +486,48 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.div(leftHandOperand, rightHandOperand);
     }
 
+    // ============ isAllowed ============
+
+    function test_IsAllowed() public {
+        bytes32 h = TestHelper.createHandle(1, TEEType.Uint256);
+        address account = makeAddr("account");
+
+        assertFalse(teeComputeManager.isAllowed(h, account));
+
+        _allow(h, account);
+
+        assertTrue(teeComputeManager.isAllowed(h, account));
+    }
+
+    // ============ isViewer ============
+
+    function test_IsViewer() public {
+        bytes32 h = TestHelper.createHandle(1, TEEType.Uint256);
+        address viewer = makeAddr("viewer");
+
+        assertFalse(teeComputeManager.isViewer(h, viewer));
+
+        _allow(h, caller);
+        vm.prank(caller);
+        aclContract.addViewer(h, viewer);
+
+        assertTrue(teeComputeManager.isViewer(h, viewer));
+    }
+
+    // ============ isPubliclyDecryptable ============
+
+    function test_IsPubliclyDecryptable() public {
+        bytes32 h = TestHelper.createHandle(1, TEEType.Uint256);
+
+        assertFalse(teeComputeManager.isPubliclyDecryptable(h));
+
+        _allow(h, caller);
+        vm.prank(caller);
+        aclContract.allowPublicDecryption(h);
+
+        assertTrue(teeComputeManager.isPubliclyDecryptable(h));
+    }
+
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
@@ -508,19 +568,19 @@ contract TEEComputeManagerTest is Test {
     function _buildProof(
         bytes32 handle_,
         address owner_,
-        address acl_,
+        address app_,
         uint256 createdAt_,
         uint256 signerPrivateKey
     ) internal view returns (bytes memory) {
-        // HandleProof(bytes32 handle,address owner,address acl,uint256 createdAt)
+        // HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)
         bytes32 structHash = keccak256(
-            abi.encode(teeComputeManager.HANDLE_PROOF_TYPEHASH(), handle_, owner_, acl_, createdAt_)
+            abi.encode(teeComputeManager.HANDLE_PROOF_TYPEHASH(), handle_, owner_, app_, createdAt_)
         );
         bytes32 digest = MessageHashUtils.toTypedDataHash(
             teeComputeManager.domainSeparator(),
             structHash
         );
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
-        return abi.encodePacked(bytes20(owner_), bytes20(acl_), bytes32(createdAt_), r, s, v);
+        return abi.encodePacked(bytes20(owner_), bytes20(app_), bytes32(createdAt_), r, s, v);
     }
 }

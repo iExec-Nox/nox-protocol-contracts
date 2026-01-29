@@ -92,13 +92,60 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
 
+    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
+    // as result in case of failure.
+    /**
+     * @notice Performs an addition between two encrypted values with safety checks.
+     * The operation fails in the case of overflows.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Performs a subtraction between two encrypted values with safety checks.
+     * The operation fails in the case of underflow.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Selects between two encrypted values based on a condition
+     * @param condition Condition handle
+     * @param ifTrue Value handle if condition is true
+     * @param ifFalse Value handle if condition is false
+     * @return result Selected value handle
+     */
+    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
+
     function validateProof(
         bytes32 handle,
         address owner,
         bytes calldata proof,
         TEEType teeType
     ) external;
+
     function domainSeparator() external view returns (bytes32);
     function acl() external view returns (address);
     function gateway() external view returns (address);
+
+    /// @dev See {IACL-isAllowed}
+    function isAllowed(bytes32 handle, address account) external view returns (bool);
+
+    /// @dev See {IACL-isViewer}
+    function isViewer(bytes32 handle, address viewer) external view returns (bool);
+
+    /// @dev See {IACL-isPubliclyDecryptable}
+    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
 }
