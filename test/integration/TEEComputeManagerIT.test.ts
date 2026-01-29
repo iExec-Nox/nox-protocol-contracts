@@ -7,9 +7,9 @@ const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd00007a6903
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate handle proof", async function () {
-        const { teeComputeManager, wallet1: user, gateway } = await loadFixture();
+        const { teeComputeManager, wallet1: user, wallet2: app, gateway } = await loadFixture();
         const userAddress = user.account.address;
-        const aclAddress = await teeComputeManager.read.acl();
+        const appAddress = app.account.address; // The caller (app) is the user in this test
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const chainId = BigInt(await user.getChainId());
 
@@ -23,14 +23,14 @@ describe("[IT] TEEComputeManager", function () {
             HandleProof: [
                 { name: "handle", type: "bytes32" },
                 { name: "owner", type: "address" },
-                { name: "acl", type: "address" },
+                { name: "app", type: "address" },
                 { name: "createdAt", type: "uint256" },
             ],
         } as const;
         const message = {
             handle,
             owner: userAddress,
-            acl: aclAddress,
+            app: appAddress,
             createdAt,
         } as const;
 
@@ -40,7 +40,9 @@ describe("[IT] TEEComputeManager", function () {
             primaryType: "HandleProof",
             message,
         });
-        const proof = concatHex([userAddress, aclAddress, toHex(createdAt, { size: 32 }), signature]);
-        await teeComputeManager.read.validateProof([handle, userAddress, proof, 3]); // TEEType.Uint256
+        const proof = concatHex([userAddress, appAddress, toHex(createdAt, { size: 32 }), signature]);
+        await teeComputeManager.write.validateProof([handle, userAddress, proof, 3], {
+            account: app.account,
+        }); // TEEType.Uint256
     });
 });
