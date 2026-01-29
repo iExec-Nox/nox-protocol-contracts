@@ -28,9 +28,10 @@ library TypeUtils {
      * @param teeType The TEE type to validate
      */
     function validateEncryptableType(TEEType teeType) internal pure {
-        uint256 supportedTypes = (1 << uint8(TEEType.Uint256)) +
-            (1 << uint8(TEEType.Int256)) +
-            (1 << uint8(TEEType.Bool));
+        uint256 supportedTypes = (1 << uint8(TEEType.Bool)) +
+            (1 << uint8(TEEType.Address)) +
+            (1 << uint8(TEEType.Uint256)) +
+            (1 << uint8(TEEType.Int256));
         if (((1 << uint8(teeType)) & supportedTypes) == 0) {
             revert UnsupportedType();
         }

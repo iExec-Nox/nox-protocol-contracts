@@ -161,10 +161,10 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
-        address value = address(42);
+        uint256 value = 42;
         vm.prank(caller);
         vm.expectRevert(UnsupportedType.selector);
-        teeComputeManager.plaintextToEncrypted(uint256(uint160(value)), TEEType.Address);
+        teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
     }
 
     // ============ validateProof ============
