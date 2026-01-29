@@ -245,9 +245,8 @@ library TEEPrimitives {
     }
 
     function _getNoxConfigStorage() private pure returns (NoxConfigStorage storage config) {
-        bytes32 slot = NOX_CONFIG_SLOT;
         assembly {
-            config.slot := slot
+            config.slot := NOX_CONFIG_SLOT
         }
     }
 
