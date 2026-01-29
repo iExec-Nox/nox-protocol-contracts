@@ -49,7 +49,7 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
 
-    // TODO for all safe operations, determine which handle to return
+    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
     // as result in case of failure.
     /**
      * @notice Performs an addition between two encrypted values with safety checks.
