@@ -71,7 +71,7 @@ interface ITEEComputeManager is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Computes TEE Sub operation
+     * @notice Performs a subtraction between two encrypted values without safety checks.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -82,14 +82,14 @@ interface ITEEComputeManager is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Computes TEE Div operation
-     * @param leftHandOperand Left-hand side operand handle
-     * @param rightHandOperand Right-hand side operand handle
+     * @notice Performs a division between two encrypted values
+     * @param numerator Value to be divided
+     * @param denominator Value to divide by
      * @return result Result handle
      */
     function div(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
+        bytes32 numerator,
+        bytes32 denominator
     ) external returns (bytes32 result);
 
     // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
