@@ -14,7 +14,6 @@ interface ITEEComputeManager is IErrors {
     error UnsupportedType();
     error ACLNotAllowed(bytes32 handle, address account);
 
-    event ACLUpdated(address indexed newACL);
     event GatewayUpdated(address indexed newGateway);
     event Add(
         address indexed caller,
@@ -27,7 +26,6 @@ interface ITEEComputeManager is IErrors {
         Add
     }
 
-    function setAcl(address newAcl) external;
     function setGateway(address gatewayAddress) external;
 
     /**

@@ -29,19 +29,17 @@ library TestHelper {
         address gateway
     ) internal returns (ACL acl, TEEComputeManager teeComputeManager) {
         Vm vm = getVm();
-        // Deploy TEEComputeManager
-        address teeComputeManagerImplementation = address(new TEEComputeManager());
-        teeComputeManager = TEEComputeManager(deployProxy(teeComputeManagerImplementation));
         // Deploy ACL
         address aclImplementation = address(new ACL());
         acl = ACL(deployProxy(aclImplementation));
+        // Deploy TEEComputeManager (with ACL address as immutable)
+        address teeComputeManagerImplementation = address(new TEEComputeManager(address(acl)));
+        teeComputeManager = TEEComputeManager(deployProxy(teeComputeManagerImplementation));
+        // Initialize both
         acl.initialize(owner, address(teeComputeManager));
-        // Configure TEEComputeManager
         teeComputeManager.initialize(owner);
-        vm.startPrank(owner);
-        teeComputeManager.setAcl(address(acl));
+        vm.prank(owner);
         teeComputeManager.setGateway(gateway);
-        vm.stopPrank();
         // Set labels
         vm.label(owner, "owner");
         vm.label(gateway, "gateway");

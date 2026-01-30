@@ -1,8 +1,6 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
-import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 
 /**
@@ -11,15 +9,8 @@ import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
  * This contract acts as a mock TEE Compute Manager to test ACL permissions
  */
 contract TEEComputeManagerMock is TEEComputeManager {
-    constructor() {
-        // Deploy ACL as a proxy
-        address implementation = address(new ACL());
-        ACL acl = ACL(address(new ERC1967Proxy(implementation, "")));
-        // Initialize with this contract as owner and teeComputeManager
-        acl.initialize(address(this), address(this));
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl = acl;
-    }
+    /// @custom:oz-upgrades-unsafe-allow constructor
+    constructor(address acl_) TEEComputeManager(acl_) {}
 
     /**
      * @dev Helper function to grant transient access and then persistent access in the same transaction.
@@ -33,12 +24,11 @@ contract TEEComputeManagerMock is TEEComputeManager {
         bytes32 handlePersistent,
         address account
     ) external {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         // Grant transient access (will be cleared after transaction)
-        $.acl.allowTransient(handleTransient, account);
+        _acl.allowTransient(handleTransient, account);
         // Grant transient access to THIS CONTRACT so it can call allow()
-        $.acl.allowTransient(handlePersistent, address(this));
+        _acl.allowTransient(handlePersistent, address(this));
         // Convert to persistent access (will survive after transaction)
-        $.acl.allow(handlePersistent, account);
+        _acl.allow(handlePersistent, account);
     }
 }
