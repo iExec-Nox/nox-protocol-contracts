@@ -5,7 +5,7 @@ import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
 
 const eventsToWatch = [
-    "event PlaintextToEncrypted(address indexed caller,uint256 plainText,uint8 toType,bytes32 result)",
+    "event PlaintextToEncrypted(address indexed caller,uint256 plaintext,uint8 toType,bytes32 result)",
     "event Add(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Sub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
 ];
@@ -172,9 +172,9 @@ export class OffChainServices {
     }
 
     private _processPlaintextToEncryptedEvent(log: any) {
-        const { plainText, result } = log.args as { plainText: bigint; result: `0x${string}` };
-        _print(`(e) PlaintextToEncrypted: ${result} -> ${plainText}`);
-        this._saveHandle(result, plainText);
+        const { plaintext, result } = log.args as { plaintext: bigint; result: `0x${string}` };
+        _print(`(e) PlaintextToEncrypted: ${result} -> ${plaintext}`);
+        this._saveHandle(result, plaintext);
     }
 
     private _processAddEvent(log: any) {

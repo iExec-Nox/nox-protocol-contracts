@@ -53,7 +53,7 @@ describe("[IT] ConfidentialToken", function () {
             admin.account.address,
             confidentialTokenMock.address,
         );
-        const txHash = await confidentialTokenMock.write.confidentialTransfer([user.account.address, handle, proof], {
+        await confidentialTokenMock.write.confidentialTransfer([user.account.address, handle, proof], {
             account: admin.account,
         });
         await offChainServices.waitForEventProcessing();
