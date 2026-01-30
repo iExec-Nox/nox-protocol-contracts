@@ -151,31 +151,43 @@ export class OffChainServices {
             const eventName = log.eventName;
             _print(`Processing event: ${eventName}`);
             if (eventName === "PlaintextToEncrypted") {
-                const { plainText, result } = log.args as { plainText: bigint; result: `0x${string}` };
-                _print(`(e) PlaintextToEncrypted: ${result} -> ${plainText}`);
-                this._saveHandle(result, plainText);
+                this._processPlaintextToEncryptedEvent(log);
             } else if (eventName === "Add") {
-                const { leftHandOperand, rightHandOperand, result } = log.args as {
-                    leftHandOperand: bigint;
-                    rightHandOperand: bigint;
-                    result: `0x${string}`;
-                };
-                const addValue = leftHandOperand + rightHandOperand;
-                _print(`(e) Add: ${leftHandOperand} + ${rightHandOperand} = ${addValue} -> ${result}`);
-                this._saveHandle(result, addValue);
+                this._processAddEvent(log);
             } else if (eventName === "Sub") {
-                const { leftHandOperand, rightHandOperand, result } = log.args as {
-                    leftHandOperand: bigint;
-                    rightHandOperand: bigint;
-                    result: `0x${string}`;
-                };
-                const subValue = leftHandOperand - rightHandOperand;
-                _print(`(e) Sub: ${leftHandOperand} - ${rightHandOperand} = ${subValue} -> ${result}`);
-                this._saveHandle(result, subValue);
+                this._processSubEvent(log);
             } else {
                 throw new Error(`Unknown event: ${eventName}`);
             }
         }
+    }
+
+    private _processPlaintextToEncryptedEvent(log: any) {
+        const { plainText, result } = log.args as { plainText: bigint; result: `0x${string}` };
+        _print(`(e) PlaintextToEncrypted: ${result} -> ${plainText}`);
+        this._saveHandle(result, plainText);
+    }
+
+    private _processAddEvent(log: any) {
+        const { leftHandOperand, rightHandOperand, result } = log.args as {
+            leftHandOperand: bigint;
+            rightHandOperand: bigint;
+            result: `0x${string}`;
+        };
+        const addValue = leftHandOperand + rightHandOperand;
+        _print(`(e) Add: ${leftHandOperand} + ${rightHandOperand} = ${addValue} -> ${result}`);
+        this._saveHandle(result, addValue);
+    }
+
+    private _processSubEvent(log: any) {
+        const { leftHandOperand, rightHandOperand, result } = log.args as {
+            leftHandOperand: bigint;
+            rightHandOperand: bigint;
+            result: `0x${string}`;
+        };
+        const subValue = leftHandOperand - rightHandOperand;
+        _print(`(e) Sub: ${leftHandOperand} - ${rightHandOperand} = ${subValue} -> ${result}`);
+        this._saveHandle(result, subValue);
     }
 
     private _saveHandle(handle: `0x${string}`, value: bigint) {
