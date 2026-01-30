@@ -79,6 +79,10 @@ library TEEPrimitives {
         return euint256.wrap(_teeComputeManager().add(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
+    function sub(euint256 a, euint256 b) internal returns (euint256) {
+        return euint256.wrap(_teeComputeManager().sub(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
         (bytes32 success, bytes32 result) = _teeComputeManager().safeAdd(
             euint256.unwrap(a),
