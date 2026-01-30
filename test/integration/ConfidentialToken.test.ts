@@ -35,7 +35,7 @@ describe.only("[IT] ConfidentialToken", function () {
             totalSupply,
             teeComputeManager.address,
         ]);
-        await _waitForEventProcessing();
+        await offChainServices.waitForEventProcessing();
         //
         // Check initial balances
         //
@@ -58,7 +58,7 @@ describe.only("[IT] ConfidentialToken", function () {
         const txHash = await confidentialTokenMock.write.confidentialTransfer([user.account.address, handle, proof], {
             account: admin.account,
         });
-        await _waitForEventProcessing();
+        await offChainServices.waitForEventProcessing();
         // Check balances after transfer.
         const finalTotalSupply = await confidentialTokenMock.read.confidentialTotalSupply();
         const finalAdminBalance = await confidentialTokenMock.read.confidentialBalanceOf([admin.account.address]);
@@ -67,13 +67,4 @@ describe.only("[IT] ConfidentialToken", function () {
         assert.equal(offChainServices.decrypt(finalUserBalance), amount);
         assert.equal(offChainServices.decrypt(finalAdminBalance), totalSupply - amount);
     });
-
-    /**
-     * Waits for the transaction to be mined and for event processing to be done.
-     */
-    async function _waitForEventProcessing() {
-        // Wait a bit to ensure event processing is done.
-        // TODO enhance this.
-        await new Promise((resolve) => setTimeout(resolve, 1000));
-    }
 });

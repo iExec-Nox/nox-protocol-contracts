@@ -94,6 +94,15 @@ export class OffChainServices {
         return { handle, proof };
     }
 
+    // Wait a bit to ensure event processing is done.
+    /**
+     * Waits for event processing to be done.
+     * TODO enhance this.
+     */
+    async waitForEventProcessing() {
+        await new Promise((resolve) => setTimeout(resolve, 1000));
+    }
+
     /**
      * Simulates decryption.
      */
