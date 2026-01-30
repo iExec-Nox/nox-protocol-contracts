@@ -3,21 +3,21 @@ import assert from "node:assert";
 import { concatHex, toHex } from "viem";
 import { loadFixture } from "../utils/fixture.js";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
-import { createHandleAndProof, start, stop } from "./OffChainServicesMock.js";
+import { createHandleAndProof, startOffChainServices, stopOffChainServices } from "./OffChainServicesMock.js";
 
 // Random handle with chain id 31337 (0x00007a69) of type uint256 (3) and version 0
 const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd00007a690300";
 
 describe.only("[e2e] ConfidentialToken", function () {
     after(async function () {
-        await stop();
+        await stopOffChainServices();
     });
 
     it("Should transfer tokens between two addresses", async function () {
         const { teeComputeManager, admin, wallet1: user, gateway } = await loadFixture();
         const client = await connection.viem.getPublicClient();
         // Start the mock gateway service here.
-        await start(teeComputeManager.address);
+        await startOffChainServices(teeComputeManager.address);
         const confidentialTokenMock = await connection.viem.deployContract("ConfidentialTokenMock", [
             teeComputeManager.address,
         ]);

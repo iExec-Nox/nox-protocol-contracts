@@ -11,7 +11,7 @@ const AddEvent = parseAbiItem(
 let running = false;
 let stopGatewayService: WatchEventReturnType;
 
-export async function start(teeComputeManagerAddress: `0x${string}`) {
+export async function startOffChainServices(teeComputeManagerAddress: `0x${string}`) {
     if (running) {
         throw new Error("Mock services are already running");
     }
@@ -19,7 +19,7 @@ export async function start(teeComputeManagerAddress: `0x${string}`) {
     stopGatewayService = await startGateway(teeComputeManagerAddress);
 }
 
-export async function stop() {
+export async function stopOffChainServices() {
     if (!running) {
         throw new Error("Mock services are not running");
     }
