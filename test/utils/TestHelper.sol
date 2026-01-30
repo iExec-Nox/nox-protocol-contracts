@@ -36,7 +36,9 @@ library TestHelper {
         address teeComputeManagerImplementation = address(new TEEComputeManager(address(acl)));
         teeComputeManager = TEEComputeManager(deployProxy(teeComputeManagerImplementation));
         // Initialize both
-        acl.initialize(owner, address(teeComputeManager));
+        acl.initialize(owner);
+        vm.prank(owner);
+        acl.setTeeComputeManager(address(teeComputeManager));
         teeComputeManager.initialize(owner);
         vm.prank(owner);
         teeComputeManager.setGateway(gateway);

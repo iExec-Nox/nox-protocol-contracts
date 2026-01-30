@@ -1,4 +1,3 @@
-import path from "path";
 import ACL from "../ignition/modules/ACL.js";
 import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
 import config from "../config/config.js";
@@ -25,10 +24,15 @@ export async function deploy(log = true) {
         console.log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
         console.log(`Chain config:`, chainConfig);
     }
-    // Deploy ACL proxy first (uninitialized — TEEComputeManager needs its address as immutable).
+    // Deploy ACL proxy (initialized with owner).
     const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
         displayUi: log,
+        parameters: {
+            ACL: {
+                initialOwner: chainConfig.initialOwner,
+            },
+        },
     });
     if (log) {
         console.log(`ACL: ${aclProxy.address}`);
@@ -47,13 +51,10 @@ export async function deploy(log = true) {
     if (log) {
         console.log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
     }
-    // Initialize ACL with the TEEComputeManager proxy address.
+    // Set TEEComputeManager address in ACL.
     const acl = await viem.getContractAt("ACL", aclProxy.address);
-    const initTxHash = await acl.write.initialize([
-        chainConfig.initialOwner as `0x${string}`,
-        teeComputeManagerProxy.address,
-    ]);
-    await publicClient.waitForTransactionReceipt({ hash: initTxHash });
+    const setTxHash = await acl.write.setTeeComputeManager([teeComputeManagerProxy.address]);
+    await publicClient.waitForTransactionReceipt({ hash: setTxHash });
 
     // Get TEEComputeManager contract instance.
     const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);

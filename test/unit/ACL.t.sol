@@ -44,21 +44,11 @@ contract ACLTest is Test {
     }
 
     /**
-     * @dev Tests that initialize reverts with zero addresses.
-     */
-    function test_RevertWhen_Initialize_WithZeroAddress() public {
-        address implementation = address(new ACL());
-        ACL proxy = ACL(TestHelper.deployProxy(implementation));
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
-        proxy.initialize(owner, address(0));
-    }
-
-    /**
      * @dev Tests that initialize reverts when called twice.
      */
     function test_RevertWhen_Initialize_Twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        acl.initialize(owner, teeComputeManager);
+        acl.initialize(owner);
     }
 
     // ============ setTeeComputeManager ============
