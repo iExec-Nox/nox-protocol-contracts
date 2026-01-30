@@ -12,7 +12,7 @@ let gateway: Awaited<ReturnType<typeof loadFixture>>["gateway"];
 let offChainServices: OffChainServices;
 let client: Awaited<ReturnType<typeof connection.viem.getPublicClient>>;
 
-describe.only("[IT] ConfidentialToken", function () {
+describe("[IT] ConfidentialToken", function () {
     beforeEach(async function () {
         ({ teeComputeManager, admin, wallet1: user, gateway } = await loadFixture());
         // Start the off-chain services mock.
