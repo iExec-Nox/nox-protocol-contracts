@@ -84,8 +84,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        $.acl.allowTransient(result, msg.sender);
+        _acl.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);
     }
 
