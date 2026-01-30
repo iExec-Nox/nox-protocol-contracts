@@ -34,10 +34,13 @@ contract ConfidentialTokenMock is IERC7984 {
     mapping(address holder => euint256) private _balances;
     euint256 private _totalSupply;
 
-    constructor(address teeComputeManager) {
+    constructor(uint256 totalSupply, address teeComputeManager) {
         TEEPrimitives.setNoxConfig(teeComputeManager);
-        _totalSupply = TEEPrimitives.toEuint256(1_000_000);
-        _balances[msg.sender] = _totalSupply;
+        _totalSupply = TEEPrimitives.toEuint256(totalSupply);
+        euint256 msgSenderBalance = TEEPrimitives.toEuint256(totalSupply);
+        _balances[msg.sender] = msgSenderBalance;
+        TEEPrimitives.allowThis(msgSenderBalance);
+        TEEPrimitives.allow(msgSenderBalance, msg.sender);
     }
 
     function confidentialTotalSupply() public view override returns (euint256) {
@@ -64,23 +67,34 @@ contract ConfidentialTokenMock is IERC7984 {
     function _transfer(address from, address to, euint256 amount) internal returns (euint256) {
         require(from != address(0), "Zero from address");
         require(to != address(0), "Zero to address");
+        // --------------------------- To use -------------------------------------------
         // Try to decrease balance of `from`.
         // `result` will have the same value as `_balances[from]` if subtraction fails.
-        (ebool success, euint256 result) = TEEPrimitives.safeSub(_balances[from], amount);
+        // (ebool success, euint256 result) = TEEPrimitives.sub(_balances[from], amount);
+        // We assume that subtraction will not fail (until `select` is implemented).
+        euint256 result = TEEPrimitives.sub(_balances[from], amount);
+        // ------------------------------------------------------------------------------
         _balances[from] = result;
         TEEPrimitives.allowThis(result);
         TEEPrimitives.allow(result, from);
+        // ----------------------------- To use ------------------------------------------------------
         // If subtraction fails, transferred amount is 0.
-        euint256 actualAmount = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
-        TEEPrimitives.allowThis(actualAmount);
-        TEEPrimitives.allow(actualAmount, from);
-        TEEPrimitives.allow(actualAmount, to);
+        // euint256 actualAmount = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
+        // TEEPrimitives.allowThis(actualAmount);
+        // TEEPrimitives.allow(actualAmount, from);
+        // TEEPrimitives.allow(actualAmount, to);
         // Update balance of `to` with the actual transferred amount.
-        (, euint256 newToBalance) = TEEPrimitives.safeAdd(_balances[to], actualAmount);
+        // (, euint256 newToBalance) = TEEPrimitives.safeAdd(_balances[to], actualAmount);
+        // -------------------------------------------------------------------------------------------
+        euint256 toBalance = _balances[to];
+        if (euint256.unwrap(toBalance) == 0) {
+            toBalance = TEEPrimitives.toEuint256(0);
+        }
+        euint256 newToBalance = TEEPrimitives.add(toBalance, amount);
         _balances[to] = newToBalance;
         TEEPrimitives.allowThis(newToBalance);
         TEEPrimitives.allow(newToBalance, to);
-        emit ConfidentialTransfer(from, to, actualAmount);
-        return actualAmount;
+        emit ConfidentialTransfer(from, to, amount);
+        return amount;
     }
 }
