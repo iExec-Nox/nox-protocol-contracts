@@ -113,6 +113,8 @@ interface ITEEComputeManager is IErrors {
      */
     function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
 
+    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
+    // as result in case of failure.
     /**
      * @notice Performs an addition between two encrypted values with safety checks.
      * The operation fails in the case of overflows.
