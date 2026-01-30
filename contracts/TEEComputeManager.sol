@@ -168,7 +168,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operator.Add, operands);
+        (, result) = _executeArithmeticOperation(Operator.Add, operands, false);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -180,7 +180,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operator.Sub, operands);
+        (, result) = _executeArithmeticOperation(Operator.Sub, operands, false);
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -189,7 +189,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
-        result = _executeArithmeticOperation(Operator.Div, operands);
+        (, result) = _executeArithmeticOperation(Operator.Div, operands, false);
         emit Div(msg.sender, numerator, denominator, result);
     }
 
@@ -198,11 +198,10 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result) {
-        (success, result) = _executeSafeArithmeticOperation(
-            Operator.SafeAdd,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
         emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
@@ -211,11 +210,10 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result) {
-        (success, result) = _executeSafeArithmeticOperation(
-            Operator.SafeSub,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
         emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
@@ -310,21 +308,28 @@ contract TEEComputeManager is
     }
 
     /**
-     * Executes a binary operation on N encrypted handles.
+     * Executes an arithmetic operation on N encrypted handles.
      * All operands must share the same type as the first operand, which also determines the result type.
      * Verifies ACL permissions for all operands, checks type compatibility,
-     * generates a new result handle, and grants transient access to the caller.
+     * generates result handle(s), and grants transient access to the caller.
+     *
+     * When `isSafe` is true, generates an additional Bool success handle (outputIndex 0)
+     * and the result handle at outputIndex 1, enabling overflow/underflow detection.
+     *
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The operator to apply (Add, Sub, Div, etc.)
+     * @param operator The operator to apply (Add, Sub, Div, SafeAdd, SafeSub)
      * @param operands Array of operand handles
+     * @param isSafe Whether to generate a Bool success handle alongside the result
+     * @return success The success flag handle (Bool type), bytes32(0) if not safe
      * @return result The resulting encrypted handle
      */
     function _executeArithmeticOperation(
         Operator operator,
-        bytes32[] memory operands
-    ) private returns (bytes32 result) {
+        bytes32[] memory operands,
+        bool isSafe
+    ) private returns (bytes32 success, bytes32 result) {
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
@@ -339,46 +344,11 @@ contract TEEComputeManager is
                 revert ACLNotAllowed(operands[i], msg.sender);
             }
         }
-        result = _generateHandle(operator, operands, resultType, 0);
-        aclContract.allowTransient(result, msg.sender);
-    }
-
-    /**
-     * Executes a safe binary arithmetic operation on two encrypted handles.
-     * Returns two handles: a success flag (Bool type) and the result (same type as operands).
-     * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
-     * @dev Reverts with IncompatibleTypes if operand types don't match
-     *
-     * @param operator The operator to apply (SafeAdd, SafeSub)
-     * @param leftHandOperand Left-hand side operand handle
-     * @param rightHandOperand Right-hand side operand handle
-     * @return success The success flag handle (Bool type)
-     * @return result The resulting encrypted handle
-     */
-    function _executeSafeArithmeticOperation(
-        Operator operator,
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) private returns (bytes32 success, bytes32 result) {
-        TEEType resultType = TypeUtils.typeOf(leftHandOperand);
-        TypeUtils.validateArithmeticType(resultType);
-        if (resultType != TypeUtils.typeOf(rightHandOperand)) {
-            revert IncompatibleTypes();
+        if (isSafe) {
+            success = _generateHandle(operator, operands, TEEType.Bool, 0);
+            aclContract.allowTransient(success, msg.sender);
         }
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        IACL aclContract = $.acl;
-        if (!aclContract.isAllowed(leftHandOperand, msg.sender)) {
-            revert ACLNotAllowed(leftHandOperand, msg.sender);
-        }
-        if (!aclContract.isAllowed(rightHandOperand, msg.sender)) {
-            revert ACLNotAllowed(rightHandOperand, msg.sender);
-        }
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        success = _generateHandle(operator, operands, TEEType.Bool, 0);
-        result = _generateHandle(operator, operands, resultType, 1);
-        aclContract.allowTransient(success, msg.sender);
+        result = _generateHandle(operator, operands, resultType, isSafe ? uint8(1) : uint8(0));
         aclContract.allowTransient(result, msg.sender);
     }
 
