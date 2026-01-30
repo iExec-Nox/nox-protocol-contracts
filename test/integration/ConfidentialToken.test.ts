@@ -1,23 +1,32 @@
-import { after, describe, it } from "node:test";
+import { after, beforeEach, describe, it } from "node:test";
 import assert from "node:assert";
 import { concatHex, toHex } from "viem";
 import { loadFixture } from "../utils/fixture.js";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
-import { createHandleAndProof, startOffChainServices, stopOffChainServices } from "./OffChainServicesMock.js";
+import { OffChainServices } from "./OffChainServicesMock.js";
 
 // Random handle with chain id 31337 (0x00007a69) of type uint256 (3) and version 0
 const handle = "0xabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcdefabcd00007a690300";
 
+let teeComputeManager;
+let admin, user;
+let gateway;
+let offChainServices: OffChainServices;
+
 describe.only("[e2e] ConfidentialToken", function () {
+    beforeEach(async function () {
+        ({ teeComputeManager, admin, wallet1: user, gateway } = await loadFixture());
+        offChainServices = new OffChainServices(teeComputeManager.address, gateway, await admin.getChainId());
+        await offChainServices.start();
+    });
+
     after(async function () {
-        await stopOffChainServices();
+        await offChainServices.stop();
     });
 
     it("Should transfer tokens between two addresses", async function () {
-        const { teeComputeManager, admin, wallet1: user, gateway } = await loadFixture();
         const client = await connection.viem.getPublicClient();
         // Start the mock gateway service here.
-        await startOffChainServices(teeComputeManager.address);
         const confidentialTokenMock = await connection.viem.deployContract("ConfidentialTokenMock", [
             teeComputeManager.address,
         ]);
@@ -31,14 +40,11 @@ describe.only("[e2e] ConfidentialToken", function () {
         console.log("Initial user balance:", initialUserBalance);
         assert.equal(initialUserBalance, toHex(0, { size: 32 }));
         // Transfer some tokens from admin to user
-        const { handle, proof } = await createHandleAndProof(
+        const { handle, proof } = await offChainServices.createHandleAndProof(
             1000,
             3,
-            await admin.getChainId(),
             admin.account.address,
             confidentialTokenMock.address,
-            gateway,
-            teeComputeManager.address,
         );
         const tx = await confidentialTokenMock.write.confidentialTransfer([user.account.address, handle, proof], {
             account: admin.account,
