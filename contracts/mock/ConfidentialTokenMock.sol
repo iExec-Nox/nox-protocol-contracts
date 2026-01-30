@@ -56,36 +56,34 @@ contract ConfidentialTokenMock is IERC7984 {
         externalEuint256 amountHandle,
         bytes calldata handleProof
     ) public override returns (euint256) {
-        return _transfer(msg.sender, to, TEEPrimitives.fromExternal(amountHandle, handleProof));
+        return
+            _transferWithoutAmountCheck(
+                msg.sender,
+                to,
+                TEEPrimitives.fromExternal(amountHandle, handleProof)
+            );
     }
 
     function confidentialTransfer(address to, euint256 amount) public override returns (euint256) {
         require(TEEPrimitives.isAllowed(amount, msg.sender), "Not allowed");
-        return _transfer(msg.sender, to, amount);
+        return _transferWithoutAmountCheck(msg.sender, to, amount);
     }
 
-    function _transfer(address from, address to, euint256 amount) internal returns (euint256) {
+    /**
+     * Temporary function to transfer without amount check.
+     * TODO use `_transfer` when select is implemented.
+     */
+    function _transferWithoutAmountCheck(
+        address from,
+        address to,
+        euint256 amount
+    ) internal returns (euint256) {
         require(from != address(0), "Zero from address");
         require(to != address(0), "Zero to address");
-        // --------------------------- To use -------------------------------------------
-        // Try to decrease balance of `from`.
-        // `result` will have the same value as `_balances[from]` if subtraction fails.
-        // (ebool success, euint256 result) = TEEPrimitives.sub(_balances[from], amount);
-        // We assume that subtraction will not fail (until `select` is implemented).
         euint256 result = TEEPrimitives.sub(_balances[from], amount);
-        // ------------------------------------------------------------------------------
         _balances[from] = result;
         TEEPrimitives.allowThis(result);
         TEEPrimitives.allow(result, from);
-        // ----------------------------- To use ------------------------------------------------------
-        // If subtraction fails, transferred amount is 0.
-        // euint256 actualAmount = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
-        // TEEPrimitives.allowThis(actualAmount);
-        // TEEPrimitives.allow(actualAmount, from);
-        // TEEPrimitives.allow(actualAmount, to);
-        // Update balance of `to` with the actual transferred amount.
-        // (, euint256 newToBalance) = TEEPrimitives.safeAdd(_balances[to], actualAmount);
-        // -------------------------------------------------------------------------------------------
         euint256 toBalance = _balances[to];
         if (euint256.unwrap(toBalance) == 0) {
             toBalance = TEEPrimitives.toEuint256(0);
@@ -96,5 +94,28 @@ contract ConfidentialTokenMock is IERC7984 {
         TEEPrimitives.allow(newToBalance, to);
         emit ConfidentialTransfer(from, to, amount);
         return amount;
+    }
+
+    function _transfer(address from, address to, euint256 amount) internal returns (euint256) {
+        require(from != address(0), "Zero from address");
+        require(to != address(0), "Zero to address");
+        // Try to decrease balance of `from`.
+        // `result` will have the same value as `_balances[from]` if subtraction fails.
+        (ebool success, euint256 result) = TEEPrimitives.safeSub(_balances[from], amount);
+        _balances[from] = result;
+        TEEPrimitives.allowThis(result);
+        TEEPrimitives.allow(result, from);
+        // If subtraction fails, transferred amount is 0.
+        euint256 actualAmount = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
+        TEEPrimitives.allowThis(actualAmount);
+        TEEPrimitives.allow(actualAmount, from);
+        TEEPrimitives.allow(actualAmount, to);
+        // Update balance of `to` with the actual transferred amount.
+        (, euint256 newToBalance) = TEEPrimitives.safeAdd(_balances[to], actualAmount);
+        _balances[to] = newToBalance;
+        TEEPrimitives.allowThis(newToBalance);
+        TEEPrimitives.allow(newToBalance, to);
+        emit ConfidentialTransfer(from, to, actualAmount);
+        return actualAmount;
     }
 }
