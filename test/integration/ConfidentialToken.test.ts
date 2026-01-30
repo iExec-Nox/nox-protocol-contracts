@@ -59,12 +59,14 @@ describe.only("[IT] ConfidentialToken", function () {
             account: admin.account,
         });
         await offChainServices.waitForEventProcessing();
-        // Check balances after transfer.
+        //
+        // Check balances after the transfer.
+        //
         const finalTotalSupply = await confidentialTokenMock.read.confidentialTotalSupply();
         const finalAdminBalance = await confidentialTokenMock.read.confidentialBalanceOf([admin.account.address]);
         const finalUserBalance = await confidentialTokenMock.read.confidentialBalanceOf([user.account.address]);
         assert.equal(offChainServices.decrypt(finalTotalSupply), totalSupply);
-        assert.equal(offChainServices.decrypt(finalUserBalance), amount);
         assert.equal(offChainServices.decrypt(finalAdminBalance), totalSupply - amount);
+        assert.equal(offChainServices.decrypt(finalUserBalance), amount);
     });
 });

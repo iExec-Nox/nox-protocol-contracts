@@ -5,7 +5,7 @@ import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
 
 // Can be used for debugging.
-const printLogs = true;
+const printLogs = false;
 
 const eventsToWatch = [
     "event PlaintextToEncrypted(address indexed caller,uint256 plainText,uint8 toType,bytes32 result)",
@@ -100,7 +100,7 @@ export class OffChainServices {
      * TODO enhance this.
      */
     async waitForEventProcessing() {
-        await new Promise((resolve) => setTimeout(resolve, 1000));
+        await new Promise((resolve) => setTimeout(resolve, 100)); // 0.1 second
     }
 
     /**
@@ -108,7 +108,7 @@ export class OffChainServices {
      */
     decrypt(handle: `0x${string}`): bigint {
         const value = this.handleToValueMap.get(handle);
-        if (!value) {
+        if (value === undefined) {
             throw new Error(`Handle not found: ${handle}`);
         }
         return value;
@@ -170,29 +170,33 @@ export class OffChainServices {
 
     private _processAddEvent(log: any) {
         const { leftHandOperand, rightHandOperand, result } = log.args as {
-            leftHandOperand: bigint;
-            rightHandOperand: bigint;
+            leftHandOperand: `0x${string}`;
+            rightHandOperand: `0x${string}`;
             result: `0x${string}`;
         };
-        const addValue = leftHandOperand + rightHandOperand;
-        _print(`(e) Add: ${leftHandOperand} + ${rightHandOperand} = ${addValue} -> ${result}`);
-        this._saveHandle(result, addValue);
+        const lhoValue = this.decrypt(leftHandOperand);
+        const rhoValue = this.decrypt(rightHandOperand);
+        const addResult = lhoValue + rhoValue;
+        _print(`(e) Add: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
+        this._saveHandle(result, addResult);
     }
 
     private _processSubEvent(log: any) {
         const { leftHandOperand, rightHandOperand, result } = log.args as {
-            leftHandOperand: bigint;
-            rightHandOperand: bigint;
+            leftHandOperand: `0x${string}`;
+            rightHandOperand: `0x${string}`;
             result: `0x${string}`;
         };
-        const subValue = leftHandOperand - rightHandOperand;
-        _print(`(e) Sub: ${leftHandOperand} - ${rightHandOperand} = ${subValue} -> ${result}`);
-        this._saveHandle(result, subValue);
+        const lhoValue = this.decrypt(leftHandOperand);
+        const rhoValue = this.decrypt(rightHandOperand);
+        const subResult = lhoValue - rhoValue;
+        _print(`(e) Sub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
+        this._saveHandle(result, subResult);
     }
 
     private _saveHandle(handle: `0x${string}`, value: bigint) {
         this.handleToValueMap.set(handle, value);
-        _print(`Saved handle: ${handle} -> value: ${value}`);
+        _print(`Saved handle: ${handle} -> ${value}`);
     }
 }
 
