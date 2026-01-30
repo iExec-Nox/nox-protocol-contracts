@@ -7,7 +7,7 @@ import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/crypt
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
 import {IACL} from "./interfaces/IACL.sol";
-import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
+import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 
 /**
  * @title TEEComputeManager
@@ -91,7 +91,7 @@ contract TEEComputeManager is
         TypeUtils.validateEncryptableType(teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
-        result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
+        result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType, 0);
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);
@@ -193,20 +193,65 @@ contract TEEComputeManager is
         emit Div(msg.sender, numerator, denominator, result);
     }
 
-    // TODO
+    /// @inheritdoc ITEEComputeManager
     function safeAdd(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32 success, bytes32 result) {}
+    ) external returns (bytes32 success, bytes32 result) {
+        (success, result) = _executeSafeArithmeticOperation(
+            Operator.SafeAdd,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
     function safeSub(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32 success, bytes32 result) {}
+    ) external returns (bytes32 success, bytes32 result) {
+        (success, result) = _executeSafeArithmeticOperation(
+            Operator.SafeSub,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
     function select(
         bytes32 condition,
         bytes32 ifTrue,
         bytes32 ifFalse
-    ) external pure returns (bytes32 result) {}
+    ) external returns (bytes32 result) {
+        TEEType conditionType = TypeUtils.typeOf(condition);
+        if (conditionType != TEEType.Bool) {
+            revert UnsupportedType();
+        }
+        TEEType resultType = TypeUtils.typeOf(ifTrue);
+        if (resultType != TypeUtils.typeOf(ifFalse)) {
+            revert IncompatibleTypes();
+        }
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        IACL aclContract = $.acl;
+        if (!aclContract.isAllowed(condition, msg.sender)) {
+            revert ACLNotAllowed(condition, msg.sender);
+        }
+        if (!aclContract.isAllowed(ifTrue, msg.sender)) {
+            revert ACLNotAllowed(ifTrue, msg.sender);
+        }
+        if (!aclContract.isAllowed(ifFalse, msg.sender)) {
+            revert ACLNotAllowed(ifFalse, msg.sender);
+        }
+        bytes32[] memory operands = new bytes32[](3);
+        operands[0] = condition;
+        operands[1] = ifTrue;
+        operands[2] = ifFalse;
+        result = _generateHandle(Operator.Select, operands, resultType, 0);
+        aclContract.allowTransient(result, msg.sender);
+        emit Select(msg.sender, condition, ifTrue, ifFalse, result);
+    }
 
     /**
      * Returns the EIP-712 domain separator.
@@ -294,7 +339,46 @@ contract TEEComputeManager is
                 revert ACLNotAllowed(operands[i], msg.sender);
             }
         }
-        result = _generateHandle(operator, operands, resultType);
+        result = _generateHandle(operator, operands, resultType, 0);
+        aclContract.allowTransient(result, msg.sender);
+    }
+
+    /**
+     * Executes a safe binary arithmetic operation on two encrypted handles.
+     * Returns two handles: a success flag (Bool type) and the result (same type as operands).
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
+     * @dev Reverts with IncompatibleTypes if operand types don't match
+     *
+     * @param operator The operator to apply (SafeAdd, SafeSub)
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success The success flag handle (Bool type)
+     * @return result The resulting encrypted handle
+     */
+    function _executeSafeArithmeticOperation(
+        Operator operator,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) private returns (bytes32 success, bytes32 result) {
+        TEEType resultType = TypeUtils.typeOf(leftHandOperand);
+        TypeUtils.validateArithmeticType(resultType);
+        if (resultType != TypeUtils.typeOf(rightHandOperand)) {
+            revert IncompatibleTypes();
+        }
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        IACL aclContract = $.acl;
+        if (!aclContract.isAllowed(leftHandOperand, msg.sender)) {
+            revert ACLNotAllowed(leftHandOperand, msg.sender);
+        }
+        if (!aclContract.isAllowed(rightHandOperand, msg.sender)) {
+            revert ACLNotAllowed(rightHandOperand, msg.sender);
+        }
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        success = _generateHandle(operator, operands, TEEType.Bool, 0);
+        result = _generateHandle(operator, operands, resultType, 1);
+        aclContract.allowTransient(success, msg.sender);
         aclContract.allowTransient(result, msg.sender);
     }
 
@@ -325,7 +409,8 @@ contract TEEComputeManager is
     function _generateHandle(
         Operator operator,
         bytes32[] memory operands,
-        TEEType handleType
+        TEEType handleType,
+        uint8 outputIndex
     ) private view returns (bytes32 result) {
         result = keccak256(
             abi.encodePacked(
@@ -334,7 +419,7 @@ contract TEEComputeManager is
                 address(this),
                 msg.sender,
                 block.timestamp,
-                uint8(0)
+                outputIndex
             )
         );
         result = bytes32(

@@ -34,6 +34,27 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand,
         bytes32 result
     );
+    event SafeAdd(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 success,
+        bytes32 result
+    );
+    event SafeSub(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 success,
+        bytes32 result
+    );
+    event Select(
+        address indexed caller,
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse,
+        bytes32 result
+    );
     event PlaintextToEncrypted(
         address indexed caller,
         uint256 plaintext,
@@ -45,7 +66,10 @@ interface ITEEComputeManager is IErrors {
         PlaintextToEncrypted,
         Add,
         Sub,
-        Div
+        Div,
+        SafeAdd,
+        SafeSub,
+        Select
     }
 
     function setAcl(address newAcl) external;
@@ -89,8 +113,6 @@ interface ITEEComputeManager is IErrors {
      */
     function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
 
-    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
-    // as result in case of failure.
     /**
      * @notice Performs an addition between two encrypted values with safety checks.
      * The operation fails in the case of overflows.
