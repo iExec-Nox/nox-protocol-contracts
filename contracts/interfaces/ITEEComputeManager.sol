@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IErrors} from "./IErrors.sol";
-import {TEEType} from "../shared/TEEType.sol";
+import {TEEType} from "../shared/TypeUtils.sol";
 
 /**
  * @title ITEEComputeManager
@@ -11,7 +11,7 @@ import {TEEType} from "../shared/TEEType.sol";
 interface ITEEComputeManager is IErrors {
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
-    error UnsupportedType();
+
     error ACLNotAllowed(bytes32 handle, address account);
 
     event GatewayUpdated(address indexed newGateway);
@@ -21,9 +21,30 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand,
         bytes32 result
     );
+    event Sub(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Div(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event PlaintextToEncrypted(
+        address indexed caller,
+        uint256 plaintext,
+        TEEType toType,
+        bytes32 result
+    );
 
     enum Operator {
-        Add
+        PlaintextToEncrypted,
+        Add,
+        Sub,
+        Div
     }
 
     function setGateway(address gatewayAddress) external;
@@ -46,6 +67,25 @@ interface ITEEComputeManager is IErrors {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
+
+    /**
+     * @notice Performs a subtraction between two encrypted values without safety checks.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Result handle
+     */
+    function sub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Performs a division between two encrypted values
+     * @param numerator Value to be divided
+     * @param denominator Value to divide by
+     * @return result Result handle
+     */
+    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
 
     // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
     // as result in case of failure.
