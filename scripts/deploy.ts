@@ -21,8 +21,8 @@ export async function deploy(printLogs = true) {
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
     }
-    _print(printLogs, `Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
-    _print(printLogs, `Chain config: ${JSON.stringify(chainConfig)}`);
+    _print(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _print(`Chain config: ${JSON.stringify(chainConfig)}`);
     // Deploy TEEComputeManager.
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
@@ -33,7 +33,7 @@ export async function deploy(printLogs = true) {
             },
         },
     });
-    _print(printLogs, `TEEComputeManager: ${teeComputeManagerProxy.address}`);
+    _print(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
     // Deploy ACL
     const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
@@ -45,7 +45,7 @@ export async function deploy(printLogs = true) {
             },
         },
     });
-    _print(printLogs, `ACL: ${aclProxy.address}`);
+    _print(`ACL: ${aclProxy.address}`);
     // Update ACL address in TEEComputeManager.
     const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
     const setAclTxHash = await teeComputeManager.write.setAcl([aclProxy.address]);
@@ -57,6 +57,12 @@ export async function deploy(printLogs = true) {
         acl,
         teeComputeManager,
     };
+
+    function _print(message: string) {
+        if (printLogs) {
+            console.log(message);
+        }
+    }
 }
 
 // Execute the deployment only if the script is run directly.
@@ -69,10 +75,4 @@ function _isHardhatRunCommand() {
     // When running `hardhat run scripts/deploy.ts`, the argv looks like:
     // [ "/.../bin/node", "/.../cli.js", "run", "scripts/deploy.ts"];
     return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/deploy.ts");
-}
-
-function _print(shouldPrint: boolean, message: string) {
-    if (shouldPrint) {
-        console.log(message);
-    }
 }

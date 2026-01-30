@@ -1,4 +1,4 @@
-import { after, beforeEach, describe, it } from "node:test";
+import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert";
 import { zeroHash } from "viem";
 import { loadFixture } from "../utils/fixture.js";
@@ -21,7 +21,7 @@ describe("[IT] ConfidentialToken", function () {
         client = await connection.viem.getPublicClient();
     });
 
-    after(async function () {
+    afterEach(async function () {
         // Make sure tests always exit even if something fails.
         await offChainServices.stop();
     });

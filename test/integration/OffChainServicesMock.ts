@@ -17,9 +17,9 @@ export class OffChainServices {
     private teeComputeManagerAddress: `0x${string}`;
     private gateway: PrivateKeyAccount;
     private chainId: number;
-    private handleToValueMap: Map<`0x${string}`, bigint> = new Map();
     private running = false;
-    private stopGatewayService: WatchEventReturnType = () => {};
+    private handleToValueMap!: Map<`0x${string}`, bigint>;
+    private stopGatewayService!: WatchEventReturnType;
 
     constructor(teeComputeManagerAddress: `0x${string}`, gateway: PrivateKeyAccount, chainId: number) {
         this.teeComputeManagerAddress = teeComputeManagerAddress;
@@ -35,6 +35,7 @@ export class OffChainServices {
             throw new Error("Mock services are already running");
         }
         this.running = true;
+        this.handleToValueMap = new Map(); // reset the map with every start
         this.stopGatewayService = await this._startGateway();
         _print("Mock services started");
     }
@@ -62,8 +63,8 @@ export class OffChainServices {
         userAddress: `0x${string}`,
         appAddress: `0x${string}`,
     ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
-        const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const handle = this._createAndSaveHandle(value, teeType);
+        const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const domain = {
             name: "TEEComputeManager",
             version: "1",
@@ -94,7 +95,6 @@ export class OffChainServices {
         return { handle, proof };
     }
 
-    // Wait a bit to ensure event processing is done.
     /**
      * Waits for event processing to be done.
      * TODO enhance this.
@@ -125,6 +125,11 @@ export class OffChainServices {
         const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, versionByte]);
         this._saveHandle(handle, value);
         return handle;
+    }
+
+    private _saveHandle(handle: `0x${string}`, value: bigint) {
+        this.handleToValueMap.set(handle, value);
+        _print(`Saved handle: ${handle} -> ${value}`);
     }
 
     private async _startGateway() {
@@ -192,11 +197,6 @@ export class OffChainServices {
         const subResult = lhoValue - rhoValue;
         _print(`(e) Sub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
         this._saveHandle(result, subResult);
-    }
-
-    private _saveHandle(handle: `0x${string}`, value: bigint) {
-        this.handleToValueMap.set(handle, value);
-        _print(`Saved handle: ${handle} -> ${value}`);
     }
 }
 
