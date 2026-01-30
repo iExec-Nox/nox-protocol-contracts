@@ -5,7 +5,7 @@ import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
-import {TEEType} from "../../contracts/shared/TEEType.sol";
+import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 
 library TestHelper {
     function createHandle(TEEType teeType) internal view returns (bytes32 handle) {
