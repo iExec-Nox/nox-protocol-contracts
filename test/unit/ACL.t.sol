@@ -61,6 +61,45 @@ contract ACLTest is Test {
         acl.initialize(owner, teeComputeManager);
     }
 
+    // ============ setTeeComputeManager ============
+
+    /**
+     * @dev Tests that the owner can update the TEEComputeManager address.
+     */
+    function test_SetTeeComputeManager() public {
+        address newTeeComputeManager = makeAddr("newTeeComputeManager");
+        vm.prank(owner);
+        vm.expectEmit();
+        emit IACL.TeeComputeManagerUpdated(newTeeComputeManager);
+        acl.setTeeComputeManager(newTeeComputeManager);
+
+        // Verify the new TEEComputeManager can grant transient access
+        vm.prank(newTeeComputeManager);
+        acl.allowTransient(handle, user1);
+        assertTrue(acl.isAllowed(handle, user1));
+    }
+
+    /**
+     * @dev Tests that setTeeComputeManager reverts when called by non-owner.
+     */
+    function test_RevertWhen_SetTeeComputeManager_UnauthorizedAccount() public {
+        address unauthorized = makeAddr("unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
+        );
+        vm.prank(unauthorized);
+        acl.setTeeComputeManager(makeAddr("newTeeComputeManager"));
+    }
+
+    /**
+     * @dev Tests that setTeeComputeManager reverts with zero address.
+     */
+    function test_RevertWhen_SetTeeComputeManager_ZeroAddress() public {
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        vm.prank(owner);
+        acl.setTeeComputeManager(address(0));
+    }
+
     // ============ allowPublicDecryption ============
 
     /**

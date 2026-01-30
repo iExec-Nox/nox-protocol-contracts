@@ -78,6 +78,17 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         $.teeComputeManager = teeComputeManager;
     }
 
+    // ============ ADMIN ============
+
+    /// @inheritdoc IACL
+    function setTeeComputeManager(
+        address newTeeComputeManager
+    ) external onlyOwner notZeroAddress(newTeeComputeManager) {
+        ACLStorage storage $ = _getACLStorage();
+        $.teeComputeManager = newTeeComputeManager;
+        emit TeeComputeManagerUpdated(newTeeComputeManager);
+    }
+
     // ============ PUBLIC DECRYPTION ============
 
     /// @inheritdoc IACL
