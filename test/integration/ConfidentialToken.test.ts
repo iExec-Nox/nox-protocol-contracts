@@ -3,7 +3,7 @@ import assert from "node:assert";
 import { zeroHash } from "viem";
 import { loadFixture } from "../utils/fixture.js";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
-import { OffChainServices } from "./OffChainServicesMock.js";
+import { OffChainServices } from "../utils/OffChainServicesMock.js";
 
 let teeComputeManager: Awaited<ReturnType<typeof loadFixture>>["teeComputeManager"];
 let admin: Awaited<ReturnType<typeof loadFixture>>["admin"];

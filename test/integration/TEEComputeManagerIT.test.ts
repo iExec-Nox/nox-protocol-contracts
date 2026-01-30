@@ -1,6 +1,6 @@
 import { describe, it } from "node:test";
 import { loadFixture } from "../utils/fixture.js";
-import { OffChainServices } from "./OffChainServicesMock.js";
+import { OffChainServices } from "../utils/OffChainServicesMock.js";
 
 describe("[IT] TEEComputeManager", function () {
     it("Should validate handle proof", async function () {
