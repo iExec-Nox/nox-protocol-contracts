@@ -4,14 +4,14 @@ import { randomBytes } from "crypto";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
 
-// Can be used for debugging.
-const printLogs = false;
-
 const eventsToWatch = [
     "event PlaintextToEncrypted(address indexed caller,uint256 plainText,uint8 toType,bytes32 result)",
     "event Add(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Sub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
-].map((e) => parseAbiItem(e));
+];
+// Can be used for debugging.
+const printLogs = false;
+const client = await connection.viem.getPublicClient();
 
 export class OffChainServices {
     private teeComputeManagerAddress: `0x${string}`;
@@ -21,10 +21,10 @@ export class OffChainServices {
     private handleToValueMap!: Map<`0x${string}`, bigint>;
     private stopGatewayService!: WatchEventReturnType;
 
-    constructor(teeComputeManagerAddress: `0x${string}`, gateway: PrivateKeyAccount, chainId: number) {
+    constructor(teeComputeManagerAddress: `0x${string}`, gateway: PrivateKeyAccount) {
         this.teeComputeManagerAddress = teeComputeManagerAddress;
         this.gateway = gateway;
-        this.chainId = chainId;
+        this.chainId = client.chain.id;
     }
 
     /**
@@ -54,16 +54,33 @@ export class OffChainServices {
 
     /**
      * Simulates the Gateway service.
-     * Generates a handle and its corresponding proof for a given value.
-     * It saves the value associated with the handle in an internal map.
+     * Generates a handle random and its proof and stores the corresponding value
+     * in an internal map.
      */
-    async createHandleAndProof(
+    async generateAndStoreHandle(
         value: bigint,
         teeType: number,
         userAddress: `0x${string}`,
         appAddress: `0x${string}`,
     ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
-        const handle = this._createAndSaveHandle(value, teeType);
+        const { handle, proof } = await this.generateHandle(teeType, userAddress, appAddress);
+        this._saveHandle(handle, value);
+        return { handle, proof };
+    }
+
+    /**
+     * Generates a random handle and its proof.
+     */
+    async generateHandle(
+        teeType: number,
+        userAddress: `0x${string}`,
+        appAddress: `0x${string}`,
+    ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
+        const preHandle = toHex(randomBytes(26));
+        const chainIdBytes = toHex(this.chainId, { size: 4 });
+        const teeTypeByte = toHex(teeType, { size: 1 });
+        const versionByte = toHex(0, { size: 1 });
+        const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, versionByte]);
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const domain = {
             name: "TEEComputeManager",
@@ -97,6 +114,7 @@ export class OffChainServices {
 
     /**
      * Waits for event processing to be done.
+     * Should be called after each transaction that emits relevant events.
      * TODO enhance this.
      */
     async waitForEventProcessing() {
@@ -114,29 +132,15 @@ export class OffChainServices {
         return value;
     }
 
-    /**
-     * Generates a handle for a given value and saves it in the internal map.
-     */
-    private _createAndSaveHandle(value: bigint, teeType: number): `0x${string}` {
-        const preHandle = toHex(randomBytes(26));
-        const chainIdBytes = toHex(this.chainId, { size: 4 });
-        const teeTypeByte = toHex(teeType, { size: 1 });
-        const versionByte = toHex(0, { size: 1 });
-        const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, versionByte]);
-        this._saveHandle(handle, value);
-        return handle;
-    }
-
     private _saveHandle(handle: `0x${string}`, value: bigint) {
         this.handleToValueMap.set(handle, value);
         _print(`Saved handle: ${handle} -> ${value}`);
     }
 
     private async _startGateway() {
-        const client = await connection.viem.getPublicClient();
         const unwatch = client.watchEvent({
             address: this.teeComputeManagerAddress,
-            events: eventsToWatch,
+            events: eventsToWatch.map((e) => parseAbiItem(e)),
             // pollingInterval: 10,
             onLogs: (logs) => this._processEvents(logs),
             onError(error) {

@@ -10,15 +10,13 @@ let admin: Awaited<ReturnType<typeof loadFixture>>["admin"];
 let user: Awaited<ReturnType<typeof loadFixture>>["wallet1"];
 let gateway: Awaited<ReturnType<typeof loadFixture>>["gateway"];
 let offChainServices: OffChainServices;
-let client: Awaited<ReturnType<typeof connection.viem.getPublicClient>>;
 
 describe("[IT] ConfidentialToken", function () {
     beforeEach(async function () {
         ({ teeComputeManager, admin, wallet1: user, gateway } = await loadFixture());
         // Start the off-chain services mock.
-        offChainServices = new OffChainServices(teeComputeManager.address, gateway, await admin.getChainId());
+        offChainServices = new OffChainServices(teeComputeManager.address, gateway);
         await offChainServices.start();
-        client = await connection.viem.getPublicClient();
     });
 
     afterEach(async function () {
@@ -49,7 +47,7 @@ describe("[IT] ConfidentialToken", function () {
         // Transfer some tokens from admin to user
         //
         const amount = 1000n;
-        const { handle, proof } = await offChainServices.createHandleAndProof(
+        const { handle, proof } = await offChainServices.generateAndStoreHandle(
             amount,
             3, // TEEType.uint256
             admin.account.address,
