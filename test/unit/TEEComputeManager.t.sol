@@ -449,6 +449,259 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.div(numerator, denominator);
     }
 
+    // ============ safeAdd ============
+
+    function test_SafeAdd() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.SafeAdd(
+            caller,
+            leftHandOperand,
+            rightHandOperand,
+            bytes32(0),
+            bytes32(0)
+        );
+        (bytes32 success, bytes32 result) = teeComputeManager.safeAdd(
+            leftHandOperand,
+            rightHandOperand
+        );
+
+        assertTrue(success != bytes32(0));
+        assertTrue(result != bytes32(0));
+        assertTrue(success != result);
+        assertEq(uint8(TypeUtils.typeOf(success)), uint8(TEEType.Bool));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+    }
+
+    function test_RevertWhen_SafeAdd_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.safeAdd(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_SafeAdd_RhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                rightHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.safeAdd(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_SafeAdd_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.safeAdd(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_SafeAdd_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(UnsupportedType.selector);
+        teeComputeManager.safeAdd(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ safeSub ============
+
+    function test_SafeSub() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.SafeSub(
+            caller,
+            leftHandOperand,
+            rightHandOperand,
+            bytes32(0),
+            bytes32(0)
+        );
+        (bytes32 success, bytes32 result) = teeComputeManager.safeSub(
+            leftHandOperand,
+            rightHandOperand
+        );
+
+        assertTrue(success != bytes32(0));
+        assertTrue(result != bytes32(0));
+        assertTrue(success != result);
+        assertEq(uint8(TypeUtils.typeOf(success)), uint8(TEEType.Bool));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+    }
+
+    function test_RevertWhen_SafeSub_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.safeSub(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_SafeSub_RhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                rightHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.safeSub(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_SafeSub_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.safeSub(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_SafeSub_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(UnsupportedType.selector);
+        teeComputeManager.safeSub(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ select ============
+
+    function test_Select() public {
+        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        _allow(condition, caller);
+        _allow(ifTrue, caller);
+        _allow(ifFalse, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Select(caller, condition, ifTrue, ifFalse, bytes32(0));
+        bytes32 result = teeComputeManager.select(condition, ifTrue, ifFalse);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+    }
+
+    function test_RevertWhen_Select_ConditionNotAllowed() public {
+        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        _allow(ifTrue, caller);
+        _allow(ifFalse, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, condition, caller)
+        );
+        teeComputeManager.select(condition, ifTrue, ifFalse);
+    }
+
+    function test_RevertWhen_Select_IfTrueNotAllowed() public {
+        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        _allow(condition, caller);
+        _allow(ifFalse, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifTrue, caller)
+        );
+        teeComputeManager.select(condition, ifTrue, ifFalse);
+    }
+
+    function test_RevertWhen_Select_IfFalseNotAllowed() public {
+        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        _allow(condition, caller);
+        _allow(ifTrue, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifFalse, caller)
+        );
+        teeComputeManager.select(condition, ifTrue, ifFalse);
+    }
+
+    function test_RevertWhen_Select_IncompatibleTypes() public {
+        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Int256);
+        _allow(condition, caller);
+        _allow(ifTrue, caller);
+        _allow(ifFalse, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.select(condition, ifTrue, ifFalse);
+    }
+
+    function test_RevertWhen_Select_UnsupportedConditionType() public {
+        bytes32 condition = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        _allow(condition, caller);
+        _allow(ifTrue, caller);
+        _allow(ifFalse, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(UnsupportedType.selector);
+        teeComputeManager.select(condition, ifTrue, ifFalse);
+    }
+
     // ============ isAllowed ============
 
     function test_IsAllowed() public {
