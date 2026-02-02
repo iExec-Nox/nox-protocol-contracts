@@ -7,7 +7,7 @@ import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/crypt
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
 import {IACL} from "./interfaces/IACL.sol";
-import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
+import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 
 /**
  * @title TEEComputeManager
@@ -159,7 +159,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operator.Add, operands);
+        (, result) = _executeArithmeticOperation(Operator.Add, operands, false);
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -171,7 +171,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        result = _executeArithmeticOperation(Operator.Sub, operands);
+        (, result) = _executeArithmeticOperation(Operator.Sub, operands, false);
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -180,24 +180,65 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
-        result = _executeArithmeticOperation(Operator.Div, operands);
+        (, result) = _executeArithmeticOperation(Operator.Div, operands, false);
         emit Div(msg.sender, numerator, denominator, result);
     }
 
-    // TODO
+    /// @inheritdoc ITEEComputeManager
     function safeAdd(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32 success, bytes32 result) {}
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
+        emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
     function safeSub(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
-    ) external pure returns (bytes32 success, bytes32 result) {}
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
+        emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
     function select(
         bytes32 condition,
         bytes32 ifTrue,
         bytes32 ifFalse
-    ) external pure returns (bytes32 result) {}
+    ) external returns (bytes32 result) {
+        if (TypeUtils.typeOf(condition) != TEEType.Bool) {
+            revert UnsupportedType();
+        }
+        TEEType resultType = TypeUtils.typeOf(ifTrue);
+        if (resultType != TypeUtils.typeOf(ifFalse)) {
+            revert IncompatibleTypes();
+        }
+        //TODO: check if we need ACL.isAllowed(bytes32[] handles, address account)
+        if (!ACL.isAllowed(condition, msg.sender)) {
+            revert ACLNotAllowed(condition, msg.sender);
+        }
+        if (!ACL.isAllowed(ifTrue, msg.sender)) {
+            revert ACLNotAllowed(ifTrue, msg.sender);
+        }
+        if (!ACL.isAllowed(ifFalse, msg.sender)) {
+            revert ACLNotAllowed(ifFalse, msg.sender);
+        }
+        bytes32[] memory operands = new bytes32[](3);
+        operands[0] = condition;
+        operands[1] = ifTrue;
+        operands[2] = ifFalse;
+        result = _generateHandle(Operator.Select, operands, resultType);
+        ACL.allowTransient(result, msg.sender);
+        emit Select(msg.sender, condition, ifTrue, ifFalse, result);
+    }
 
     /**
      * Returns the EIP-712 domain separator.
@@ -245,21 +286,28 @@ contract TEEComputeManager is
     }
 
     /**
-     * Executes a binary operation on N encrypted handles.
+     * Executes an arithmetic operation on N encrypted handles.
      * All operands must share the same type as the first operand, which also determines the result type.
      * Verifies ACL permissions for all operands, checks type compatibility,
-     * generates a new result handle, and grants transient access to the caller.
+     * generates result handle(s), and grants transient access to the caller.
+     *
+     * When `isSafeOperation` is true, generates an additional Bool success handle (outputIndex 1)
+     * and the result handle at outputIndex 0, enabling overflow/underflow detection.
+     *
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The operator to apply (Add, Sub, Div, etc.)
+     * @param operator The operator to apply (Add, Sub, Div, SafeAdd, SafeSub)
      * @param operands Array of operand handles
+     * @param isSafeOperation Whether to generate a Bool success handle alongside the result
+     * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
      * @return result The resulting encrypted handle
      */
     function _executeArithmeticOperation(
         Operator operator,
-        bytes32[] memory operands
-    ) private returns (bytes32 result) {
+        bytes32[] memory operands,
+        bool isSafeOperation
+    ) private returns (bytes32 success, bytes32 result) {
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
@@ -274,6 +322,21 @@ contract TEEComputeManager is
         }
         result = _generateHandle(operator, operands, resultType);
         ACL.allowTransient(result, msg.sender);
+        if (isSafeOperation) {
+            success = _generateHandle(operator, operands, TEEType.Bool, 1);
+            ACL.allowTransient(success, msg.sender);
+        }
+    }
+
+    /**
+     * @dev Alias for _generateHandle with outputIndex defaulting to 0.
+     */
+    function _generateHandle(
+        Operator operator,
+        bytes32[] memory operands,
+        TEEType handleType
+    ) private view returns (bytes32 result) {
+        result = _generateHandle(operator, operands, handleType, 0);
     }
 
     /**
@@ -286,7 +349,7 @@ contract TEEComputeManager is
      *       address(this),   // TEEComputeManager contract address
      *       msg.sender,      // Caller address
      *       block.timestamp, // Current block timestamp
-     *       0                // For operations that return multiple outputs (can be 0 when needed)
+     *       outputIndex      // For operations that return multiple outputs
      *   ))
      *
      * Handle format (32 bytes):
@@ -298,12 +361,14 @@ contract TEEComputeManager is
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param handleType The TEE type to encode in the handle
+     * @param outputIndex Index for operations returning multiple outputs
      * @return result The complete handle with metadata appended
      */
     function _generateHandle(
         Operator operator,
         bytes32[] memory operands,
-        TEEType handleType
+        TEEType handleType,
+        uint8 outputIndex
     ) private view returns (bytes32 result) {
         result = keccak256(
             abi.encodePacked(
@@ -312,7 +377,7 @@ contract TEEComputeManager is
                 address(this),
                 msg.sender,
                 block.timestamp,
-                uint8(0)
+                outputIndex
             )
         );
         result = bytes32(
