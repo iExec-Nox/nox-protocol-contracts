@@ -66,16 +66,21 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     /**
      * Initializes the proxy contract state.
      * @param initialOwner Initial owner address
-     * @param teeComputeManager Address of the TEE Compute Manager
      */
-    function initialize(address initialOwner, address teeComputeManager) public initializer {
-        if (teeComputeManager == address(0)) {
-            revert InvalidZeroAddress();
-        }
+    function initialize(address initialOwner) public initializer {
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
+    }
+
+    // ============ ADMIN ============
+
+    /// @inheritdoc IACL
+    function setTeeComputeManager(
+        address newTeeComputeManager
+    ) external onlyOwner notZeroAddress(newTeeComputeManager) {
         ACLStorage storage $ = _getACLStorage();
-        $.teeComputeManager = teeComputeManager;
+        $.teeComputeManager = newTeeComputeManager;
+        emit TeeComputeManagerUpdated(newTeeComputeManager);
     }
 
     // ============ PUBLIC DECRYPTION ============
