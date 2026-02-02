@@ -3,6 +3,7 @@
 import { randomBytes } from "crypto";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
+import { TEEType } from "./TEEType.js";
 
 const eventsToWatch = [
     "event PlaintextToEncrypted(address indexed caller,uint256 plaintext,uint8 toType,bytes32 result)",
@@ -59,7 +60,7 @@ export class OffChainServices {
      */
     async generateAndStoreHandle(
         value: bigint,
-        teeType: number,
+        teeType: TEEType,
         userAddress: `0x${string}`,
         appAddress: `0x${string}`,
     ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
@@ -72,7 +73,7 @@ export class OffChainServices {
      * Generates a random handle and its proof.
      */
     async generateHandle(
-        teeType: number,
+        teeType: TEEType,
         userAddress: `0x${string}`,
         appAddress: `0x${string}`,
     ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {

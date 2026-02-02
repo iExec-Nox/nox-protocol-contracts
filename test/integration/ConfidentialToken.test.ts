@@ -4,6 +4,7 @@ import { zeroHash } from "viem";
 import { loadFixture } from "../utils/fixture.js";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { OffChainServices } from "../utils/OffChainServicesMock.js";
+import { TEEType } from "../utils/TEEType.js";
 
 let teeComputeManager: Awaited<ReturnType<typeof loadFixture>>["teeComputeManager"];
 let admin: Awaited<ReturnType<typeof loadFixture>>["admin"];
@@ -49,7 +50,7 @@ describe("[IT] ConfidentialToken", function () {
         const amount = 1000n;
         const { handle, proof } = await offChainServices.generateAndStoreHandle(
             amount,
-            3, // TEEType.uint256
+            TEEType.Uint256,
             admin.account.address,
             confidentialTokenMock.address,
         );
