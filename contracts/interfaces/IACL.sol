@@ -20,6 +20,16 @@ interface IACL is IErrors {
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
 
+    /// Emitted when the TEEComputeManager address is updated
+    event TeeComputeManagerUpdated(address indexed newTeeComputeManager);
+
+    /**
+     * Updates the TEE Compute Manager address.
+     * @dev Only callable by the owner.
+     * @param newTeeComputeManager The new TEE Compute Manager address.
+     */
+    function setTeeComputeManager(address newTeeComputeManager) external;
+
     /**
      * Mark a handle as publicly decryptable.
      * @dev The caller must be allowed to use the handle.

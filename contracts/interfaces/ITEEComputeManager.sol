@@ -2,6 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {IErrors} from "./IErrors.sol";
+import {IACL} from "./IACL.sol";
 import {TEEType} from "../shared/TypeUtils.sol";
 
 /**
@@ -14,7 +15,6 @@ interface ITEEComputeManager is IErrors {
 
     error ACLNotAllowed(bytes32 handle, address account);
 
-    event ACLUpdated(address indexed newACL);
     event GatewayUpdated(address indexed newGateway);
     event Add(
         address indexed caller,
@@ -72,7 +72,6 @@ interface ITEEComputeManager is IErrors {
         Select
     }
 
-    function setAcl(address newAcl) external;
     function setGateway(address gatewayAddress) external;
 
     /**
@@ -158,7 +157,7 @@ interface ITEEComputeManager is IErrors {
     ) external;
 
     function domainSeparator() external view returns (bytes32);
-    function acl() external view returns (address);
+    function ACL() external view returns (IACL);
     function gateway() external view returns (address);
 
     /// @dev See {IACL-isAllowed}

@@ -35,7 +35,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
-        assertEq(teeComputeManager.acl(), acl);
+        assertEq(address(teeComputeManager.ACL()), acl);
         (
             , // bytes1 fields
             string memory name,
@@ -52,36 +52,6 @@ contract TEEComputeManagerTest is Test {
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         teeComputeManager.initialize(owner);
-    }
-
-    // ============ setAcl ============
-
-    function test_SetAcl() public {
-        address newAcl = makeAddr("newAcl");
-        vm.prank(owner);
-        vm.expectEmit();
-        emit ITEEComputeManager.ACLUpdated(newAcl);
-        teeComputeManager.setAcl(newAcl);
-        assertEq(teeComputeManager.acl(), newAcl);
-    }
-
-    function test_RevertWhen_SetAcl_UnauthorizedCaller() public {
-        address unauthorizedCaller = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                teeComputeManager
-            )
-        );
-        vm.prank(unauthorizedCaller);
-        teeComputeManager.setAcl(makeAddr("newAcl"));
-    }
-
-    function test_RevertWhen_SetAcl_ZeroAddress() public {
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
-        vm.prank(owner);
-        teeComputeManager.setAcl(address(0));
     }
 
     // ============ setGateway ============
@@ -777,7 +747,7 @@ contract TEEComputeManagerTest is Test {
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
-        address newImplementation = address(new TEEComputeManager());
+        address newImplementation = address(new TEEComputeManager(acl));
         vm.prank(owner);
         vm.expectEmit();
         emit IERC1967.Upgraded(newImplementation);
