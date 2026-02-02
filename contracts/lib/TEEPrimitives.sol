@@ -242,7 +242,7 @@ library TEEPrimitives {
         if (teeComputeManager == address(0)) {
             revert IErrors.InvalidZeroAddress();
         }
-        address acl = ITEEComputeManager(teeComputeManager).acl();
+        address acl = address(ITEEComputeManager(teeComputeManager).ACL());
         if (acl == address(0)) {
             revert IErrors.InvalidZeroAddress();
         }

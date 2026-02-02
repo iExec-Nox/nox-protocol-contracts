@@ -21,10 +21,8 @@ export async function deploy(printLogs = true) {
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
     }
-    if (log) {
-        console.log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
-        console.log(`Chain config:`, chainConfig);
-    }
+    _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _log(`Chain config:`, chainConfig);
     // Deploy ACL proxy (initialized with owner).
     const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
@@ -35,13 +33,11 @@ export async function deploy(printLogs = true) {
             },
         },
     });
-    if (log) {
-        console.log(`ACL: ${aclProxy.address}`);
-    }
+    _log(`ACL: ${aclProxy.address}`);
     // Deploy TEEComputeManager with ACL address as constructor arg.
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
-        displayUi: log,
+        displayUi: printLogs,
         parameters: {
             TEEComputeManager: {
                 initialOwner: chainConfig.initialOwner,
@@ -49,9 +45,7 @@ export async function deploy(printLogs = true) {
             },
         },
     });
-    if (log) {
-        console.log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
-    }
+    _log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
     // Set TEEComputeManager address in ACL.
     const acl = await viem.getContractAt("ACL", aclProxy.address);
     const setTxHash = await acl.write.setTeeComputeManager([teeComputeManagerProxy.address]);
