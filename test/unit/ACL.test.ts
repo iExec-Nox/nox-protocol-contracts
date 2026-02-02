@@ -23,9 +23,6 @@ describe("ACL", function () {
 
     describe("Transient & Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
-            const { wallet1 } = await loadFixture();
-            const viem = connection.viem;
-            // Deploy ACL proxy
             const { acl, wallet1 } = await loadFixture();
             const viem = connection.viem;
             // Deploy TEEComputeManagerMock with ACL address
