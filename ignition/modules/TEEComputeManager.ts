@@ -5,7 +5,8 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
  */
 export default buildModule("TEEComputeManager", (m) => {
     const initialOwner = m.getParameter("initialOwner");
-    const implementation = m.contract("TEEComputeManager", [], {
+    const acl = m.getParameter("acl");
+    const implementation = m.contract("TEEComputeManager", [acl], {
         id: "implementation",
     });
     const initData = m.encodeFunctionCall(implementation, "initialize", [initialOwner]);

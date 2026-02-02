@@ -23,10 +23,12 @@ describe("ACL", function () {
 
     describe("Transient & Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
-            const { wallet1 } = await loadFixture();
+            const { acl, wallet1 } = await loadFixture();
             const viem = connection.viem;
-            // Deploy TEEComputeManagerMock for this test
-            const teeComputeManagerMock = await viem.deployContract("TEEComputeManagerMock");
+            // Deploy TEEComputeManagerMock with ACL address
+            const teeComputeManagerMock = await viem.deployContract("TEEComputeManagerMock", [acl.address]);
+            // Set teeComputeManagerMock in the ACL
+            await acl.write.setTeeComputeManager([teeComputeManagerMock.address]);
             const handleTransient = keccak256(toHex("handle-transient"));
             const handlePersistent = keccak256(toHex("handle-persistent"));
 
@@ -41,7 +43,7 @@ describe("ACL", function () {
             await connection.networkHelpers.mine();
 
             // New transaction: Check permissions - transient should be gone, persistent should remain
-            const aclAddress = await teeComputeManagerMock.read.acl();
+            const aclAddress = await teeComputeManagerMock.read.ACL();
             const aclContract = await viem.getContractAt("ACL", aclAddress);
 
             const isAllowedTransient = await aclContract.read.isAllowed([handleTransient, wallet1.account.address]);

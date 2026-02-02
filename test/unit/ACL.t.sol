@@ -36,36 +36,47 @@ contract ACLTest is Test {
 
     // ============ initialize ============
 
-    /**
-     * @dev Tests that initialize sets up the contract correctly.
-     */
     function test_Initialize() public view {
         assertEq(acl.owner(), owner);
     }
 
-    /**
-     * @dev Tests that initialize reverts with zero addresses.
-     */
-    function test_RevertWhen_Initialize_WithZeroAddress() public {
-        address implementation = address(new ACL());
-        ACL proxy = ACL(TestHelper.deployProxy(implementation));
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
-        proxy.initialize(owner, address(0));
-    }
-
-    /**
-     * @dev Tests that initialize reverts when called twice.
-     */
     function test_RevertWhen_Initialize_Twice() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        acl.initialize(owner, teeComputeManager);
+        acl.initialize(owner);
+    }
+
+    // ============ setTeeComputeManager ============
+
+    function test_SetTeeComputeManager() public {
+        address newTeeComputeManager = makeAddr("newTeeComputeManager");
+        vm.prank(owner);
+        vm.expectEmit();
+        emit IACL.TeeComputeManagerUpdated(newTeeComputeManager);
+        acl.setTeeComputeManager(newTeeComputeManager);
+
+        // Verify the new TEEComputeManager can grant transient access
+        vm.prank(newTeeComputeManager);
+        acl.allowTransient(handle, user1);
+        assertTrue(acl.isAllowed(handle, user1));
+    }
+
+    function test_RevertWhen_SetTeeComputeManager_UnauthorizedAccount() public {
+        address unauthorized = makeAddr("unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
+        );
+        vm.prank(unauthorized);
+        acl.setTeeComputeManager(makeAddr("newTeeComputeManager"));
+    }
+
+    function test_RevertWhen_SetTeeComputeManager_ZeroAddress() public {
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        vm.prank(owner);
+        acl.setTeeComputeManager(address(0));
     }
 
     // ============ allowPublicDecryption ============
 
-    /**
-     * @dev Tests that an admin can mark a handle as publicly decryptable.
-     */
     function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
         // Setup: grant user1 admin access to handle
         _allow(handle, user1);
@@ -80,9 +91,6 @@ contract ACLTest is Test {
         assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
-    /**
-     * @dev Tests that a user with transient access can mark a handle as publicly decryptable.
-     */
     function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
         // Setup: grant user1 transient access to handle
         vm.prank(teeComputeManager);
@@ -98,9 +106,6 @@ contract ACLTest is Test {
         assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
-    /**
-     * @dev Tests that allowPublicDecryption() reverts when sender doesn't have access to a handle.
-     */
     function test_AllowPublicDecryption_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
@@ -109,18 +114,12 @@ contract ACLTest is Test {
 
     // ============ isPubliclyDecryptable ============
 
-    /**
-     * @dev Tests that isPubliclyDecryptable returns false by default.
-     */
     function test_IsPubliclyDecryptable_ReturnsFalseByDefault() public view {
         assertFalse(acl.isPubliclyDecryptable(handle));
     }
 
     // ============ allow ============
 
-    /**
-     * @dev Tests that the TEEComputeManager grants transient access, then user grants permanent access.
-     */
     function test_Allow_SucceedsAfterTransientAccess() public {
         // TEEComputeManager grants transient access to user1
         vm.prank(teeComputeManager);
@@ -134,9 +133,6 @@ contract ACLTest is Test {
         assertTrue(acl.isAllowed(handle, user2));
     }
 
-    /**
-     * @dev Tests that an admin with permanent access can grant access to a new admin.
-     */
     function test_Allow_AdminCanGrantAccessToNewAdmin() public {
         // Setup: grant user1 admin access
         _allow(handle, user1);
@@ -156,18 +152,12 @@ contract ACLTest is Test {
         assertTrue(acl.isAllowed(handle, user2));
     }
 
-    /**
-     * @dev Tests that allow() reverts when sender has no access to the handle.
-     */
     function test_Allow_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.allow(handle, user2);
     }
 
-    /**
-     * @dev Tests that allow() reverts with zero address.
-     */
     function test_Allow_RevertWhen_InvalidZeroAddress() public {
         // First grant access to user1
         vm.prank(teeComputeManager);
@@ -179,9 +169,6 @@ contract ACLTest is Test {
         acl.allow(handle, address(0));
     }
 
-    /**
-     * @dev Tests that being a viewer does not grant admin privileges.
-     */
     function test_Allow_RevertWhen_CalledByViewer() public {
         // Setup: user1 is admin and adds viewer
         _allow(handle, user1);
@@ -203,9 +190,6 @@ contract ACLTest is Test {
 
     // ============ addViewer ============
 
-    /**
-     * @dev Tests that an admin can add a viewer successfully.
-     */
     function test_AddViewer_SucceedsWhenCalledByAdmin() public {
         // Setup: grant user1 admin access
         _allow(handle, user1);
@@ -223,18 +207,12 @@ contract ACLTest is Test {
         assertTrue(acl.isViewer(handle, viewer1));
     }
 
-    /**
-     * @dev Tests that addViewer() reverts when sender has no access to the handle.
-     */
     function test_AddViewer_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
         acl.addViewer(handle, user2);
     }
 
-    /**
-     * @dev Tests that addViewer() reverts with zero address.
-     */
     function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
         // First grant access to user1
         vm.prank(teeComputeManager);
@@ -246,9 +224,6 @@ contract ACLTest is Test {
         acl.addViewer(handle, address(0));
     }
 
-    /**
-     * @dev Tests that a viewer cannot add another viewer.
-     */
     function test_AddViewer_RevertWhen_CalledByViewer() public {
         // Setup: user1 is admin and adds viewer1
         _allow(handle, user1);
@@ -267,10 +242,6 @@ contract ACLTest is Test {
 
     // ============ allowTransient ============
 
-    /**
-     * @dev Tests that the TEEComputeManager can grant transient access to a handle via
-     *      allowTransient() without having prior access to that handle.
-     */
     function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -279,9 +250,6 @@ contract ACLTest is Test {
         assertTrue(acl.isAllowed(handle, user1));
     }
 
-    /**
-     * @dev Tests that a Non-TEEComputeManager cannot grant transient without access.
-     */
     function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(IACL.UnauthorizedSender.selector, user1));
@@ -290,10 +258,6 @@ contract ACLTest is Test {
 
     // ============ cleanTransientStorage ============
 
-    /**
-     * @dev Tests that cleanTransientStorage properly clears all transient permissions
-     *      for multiple handles and accounts in a userOp context.
-     */
     function test_CleanTransientStorage_ClearsMultipleTransientPermissions() public {
         // Simulate a userOp context where TEEComputeManager grants multiple transient permissions
         vm.startPrank(teeComputeManager);
@@ -313,10 +277,6 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle2, user2));
     }
 
-    /**
-     * @dev Tests that cleanTransientStorage only clears transient permissions
-     *      and does not affect persistent permissions in a userOp context.
-     */
     function test_CleanTransientStorage_PreservesPersistentPermissions() public {
         // Grant persistent permission to user1 for handle
         _allow(handle, user1);
@@ -340,16 +300,10 @@ contract ACLTest is Test {
 
     // ============ isViewer ============
 
-    /**
-     * @dev Tests that isViewer returns false by default.
-     */
     function test_IsViewer_ReturnsFalseByDefault() public view {
         assertFalse(acl.isViewer(handle, user1));
     }
 
-    /**
-     * @dev Tests that isViewer returns true when handle is publicly decryptable.
-     */
     function test_IsViewer_ByAnyoneWhenPubliclyDecryptable() public {
         address anyone = makeAddr("anyon");
         assertFalse(acl.isViewer(handle, anyone));
@@ -364,9 +318,6 @@ contract ACLTest is Test {
 
     // ============ isAllowed ============
 
-    /**
-     * @dev Tests that isAllowed returns false for any address and handle by default.
-     */
     function test_IsAllowed_ReturnsFalseByDefault() public view {
         assertFalse(acl.isAllowed(handle, user1));
         assertFalse(acl.isAllowed(handle, user2));
@@ -374,9 +325,6 @@ contract ACLTest is Test {
 
     // ============ _authorizeUpgrade ============
 
-    /**
-     * @dev Tests that owner can upgrade the contract.
-     */
     function test_AuthorizeUpgrade() public {
         address newImplementation = address(new ACL());
         vm.prank(owner);
@@ -385,9 +333,6 @@ contract ACLTest is Test {
         acl.upgradeToAndCall(newImplementation, "");
     }
 
-    /**
-     * @dev Tests that non-owner cannot upgrade the contract.
-     */
     function test_RevertWhen_AuthorizeUpgrade_WithUnauthorizedAccount() public {
         address unauthorized = makeAddr("unauthorized");
         vm.expectRevert(
