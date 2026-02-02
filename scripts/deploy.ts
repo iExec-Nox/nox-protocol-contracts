@@ -15,14 +15,15 @@ import connection from "./utils/hardhat-connection-singleton.js";
  * @returns Viem contract instances for the deployed proxy contracts
  */
 export async function deploy(printLogs = true) {
+    const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
     const chainConfig = config[connection.networkName];
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
     }
-    _print(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
-    _print(`Chain config: ${JSON.stringify(chainConfig)}`);
+    _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _log(`Chain config: ${JSON.stringify(chainConfig)}`);
     // Deploy TEEComputeManager.
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
@@ -33,7 +34,7 @@ export async function deploy(printLogs = true) {
             },
         },
     });
-    _print(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
+    _log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
     // Deploy ACL
     const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
@@ -45,7 +46,7 @@ export async function deploy(printLogs = true) {
             },
         },
     });
-    _print(`ACL: ${aclProxy.address}`);
+    _log(`ACL: ${aclProxy.address}`);
     // Update ACL address in TEEComputeManager.
     const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
     const setAclTxHash = await teeComputeManager.write.setAcl([aclProxy.address]);
@@ -57,12 +58,6 @@ export async function deploy(printLogs = true) {
         acl,
         teeComputeManager,
     };
-
-    function _print(message: string) {
-        if (printLogs) {
-            console.log(message);
-        }
-    }
 }
 
 // Execute the deployment only if the script is run directly.

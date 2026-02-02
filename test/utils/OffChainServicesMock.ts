@@ -10,11 +10,11 @@ const eventsToWatch = [
     "event Add(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Sub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
 ];
-// Can be used for debugging.
-const printLogs = false;
 const client = await connection.viem.getPublicClient();
 
 export class OffChainServices {
+    // Can be used for manual debugging.
+    private printLogs = false;
     private teeComputeManagerAddress: `0x${string}`;
     private gateway: PrivateKeyAccount;
     private chainId: number;
@@ -38,7 +38,7 @@ export class OffChainServices {
         this.running = true;
         this.handleToValueMap = new Map(); // reset the map with every start
         this.stopGatewayService = await this._startGateway();
-        _print("Mock services started");
+        this._log("Mock services started");
     }
 
     /**
@@ -50,7 +50,7 @@ export class OffChainServices {
         }
         this.running = false;
         this.stopGatewayService();
-        _print("Mock services stopped");
+        this._log("Mock services stopped");
     }
 
     /**
@@ -135,7 +135,7 @@ export class OffChainServices {
 
     private _saveHandle(handle: `0x${string}`, value: bigint) {
         this.handleToValueMap.set(handle, value);
-        _print(`Saved handle: ${handle} -> ${value}`);
+        this._log(`Saved handle: ${handle} -> ${value}`);
     }
 
     private async _startGateway() {
@@ -156,10 +156,10 @@ export class OffChainServices {
      * Simulates the off-chain runner.
      */
     private _processEvents(eventLogs: any[]) {
-        _print(`Gateway processing ${eventLogs.length} event(s): ${eventLogs.map((e) => e.eventName).join(", ")}`);
+        this._log(`Gateway processing ${eventLogs.length} event(s): ${eventLogs.map((e) => e.eventName).join(", ")}`);
         for (const log of eventLogs) {
             const eventName = log.eventName;
-            _print(`Processing event: ${eventName}`);
+            this._log(`Processing event: ${eventName}`);
             if (eventName === "PlaintextToEncrypted") {
                 this._processPlaintextToEncryptedEvent(log);
             } else if (eventName === "Add") {
@@ -174,7 +174,7 @@ export class OffChainServices {
 
     private _processPlaintextToEncryptedEvent(log: any) {
         const { plaintext, result } = log.args as { plaintext: bigint; result: `0x${string}` };
-        _print(`(e) PlaintextToEncrypted: ${result} -> ${plaintext}`);
+        this._log(`(e) PlaintextToEncrypted: ${result} -> ${plaintext}`);
         this._saveHandle(result, plaintext);
     }
 
@@ -187,7 +187,7 @@ export class OffChainServices {
         const lhoValue = this.decrypt(leftHandOperand);
         const rhoValue = this.decrypt(rightHandOperand);
         const addResult = lhoValue + rhoValue;
-        _print(`(e) Add: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
+        this._log(`(e) Add: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
         this._saveHandle(result, addResult);
     }
 
@@ -200,13 +200,9 @@ export class OffChainServices {
         const lhoValue = this.decrypt(leftHandOperand);
         const rhoValue = this.decrypt(rightHandOperand);
         const subResult = lhoValue - rhoValue;
-        _print(`(e) Sub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
+        this._log(`(e) Sub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
         this._saveHandle(result, subResult);
     }
-}
 
-function _print(message: string) {
-    if (printLogs) {
-        console.log(`[Debug] ${message}`);
-    }
+    private _log = this.printLogs ? console.log : () => {};
 }
