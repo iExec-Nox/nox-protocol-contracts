@@ -201,10 +201,7 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        result = _executeComparisonOperation(Operator.Eq, operands);
+        result = _executeComparisonOperation(Operator.Eq, leftHandOperand, rightHandOperand);
         emit Eq(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -213,10 +210,7 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        result = _executeComparisonOperation(Operator.Ne, operands);
+        result = _executeComparisonOperation(Operator.Ne, leftHandOperand, rightHandOperand);
         emit Ne(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -225,10 +219,7 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        result = _executeComparisonOperation(Operator.Lt, operands);
+        result = _executeComparisonOperation(Operator.Lt, leftHandOperand, rightHandOperand);
         emit Lt(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -237,10 +228,7 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        result = _executeComparisonOperation(Operator.Le, operands);
+        result = _executeComparisonOperation(Operator.Le, leftHandOperand, rightHandOperand);
         emit Le(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -249,10 +237,7 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        result = _executeComparisonOperation(Operator.Gt, operands);
+        result = _executeComparisonOperation(Operator.Gt, leftHandOperand, rightHandOperand);
         emit Gt(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -261,10 +246,7 @@ contract TEEComputeManager is
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        result = _executeComparisonOperation(Operator.Ge, operands);
+        result = _executeComparisonOperation(Operator.Ge, leftHandOperand, rightHandOperand);
         emit Ge(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -381,7 +363,7 @@ contract TEEComputeManager is
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The operator to apply (Add, Sub, Div, SafeAdd, SafeSub)
+     * @param operator The operator to apply (Add, Sub, Mul, Div, SafeAdd, SafeSub)
      * @param operands Array of operand handles
      * @param isSafeOperation Whether to generate a Bool success handle alongside the result
      * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
@@ -415,30 +397,36 @@ contract TEEComputeManager is
     /**
      * Executes a comparison operation on two encrypted handles.
      * Both operands must share the same arithmetic type.
-     * Verifies ACL permissions for all operands, checks type compatibility,
+     * Verifies ACL permissions for both operands, checks type compatibility,
      * generates a Bool result handle, and grants transient access to the caller.
      *
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The comparison operator to apply (Eq, Ne, Lt, Le, Gt, Ge)
-     * @param operands Array of operand handles (must be 2)
+     * @param leftOperand Left-hand side operand handle
+     * @param rightOperand Right-hand side operand handle
      * @return result The resulting Bool handle
      */
     function _executeComparisonOperation(
         Operator operator,
-        bytes32[] memory operands
+        bytes32 leftOperand,
+        bytes32 rightOperand
     ) private returns (bytes32 result) {
-        TEEType operandType = TypeUtils.typeOf(operands[0]);
+        TEEType operandType = TypeUtils.typeOf(leftOperand);
         TypeUtils.validateArithmeticType(operandType);
-        if (operandType != TypeUtils.typeOf(operands[1])) {
+        if (operandType != TypeUtils.typeOf(rightOperand)) {
             revert IncompatibleTypes();
         }
-        for (uint256 i = 0; i < operands.length; i++) {
-            if (!ACL.isAllowed(operands[i], msg.sender)) {
-                revert ACLNotAllowed(operands[i], msg.sender);
-            }
+        if (!ACL.isAllowed(leftOperand, msg.sender)) {
+            revert ACLNotAllowed(leftOperand, msg.sender);
         }
+        if (!ACL.isAllowed(rightOperand, msg.sender)) {
+            revert ACLNotAllowed(rightOperand, msg.sender);
+        }
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftOperand;
+        operands[1] = rightOperand;
         result = _generateHandle(operator, operands, TEEType.Bool);
         ACL.allowTransient(result, msg.sender);
     }
