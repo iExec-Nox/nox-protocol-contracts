@@ -414,7 +414,7 @@ contract TEEComputeManager is
 
     /**
      * Executes a comparison operation on two encrypted handles.
-     * Both operands must share the same arithmetic type (Uint256 or Int256).
+     * Both operands must share the same arithmetic type.
      * Verifies ACL permissions for all operands, checks type compatibility,
      * generates a Bool result handle, and grants transient access to the caller.
      *
