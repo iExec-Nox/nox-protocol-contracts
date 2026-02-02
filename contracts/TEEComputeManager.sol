@@ -353,7 +353,7 @@ contract TEEComputeManager is
      *   ))
      *
      * Handle format (32 bytes):
-     *   [0-25]  : First 26 bytes of prehandle (truncated hash)
+     *   [0-25]  : First 26 bytes of preHandle (truncated hash)
      *   [26-29] : Chain ID (4 bytes, from uint32)
      *   [30]    : TEE type
      *   [31]    : Handle version
