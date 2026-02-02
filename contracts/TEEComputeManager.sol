@@ -91,7 +91,7 @@ contract TEEComputeManager is
         TypeUtils.validateEncryptableType(teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
-        result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType, 0);
+        result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         $.acl.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);
@@ -223,8 +223,7 @@ contract TEEComputeManager is
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
-        TEEType conditionType = TypeUtils.typeOf(condition);
-        if (conditionType != TEEType.Bool) {
+        if (TypeUtils.typeOf(condition) != TEEType.Bool) {
             revert UnsupportedType();
         }
         TEEType resultType = TypeUtils.typeOf(ifTrue);
@@ -233,6 +232,7 @@ contract TEEComputeManager is
         }
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         IACL aclContract = $.acl;
+        //TODO: check if we need ACL.isAllowed(bytes32[] handles, address account)
         if (!aclContract.isAllowed(condition, msg.sender)) {
             revert ACLNotAllowed(condition, msg.sender);
         }
@@ -246,7 +246,7 @@ contract TEEComputeManager is
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
-        result = _generateHandle(Operator.Select, operands, resultType, 0);
+        result = _generateHandle(Operator.Select, operands, resultType);
         aclContract.allowTransient(result, msg.sender);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
     }
@@ -313,22 +313,22 @@ contract TEEComputeManager is
      * Verifies ACL permissions for all operands, checks type compatibility,
      * generates result handle(s), and grants transient access to the caller.
      *
-     * When `isSafe` is true, generates an additional Bool success handle (outputIndex 0)
-     * and the result handle at outputIndex 1, enabling overflow/underflow detection.
+     * When `isSafeOperation` is true, generates an additional Bool success handle (outputIndex 1)
+     * and the result handle at outputIndex 0, enabling overflow/underflow detection.
      *
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The operator to apply (Add, Sub, Div, SafeAdd, SafeSub)
      * @param operands Array of operand handles
-     * @param isSafe Whether to generate a Bool success handle alongside the result
-     * @return success The success flag handle (Bool type), bytes32(0) if not safe
+     * @param isSafeOperation Whether to generate a Bool success handle alongside the result
+     * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
      * @return result The resulting encrypted handle
      */
     function _executeArithmeticOperation(
         Operator operator,
         bytes32[] memory operands,
-        bool isSafe
+        bool isSafeOperation
     ) private returns (bytes32 success, bytes32 result) {
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
@@ -344,12 +344,23 @@ contract TEEComputeManager is
                 revert ACLNotAllowed(operands[i], msg.sender);
             }
         }
-        if (isSafe) {
-            success = _generateHandle(operator, operands, TEEType.Bool, 0);
+        result = _generateHandle(operator, operands, resultType);
+        aclContract.allowTransient(result, msg.sender);
+        if (isSafeOperation) {
+            success = _generateHandle(operator, operands, TEEType.Bool, 1);
             aclContract.allowTransient(success, msg.sender);
         }
-        result = _generateHandle(operator, operands, resultType, isSafe ? uint8(1) : uint8(0));
-        aclContract.allowTransient(result, msg.sender);
+    }
+
+    /**
+     * @dev Alias for _generateHandle with outputIndex defaulting to 0.
+     */
+    function _generateHandle(
+        Operator operator,
+        bytes32[] memory operands,
+        TEEType handleType
+    ) private view returns (bytes32 result) {
+        result = _generateHandle(operator, operands, handleType, 0);
     }
 
     /**
@@ -362,7 +373,7 @@ contract TEEComputeManager is
      *       address(this),   // TEEComputeManager contract address
      *       msg.sender,      // Caller address
      *       block.timestamp, // Current block timestamp
-     *       0                // For operations that return multiple outputs (can be 0 when needed)
+     *       outputIndex      // For operations that return multiple outputs
      *   ))
      *
      * Handle format (32 bytes):
@@ -374,6 +385,7 @@ contract TEEComputeManager is
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param handleType The TEE type to encode in the handle
+     * @param outputIndex Index for operations returning multiple outputs
      * @return result The complete handle with metadata appended
      */
     function _generateHandle(
