@@ -49,7 +49,7 @@ describe("ACL", function () {
             await connection.networkHelpers.mine();
 
             // New transaction: Check permissions - transient should be gone, persistent should remain
-            const aclAddress = await teeComputeManagerMock.read.acl();
+            const aclAddress = await teeComputeManagerMock.read.ACL();
             const aclContract = await viem.getContractAt("ACL", aclAddress);
 
             const isAllowedTransient = await aclContract.read.isAllowed([handleTransient, wallet1.account.address]);

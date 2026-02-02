@@ -25,10 +25,10 @@ contract TEEComputeManagerMock is TEEComputeManager {
         address account
     ) external {
         // Grant transient access (will be cleared after transaction)
-        _acl.allowTransient(handleTransient, account);
+        ACL.allowTransient(handleTransient, account);
         // Grant transient access to THIS CONTRACT so it can call allow()
-        _acl.allowTransient(handlePersistent, address(this));
+        ACL.allowTransient(handlePersistent, address(this));
         // Convert to persistent access (will survive after transaction)
-        _acl.allow(handlePersistent, account);
+        ACL.allow(handlePersistent, account);
     }
 }

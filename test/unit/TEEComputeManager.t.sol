@@ -35,7 +35,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
-        assertEq(teeComputeManager.acl(), acl);
+        assertEq(address(teeComputeManager.ACL()), acl);
         (
             , // bytes1 fields
             string memory name,

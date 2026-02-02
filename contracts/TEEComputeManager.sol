@@ -32,7 +32,7 @@ contract TEEComputeManager is
     uint8 private constant HANDLE_VERSION = 0;
 
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IACL internal immutable _acl;
+    IACL public immutable ACL;
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
@@ -47,7 +47,7 @@ contract TEEComputeManager is
         if (acl_ == address(0)) {
             revert InvalidZeroAddress();
         }
-        _acl = IACL(acl_);
+        ACL = IACL(acl_);
         _disableInitializers();
     }
 
@@ -84,7 +84,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
-        _acl.allowTransient(result, msg.sender);
+        ACL.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);
     }
 
@@ -148,7 +148,7 @@ contract TEEComputeManager is
             revert InvalidProof(proof, "Invalid signature");
         }
         // Give caller contract transient access to the handle.
-        _acl.allowTransient(handle, msg.sender);
+        ACL.allowTransient(handle, msg.sender);
     }
 
     /// @inheritdoc ITEEComputeManager
@@ -207,13 +207,6 @@ contract TEEComputeManager is
     }
 
     /**
-     * Returns the ACL contract address.
-     */
-    function acl() external view returns (address) {
-        return address(_acl);
-    }
-
-    /**
      * Returns the Gateway wallet address.
      */
     function gateway() external view returns (address) {
@@ -223,17 +216,17 @@ contract TEEComputeManager is
 
     /// @inheritdoc ITEEComputeManager
     function isAllowed(bytes32 handle, address account) external view returns (bool) {
-        return _acl.isAllowed(handle, account);
+        return ACL.isAllowed(handle, account);
     }
 
     /// @inheritdoc ITEEComputeManager
     function isViewer(bytes32 handle, address viewer) external view returns (bool) {
-        return _acl.isViewer(handle, viewer);
+        return ACL.isViewer(handle, viewer);
     }
 
     /// @inheritdoc ITEEComputeManager
     function isPubliclyDecryptable(bytes32 handle) external view returns (bool) {
-        return _acl.isPubliclyDecryptable(handle);
+        return ACL.isPubliclyDecryptable(handle);
     }
 
     /**
@@ -274,14 +267,13 @@ contract TEEComputeManager is
                 revert IncompatibleTypes();
             }
         }
-        IACL aclContract = _acl;
         for (uint256 i = 0; i < operands.length; i++) {
-            if (!aclContract.isAllowed(operands[i], msg.sender)) {
+            if (!ACL.isAllowed(operands[i], msg.sender)) {
                 revert ACLNotAllowed(operands[i], msg.sender);
             }
         }
         result = _generateHandle(operator, operands, resultType);
-        aclContract.allowTransient(result, msg.sender);
+        ACL.allowTransient(result, msg.sender);
     }
 
     /**
