@@ -49,6 +49,7 @@ export class OffChainServices {
             throw new Error("Mock services are not running");
         }
         this.running = false;
+        this.handleToValueMap.clear();
         this.stopGatewayService();
         this._log("Mock services stopped");
     }
