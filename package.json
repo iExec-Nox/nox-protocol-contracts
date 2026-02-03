@@ -1,7 +1,10 @@
 {
-  "name": "nox-contracts",
-  "version": "0.1.0",
+  "name": "@iexec-nox/nox-contracts",
+  "version": "0.0.0",
   "description": "Nox protocol smart contracts",
+  "license": "Apache-2.0",
+  "packageManager": "pnpm@10.28.2",
+  "type": "module",
   "scripts": {
     "prepare": "husky",
     "clean": "pnpm hardhat clean",
@@ -17,9 +20,6 @@
       "prettier --write"
     ]
   },
-  "license": "Apache-2.0",
-  "packageManager": "pnpm@10.28.2",
-  "type": "module",
   "dependencies": {
     "@openzeppelin/contracts": "^5.4.0",
     "@openzeppelin/contracts-upgradeable": "^5.4.0",
@@ -37,5 +37,13 @@
     "prettier-plugin-solidity": "^2.2.1",
     "typescript": "~5.8.0",
     "viem": "^2.30.0"
+  },
+  "homepage": "https://github.com/iExec-Nox/nox-contracts#readme",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/iExec-Nox/nox-contracts.git"
+  },
+  "bugs": {
+    "url": "https://github.com/iExec-Nox/nox-contracts/issues"
   }
 }
