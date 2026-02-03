@@ -22,13 +22,7 @@ contract TEELibTest is Test {
         (acl, teeComputeManager) = TestHelper.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
-
-        // Configure TEE storage
-        TEEPrimitives.TEEConfig memory config = TEEPrimitives.TEEConfig({
-            teeComputeManager: address(teeComputeManager),
-            acl: address(acl)
-        });
-        TEEPrimitives.setTEEStorage(config);
+        TEEPrimitives.setNoxConfig(address(teeComputeManager));
     }
 
     // ============ Trivial Encryption ============

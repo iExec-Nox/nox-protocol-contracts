@@ -30,16 +30,17 @@ interface IERC7984 {
  * A mock client contract to simulate client interactions with
  * the Nox protocol contracts.
  */
-contract TokenContractMock is IERC7984 {
+contract ConfidentialTokenMock is IERC7984 {
     mapping(address holder => euint256) private _balances;
     euint256 private _totalSupply;
 
-    constructor() {
-        TEEPrimitives.setTEEStorage(
-            TEEPrimitives.TEEConfig({teeComputeManager: address(0x1234), acl: address(0x5678)})
-        );
-        _totalSupply = TEEPrimitives.toEuint256(1000000);
-        _balances[msg.sender] = _totalSupply;
+    constructor(uint256 totalSupply, address teeComputeManager) {
+        TEEPrimitives.setNoxConfig(teeComputeManager);
+        _totalSupply = TEEPrimitives.toEuint256(totalSupply);
+        euint256 msgSenderBalance = TEEPrimitives.toEuint256(totalSupply);
+        _balances[msg.sender] = msgSenderBalance;
+        TEEPrimitives.allowThis(msgSenderBalance);
+        TEEPrimitives.allow(msgSenderBalance, msg.sender);
     }
 
     function confidentialTotalSupply() public view override returns (euint256) {
@@ -55,12 +56,44 @@ contract TokenContractMock is IERC7984 {
         externalEuint256 amountHandle,
         bytes calldata handleProof
     ) public override returns (euint256) {
-        return _transfer(msg.sender, to, TEEPrimitives.fromExternal(amountHandle, handleProof));
+        return
+            _transferWithoutAmountCheck(
+                msg.sender,
+                to,
+                TEEPrimitives.fromExternal(amountHandle, handleProof)
+            );
     }
 
     function confidentialTransfer(address to, euint256 amount) public override returns (euint256) {
         require(TEEPrimitives.isAllowed(amount, msg.sender), "Not allowed");
-        return _transfer(msg.sender, to, amount);
+        return _transferWithoutAmountCheck(msg.sender, to, amount);
+    }
+
+    /**
+     * Temporary function to transfer without amount check.
+     * TODO use `_transfer` when select is implemented.
+     */
+    function _transferWithoutAmountCheck(
+        address from,
+        address to,
+        euint256 amount
+    ) internal returns (euint256) {
+        require(from != address(0), "Zero from address");
+        require(to != address(0), "Zero to address");
+        euint256 result = TEEPrimitives.sub(_balances[from], amount);
+        _balances[from] = result;
+        TEEPrimitives.allowThis(result);
+        TEEPrimitives.allow(result, from);
+        euint256 toBalance = _balances[to];
+        if (euint256.unwrap(toBalance) == 0) {
+            toBalance = TEEPrimitives.toEuint256(0);
+        }
+        euint256 newToBalance = TEEPrimitives.add(toBalance, amount);
+        _balances[to] = newToBalance;
+        TEEPrimitives.allowThis(newToBalance);
+        TEEPrimitives.allow(newToBalance, to);
+        emit ConfidentialTransfer(from, to, amount);
+        return amount;
     }
 
     function _transfer(address from, address to, euint256 amount) internal returns (euint256) {
