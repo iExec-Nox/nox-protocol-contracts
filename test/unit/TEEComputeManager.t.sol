@@ -780,6 +780,256 @@ contract TEEComputeManagerTest is Test {
         aclContract.allow(h, account);
     }
 
+    // ============ mul ============
+
+    function test_Mul() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Mul(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.mul(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+    }
+
+    function test_RevertWhen_Mul_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.mul(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Mul_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.mul(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Mul_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(UnsupportedType.selector);
+        teeComputeManager.mul(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ eq ============
+
+    function test_Eq() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.eq(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_RevertWhen_Eq_LhsNotAllowed() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.ACLNotAllowed.selector,
+                leftHandOperand,
+                caller
+            )
+        );
+        teeComputeManager.eq(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Eq_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.eq(leftHandOperand, rightHandOperand);
+    }
+
+    function test_RevertWhen_Eq_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(UnsupportedType.selector);
+        teeComputeManager.eq(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ ne ============
+
+    function test_Ne() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.ne(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_RevertWhen_Ne_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.ne(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ lt ============
+
+    function test_Lt() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.lt(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_RevertWhen_Lt_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.lt(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ le ============
+
+    function test_Le() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.le(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_RevertWhen_Le_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.le(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ gt ============
+
+    function test_Gt() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.gt(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_RevertWhen_Gt_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.gt(leftHandOperand, rightHandOperand);
+    }
+
+    // ============ ge ============
+
+    function test_Ge() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit ITEEComputeManager.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
+        bytes32 result = teeComputeManager.ge(leftHandOperand, rightHandOperand);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_RevertWhen_Ge_IncompatibleTypes() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+        teeComputeManager.ge(leftHandOperand, rightHandOperand);
+    }
+
     function _buildProof(
         bytes32 handle_,
         address owner_,
