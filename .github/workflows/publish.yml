@@ -14,7 +14,7 @@ jobs:
   pre-publish:
     uses: ./.github/workflows/main.yml
 
-  determine-dist-tag:
+  determine-tag:
     needs: pre-publish
     runs-on: ubuntu-latest
     outputs:
@@ -30,11 +30,11 @@ jobs:
           fi
 
   publish:
-    needs: determine-dist-tag
+    needs: determine-tag
     permissions:
       id-token: write # Required for OIDC
       packages: write
       contents: read
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@publish-npm-v1.6.0
     with:
-      tag: ${{ needs.determine-dist-tag.outputs.TAG }}
+      tag: ${{ needs.determine-tag.outputs.TAG }}
