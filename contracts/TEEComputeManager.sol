@@ -403,7 +403,7 @@ contract TEEComputeManager is
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The comparison operator to apply (Eq, Ne, Lt, Le, Gt, Ge)
+     * @param operator The comparison operator to apply
      * @param leftOperand Left-hand side operand handle
      * @param rightOperand Right-hand side operand handle
      * @return result The resulting Bool handle
