@@ -363,7 +363,7 @@ contract TEEComputeManager is
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The operator to apply (Add, Sub, Mul, Div, SafeAdd, SafeSub)
+     * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param isSafeOperation Whether to generate a Bool success handle alongside the result
      * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
