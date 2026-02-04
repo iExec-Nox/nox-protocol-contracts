@@ -609,7 +609,7 @@ contract TEEComputeManagerTest is Test {
      *   - _executeArithmeticOperation
      *   - _generateHandle
      **/
-     
+
     function _allow(bytes32 h, address account) internal {
         vm.prank(address(teeComputeManager));
         aclContract.allowTransient(h, address(this));
