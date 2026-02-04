@@ -41,6 +41,48 @@ interface ITEEComputeManager is IErrors {
         bytes32 rightHandOperand,
         bytes32 result
     );
+    event Mul(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Eq(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Ne(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Lt(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Le(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Gt(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
+    event Ge(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 result
+    );
     event SafeAdd(
         address indexed caller,
         bytes32 leftHandOperand,
@@ -67,10 +109,17 @@ interface ITEEComputeManager is IErrors {
         PlaintextToEncrypted,
         Add,
         Sub,
+        Mul,
         Div,
         SafeAdd,
         SafeSub,
-        Select
+        Select,
+        Eq,
+        Ne,
+        Lt,
+        Le,
+        Gt,
+        Ge
     }
 
     function setGateway(address gatewayAddress) external;
@@ -112,6 +161,83 @@ interface ITEEComputeManager is IErrors {
      * @return result Result handle
      */
     function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
+
+    /**
+     * @notice Performs a multiplication between two encrypted values
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Result handle
+     */
+    function mul(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Checks equality between two encrypted values
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Bool handle indicating equality
+     */
+    function eq(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Checks inequality between two encrypted values
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Bool handle indicating inequality
+     */
+    function ne(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Checks if left operand is less than right operand
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Bool handle indicating less than
+     */
+    function lt(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Checks if left operand is less than or equal to right operand
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Bool handle indicating less than or equal
+     */
+    function le(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Checks if left operand is greater than right operand
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Bool handle indicating greater than
+     */
+    function gt(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
+
+    /**
+     * @notice Checks if left operand is greater than or equal to right operand
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return result Bool handle indicating greater than or equal
+     */
+    function ge(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result);
 
     // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
     // as result in case of failure.
