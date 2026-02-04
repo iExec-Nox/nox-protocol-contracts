@@ -1,6 +1,10 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.24;
 
+/**
+ * @notice Enum values MUST NOT be reordered or removed once deployed.
+ * New types should only be appended at the end to maintain backward compatibility.
+ */
 enum TEEType {
     // ============ Special Types (0-3) ============
     Bool, // 0
@@ -109,6 +113,7 @@ enum TEEType {
 }
 
 error UnsupportedType();
+error NonArithmeticType();
 
 library TypeUtils {
     /**
@@ -122,12 +127,11 @@ library TypeUtils {
     }
 
     /**
-     * @notice Validates that a TEE type is encryptable (can be used in plaintextToEncrypted).
-     * All types in the TEEType enum are encryptable.
+     * @notice Validates that a TEE type is within the valid range.
      * Reverts with UnsupportedType if the type value is out of range.
      * @param teeType The TEE type to validate
      */
-    function validateEncryptableType(TEEType teeType) internal pure {
+    function validateType(TEEType teeType) internal pure {
         if (uint8(teeType) > uint8(TEEType.Bytes32)) {
             revert UnsupportedType();
         }
@@ -142,7 +146,7 @@ library TypeUtils {
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
         if (t < uint8(TEEType.Uint8) || t > uint8(TEEType.Int256)) {
-            revert UnsupportedType();
+            revert NonArithmeticType();
         }
     }
 }
