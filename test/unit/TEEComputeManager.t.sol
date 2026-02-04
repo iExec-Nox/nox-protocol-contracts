@@ -299,10 +299,7 @@ contract TEEComputeManagerTest is Test {
             }
             vm.prank(caller);
             bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
-            assertNotEq(result, bytes32(0));
-            assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
-            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(result[31]), 0);
+            _assertValidHandle(result, TEEType.Uint256);
         }
     }
 
@@ -339,10 +336,7 @@ contract TEEComputeManagerTest is Test {
             }
             vm.prank(caller);
             bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
-            assertNotEq(result, bytes32(0));
-            assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
-            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(result[31]), 0);
+            _assertValidHandle(result, TEEType.Bool);
         }
     }
 
@@ -383,15 +377,9 @@ contract TEEComputeManagerTest is Test {
                 leftHandOperand,
                 rightHandOperand
             );
-            assertNotEq(success, bytes32(0));
-            assertNotEq(result, bytes32(0));
             assertNotEq(success, result);
-            assertEq(uint8(TypeUtils.typeOf(success)), uint8(TEEType.Bool));
-            assertEq(bytes4(success << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(success[31]), 0);
-            assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
-            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(result[31]), 0);
+            _assertValidHandle(success, TEEType.Bool);
+            _assertValidHandle(result, TEEType.Uint256);
         }
     }
 
@@ -474,8 +462,7 @@ contract TEEComputeManagerTest is Test {
         emit ITEEComputeManager.Select(caller, condition, ifTrue, ifFalse, bytes32(0));
         bytes32 result = teeComputeManager.select(condition, ifTrue, ifFalse);
 
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+        _assertValidHandle(result, TEEType.Uint256);
     }
 
     function test_RevertWhen_Select_ConditionNotAllowed() public {
