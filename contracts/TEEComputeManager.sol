@@ -185,6 +185,72 @@ contract TEEComputeManager is
     }
 
     /// @inheritdoc ITEEComputeManager
+    function mul(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, result) = _executeArithmeticOperation(Operator.Mul, operands, false);
+        emit Mul(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function eq(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        result = _executeComparisonOperation(Operator.Eq, leftHandOperand, rightHandOperand);
+        emit Eq(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function ne(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        result = _executeComparisonOperation(Operator.Ne, leftHandOperand, rightHandOperand);
+        emit Ne(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function lt(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        result = _executeComparisonOperation(Operator.Lt, leftHandOperand, rightHandOperand);
+        emit Lt(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function le(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        result = _executeComparisonOperation(Operator.Le, leftHandOperand, rightHandOperand);
+        emit Le(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function gt(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        result = _executeComparisonOperation(Operator.Gt, leftHandOperand, rightHandOperand);
+        emit Gt(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
+    function ge(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 result) {
+        result = _executeComparisonOperation(Operator.Ge, leftHandOperand, rightHandOperand);
+        emit Ge(msg.sender, leftHandOperand, rightHandOperand, result);
+    }
+
+    /// @inheritdoc ITEEComputeManager
     function safeAdd(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -297,7 +363,7 @@ contract TEEComputeManager is
      * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
-     * @param operator The operator to apply (Add, Sub, Div, SafeAdd, SafeSub)
+     * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param isSafeOperation Whether to generate a Bool success handle alongside the result
      * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
@@ -326,6 +392,43 @@ contract TEEComputeManager is
             success = _generateHandle(operator, operands, TEEType.Bool, 1);
             ACL.allowTransient(success, msg.sender);
         }
+    }
+
+    /**
+     * Executes a comparison operation on two encrypted handles.
+     * Both operands must share the same arithmetic type.
+     * Verifies ACL permissions for both operands, checks type compatibility,
+     * generates a Bool result handle, and grants transient access to the caller.
+     *
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on any operand
+     * @dev Reverts with IncompatibleTypes if operand types don't match
+     *
+     * @param operator The comparison operator to apply
+     * @param leftOperand Left-hand side operand handle
+     * @param rightOperand Right-hand side operand handle
+     * @return result The resulting Bool handle
+     */
+    function _executeComparisonOperation(
+        Operator operator,
+        bytes32 leftOperand,
+        bytes32 rightOperand
+    ) private returns (bytes32 result) {
+        TEEType operandType = TypeUtils.typeOf(leftOperand);
+        TypeUtils.validateArithmeticType(operandType);
+        if (operandType != TypeUtils.typeOf(rightOperand)) {
+            revert IncompatibleTypes();
+        }
+        if (!ACL.isAllowed(leftOperand, msg.sender)) {
+            revert ACLNotAllowed(leftOperand, msg.sender);
+        }
+        if (!ACL.isAllowed(rightOperand, msg.sender)) {
+            revert ACLNotAllowed(rightOperand, msg.sender);
+        }
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftOperand;
+        operands[1] = rightOperand;
+        result = _generateHandle(operator, operands, TEEType.Bool);
+        ACL.allowTransient(result, msg.sender);
     }
 
     /**
