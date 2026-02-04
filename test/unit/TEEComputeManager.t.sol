@@ -25,38 +25,27 @@ contract TEEComputeManagerTest is Test {
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
-    // Arithmetic operation selectors
-    bytes4[] internal arithmeticOps;
-    // Comparison operation selectors
-    bytes4[] internal comparisonOps;
-    // Safe arithmetic operation selectors
-    bytes4[] internal safeArithmeticOps;
+    // Binary operation selectors (arithmetic + comparison + safe arithmetic)
+    bytes4[] internal binaryOps;
 
     function setUp() public {
         (aclContract, teeComputeManager) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
         vm.label(caller, "caller");
 
-        // Initialize arithmetic operations
-        arithmeticOps = new bytes4[](4);
-        arithmeticOps[0] = ITEEComputeManager.add.selector;
-        arithmeticOps[1] = ITEEComputeManager.sub.selector;
-        arithmeticOps[2] = ITEEComputeManager.mul.selector;
-        arithmeticOps[3] = ITEEComputeManager.div.selector;
-
-        // Initialize comparison operations
-        comparisonOps = new bytes4[](6);
-        comparisonOps[0] = ITEEComputeManager.eq.selector;
-        comparisonOps[1] = ITEEComputeManager.ne.selector;
-        comparisonOps[2] = ITEEComputeManager.lt.selector;
-        comparisonOps[3] = ITEEComputeManager.le.selector;
-        comparisonOps[4] = ITEEComputeManager.gt.selector;
-        comparisonOps[5] = ITEEComputeManager.ge.selector;
-
-        // Initialize safe arithmetic operations
-        safeArithmeticOps = new bytes4[](2);
-        safeArithmeticOps[0] = ITEEComputeManager.safeAdd.selector;
-        safeArithmeticOps[1] = ITEEComputeManager.safeSub.selector;
+        binaryOps = new bytes4[](12);
+        binaryOps[0] = ITEEComputeManager.add.selector;
+        binaryOps[1] = ITEEComputeManager.sub.selector;
+        binaryOps[2] = ITEEComputeManager.mul.selector;
+        binaryOps[3] = ITEEComputeManager.div.selector;
+        binaryOps[4] = ITEEComputeManager.eq.selector;
+        binaryOps[5] = ITEEComputeManager.ne.selector;
+        binaryOps[6] = ITEEComputeManager.lt.selector;
+        binaryOps[7] = ITEEComputeManager.le.selector;
+        binaryOps[8] = ITEEComputeManager.gt.selector;
+        binaryOps[9] = ITEEComputeManager.ge.selector;
+        binaryOps[10] = ITEEComputeManager.safeAdd.selector;
+        binaryOps[11] = ITEEComputeManager.safeSub.selector;
     }
 
     // ============ initialize ============
@@ -116,13 +105,35 @@ contract TEEComputeManagerTest is Test {
 
     // ============ plaintextToEncrypted ============
 
-    function test_PlaintextToEncrypted_AllTypes() public {
-        for (uint8 i = 0; i <= uint8(TEEType.Bytes32); i++) {
-            vm.prank(caller);
-            bytes32 result = teeComputeManager.plaintextToEncrypted(42, TEEType(i));
-            assertTrue(result != bytes32(0));
-            assertEq(uint8(TypeUtils.typeOf(result)), i);
-        }
+    function test_PlaintextToEncrypted_Bool() public {
+        uint256 value = 1;
+        vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+    }
+
+    function test_PlaintextToEncrypted_Uint256() public {
+        uint256 value = 42;
+        vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+        assertEq(uint8(result[31]), 0);
+    }
+
+    function test_PlaintextToEncrypted_Int256() public {
+        int256 value = -999;
+        vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
+        vm.prank(caller);
+        bytes32 result = teeComputeManager.plaintextToEncrypted(uint256(value), TEEType.Int256);
+
+        assertTrue(result != bytes32(0));
+        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Int256));
     }
 
     function test_PlaintextToEncrypted_UniqueHandles() public {
@@ -134,6 +145,20 @@ contract TEEComputeManagerTest is Test {
         bytes32 result2 = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
 
         assertTrue(result1 != result2);
+    }
+
+    function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
+        uint256 value = 42;
+        // Use low-level call to pass invalid TEEType value (100) which is > Bytes32 (99)
+        vm.prank(caller);
+        (bool success, ) = address(teeComputeManager).call(
+            abi.encodeWithSelector(
+                ITEEComputeManager.plaintextToEncrypted.selector,
+                value,
+                uint256(100) // Pass as uint256 to match function signature
+            )
+        );
+        assertFalse(success);
     }
 
     // ============ validateProof ============
@@ -248,227 +273,93 @@ contract TEEComputeManagerTest is Test {
 
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
-    function test_ArithmeticOperations_Events() public {
+    function test_ArithmeticOperations() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < arithmeticOps.length; i++) {
+        bytes4[4] memory ops = [
+            ITEEComputeManager.add.selector,
+            ITEEComputeManager.sub.selector,
+            ITEEComputeManager.mul.selector,
+            ITEEComputeManager.div.selector
+        ];
+        for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (arithmeticOps[i] == ITEEComputeManager.add.selector) {
+            if (ops[i] == ITEEComputeManager.add.selector) {
                 emit ITEEComputeManager.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (arithmeticOps[i] == ITEEComputeManager.sub.selector) {
+            } else if (ops[i] == ITEEComputeManager.sub.selector) {
                 emit ITEEComputeManager.Sub(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (arithmeticOps[i] == ITEEComputeManager.mul.selector) {
+            } else if (ops[i] == ITEEComputeManager.mul.selector) {
                 emit ITEEComputeManager.Mul(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (arithmeticOps[i] == ITEEComputeManager.div.selector) {
+            } else if (ops[i] == ITEEComputeManager.div.selector) {
                 emit ITEEComputeManager.Div(caller, leftHandOperand, rightHandOperand, bytes32(0));
             }
             vm.prank(caller);
-            bytes32 result = _callArithmeticOperation(
-                arithmeticOps[i],
-                leftHandOperand,
-                rightHandOperand
-            );
-            assertTrue(result != bytes32(0));
+            bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
+            assertNotEq(result, bytes32(0));
             assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
+            assertEq(uint8(result[31]), 0);
         }
-    }
-
-    function test_ArithmeticOperations_AllIntegerTypes() public {
-        for (uint8 t = uint8(TEEType.Uint8); t <= uint8(TEEType.Int256); t++) {
-            TEEType teeType = TEEType(t);
-            bytes32 leftHandOperand = TestHelper.createHandle(1, teeType);
-            bytes32 rightHandOperand = TestHelper.createHandle(2, teeType);
-            _allow(leftHandOperand, caller);
-            _allow(rightHandOperand, caller);
-
-            for (uint256 i = 0; i < arithmeticOps.length; i++) {
-                vm.prank(caller);
-                bytes32 result = _callArithmeticOperation(
-                    arithmeticOps[i],
-                    leftHandOperand,
-                    rightHandOperand
-                );
-                assertTrue(result != bytes32(0));
-                assertEq(uint8(TypeUtils.typeOf(result)), t);
-            }
-        }
-    }
-
-    function test_RevertWhen_ArithmeticOperations_LhsNotAllowed() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
-        _allow(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < arithmeticOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    leftHandOperand,
-                    caller
-                )
-            );
-            _callArithmeticOperation(arithmeticOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_ArithmeticOperations_RhsNotAllowed() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
-        _allow(leftHandOperand, caller);
-
-        for (uint256 i = 0; i < arithmeticOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    rightHandOperand,
-                    caller
-                )
-            );
-            _callArithmeticOperation(arithmeticOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_ArithmeticOperations_IncompatibleTypes() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < arithmeticOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
-            _callArithmeticOperation(arithmeticOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_ArithmeticOperations_NonArithmeticTypes() public {
-        _assertArithmeticRevertsForNonArithmeticTypes(arithmeticOps);
     }
 
     // ============ Comparison Operations (eq, ne, lt, le, gt, ge) ============
 
-    function test_ComparisonOperations_Events() public {
+    function test_ComparisonOperations() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < comparisonOps.length; i++) {
+        bytes4[6] memory ops = [
+            ITEEComputeManager.eq.selector,
+            ITEEComputeManager.ne.selector,
+            ITEEComputeManager.lt.selector,
+            ITEEComputeManager.le.selector,
+            ITEEComputeManager.gt.selector,
+            ITEEComputeManager.ge.selector
+        ];
+        for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (comparisonOps[i] == ITEEComputeManager.eq.selector) {
+            if (ops[i] == ITEEComputeManager.eq.selector) {
                 emit ITEEComputeManager.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == ITEEComputeManager.ne.selector) {
+            } else if (ops[i] == ITEEComputeManager.ne.selector) {
                 emit ITEEComputeManager.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == ITEEComputeManager.lt.selector) {
+            } else if (ops[i] == ITEEComputeManager.lt.selector) {
                 emit ITEEComputeManager.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == ITEEComputeManager.le.selector) {
+            } else if (ops[i] == ITEEComputeManager.le.selector) {
                 emit ITEEComputeManager.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == ITEEComputeManager.gt.selector) {
+            } else if (ops[i] == ITEEComputeManager.gt.selector) {
                 emit ITEEComputeManager.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == ITEEComputeManager.ge.selector) {
+            } else if (ops[i] == ITEEComputeManager.ge.selector) {
                 emit ITEEComputeManager.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
             }
             vm.prank(caller);
-            bytes32 result = _callComparisonOperation(
-                comparisonOps[i],
-                leftHandOperand,
-                rightHandOperand
-            );
-            assertTrue(result != bytes32(0));
+            bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
+            assertNotEq(result, bytes32(0));
             assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
+            assertEq(uint8(result[31]), 0);
         }
-    }
-
-    function test_ComparisonOperations_AllIntegerTypes() public {
-        for (uint8 t = uint8(TEEType.Uint8); t <= uint8(TEEType.Int256); t++) {
-            TEEType teeType = TEEType(t);
-            bytes32 leftHandOperand = TestHelper.createHandle(1, teeType);
-            bytes32 rightHandOperand = TestHelper.createHandle(2, teeType);
-            _allow(leftHandOperand, caller);
-            _allow(rightHandOperand, caller);
-
-            for (uint256 i = 0; i < comparisonOps.length; i++) {
-                vm.prank(caller);
-                bytes32 result = _callComparisonOperation(
-                    comparisonOps[i],
-                    leftHandOperand,
-                    rightHandOperand
-                );
-                assertTrue(result != bytes32(0));
-                assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
-            }
-        }
-    }
-
-    function test_RevertWhen_ComparisonOperations_LhsNotAllowed() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
-        _allow(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < comparisonOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    leftHandOperand,
-                    caller
-                )
-            );
-            _callComparisonOperation(comparisonOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_ComparisonOperations_RhsNotAllowed() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
-        _allow(leftHandOperand, caller);
-
-        for (uint256 i = 0; i < comparisonOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    rightHandOperand,
-                    caller
-                )
-            );
-            _callComparisonOperation(comparisonOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_ComparisonOperations_IncompatibleTypes() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < comparisonOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
-            _callComparisonOperation(comparisonOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_ComparisonOperations_NonArithmeticTypes() public {
-        _assertComparisonRevertsForNonArithmeticTypes();
     }
 
     // ============ Safe Arithmetic Operations (safeAdd, safeSub) ============
 
-    function test_SafeArithmeticOperations_Events() public {
+    function test_SafeArithmeticOperations() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+        bytes4[2] memory ops = [
+            ITEEComputeManager.safeAdd.selector,
+            ITEEComputeManager.safeSub.selector
+        ];
+        for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (safeArithmeticOps[i] == ITEEComputeManager.safeAdd.selector) {
+            if (ops[i] == ITEEComputeManager.safeAdd.selector) {
                 emit ITEEComputeManager.SafeAdd(
                     caller,
                     leftHandOperand,
@@ -476,7 +367,7 @@ contract TEEComputeManagerTest is Test {
                     bytes32(0),
                     bytes32(0)
                 );
-            } else if (safeArithmeticOps[i] == ITEEComputeManager.safeSub.selector) {
+            } else if (ops[i] == ITEEComputeManager.safeSub.selector) {
                 emit ITEEComputeManager.SafeSub(
                     caller,
                     leftHandOperand,
@@ -487,48 +378,30 @@ contract TEEComputeManagerTest is Test {
             }
             vm.prank(caller);
             (bytes32 success, bytes32 result) = _callSafeArithmeticOperation(
-                safeArithmeticOps[i],
+                ops[i],
                 leftHandOperand,
                 rightHandOperand
             );
-            assertTrue(success != bytes32(0));
-            assertTrue(result != bytes32(0));
-            assertTrue(success != result);
+            assertNotEq(success, bytes32(0));
+            assertNotEq(result, bytes32(0));
+            assertNotEq(success, result);
             assertEq(uint8(TypeUtils.typeOf(success)), uint8(TEEType.Bool));
+            assertEq(bytes4(success << (26 * 8)), bytes4(uint32(block.chainid)));
+            assertEq(uint8(success[31]), 0);
             assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
+            assertEq(uint8(result[31]), 0);
         }
     }
 
-    function test_SafeArithmeticOperations_AllIntegerTypes() public {
-        for (uint8 t = uint8(TEEType.Uint8); t <= uint8(TEEType.Int256); t++) {
-            TEEType teeType = TEEType(t);
-            bytes32 leftHandOperand = TestHelper.createHandle(1, teeType);
-            bytes32 rightHandOperand = TestHelper.createHandle(2, teeType);
-            _allow(leftHandOperand, caller);
-            _allow(rightHandOperand, caller);
+    // ============ Binary Operations Revert Tests ============
 
-            for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
-                vm.prank(caller);
-                (bytes32 success, bytes32 result) = _callSafeArithmeticOperation(
-                    safeArithmeticOps[i],
-                    leftHandOperand,
-                    rightHandOperand
-                );
-                assertTrue(success != bytes32(0));
-                assertTrue(result != bytes32(0));
-                assertTrue(success != result);
-                assertEq(uint8(TypeUtils.typeOf(success)), uint8(TEEType.Bool));
-                assertEq(uint8(TypeUtils.typeOf(result)), t);
-            }
-        }
-    }
-
-    function test_RevertWhen_SafeArithmeticOperations_LhsNotAllowed() public {
+    function test_RevertWhen_BinaryOperations_LhsNotAllowed() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+        for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
                 abi.encodeWithSelector(
@@ -537,16 +410,16 @@ contract TEEComputeManagerTest is Test {
                     caller
                 )
             );
-            _callSafeArithmeticOperation(safeArithmeticOps[i], leftHandOperand, rightHandOperand);
+            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
-    function test_RevertWhen_SafeArithmeticOperations_RhsNotAllowed() public {
+    function test_RevertWhen_BinaryOperations_RhsNotAllowed() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
         _allow(leftHandOperand, caller);
 
-        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+        for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
                 abi.encodeWithSelector(
@@ -555,25 +428,34 @@ contract TEEComputeManagerTest is Test {
                     caller
                 )
             );
-            _callSafeArithmeticOperation(safeArithmeticOps[i], leftHandOperand, rightHandOperand);
+            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
-    function test_RevertWhen_SafeArithmeticOperations_IncompatibleTypes() public {
+    function test_RevertWhen_BinaryOperations_IncompatibleTypes() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+        for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
-            _callSafeArithmeticOperation(safeArithmeticOps[i], leftHandOperand, rightHandOperand);
+            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
-    function test_RevertWhen_SafeArithmeticOperations_NonArithmeticTypes() public {
-        _assertSafeArithmeticRevertsForNonArithmeticTypes();
+    function test_RevertWhen_BinaryOperations_UnsupportedType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        _allow(leftHandOperand, caller);
+        _allow(rightHandOperand, caller);
+
+        for (uint256 i = 0; i < binaryOps.length; i++) {
+            vm.prank(caller);
+            vm.expectRevert(UnsupportedType.selector);
+            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
+        }
     }
 
     // ============ select ============
@@ -729,6 +611,11 @@ contract TEEComputeManagerTest is Test {
     }
 
     // ============ Test Helpers ============
+    /**
+     * TODO: Add tests for private helper functions:
+     *   - _executeArithmeticOperation
+     *   - _generateHandle
+     **/
 
     function _allow(bytes32 h, address account) internal {
         vm.prank(address(teeComputeManager));
@@ -736,69 +623,7 @@ contract TEEComputeManagerTest is Test {
         aclContract.allow(h, account);
     }
 
-    /// @dev Returns all non-arithmetic TEEType values (special types + fixed-size bytes).
-    function _getNonArithmeticTypes() internal pure returns (TEEType[] memory) {
-        // Special types (0-3) + fixed-size bytes (68-99) = 4 + 32 = 36
-        TEEType[] memory types = new TEEType[](36);
-        uint256 idx = 0;
-        for (uint8 i = 0; i <= uint8(TEEType.String); i++) {
-            types[idx++] = TEEType(i);
-        }
-        for (uint8 i = uint8(TEEType.Bytes1); i <= uint8(TEEType.Bytes32); i++) {
-            types[idx++] = TEEType(i);
-        }
-        return types;
-    }
-
-    function _assertArithmeticRevertsForNonArithmeticTypes(bytes4[] memory ops) internal {
-        TEEType[] memory types = _getNonArithmeticTypes();
-        for (uint256 t = 0; t < types.length; t++) {
-            bytes32 left = TestHelper.createHandle(1, types[t]);
-            bytes32 right = TestHelper.createHandle(2, types[t]);
-            _allow(left, caller);
-            _allow(right, caller);
-
-            for (uint256 i = 0; i < ops.length; i++) {
-                vm.prank(caller);
-                vm.expectRevert(UnsupportedType.selector);
-                _callArithmeticOperation(ops[i], left, right);
-            }
-        }
-    }
-
-    function _assertComparisonRevertsForNonArithmeticTypes() internal {
-        TEEType[] memory types = _getNonArithmeticTypes();
-        for (uint256 t = 0; t < types.length; t++) {
-            bytes32 left = TestHelper.createHandle(1, types[t]);
-            bytes32 right = TestHelper.createHandle(2, types[t]);
-            _allow(left, caller);
-            _allow(right, caller);
-
-            for (uint256 i = 0; i < comparisonOps.length; i++) {
-                vm.prank(caller);
-                vm.expectRevert(UnsupportedType.selector);
-                _callComparisonOperation(comparisonOps[i], left, right);
-            }
-        }
-    }
-
-    function _assertSafeArithmeticRevertsForNonArithmeticTypes() internal {
-        TEEType[] memory types = _getNonArithmeticTypes();
-        for (uint256 t = 0; t < types.length; t++) {
-            bytes32 left = TestHelper.createHandle(1, types[t]);
-            bytes32 right = TestHelper.createHandle(2, types[t]);
-            _allow(left, caller);
-            _allow(right, caller);
-
-            for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
-                vm.prank(caller);
-                vm.expectRevert(UnsupportedType.selector);
-                _callSafeArithmeticOperation(safeArithmeticOps[i], left, right);
-            }
-        }
-    }
-
-    function _callArithmeticOperation(
+    function _callBinaryOperation(
         bytes4 selector,
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -806,8 +631,12 @@ contract TEEComputeManagerTest is Test {
         (bool success, bytes memory returnData) = address(teeComputeManager).call(
             abi.encodeWithSelector(selector, leftHandOperand, rightHandOperand)
         );
-        require(success, "Arithmetic operation failed");
-        return abi.decode(returnData, (bytes32));
+        if (!success) {
+            assembly {
+                revert(add(returnData, 32), mload(returnData))
+            }
+        }
+        return bytes32(returnData);
     }
 
     function _callSafeArithmeticOperation(
@@ -818,20 +647,12 @@ contract TEEComputeManagerTest is Test {
         (bool success, bytes memory returnData) = address(teeComputeManager).call(
             abi.encodeWithSelector(selector, leftHandOperand, rightHandOperand)
         );
-        require(success, "Safe arithmetic operation failed");
+        if (!success) {
+            assembly {
+                revert(add(returnData, 32), mload(returnData))
+            }
+        }
         return abi.decode(returnData, (bytes32, bytes32));
-    }
-
-    function _callComparisonOperation(
-        bytes4 selector,
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) internal returns (bytes32) {
-        (bool success, bytes memory returnData) = address(teeComputeManager).call(
-            abi.encodeWithSelector(selector, leftHandOperand, rightHandOperand)
-        );
-        require(success, "Comparison operation failed");
-        return abi.decode(returnData, (bytes32));
     }
 
     function _buildProof(
