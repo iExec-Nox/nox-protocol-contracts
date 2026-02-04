@@ -287,20 +287,11 @@ contract TEEComputeManager is
         if (resultType != TypeUtils.typeOf(ifFalse)) {
             revert IncompatibleTypes();
         }
-        //TODO: check if we need ACL.isAllowed(bytes32[] handles, address account)
-        if (!ACL.isAllowed(condition, msg.sender)) {
-            revert ACLNotAllowed(condition, msg.sender);
-        }
-        if (!ACL.isAllowed(ifTrue, msg.sender)) {
-            revert ACLNotAllowed(ifTrue, msg.sender);
-        }
-        if (!ACL.isAllowed(ifFalse, msg.sender)) {
-            revert ACLNotAllowed(ifFalse, msg.sender);
-        }
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
+        _checkAllAllowed(operands);
         result = _generateHandle(Operator.Select, operands, resultType);
         ACL.allowTransient(result, msg.sender);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
@@ -381,11 +372,7 @@ contract TEEComputeManager is
                 revert IncompatibleTypes();
             }
         }
-        for (uint256 i = 0; i < operands.length; i++) {
-            if (!ACL.isAllowed(operands[i], msg.sender)) {
-                revert ACLNotAllowed(operands[i], msg.sender);
-            }
-        }
+        _checkAllAllowed(operands);
         result = _generateHandle(operator, operands, resultType);
         ACL.allowTransient(result, msg.sender);
         if (isSafeOperation) {
@@ -418,17 +405,25 @@ contract TEEComputeManager is
         if (operandType != TypeUtils.typeOf(rightOperand)) {
             revert IncompatibleTypes();
         }
-        if (!ACL.isAllowed(leftOperand, msg.sender)) {
-            revert ACLNotAllowed(leftOperand, msg.sender);
-        }
-        if (!ACL.isAllowed(rightOperand, msg.sender)) {
-            revert ACLNotAllowed(rightOperand, msg.sender);
-        }
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftOperand;
         operands[1] = rightOperand;
+        _checkAllAllowed(operands);
         result = _generateHandle(operator, operands, TEEType.Bool);
         ACL.allowTransient(result, msg.sender);
+    }
+
+    /**
+     * Checks that the caller has ACL permission on all provided handles using a single
+     * external call to ACL.areAllAllowed.
+     * @dev Reverts with ACLNotAllowed if caller lacks permission on any handle.
+     * @param handles Array of handles to check
+     */
+    function _checkAllAllowed(bytes32[] memory handles) private view {
+        (bool allAllowed, uint256 failedIndex) = ACL.areAllAllowed(handles, msg.sender);
+        if (!allAllowed) {
+            revert ACLNotAllowed(handles[failedIndex], msg.sender);
+        }
     }
 
     /**

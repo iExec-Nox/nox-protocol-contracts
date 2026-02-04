@@ -85,6 +85,19 @@ interface IACL is IErrors {
     function isAllowed(bytes32 handle, address account) external view returns (bool);
 
     /**
+     * Checks whether the account is allowed to use all provided handles.
+     * Returns early on the first non-allowed handle.
+     * @param handles Array of handles to check.
+     * @param account Address of the account.
+     * @return allAllowed Whether all handles are allowed.
+     * @return failedIndex Index of the first non-allowed handle (only valid when allAllowed is false).
+     */
+    function areAllAllowed(
+        bytes32[] calldata handles,
+        address account
+    ) external view returns (bool allAllowed, uint256 failedIndex);
+
+    /**
      * Returns whether the account is a viewer for the handle.
      * @param handle Handle.
      * @param viewer Address of the viewer.
