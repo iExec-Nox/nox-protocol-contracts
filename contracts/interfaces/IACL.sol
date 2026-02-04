@@ -11,6 +11,9 @@ interface IACL is IErrors {
     /// Error thrown when sender doesn't have access to the handle
     error UnauthorizedSender(address sender);
 
+    /// Error thrown when an account is not allowed to use a handle
+    error NotAllowed(bytes32 handle, address account);
+
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
 
@@ -86,16 +89,11 @@ interface IACL is IErrors {
 
     /**
      * Checks whether the account is allowed to use all provided handles.
-     * Returns early on the first non-allowed handle.
+     * Reverts with NotAllowed if any handle is not allowed.
      * @param handles Array of handles to check.
      * @param account Address of the account.
-     * @return allAllowed Whether all handles are allowed.
-     * @return failedIndex Index of the first non-allowed handle (only valid when allAllowed is false).
      */
-    function areAllAllowed(
-        bytes32[] calldata handles,
-        address account
-    ) external view returns (bool allAllowed, uint256 failedIndex);
+    function checkAllAllowed(bytes32[] calldata handles, address account) external view;
 
     /**
      * Returns whether the account is a viewer for the handle.

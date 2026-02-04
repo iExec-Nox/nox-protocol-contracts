@@ -10,6 +10,7 @@ import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/Messa
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
+import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {TEEType, TypeUtils, UnsupportedType} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
@@ -269,13 +270,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                leftHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller));
         teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
@@ -285,13 +280,7 @@ contract TEEComputeManagerTest is Test {
         _allow(leftHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                rightHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, rightHandOperand, caller));
         teeComputeManager.add(leftHandOperand, rightHandOperand);
     }
 
@@ -339,13 +328,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                leftHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller));
         teeComputeManager.sub(leftHandOperand, rightHandOperand);
     }
 
@@ -355,13 +338,7 @@ contract TEEComputeManagerTest is Test {
         _allow(leftHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                rightHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, rightHandOperand, caller));
         teeComputeManager.sub(leftHandOperand, rightHandOperand);
     }
 
@@ -409,9 +386,7 @@ contract TEEComputeManagerTest is Test {
         _allow(denominator, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, numerator, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, numerator, caller));
         teeComputeManager.div(numerator, denominator);
     }
 
@@ -421,9 +396,7 @@ contract TEEComputeManagerTest is Test {
         _allow(numerator, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, denominator, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, denominator, caller));
         teeComputeManager.div(numerator, denominator);
     }
 
@@ -484,13 +457,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                leftHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller));
         teeComputeManager.safeAdd(leftHandOperand, rightHandOperand);
     }
 
@@ -500,13 +467,7 @@ contract TEEComputeManagerTest is Test {
         _allow(leftHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                rightHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, rightHandOperand, caller));
         teeComputeManager.safeAdd(leftHandOperand, rightHandOperand);
     }
 
@@ -567,13 +528,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                leftHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller));
         teeComputeManager.safeSub(leftHandOperand, rightHandOperand);
     }
 
@@ -583,13 +538,7 @@ contract TEEComputeManagerTest is Test {
         _allow(leftHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                rightHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, rightHandOperand, caller));
         teeComputeManager.safeSub(leftHandOperand, rightHandOperand);
     }
 
@@ -642,9 +591,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, condition, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, condition, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -656,9 +603,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifTrue, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifTrue, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -670,9 +615,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifTrue, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifFalse, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifFalse, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -803,13 +746,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                leftHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller));
         teeComputeManager.mul(leftHandOperand, rightHandOperand);
     }
 
@@ -858,13 +795,7 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.ACLNotAllowed.selector,
-                leftHandOperand,
-                caller
-            )
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller));
         teeComputeManager.eq(leftHandOperand, rightHandOperand);
     }
 

@@ -13,8 +13,6 @@ interface ITEEComputeManager is IErrors {
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
 
-    error ACLNotAllowed(bytes32 handle, address account);
-
     event GatewayUpdated(address indexed newGateway);
     event Add(
         address indexed caller,
