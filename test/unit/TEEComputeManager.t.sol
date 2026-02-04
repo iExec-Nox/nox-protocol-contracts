@@ -33,7 +33,6 @@ contract TEEComputeManagerTest is Test {
         acl = address(aclContract);
         vm.label(caller, "caller");
 
-        // Initialize binary operations (arithmetic + comparison + safe arithmetic)
         binaryOps = new bytes4[](12);
         binaryOps[0] = ITEEComputeManager.add.selector;
         binaryOps[1] = ITEEComputeManager.sub.selector;
@@ -605,7 +604,12 @@ contract TEEComputeManagerTest is Test {
     }
 
     // ============ Test Helpers ============
-
+    /**
+     * TODO: Add tests for private helper functions:
+     *   - _executeArithmeticOperation
+     *   - _generateHandle
+     **/
+     
     function _allow(bytes32 h, address account) internal {
         vm.prank(address(teeComputeManager));
         aclContract.allowTransient(h, address(this));
