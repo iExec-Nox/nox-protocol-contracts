@@ -34,6 +34,22 @@ contract ConfidentialTokenMock is IERC7984 {
     mapping(address holder => euint256) private _balances;
     euint256 private _totalSupply;
 
+    /// @dev The given receiver `receiver` is invalid for transfers.
+    error ERC7984InvalidReceiver(address receiver);
+
+    /// @dev The given sender `sender` is invalid for transfers.
+    error ERC7984InvalidSender(address sender);
+
+    /// @dev The holder `holder` is trying to send tokens but has a balance of 0.
+    error ERC7984ZeroBalance(address holder);
+
+    /**
+     * @dev The caller `user` does not have access to the encrypted amount `amount`.
+     *
+     * NOTE: Try using the equivalent transfer function with an input proof.
+     */
+    error ERC7984UnauthorizedUseOfEncryptedAmount(euint256 amount, address user);
+
     constructor(uint256 totalSupply, address teeComputeManager) {
         TEEPrimitives.setNoxConfig(teeComputeManager);
         _totalSupply = TEEPrimitives.toEuint256(totalSupply);
@@ -51,71 +67,71 @@ contract ConfidentialTokenMock is IERC7984 {
         return _balances[account];
     }
 
+    /// @inheritdoc IERC7984
     function confidentialTransfer(
         address to,
-        externalEuint256 amountHandle,
-        bytes calldata handleProof
-    ) public override returns (euint256) {
-        return
-            _transferWithoutAmountCheck(
-                msg.sender,
-                to,
-                TEEPrimitives.fromExternal(amountHandle, handleProof)
-            );
+        externalEuint256 encryptedAmount,
+        bytes calldata inputProof
+    ) public virtual returns (euint256) {
+        return _transfer(msg.sender, to, TEEPrimitives.fromExternal(encryptedAmount, inputProof));
     }
 
-    function confidentialTransfer(address to, euint256 amount) public override returns (euint256) {
-        require(TEEPrimitives.isAllowed(amount, msg.sender), "Not allowed");
-        return _transferWithoutAmountCheck(msg.sender, to, amount);
+    /// @inheritdoc IERC7984
+    function confidentialTransfer(address to, euint256 amount) public virtual returns (euint256) {
+        require(
+            TEEPrimitives.isAllowed(amount, msg.sender),
+            ERC7984UnauthorizedUseOfEncryptedAmount(amount, msg.sender)
+        );
+        return _transfer(msg.sender, to, amount);
     }
 
-    /**
-     * Temporary function to transfer without amount check.
-     * TODO use `_transfer` when select is implemented.
-     */
-    function _transferWithoutAmountCheck(
+    function _transfer(
         address from,
         address to,
         euint256 amount
-    ) internal returns (euint256) {
-        require(from != address(0), "Zero from address");
-        require(to != address(0), "Zero to address");
-        euint256 result = TEEPrimitives.sub(_balances[from], amount);
-        _balances[from] = result;
-        TEEPrimitives.allowThis(result);
-        TEEPrimitives.allow(result, from);
-        euint256 toBalance = _balances[to];
-        if (euint256.unwrap(toBalance) == 0) {
-            toBalance = TEEPrimitives.toEuint256(0);
-        }
-        euint256 newToBalance = TEEPrimitives.add(toBalance, amount);
-        _balances[to] = newToBalance;
-        TEEPrimitives.allowThis(newToBalance);
-        TEEPrimitives.allow(newToBalance, to);
-        emit ConfidentialTransfer(from, to, amount);
-        return amount;
+    ) internal returns (euint256 transferred) {
+        require(from != address(0), ERC7984InvalidSender(address(0)));
+        require(to != address(0), ERC7984InvalidReceiver(address(0)));
+        return _update(from, to, amount);
     }
 
-    function _transfer(address from, address to, euint256 amount) internal returns (euint256) {
-        require(from != address(0), "Zero from address");
-        require(to != address(0), "Zero to address");
-        // Try to decrease balance of `from`.
-        // `result` will have the same value as `_balances[from]` if subtraction fails.
-        (ebool success, euint256 result) = TEEPrimitives.safeSub(_balances[from], amount);
-        _balances[from] = result;
-        TEEPrimitives.allowThis(result);
-        TEEPrimitives.allow(result, from);
-        // If subtraction fails, transferred amount is 0.
-        euint256 actualAmount = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
-        TEEPrimitives.allowThis(actualAmount);
-        TEEPrimitives.allow(actualAmount, from);
-        TEEPrimitives.allow(actualAmount, to);
-        // Update balance of `to` with the actual transferred amount.
-        (, euint256 newToBalance) = TEEPrimitives.safeAdd(_balances[to], actualAmount);
-        _balances[to] = newToBalance;
-        TEEPrimitives.allowThis(newToBalance);
-        TEEPrimitives.allow(newToBalance, to);
-        emit ConfidentialTransfer(from, to, actualAmount);
-        return actualAmount;
+    function _update(
+        address from,
+        address to,
+        euint256 amount
+    ) internal virtual returns (euint256 transferred) {
+        ebool success;
+        euint256 ptr;
+
+        if (from == address(0)) {
+            (success, ptr) = TEEPrimitives.safeAdd(_totalSupply, amount);
+            TEEPrimitives.allowThis(ptr);
+            _totalSupply = ptr;
+        } else {
+            euint256 fromBalance = _balances[from];
+            require(TEEPrimitives.isInitialized(fromBalance), ERC7984ZeroBalance(from));
+            (success, ptr) = TEEPrimitives.safeSub(fromBalance, amount);
+            TEEPrimitives.allowThis(ptr);
+            TEEPrimitives.allow(ptr, from);
+            _balances[from] = ptr;
+        }
+
+        transferred = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
+
+        if (to == address(0)) {
+            ptr = TEEPrimitives.sub(_totalSupply, transferred);
+            TEEPrimitives.allowThis(ptr);
+            _totalSupply = ptr;
+        } else {
+            ptr = TEEPrimitives.add(_balances[to], transferred);
+            TEEPrimitives.allowThis(ptr);
+            TEEPrimitives.allow(ptr, to);
+            _balances[to] = ptr;
+        }
+
+        if (from != address(0)) TEEPrimitives.allow(transferred, from);
+        if (to != address(0)) TEEPrimitives.allow(transferred, to);
+        TEEPrimitives.allowThis(transferred);
+        emit ConfidentialTransfer(from, to, transferred);
     }
 }
