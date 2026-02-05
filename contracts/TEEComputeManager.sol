@@ -339,7 +339,6 @@ contract TEEComputeManager is
 
     /**
      * Returns the proof expiration duration in seconds.
-     * A value of 0 means proofs never expire.
      */
     function proofExpirationDuration() external view returns (uint256) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
