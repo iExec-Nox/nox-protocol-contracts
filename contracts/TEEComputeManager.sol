@@ -80,7 +80,7 @@ contract TEEComputeManager is
         uint256 value,
         TEEType teeType
     ) external returns (bytes32 result) {
-        TypeUtils.validateEncryptableType(teeType);
+        TypeUtils.validateType(teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = bytes32(value);
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
