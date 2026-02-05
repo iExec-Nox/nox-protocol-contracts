@@ -14,6 +14,13 @@ interface ITEEComputeManager is IErrors {
     error IncompatibleTypes();
 
     event GatewayUpdated(address indexed newGateway);
+
+    event PlaintextToEncrypted(
+        address indexed caller,
+        uint256 plaintext,
+        TEEType toType,
+        bytes32 result
+    );
     event Add(
         address indexed caller,
         bytes32 leftHandOperand,
@@ -93,12 +100,6 @@ interface ITEEComputeManager is IErrors {
         bytes32 condition,
         bytes32 ifTrue,
         bytes32 ifFalse,
-        bytes32 result
-    );
-    event PlaintextToEncrypted(
-        address indexed caller,
-        uint256 plaintext,
-        TEEType toType,
         bytes32 result
     );
 
