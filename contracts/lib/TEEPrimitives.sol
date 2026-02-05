@@ -30,6 +30,10 @@ library TEEPrimitives {
 
     // ============ Trivial Encryption Functions ============
 
+    function isInitialized(euint256 handle) internal pure returns (bool) {
+        return euint256.unwrap(handle) != 0;
+    }
+
     /**
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
@@ -83,6 +87,14 @@ library TEEPrimitives {
         return euint256.wrap(_teeComputeManager().sub(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
+    function mul(euint256 a, euint256 b) internal returns (euint256) {
+        return euint256.wrap(_teeComputeManager().mul(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function div(euint256 a, euint256 b) internal returns (euint256) {
+        return euint256.wrap(_teeComputeManager().div(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
         (bytes32 success, bytes32 result) = _teeComputeManager().safeAdd(
             euint256.unwrap(a),
@@ -98,6 +110,8 @@ library TEEPrimitives {
         );
         return (ebool.wrap(success), euint256.wrap(result));
     }
+
+    // TODO add safeMul and safeDiv.
 
     function select(
         ebool condition,
