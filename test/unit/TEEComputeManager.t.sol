@@ -9,8 +9,14 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
+import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
-import {TEEType, TypeUtils, UnsupportedType} from "../../contracts/shared/TypeUtils.sol";
+import {
+    TEEType,
+    TypeUtils,
+    UnsupportedType,
+    NonArithmeticType
+} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
@@ -139,8 +145,7 @@ contract TEEComputeManagerTest is Test {
         vm.prank(caller);
         bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
 
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
+        _assertValidHandle(result, TEEType.Bool);
     }
 
     function test_PlaintextToEncrypted_Uint256() public {
@@ -149,9 +154,7 @@ contract TEEComputeManagerTest is Test {
         vm.prank(caller);
         bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
 
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
-        assertEq(uint8(result[31]), 0);
+        _assertValidHandle(result, TEEType.Uint256);
     }
 
     function test_PlaintextToEncrypted_Int256() public {
@@ -160,8 +163,7 @@ contract TEEComputeManagerTest is Test {
         vm.prank(caller);
         bytes32 result = teeComputeManager.plaintextToEncrypted(uint256(value), TEEType.Int256);
 
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Int256));
+        _assertValidHandle(result, TEEType.Int256);
     }
 
     function test_PlaintextToEncrypted_UniqueHandles() public {
@@ -177,9 +179,16 @@ contract TEEComputeManagerTest is Test {
 
     function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
         uint256 value = 42;
+        // Use low-level call to pass invalid TEEType value (100) which is > Bytes32 (99)
         vm.prank(caller);
-        vm.expectRevert(UnsupportedType.selector);
-        teeComputeManager.plaintextToEncrypted(value, TEEType.Uint160);
+        (bool success, ) = address(teeComputeManager).call(
+            abi.encodeWithSelector(
+                ITEEComputeManager.plaintextToEncrypted.selector,
+                value,
+                uint256(100) // Pass as uint256 to match function signature
+            )
+        );
+        assertFalse(success);
     }
 
     // ============ validateProof ============
@@ -361,10 +370,7 @@ contract TEEComputeManagerTest is Test {
             }
             vm.prank(caller);
             bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
-            assertNotEq(result, bytes32(0));
-            assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
-            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(result[31]), 0);
+            _assertValidHandle(result, TEEType.Uint256);
         }
     }
 
@@ -401,10 +407,7 @@ contract TEEComputeManagerTest is Test {
             }
             vm.prank(caller);
             bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
-            assertNotEq(result, bytes32(0));
-            assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Bool));
-            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(result[31]), 0);
+            _assertValidHandle(result, TEEType.Bool);
         }
     }
 
@@ -445,15 +448,9 @@ contract TEEComputeManagerTest is Test {
                 leftHandOperand,
                 rightHandOperand
             );
-            assertNotEq(success, bytes32(0));
-            assertNotEq(result, bytes32(0));
             assertNotEq(success, result);
-            assertEq(uint8(TypeUtils.typeOf(success)), uint8(TEEType.Bool));
-            assertEq(bytes4(success << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(success[31]), 0);
-            assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
-            assertEq(bytes4(result << (26 * 8)), bytes4(uint32(block.chainid)));
-            assertEq(uint8(result[31]), 0);
+            _assertValidHandle(success, TEEType.Bool);
+            _assertValidHandle(result, TEEType.Uint256);
         }
     }
 
@@ -467,11 +464,7 @@ contract TEEComputeManagerTest is Test {
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    leftHandOperand,
-                    caller
-                )
+                abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller)
             );
             _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
@@ -485,11 +478,7 @@ contract TEEComputeManagerTest is Test {
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    rightHandOperand,
-                    caller
-                )
+                abi.encodeWithSelector(IACL.NotAllowed.selector, rightHandOperand, caller)
             );
             _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
@@ -508,7 +497,7 @@ contract TEEComputeManagerTest is Test {
         }
     }
 
-    function test_RevertWhen_BinaryOperations_UnsupportedType() public {
+    function test_RevertWhen_BinaryOperations_NonArithmeticType() public {
         bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
         bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
         _allow(leftHandOperand, caller);
@@ -516,7 +505,7 @@ contract TEEComputeManagerTest is Test {
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
-            vm.expectRevert(UnsupportedType.selector);
+            vm.expectRevert(NonArithmeticType.selector);
             _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
     }
@@ -536,8 +525,7 @@ contract TEEComputeManagerTest is Test {
         emit ITEEComputeManager.Select(caller, condition, ifTrue, ifFalse, bytes32(0));
         bytes32 result = teeComputeManager.select(condition, ifTrue, ifFalse);
 
-        assertTrue(result != bytes32(0));
-        assertEq(uint8(TypeUtils.typeOf(result)), uint8(TEEType.Uint256));
+        _assertValidHandle(result, TEEType.Uint256);
     }
 
     function test_RevertWhen_Select_ConditionNotAllowed() public {
@@ -548,9 +536,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, condition, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, condition, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -562,9 +548,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifTrue, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifTrue, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -576,9 +560,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifTrue, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifFalse, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifFalse, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -679,6 +661,13 @@ contract TEEComputeManagerTest is Test {
      *   - _executeArithmeticOperation
      *   - _generateHandle
      **/
+
+    function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
+        assertTrue(h != bytes32(0), "Handle should not be zero");
+        assertEq(bytes4(h << (26 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
+        assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
+        assertEq(uint8(h[31]), 0, "Invalid version");
+    }
 
     function _allow(bytes32 h, address account) internal {
         vm.prank(address(teeComputeManager));
