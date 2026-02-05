@@ -9,6 +9,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
+import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType, TypeUtils, UnsupportedType} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
@@ -397,11 +398,7 @@ contract TEEComputeManagerTest is Test {
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    leftHandOperand,
-                    caller
-                )
+                abi.encodeWithSelector(IACL.NotAllowed.selector, leftHandOperand, caller)
             );
             _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
@@ -415,11 +412,7 @@ contract TEEComputeManagerTest is Test {
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
-                abi.encodeWithSelector(
-                    ITEEComputeManager.ACLNotAllowed.selector,
-                    rightHandOperand,
-                    caller
-                )
+                abi.encodeWithSelector(IACL.NotAllowed.selector, rightHandOperand, caller)
             );
             _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
@@ -478,9 +471,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, condition, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, condition, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -492,9 +483,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifTrue, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifTrue, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 
@@ -506,9 +495,7 @@ contract TEEComputeManagerTest is Test {
         _allow(ifTrue, caller);
 
         vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.ACLNotAllowed.selector, ifFalse, caller)
-        );
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifFalse, caller));
         teeComputeManager.select(condition, ifTrue, ifFalse);
     }
 

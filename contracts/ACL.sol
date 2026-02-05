@@ -185,6 +185,18 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         return isAllowedTransient(handle, account) || isAllowedPersistent(handle, account);
     }
 
+    /// @inheritdoc IACL
+    function validateAllowedForAll(
+        address account,
+        bytes32[] calldata handles
+    ) external view override {
+        for (uint256 i = 0; i < handles.length; i++) {
+            if (!isAllowed(handles[i], account)) {
+                revert NotAllowed(handles[i], account);
+            }
+        }
+    }
+
     /**
      * Check if an address has persistent access to handle.
      * @param handle Handle.
