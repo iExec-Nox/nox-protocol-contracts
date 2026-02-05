@@ -53,10 +53,7 @@ contract TEEComputeManagerTest is Test {
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
         assertEq(address(teeComputeManager.ACL()), acl);
-        assertEq(
-            teeComputeManager.proofExpirationDuration(),
-            teeComputeManager.DEFAULT_PROOF_EXPIRATION_DURATION()
-        );
+        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
         (
             , // bytes1 fields
             string memory name,
@@ -111,10 +108,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_SetProofExpirationDuration() public {
         // Default is set during initialization
-        assertEq(
-            teeComputeManager.proofExpirationDuration(),
-            teeComputeManager.DEFAULT_PROOF_EXPIRATION_DURATION()
-        );
+        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
 
         uint256 newDuration = 2 hours;
         vm.prank(owner);
@@ -126,10 +120,7 @@ contract TEEComputeManagerTest is Test {
 
     function test_SetProofExpirationDuration_ToZero() public {
         // Verify default is set
-        assertEq(
-            teeComputeManager.proofExpirationDuration(),
-            teeComputeManager.DEFAULT_PROOF_EXPIRATION_DURATION()
-        );
+        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
 
         // Set to zero (disabling expiration)
         vm.prank(owner);
@@ -380,11 +371,7 @@ contract TEEComputeManagerTest is Test {
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
-                proof,
-                "Proof expired"
-            )
+            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "Proof expired")
         );
         vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
@@ -403,11 +390,7 @@ contract TEEComputeManagerTest is Test {
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
-                proof,
-                "Proof expired"
-            )
+            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "Proof expired")
         );
         vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
