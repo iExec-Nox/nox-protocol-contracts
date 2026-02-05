@@ -27,6 +27,7 @@ contract TEEComputeManager is
     /// @custom:storage-location erc7201:nox.storage.TEEComputeManager
     struct TEEComputeManagerStorage {
         address gateway;
+        uint256 proofExpirationDuration;
     }
 
     uint8 private constant HANDLE_VERSION = 0;
@@ -75,6 +76,17 @@ contract TEEComputeManager is
         emit GatewayUpdated(gatewayAddress);
     }
 
+    /**
+     * Sets the proof expiration duration.
+     * Only callable by the owner.
+     * @param newDuration New expiration duration in seconds
+     */
+    function setProofExpirationDuration(uint256 newDuration) external onlyOwner {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.proofExpirationDuration = newDuration;
+        emit ProofExpirationDurationUpdated(newDuration);
+    }
+
     /// @inheritdoc ITEEComputeManager
     function plaintextToEncrypted(
         uint256 value,
@@ -91,7 +103,7 @@ contract TEEComputeManager is
     /**
      * Validates that a handle provided by a user is:
      *   - of expected type
-     *   - not expired (TODO)
+     *   - not expired
      *   - issued for the correct app (caller)
      *   - issued for the correct owner
      *   - issued by the configured gateway (signed by the gateway wallet)
@@ -131,7 +143,11 @@ contract TEEComputeManager is
         address appInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
-        // TODO add checks for `createdAt`.
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        uint256 expirationDuration = $.proofExpirationDuration;
+        if (expirationDuration > 0 && block.timestamp > createdAt + expirationDuration) {
+            revert InvalidProof(proof, "Proof expired");
+        }
         if (appInProof != msg.sender) {
             revert InvalidProof(proof, "App mismatch");
         }
@@ -143,7 +159,6 @@ contract TEEComputeManager is
                 abi.encode(HANDLE_PROOF_TYPEHASH, handle, ownerInProof, appInProof, createdAt)
             )
         );
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
             revert InvalidProof(proof, "Invalid signature");
         }
@@ -319,6 +334,15 @@ contract TEEComputeManager is
     function gateway() external view returns (address) {
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         return $.gateway;
+    }
+
+    /**
+     * Returns the proof expiration duration in seconds.
+     * A value of 0 means proofs never expire.
+     */
+    function proofExpirationDuration() external view returns (uint256) {
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        return $.proofExpirationDuration;
     }
 
     /// @inheritdoc ITEEComputeManager

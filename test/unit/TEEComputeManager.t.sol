@@ -103,6 +103,45 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.setGateway(address(0));
     }
 
+    // ============ setProofExpirationDuration ============
+
+    function test_SetProofExpirationDuration() public {
+        assertEq(teeComputeManager.proofExpirationDuration(), 0);
+        uint256 newDuration = 1 hours;
+        vm.prank(owner);
+        vm.expectEmit();
+        emit ITEEComputeManager.ProofExpirationDurationUpdated(newDuration);
+        teeComputeManager.setProofExpirationDuration(newDuration);
+        assertEq(teeComputeManager.proofExpirationDuration(), newDuration);
+    }
+
+    function test_SetProofExpirationDuration_ToZero() public {
+        // First set a non-zero value
+        vm.prank(owner);
+        teeComputeManager.setProofExpirationDuration(1 hours);
+        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
+
+        // Then set it back to zero (disabling expiration)
+        vm.prank(owner);
+        vm.expectEmit();
+        emit ITEEComputeManager.ProofExpirationDurationUpdated(0);
+        teeComputeManager.setProofExpirationDuration(0);
+        assertEq(teeComputeManager.proofExpirationDuration(), 0);
+    }
+
+    function test_RevertWhen_SetProofExpirationDuration_UnauthorizedCaller() public {
+        address unauthorizedCaller = makeAddr("unauthorized");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
+                unauthorizedCaller,
+                teeComputeManager
+            )
+        );
+        vm.prank(unauthorizedCaller);
+        teeComputeManager.setProofExpirationDuration(1 hours);
+    }
+
     // ============ plaintextToEncrypted ============
 
     function test_PlaintextToEncrypted_Bool() public {
@@ -261,6 +300,103 @@ contract TEEComputeManagerTest is Test {
                 "Invalid signature"
             )
         );
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_ValidateProof_NotExpiredWhenDurationIsZero() public {
+        // When proofExpirationDuration is 0, proofs should never expire
+        // Warp to a realistic timestamp
+        vm.warp(1700000000);
+
+        address app = makeAddr("app");
+        uint256 oldCreatedAt = block.timestamp - 365 days; // Very old proof
+        bytes memory proof = _buildProof(handle, owner, app, oldCreatedAt, gatewayPrivateKey);
+
+        // Should succeed even with very old createdAt since expiration is disabled
+        vm.prank(app);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        assertTrue(ACL(acl).isAllowed(handle, app));
+    }
+
+    function test_ValidateProof_NotExpiredWhenWithinDuration() public {
+        // Warp to a realistic timestamp
+        vm.warp(1700000000);
+
+        uint256 expirationDuration = 1 hours;
+        vm.prank(owner);
+        teeComputeManager.setProofExpirationDuration(expirationDuration);
+
+        address app = makeAddr("app");
+        uint256 proofCreatedAt = block.timestamp - 30 minutes; // 30 minutes ago
+        bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+
+        // Should succeed since proof is still within expiration window
+        vm.prank(app);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        assertTrue(ACL(acl).isAllowed(handle, app));
+    }
+
+    function test_ValidateProof_NotExpiredAtExactBoundary() public {
+        // Warp to a realistic timestamp
+        vm.warp(1700000000);
+
+        uint256 expirationDuration = 1 hours;
+        vm.prank(owner);
+        teeComputeManager.setProofExpirationDuration(expirationDuration);
+
+        address app = makeAddr("app");
+        uint256 proofCreatedAt = block.timestamp - expirationDuration; // Exactly at the boundary
+        bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+
+        // Should succeed since block.timestamp == createdAt + expirationDuration (not >)
+        vm.prank(app);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        assertTrue(ACL(acl).isAllowed(handle, app));
+    }
+
+    function test_RevertWhen_ValidateProof_Expired() public {
+        // Warp to a realistic timestamp
+        vm.warp(1700000000);
+
+        uint256 expirationDuration = 1 hours;
+        vm.prank(owner);
+        teeComputeManager.setProofExpirationDuration(expirationDuration);
+
+        address app = makeAddr("app");
+        uint256 proofCreatedAt = block.timestamp - expirationDuration - 1; // Just past expiration
+        bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Proof expired"
+            )
+        );
+        vm.prank(app);
+        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_ValidateProof_ExpiredLongAgo() public {
+        // Warp to a realistic timestamp
+        vm.warp(1700000000);
+
+        uint256 expirationDuration = 1 hours;
+        vm.prank(owner);
+        teeComputeManager.setProofExpirationDuration(expirationDuration);
+
+        address app = makeAddr("app");
+        uint256 proofCreatedAt = block.timestamp - 365 days; // Very old proof
+        bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                ITEEComputeManager.InvalidProof.selector,
+                proof,
+                "Proof expired"
+            )
+        );
+        vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
