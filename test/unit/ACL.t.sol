@@ -323,9 +323,9 @@ contract ACLTest is Test {
         assertFalse(acl.isAllowed(handle, user2));
     }
 
-    // ============ checkAllAllowed ============
+    // ============ validateAllowedForAll ============
 
-    function test_CheckAllAllowed() public {
+    function test_ValidateAllowedForAll() public {
         // Grant access to user1 for multiple handles
         _allow(handle, user1);
         _allow(handle2, user1);
@@ -336,24 +336,24 @@ contract ACLTest is Test {
         handles[0] = handle;
         handles[1] = handle2;
         handles[2] = handle3;
-        acl.checkAllAllowed(handles, user1);
+        acl.validateAllowedForAll(user1, handles);
     }
 
-    function test_CheckAllAllowed_EmptyArray() public view {
+    function test_ValidateAllowedForAll_EmptyArray() public view {
         // Should not revert with empty array
         bytes32[] memory handles = new bytes32[](0);
-        acl.checkAllAllowed(handles, user1);
+        acl.validateAllowedForAll(user1, handles);
     }
 
-    function test_CheckAllAllowed_SingleHandle() public {
+    function test_ValidateAllowedForAll_SingleHandle() public {
         _allow(handle, user1);
 
         bytes32[] memory handles = new bytes32[](1);
         handles[0] = handle;
-        acl.checkAllAllowed(handles, user1);
+        acl.validateAllowedForAll(user1, handles);
     }
 
-    function test_CheckAllAllowed_WithTransientAccess() public {
+    function test_ValidateAllowedForAll_WithTransientAccess() public {
         // Grant transient access
         vm.prank(teeComputeManager);
         acl.allowTransient(handle, user1);
@@ -363,10 +363,10 @@ contract ACLTest is Test {
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = handle;
         handles[1] = handle2;
-        acl.checkAllAllowed(handles, user1);
+        acl.validateAllowedForAll(user1, handles);
     }
 
-    function test_RevertWhen_CheckAllAllowed_FirstHandleNotAllowed() public {
+    function test_RevertWhen_ValidateAllowedForAll_FirstHandleNotAllowed() public {
         // Only grant access to handle2 and handle3, not handle
         _allow(handle2, user1);
         _allow(handle3, user1);
@@ -377,17 +377,17 @@ contract ACLTest is Test {
         handles[2] = handle3;
 
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, handle, user1));
-        acl.checkAllAllowed(handles, user1);
+        acl.validateAllowedForAll(user1, handles);
     }
 
-    function test_RevertWhen_CheckAllAllowed_NoneAllowed() public {
+    function test_RevertWhen_ValidateAllowedForAll_NoneAllowed() public {
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = handle;
         handles[1] = handle2;
 
         // Should revert on the first handle
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, handle, user1));
-        acl.checkAllAllowed(handles, user1);
+        acl.validateAllowedForAll(user1, handles);
     }
 
     // ============ _authorizeUpgrade ============

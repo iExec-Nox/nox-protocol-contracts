@@ -186,7 +186,10 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     }
 
     /// @inheritdoc IACL
-    function checkAllAllowed(bytes32[] calldata handles, address account) external view override {
+    function validateAllowedForAll(
+        address account,
+        bytes32[] calldata handles
+    ) external view override {
         for (uint256 i = 0; i < handles.length; i++) {
             if (!isAllowed(handles[i], account)) {
                 revert NotAllowed(handles[i], account);

@@ -291,7 +291,7 @@ contract TEEComputeManager is
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
-        ACL.checkAllAllowed(operands, msg.sender);
+        ACL.validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(Operator.Select, operands, resultType);
         ACL.allowTransient(result, msg.sender);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
@@ -372,7 +372,7 @@ contract TEEComputeManager is
                 revert IncompatibleTypes();
             }
         }
-        ACL.checkAllAllowed(operands, msg.sender);
+        ACL.validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, resultType);
         ACL.allowTransient(result, msg.sender);
         if (isSafeOperation) {
@@ -408,7 +408,7 @@ contract TEEComputeManager is
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftOperand;
         operands[1] = rightOperand;
-        ACL.checkAllAllowed(operands, msg.sender);
+        ACL.validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, TEEType.Bool);
         ACL.allowTransient(result, msg.sender);
     }

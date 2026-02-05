@@ -90,10 +90,10 @@ interface IACL is IErrors {
     /**
      * Checks whether the account is allowed to use all provided handles.
      * Reverts with NotAllowed if any handle is not allowed.
-     * @param handles Array of handles to check.
      * @param account Address of the account.
+     * @param handles Array of handles to check.
      */
-    function checkAllAllowed(bytes32[] calldata handles, address account) external view;
+    function validateAllowedForAll(address account, bytes32[] calldata handles) external view;
 
     /**
      * Returns whether the account is a viewer for the handle.
