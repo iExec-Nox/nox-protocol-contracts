@@ -285,8 +285,8 @@ export class OffChainServices {
         let successValue: boolean;
         let subResult: bigint | undefined;
         if (lhoValue - rhoValue < 0n) {
-            // overflow
-            this._log(`SafeSub overflow: ${result}`);
+            // underflow
+            this._log(`SafeSub underflow: ${result}`);
             successValue = false;
             subResult = undefined;
         } else {

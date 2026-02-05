@@ -88,7 +88,7 @@ library TEEPrimitives {
     }
 
     function mul(euint256 a, euint256 b) internal returns (euint256) {
-        // TODO return euint256.wrap(_teeComputeManager().mul(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_teeComputeManager().mul(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function div(euint256 a, euint256 b) internal returns (euint256) {
@@ -110,6 +110,8 @@ library TEEPrimitives {
         );
         return (ebool.wrap(success), euint256.wrap(result));
     }
+
+    // TODO add safeMul and safeDiv.
 
     function select(
         ebool condition,
