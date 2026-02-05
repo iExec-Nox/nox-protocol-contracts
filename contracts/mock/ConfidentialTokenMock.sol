@@ -123,7 +123,13 @@ contract ConfidentialTokenMock is IERC7984 {
             TEEPrimitives.allowThis(ptr);
             _totalSupply = ptr;
         } else {
-            ptr = TEEPrimitives.add(_balances[to], transferred);
+            euint256 toBalance = _balances[to];
+            if (!TEEPrimitives.isInitialized(toBalance)) {
+                // If the recipient has no balance, we need to initialize it.
+                toBalance = TEEPrimitives.toEuint256(0);
+                TEEPrimitives.allowThis(toBalance);
+            }
+            ptr = TEEPrimitives.add(toBalance, transferred);
             TEEPrimitives.allowThis(ptr);
             TEEPrimitives.allow(ptr, to);
             _balances[to] = ptr;
