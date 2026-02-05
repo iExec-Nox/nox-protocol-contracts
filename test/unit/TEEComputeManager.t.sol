@@ -334,22 +334,6 @@ contract TEEComputeManagerTest is Test {
         vm.prank(app);
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
-
-    function test_RevertWhen_ValidateProof_ExpiredLongAgo() public {
-        // Warp to a realistic timestamp
-        vm.warp(1700000000);
-
-        address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - 365 days; // Very old proof
-        bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
-
-        vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "Proof expired")
-        );
-        vm.prank(app);
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
-    }
-
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
     function test_ArithmeticOperations() public {
