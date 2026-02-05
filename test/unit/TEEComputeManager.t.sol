@@ -118,18 +118,6 @@ contract TEEComputeManagerTest is Test {
         assertEq(teeComputeManager.proofExpirationDuration(), newDuration);
     }
 
-    function test_SetProofExpirationDuration_ToZero() public {
-        // Verify default is set
-        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
-
-        // Set to zero (disabling expiration)
-        vm.prank(owner);
-        vm.expectEmit();
-        emit ITEEComputeManager.ProofExpirationDurationUpdated(0);
-        teeComputeManager.setProofExpirationDuration(0);
-        assertEq(teeComputeManager.proofExpirationDuration(), 0);
-    }
-
     function test_RevertWhen_SetProofExpirationDuration_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         vm.expectRevert(
@@ -304,34 +292,12 @@ contract TEEComputeManagerTest is Test {
         teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
-    function test_ValidateProof_NotExpiredWhenDurationIsZero() public {
-        // Disable expiration by setting duration to 0
-        vm.prank(owner);
-        teeComputeManager.setProofExpirationDuration(0);
-
-        // Warp to a realistic timestamp
-        vm.warp(1700000000);
-
-        address app = makeAddr("app");
-        uint256 oldCreatedAt = block.timestamp - 365 days; // Very old proof
-        bytes memory proof = _buildProof(handle, owner, app, oldCreatedAt, gatewayPrivateKey);
-
-        // Should succeed even with very old createdAt since expiration is disabled
-        vm.prank(app);
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
-        assertTrue(ACL(acl).isAllowed(handle, app));
-    }
-
     function test_ValidateProof_NotExpiredWhenWithinDuration() public {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
-        uint256 expirationDuration = 1 hours;
-        vm.prank(owner);
-        teeComputeManager.setProofExpirationDuration(expirationDuration);
-
         address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - 30 minutes; // 30 minutes ago
+        uint256 proofCreatedAt = block.timestamp - 30 minutes; // 30 minutes ago (default expiration is 1 hour)
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         // Should succeed since proof is still within expiration window
@@ -344,12 +310,8 @@ contract TEEComputeManagerTest is Test {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
-        uint256 expirationDuration = 1 hours;
-        vm.prank(owner);
-        teeComputeManager.setProofExpirationDuration(expirationDuration);
-
         address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - expirationDuration; // Exactly at the boundary
+        uint256 proofCreatedAt = block.timestamp - 1 hours; // Exactly at the boundary (default is 1 hour)
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         // Should succeed since block.timestamp == createdAt + expirationDuration (not >)
@@ -362,12 +324,8 @@ contract TEEComputeManagerTest is Test {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
-        uint256 expirationDuration = 1 hours;
-        vm.prank(owner);
-        teeComputeManager.setProofExpirationDuration(expirationDuration);
-
         address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - expirationDuration - 1; // Just past expiration
+        uint256 proofCreatedAt = block.timestamp - 1 hours - 1; // Just past expiration (default is 1 hour)
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         vm.expectRevert(
@@ -380,10 +338,6 @@ contract TEEComputeManagerTest is Test {
     function test_RevertWhen_ValidateProof_ExpiredLongAgo() public {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
-
-        uint256 expirationDuration = 1 hours;
-        vm.prank(owner);
-        teeComputeManager.setProofExpirationDuration(expirationDuration);
 
         address app = makeAddr("app");
         uint256 proofCreatedAt = block.timestamp - 365 days; // Very old proof

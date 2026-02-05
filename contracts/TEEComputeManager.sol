@@ -146,8 +146,7 @@ contract TEEComputeManager is
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
-        uint256 expirationDuration = $.proofExpirationDuration;
-        if (expirationDuration > 0 && block.timestamp > createdAt + expirationDuration) {
+        if (block.timestamp > createdAt + $.proofExpirationDuration) {
             revert InvalidProof(proof, "Proof expired");
         }
         if (appInProof != msg.sender) {
