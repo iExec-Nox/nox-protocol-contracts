@@ -147,7 +147,7 @@ contract TEEComputeManager is
         bytes calldata signature = proof[72:137];
         TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
         if (block.timestamp > createdAt + $.proofExpirationDuration) {
-            revert InvalidProof(proof, "Proof expired");
+w            revert InvalidProof(proof, "Proof expired");
         }
         if (appInProof != msg.sender) {
             revert InvalidProof(proof, "App mismatch");

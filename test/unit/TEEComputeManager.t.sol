@@ -297,7 +297,7 @@ contract TEEComputeManagerTest is Test {
         vm.warp(1700000000);
 
         address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - 30 minutes; // 30 minutes ago (default expiration is 1 hour)
+        uint256 proofCreatedAt = block.timestamp - 30 minutes;
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         // Should succeed since proof is still within expiration window
@@ -311,7 +311,7 @@ contract TEEComputeManagerTest is Test {
         vm.warp(1700000000);
 
         address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - 1 hours; // Exactly at the boundary (default is 1 hour)
+        uint256 proofCreatedAt = block.timestamp - 1 hours;
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         // Should succeed since block.timestamp == createdAt + expirationDuration (not >)
@@ -325,7 +325,7 @@ contract TEEComputeManagerTest is Test {
         vm.warp(1700000000);
 
         address app = makeAddr("app");
-        uint256 proofCreatedAt = block.timestamp - 1 hours - 1; // Just past expiration (default is 1 hour)
+        uint256 proofCreatedAt = block.timestamp - 1 hours - 1;
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         vm.expectRevert(
