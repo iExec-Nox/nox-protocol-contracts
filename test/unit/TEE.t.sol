@@ -22,7 +22,6 @@ contract TEELibTest is Test {
         (acl, teeComputeManager) = TestHelper.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
-        TEEPrimitives.setNoxConfig(address(teeComputeManager));
     }
 
     // ============ Trivial Encryption ============

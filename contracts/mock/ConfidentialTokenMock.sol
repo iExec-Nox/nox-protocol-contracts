@@ -34,8 +34,7 @@ contract ConfidentialTokenMock is IERC7984 {
     mapping(address holder => euint256) private _balances;
     euint256 private _totalSupply;
 
-    constructor(uint256 totalSupply, address teeComputeManager) {
-        TEEPrimitives.setNoxConfig(teeComputeManager);
+    constructor(uint256 totalSupply) {
         _totalSupply = TEEPrimitives.toEuint256(totalSupply);
         euint256 msgSenderBalance = TEEPrimitives.toEuint256(totalSupply);
         _balances[msg.sender] = msgSenderBalance;
