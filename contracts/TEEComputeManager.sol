@@ -60,6 +60,8 @@ contract TEEComputeManager is
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         __EIP712_init("TEEComputeManager", "1");
+        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        $.proofExpirationDuration = 1 hours;
     }
 
     /**

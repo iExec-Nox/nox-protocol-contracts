@@ -53,6 +53,10 @@ contract TEEComputeManagerTest is Test {
     function test_Initialize() public view {
         assertEq(teeComputeManager.owner(), owner);
         assertEq(address(teeComputeManager.ACL()), acl);
+        assertEq(
+            teeComputeManager.proofExpirationDuration(),
+            teeComputeManager.DEFAULT_PROOF_EXPIRATION_DURATION()
+        );
         (
             , // bytes1 fields
             string memory name,
@@ -106,8 +110,13 @@ contract TEEComputeManagerTest is Test {
     // ============ setProofExpirationDuration ============
 
     function test_SetProofExpirationDuration() public {
-        assertEq(teeComputeManager.proofExpirationDuration(), 0);
-        uint256 newDuration = 1 hours;
+        // Default is set during initialization
+        assertEq(
+            teeComputeManager.proofExpirationDuration(),
+            teeComputeManager.DEFAULT_PROOF_EXPIRATION_DURATION()
+        );
+
+        uint256 newDuration = 2 hours;
         vm.prank(owner);
         vm.expectEmit();
         emit ITEEComputeManager.ProofExpirationDurationUpdated(newDuration);
@@ -116,12 +125,13 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_SetProofExpirationDuration_ToZero() public {
-        // First set a non-zero value
-        vm.prank(owner);
-        teeComputeManager.setProofExpirationDuration(1 hours);
-        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
+        // Verify default is set
+        assertEq(
+            teeComputeManager.proofExpirationDuration(),
+            teeComputeManager.DEFAULT_PROOF_EXPIRATION_DURATION()
+        );
 
-        // Then set it back to zero (disabling expiration)
+        // Set to zero (disabling expiration)
         vm.prank(owner);
         vm.expectEmit();
         emit ITEEComputeManager.ProofExpirationDurationUpdated(0);
@@ -139,7 +149,7 @@ contract TEEComputeManagerTest is Test {
             )
         );
         vm.prank(unauthorizedCaller);
-        teeComputeManager.setProofExpirationDuration(1 hours);
+        teeComputeManager.setProofExpirationDuration(2 hours);
     }
 
     // ============ plaintextToEncrypted ============
@@ -304,7 +314,10 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_ValidateProof_NotExpiredWhenDurationIsZero() public {
-        // When proofExpirationDuration is 0, proofs should never expire
+        // Disable expiration by setting duration to 0
+        vm.prank(owner);
+        teeComputeManager.setProofExpirationDuration(0);
+
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
