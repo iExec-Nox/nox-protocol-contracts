@@ -67,3 +67,11 @@ jobs:
       #     RPC_URL: ${{ secrets.RPC_URL }}
       #   run: |
       #     make verify-all-${{ inputs.network }}
+
+  set-gateway:
+    needs: deploy
+    if: inputs.network != 'hardhat'
+    uses: ./.github/workflows/set-gateway.yml
+    with:
+      network: ${{ inputs.network }}
+    secrets: inherit

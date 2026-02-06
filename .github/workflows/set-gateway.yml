@@ -1,10 +1,12 @@
 name: Set Gateway
 
 on:
-  workflow_run:
-    workflows: ["Deploy contracts"]
-    types:
-      - completed
+  workflow_call:
+    inputs:
+      network:
+        description: "Network where contracts are deployed"
+        required: true
+        type: string
 
   workflow_dispatch:
     inputs:
@@ -17,23 +19,16 @@ on:
           - tenderlyArbitrumSepolia
         default: "arbitrumSepolia"
       gateway_address:
-        description: "Gateway wallet address to set"
-        required: true
+        description: "Gateway wallet address to set (uses secret if not provided)"
+        required: false
         type: string
 
 jobs:
   set-gateway:
     runs-on: ubuntu-latest
-    if: >-
-      github.event_name == 'workflow_dispatch' ||
-      (github.event.workflow_run.conclusion == 'success' &&
-       github.event.workflow_run.inputs.network != 'hardhat')
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.network || github.event.workflow_run.inputs.network }}
+    environment: ${{ inputs.network }}
     steps:
       - uses: actions/checkout@v5
-        with:
-          # For workflow_run, we need to checkout the branch that was deployed
-          ref: ${{ github.event.workflow_run.head_branch || github.ref }}
 
       - uses: actions/setup-node@v6
         with:
@@ -46,18 +41,9 @@ jobs:
       - name: Build contracts
         run: pnpm run build
 
-      - name: Determine network
-        id: network
-        run: |
-          if [ "${{ github.event_name }}" == "workflow_dispatch" ]; then
-            echo "network=${{ inputs.network }}" >> $GITHUB_OUTPUT
-          else
-            echo "network=${{ github.event.workflow_run.inputs.network }}" >> $GITHUB_OUTPUT
-          fi
-
       - name: Set gateway address
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          GATEWAY_ADDRESS: ${{ github.event_name == 'workflow_dispatch' && inputs.gateway_address || secrets.GATEWAY_ADDRESS }}
-        run: pnpm run set-gateway --network ${{ steps.network.outputs.network }}
+          GATEWAY_ADDRESS: ${{ inputs.gateway_address || secrets.GATEWAY_ADDRESS }}
+        run: pnpm run set-gateway --network ${{ inputs.network }}
