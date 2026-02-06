@@ -2,7 +2,6 @@ import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
 
 export default defineConfig({
-    defaultNetwork: "hardhat",
     plugins: [hardhatToolboxViemPlugin],
     ignition: {
         strategyConfig: {
