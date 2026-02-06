@@ -44,19 +44,14 @@ export async function loadFixture() {
 async function deployFixture() {
     const viem = connection.viem;
     const publicClient = await viem.getPublicClient();
+    // disable deployment logging for tests (more readable logs)
+    const deployment = await deploy(false);
     const accounts = await viem.getWalletClients();
-
-    // Use the main deploy script - produces deterministic addresses matching TEEPrimitives.sol
-    const { acl, teeComputeManager } = await deploy(false);
-
-    // Set up gateway for tests
     const gateway = privateKeyToAccount(generatePrivateKey());
-    const setGatewayTx = await teeComputeManager.write.setGateway([gateway.address]);
-    await publicClient.waitForTransactionReceipt({ hash: setGatewayTx });
-
+    const tx = await deployment.teeComputeManager.write.setGateway([gateway.address]);
+    await publicClient.waitForTransactionReceipt({ hash: tx });
     return {
-        acl,
-        teeComputeManager,
+        ...deployment,
         // Accounts
         admin: accounts[0],
         wallet1: accounts[1],
