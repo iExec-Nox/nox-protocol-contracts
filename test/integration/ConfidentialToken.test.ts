@@ -14,13 +14,7 @@ let offChainServices: OffChainServices;
 
 describe("[IT] ConfidentialToken", function () {
     beforeEach(async function () {
-        // Use the TEEComputeManager at the hardcoded address since ConfidentialTokenMock uses TEEPrimitives
-        ({
-            teeComputeManager,
-            admin,
-            wallet1: user,
-            gateway,
-        } = await loadFixture());
+        ({ teeComputeManager, admin, wallet1: user, gateway } = await loadFixture());
         // Start the off-chain services mock.
         offChainServices = new OffChainServices(teeComputeManager.address, gateway);
         await offChainServices.start();
