@@ -1,13 +1,11 @@
 import ACL from "../ignition/modules/ACL.js";
 import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
-import config, { CREATEX_ADDRESS } from "../config/config.js";
+import config from "../config/config.js";
 import connection from "./utils/hardhat-connection-singleton.js";
 
 // Deployment script for the Nox Contracts.
-// On real networks: Uses deterministic CREATE2 deployment via CreateX factory.
-// On local/test networks: Uses regular deployment (CreateX not available).
-//
-// The CREATE2 salt is configured in hardhat.config.ts under ignition.strategyConfig.create2.salt
+// Uses deterministic CREATE2 deployment via CreateX factory.
+// On local networks (chainId 31337), Ignition automatically deploys CreateX if not present.
 //
 // Usage: `hardhat run scripts/deploy.ts --network <network-name>`
 
@@ -25,19 +23,13 @@ export async function deploy(printLogs = true) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
     }
 
-    // Check if CreateX is available by checking if there's code at the factory address
-    const createXCode = await publicClient.getCode({ address: CREATEX_ADDRESS });
-    const useCreate2 = createXCode !== undefined && createXCode !== "0x";
-    const strategy = useCreate2 ? "create2" : "basic";
-
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
-    _log(`Strategy: ${strategy}`);
     _log(`Chain config:`, chainConfig);
     // Deploy ACL proxy (initialized with owner).
     const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
-        ...(useCreate2 && { strategy: "create2" }),
+        strategy: "create2",
         parameters: {
             ACL: {
                 initialOwner: chainConfig.initialOwner,
@@ -49,7 +41,7 @@ export async function deploy(printLogs = true) {
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
-        ...(useCreate2 && { strategy: "create2" }),
+        strategy: "create2",
         parameters: {
             TEEComputeManager: {
                 initialOwner: chainConfig.initialOwner,
