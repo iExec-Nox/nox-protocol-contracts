@@ -38,6 +38,7 @@
     "@nomicfoundation/hardhat-ignition": "^3.0.6",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
     "@types/node": "^22.8.5",
+    "createx": "github:pcaversaccio/createx#v1.0.0",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
     "hardhat": "^3.1.2",
     "husky": "^9.1.7",

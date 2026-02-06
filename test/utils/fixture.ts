@@ -1,6 +1,6 @@
 import hre from "hardhat";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { encodeAbiParameters, keccak256, toHex, concat } from "viem";
+import { encodeAbiParameters, keccak256, toHex, concat, getContract, Abi } from "viem";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 
 // CreateX factory address (same on all EVM chains)
@@ -11,19 +11,16 @@ const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed" as const;
 const TEE_COMPUTE_MANAGER_ADDRESS = "0x029Ab6663e4F73477494082EB88915ea74Df5e83" as const;
 const ACL_ADDRESS = "0x310163c93461AB5c6445044B15B0DA1784b595FB" as const;
 
-// Minimal CreateX ABI for deployCreate2
-const CREATEX_ABI = [
-    {
-        name: "deployCreate2",
-        type: "function",
-        stateMutability: "payable",
-        inputs: [
-            { name: "salt", type: "bytes32" },
-            { name: "initCode", type: "bytes" },
-        ],
-        outputs: [{ name: "newContract", type: "address" }],
-    },
-] as const;
+// Cached CreateX ABI (loaded once from artifact)
+let createXAbi: Abi | null = null;
+
+async function getCreateXAbi(): Promise<Abi> {
+    if (!createXAbi) {
+        const artifact = await hre.artifacts.readArtifact("ICreateX");
+        createXAbi = artifact.abi as Abi;
+    }
+    return createXAbi;
+}
 
 // Module-level cache for the fixture to avoid re-deployment
 let cachedFixture: Awaited<ReturnType<typeof deployFixture>> | null = null;
@@ -89,6 +86,7 @@ async function deployFixture() {
     const aclArtifact = await hre.artifacts.readArtifact("ACL");
     const teeComputeManagerArtifact = await hre.artifacts.readArtifact("TEEComputeManager");
     const erc1967ProxyArtifact = await hre.artifacts.readArtifact("ERC1967Proxy");
+    const createXAbi = await getCreateXAbi();
 
     // Check if CreateX is available on this network
     const createXCode = await publicClient.getCode({ address: CREATEX_ADDRESS });
@@ -99,7 +97,7 @@ async function deployFixture() {
     // Deploy ACL implementation via CreateX
     const aclImplTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [salts.aclImpl, aclArtifact.bytecode as `0x${string}`],
     });
@@ -114,7 +112,7 @@ async function deployFixture() {
     );
     const aclProxyTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [salts.aclProxy, aclProxyInitCode],
     });
@@ -127,7 +125,7 @@ async function deployFixture() {
     ]);
     const teeImplTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [salts.teeImpl, teeImplInitCode],
     });
@@ -142,7 +140,7 @@ async function deployFixture() {
     );
     const teeProxyTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [salts.teeProxy, teeProxyInitCode],
     });
@@ -213,11 +211,12 @@ async function deployAtHardcodedAddresses(
     const aclArtifact = await hre.artifacts.readArtifact("ACL");
     const teeComputeManagerArtifact = await hre.artifacts.readArtifact("TEEComputeManager");
     const erc1967ProxyArtifact = await hre.artifacts.readArtifact("ERC1967Proxy");
+    const createXAbi = await getCreateXAbi();
 
     // Deploy ACL implementation
     const aclImplTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [keccak256(toHex("hardcoded.acl.impl")), aclArtifact.bytecode as `0x${string}`],
     });
@@ -233,7 +232,7 @@ async function deployAtHardcodedAddresses(
     // Deploy temp proxy to get runtime bytecode
     const aclProxyTempTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [keccak256(toHex("hardcoded.acl.proxy.temp")), aclProxyInitCode],
     });
@@ -264,7 +263,7 @@ async function deployAtHardcodedAddresses(
     ]);
     const teeImplTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [keccak256(toHex("hardcoded.tee.impl")), teeImplInitCode],
     });
@@ -280,7 +279,7 @@ async function deployAtHardcodedAddresses(
     // Deploy temp proxy to get runtime bytecode
     const teeProxyTempTx = await deployer.writeContract({
         address: CREATEX_ADDRESS,
-        abi: CREATEX_ABI,
+        abi: createXAbi,
         functionName: "deployCreate2",
         args: [keccak256(toHex("hardcoded.tee.proxy.temp")), teeProxyInitCode],
     });
