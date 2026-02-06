@@ -179,7 +179,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         return
             $.isPubliclyDecryptable[handle] ||
             $.viewers[handle][viewer] ||
-            $.admins[handle][account];
+            $.admins[handle][viewer];
     }
 
     /// @inheritdoc IACL
