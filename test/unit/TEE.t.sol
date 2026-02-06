@@ -193,6 +193,52 @@ contract TEELibTest is Test {
         assertTrue(acl.isAllowed(handle, user1));
     }
 
+    // ============ Viewer Management - addViewer ============
+
+    function test_AddViewer_Ebool_AddsViewer() public {
+        ebool value = TEEPrimitives.toEbool(true);
+        bytes32 handle = ebool.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(acl.isViewer(handle, user1));
+    }
+
+    function test_AddViewer_Eaddress_AddsViewer() public {
+        eaddress value = TEEPrimitives.toEaddress(user2);
+        bytes32 handle = eaddress.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(acl.isViewer(handle, user1));
+    }
+
+    function test_AddViewer_Euint256_AddsViewer() public {
+        euint256 value = TEEPrimitives.toEuint256(12345);
+        bytes32 handle = euint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(acl.isViewer(handle, user1));
+    }
+
+    function test_AddViewer_Eint256_AddsViewer() public {
+        eint256 value = TEEPrimitives.toEint256(-999);
+        bytes32 handle = eint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(acl.isViewer(handle, user1));
+    }
+
     // ============ Public Decryption ============
 
     function test_AllowPublicDecryption_Ebool_MarksAsPubliclyDecryptable() public {
@@ -237,5 +283,143 @@ contract TEELibTest is Test {
 
         TEEPrimitives.allowPublicDecryption(value);
         assertTrue(acl.isPubliclyDecryptable(handle));
+    }
+
+    // ============ Authorization Queries - isAllowed ============
+
+    function test_IsAllowed_Ebool_ReturnsTrueWhenAllowed() public {
+        ebool value = TEEPrimitives.toEbool(true);
+        bytes32 handle = ebool.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allow(value, user1);
+        assertTrue(TEEPrimitives.isAllowed(value, user1));
+    }
+
+    function test_IsAllowed_Eaddress_ReturnsTrueWhenAllowed() public {
+        eaddress value = TEEPrimitives.toEaddress(user2);
+        bytes32 handle = eaddress.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allow(value, user1);
+        assertTrue(TEEPrimitives.isAllowed(value, user1));
+    }
+
+    function test_IsAllowed_Euint256_ReturnsTrueWhenAllowed() public {
+        euint256 value = TEEPrimitives.toEuint256(12345);
+        bytes32 handle = euint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allow(value, user1);
+        assertTrue(TEEPrimitives.isAllowed(value, user1));
+    }
+
+    function test_IsAllowed_Eint256_ReturnsTrueWhenAllowed() public {
+        eint256 value = TEEPrimitives.toEint256(-999);
+        bytes32 handle = eint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allow(value, user1);
+        assertTrue(TEEPrimitives.isAllowed(value, user1));
+    }
+
+    // ============ Authorization Queries - isPubliclyDecryptable ============
+
+    function test_IsPubliclyDecryptable_Ebool_ReturnsTrueWhenPublic() public {
+        ebool value = TEEPrimitives.toEbool(true);
+        bytes32 handle = ebool.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+    }
+
+    function test_IsPubliclyDecryptable_Eaddress_ReturnsTrueWhenPublic() public {
+        eaddress value = TEEPrimitives.toEaddress(user1);
+        bytes32 handle = eaddress.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+    }
+
+    function test_IsPubliclyDecryptable_Euint256_ReturnsTrueWhenPublic() public {
+        euint256 value = TEEPrimitives.toEuint256(12345);
+        bytes32 handle = euint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+    }
+
+    function test_IsPubliclyDecryptable_Eint256_ReturnsTrueWhenPublic() public {
+        eint256 value = TEEPrimitives.toEint256(-999);
+        bytes32 handle = eint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.allowPublicDecryption(value);
+        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+    }
+
+    // ============ Authorization Queries - isViewer ============
+
+    function test_IsViewer_Ebool_ReturnsTrueWhenViewer() public {
+        ebool value = TEEPrimitives.toEbool(true);
+        bytes32 handle = ebool.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(TEEPrimitives.isViewer(value, user1));
+    }
+
+    function test_IsViewer_Eaddress_ReturnsTrueWhenViewer() public {
+        eaddress value = TEEPrimitives.toEaddress(user2);
+        bytes32 handle = eaddress.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(TEEPrimitives.isViewer(value, user1));
+    }
+
+    function test_IsViewer_Euint256_ReturnsTrueWhenViewer() public {
+        euint256 value = TEEPrimitives.toEuint256(12345);
+        bytes32 handle = euint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(TEEPrimitives.isViewer(value, user1));
+    }
+
+    function test_IsViewer_Eint256_ReturnsTrueWhenViewer() public {
+        eint256 value = TEEPrimitives.toEint256(-999);
+        bytes32 handle = eint256.unwrap(value);
+
+        vm.prank(address(teeComputeManager));
+        acl.allowTransient(handle, address(this));
+
+        TEEPrimitives.addViewer(value, user1);
+        assertTrue(TEEPrimitives.isViewer(value, user1));
     }
 }

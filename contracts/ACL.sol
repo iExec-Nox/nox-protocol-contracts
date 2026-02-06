@@ -176,7 +176,10 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     /// @inheritdoc IACL
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
         ACLStorage storage $ = _getACLStorage();
-        return $.isPubliclyDecryptable[handle] || $.viewers[handle][viewer];
+        return
+            $.isPubliclyDecryptable[handle] ||
+            $.viewers[handle][viewer] ||
+            $.admins[handle][viewer];
     }
 
     /// @inheritdoc IACL
