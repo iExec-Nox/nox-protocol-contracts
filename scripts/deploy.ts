@@ -11,8 +11,8 @@ import connection from "./utils/hardhat-connection-singleton.js";
 //
 // Usage: `hardhat run scripts/deploy.ts --network <network-name>`
 
-// Networks where CreateX factory is not deployed (local/test networks)
-const NON_CREATE2_NETWORKS = ["hardhat", "default", "localhost"];
+// CreateX factory address (deterministically deployed at this address on all supported networks)
+const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
 
 /**
  * Deployment function to be imported in other scripts.
@@ -28,8 +28,9 @@ export async function deploy(printLogs = true) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
     }
 
-    // Determine deployment strategy based on network
-    const useCreate2 = !NON_CREATE2_NETWORKS.includes(connection.networkName);
+    // Check if CreateX is available by checking if there's code at the factory address
+    const createXCode = await publicClient.getCode({ address: CREATEX_ADDRESS });
+    const useCreate2 = createXCode !== undefined && createXCode !== "0x";
     const strategy = useCreate2 ? "create2" : "basic";
 
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
