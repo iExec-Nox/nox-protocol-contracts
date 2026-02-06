@@ -15,8 +15,38 @@ async function getCreateXAbi(): Promise<Abi> {
     return createXAbi;
 }
 
+// Module-level cache for the fixture to avoid re-deployment.
+// Caching is essential: without it, CREATE2 deployments would fail with address collisions
+// since the same salts would be used across tests.
+let cachedFixture: Awaited<ReturnType<typeof deployFixture>> | null = null;
+let snapshotId: string | null = null;
+
 export async function loadFixture() {
-    return deployFixture();
+    const publicClient = await connection.viem.getPublicClient();
+
+    // If we have a cached fixture, restore the snapshot and return cached data
+    if (cachedFixture && snapshotId) {
+        // Revert to snapshot to get clean state
+        await publicClient.request({
+            method: "evm_revert" as any,
+            params: [snapshotId] as any,
+        });
+        // Take a new snapshot for the next test
+        snapshotId = await publicClient.request({
+            method: "evm_snapshot" as any,
+            params: [] as any,
+        });
+        return cachedFixture;
+    }
+
+    // First call - deploy and cache
+    cachedFixture = await deployFixture();
+    // Take snapshot after deployment
+    snapshotId = await publicClient.request({
+        method: "evm_snapshot" as any,
+        params: [] as any,
+    });
+    return cachedFixture;
 }
 
 /**
