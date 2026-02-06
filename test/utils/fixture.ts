@@ -1,6 +1,6 @@
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { deploy } from "../../scripts/deploy.js";
+import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 
 // Module-level cache for the fixture to avoid re-deployment.
 // Caching is essential: without it, CREATE2 deployments would fail with address collisions
@@ -52,7 +52,6 @@ async function deployFixture() {
     await publicClient.waitForTransactionReceipt({ hash: tx });
     return {
         ...deployment,
-        // Accounts
         admin: accounts[0],
         wallet1: accounts[1],
         wallet2: accounts[2],
