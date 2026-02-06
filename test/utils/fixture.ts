@@ -15,36 +15,8 @@ async function getCreateXAbi(): Promise<Abi> {
     return createXAbi;
 }
 
-// Module-level cache for the fixture to avoid re-deployment
-let cachedFixture: Awaited<ReturnType<typeof deployFixture>> | null = null;
-let snapshotId: string | null = null;
-
 export async function loadFixture() {
-    const publicClient = await connection.viem.getPublicClient();
-
-    // If we have a cached fixture, restore the snapshot and return cached data
-    if (cachedFixture && snapshotId) {
-        // Revert to snapshot to get clean state
-        await publicClient.request({
-            method: "evm_revert" as any,
-            params: [snapshotId],
-        });
-        // Take a new snapshot for the next test
-        snapshotId = await publicClient.request({
-            method: "evm_snapshot" as any,
-            params: [],
-        });
-        return cachedFixture;
-    }
-
-    // First call - deploy and cache
-    cachedFixture = await deployFixture();
-    // Take snapshot after deployment
-    snapshotId = await publicClient.request({
-        method: "evm_snapshot" as any,
-        params: [],
-    });
-    return cachedFixture;
+    return deployFixture();
 }
 
 /**
