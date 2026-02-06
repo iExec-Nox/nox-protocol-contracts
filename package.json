@@ -19,7 +19,7 @@
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
-    "coverage": "pnpm hardhat test --coverage",
+    "coverage": "pnpm hardhat test --coverage test/unit/**",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check ."
