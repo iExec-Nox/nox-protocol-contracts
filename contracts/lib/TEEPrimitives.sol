@@ -28,11 +28,15 @@ library TEEPrimitives {
     /// @notice Emitted when Nox protocol config is updated
     event NoxConfigSet(address teeComputeManager, address acl);
 
-    // ============ Trivial Encryption Functions ============
-
     function isInitialized(euint256 handle) internal pure returns (bool) {
         return euint256.unwrap(handle) != 0;
     }
+
+    function isInitialized(eint256 handle) internal pure returns (bool) {
+        return eint256.unwrap(handle) != 0;
+    }
+
+    // ============ Trivial Encryption Functions ============
 
     /**
      * @dev Converts a plaintext boolean to an encrypted boolean.
