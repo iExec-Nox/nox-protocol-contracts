@@ -32,7 +32,7 @@ export default defineConfig({
     networks: {
         default: {
             type: "edr-simulated",
-            chainType: "l1",
+            chainType: "op",
         },
         arbitrumSepolia: {
             type: "http",
