@@ -1,6 +1,6 @@
 import ACL from "../ignition/modules/ACL.js";
 import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
-import config from "../config/config.js";
+import config, { CREATEX_ADDRESS } from "../config/config.js";
 import connection from "./utils/hardhat-connection-singleton.js";
 
 // Deployment script for the Nox Contracts.
@@ -10,9 +10,6 @@ import connection from "./utils/hardhat-connection-singleton.js";
 // The CREATE2 salt is configured in hardhat.config.ts under ignition.strategyConfig.create2.salt
 //
 // Usage: `hardhat run scripts/deploy.ts --network <network-name>`
-
-// CreateX factory address (deterministically deployed at this address on all supported networks)
-const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed";
 
 /**
  * Deployment function to be imported in other scripts.

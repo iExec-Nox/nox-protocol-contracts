@@ -1,3 +1,11 @@
+// CreateX factory address (deterministically deployed at this address on all EVM chains)
+export const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed" as const;
+
+// Hardcoded addresses matching TEEPrimitives.sol
+// These addresses must match the constants in contracts/lib/TEEPrimitives.sol
+export const TEE_COMPUTE_MANAGER_ADDRESS = "0x029Ab6663e4F73477494082EB88915ea74Df5e83" as const;
+export const ACL_ADDRESS = "0x310163c93461AB5c6445044B15B0DA1784b595FB" as const;
+
 export default {
     // Default Hardhat network.
     default: {

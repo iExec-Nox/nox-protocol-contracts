@@ -2,14 +2,7 @@ import hre from "hardhat";
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { encodeAbiParameters, keccak256, toHex, concat, getContract, Abi } from "viem";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
-
-// CreateX factory address (same on all EVM chains)
-const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed" as const;
-
-// Hardcoded addresses matching TEEPrimitives.sol
-// These addresses must match the constants in TEEPrimitives.sol for integration tests to work
-const TEE_COMPUTE_MANAGER_ADDRESS = "0x029Ab6663e4F73477494082EB88915ea74Df5e83" as const;
-const ACL_ADDRESS = "0x310163c93461AB5c6445044B15B0DA1784b595FB" as const;
+import { CREATEX_ADDRESS, TEE_COMPUTE_MANAGER_ADDRESS, ACL_ADDRESS } from "../../config/config.js";
 
 // Cached CreateX ABI (loaded once from artifact)
 let createXAbi: Abi | null = null;
