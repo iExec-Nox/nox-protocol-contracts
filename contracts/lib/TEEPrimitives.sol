@@ -243,6 +243,36 @@ library TEEPrimitives {
         IACL(ACL_ADDRESS).allowTransient(eint256.unwrap(value), account);
     }
 
+    // ============ VIEWER MANAGEMENT ============
+
+    /**
+     * @dev Adds a viewer for an ebool handle.
+     */
+    function addViewer(ebool value, address viewer) internal {
+        IACL(ACL_ADDRESS).addViewer(ebool.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an eaddress handle.
+     */
+    function addViewer(eaddress value, address viewer) internal {
+        IACL(ACL_ADDRESS).addViewer(eaddress.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an euint256 handle.
+     */
+    function addViewer(euint256 value, address viewer) internal {
+        IACL(ACL_ADDRESS).addViewer(euint256.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an eint256 handle.
+     */
+    function addViewer(eint256 value, address viewer) internal {
+        IACL(ACL_ADDRESS).addViewer(eint256.unwrap(value), viewer);
+    }
+
     // ============ PUBLIC DECRYPTION ============
     /**
      * @dev Marks an ebool handle as publicly decryptable.
@@ -272,10 +302,89 @@ library TEEPrimitives {
         IACL(ACL_ADDRESS).allowPublicDecryption(eint256.unwrap(value));
     }
 
+    // ============ AUTHORIZATION QUERIES ============
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(ebool handle, address account) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isAllowed(ebool.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eaddress handle, address account) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isAllowed(eaddress.unwrap(handle), account);
+    }
+
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(euint256 handle, address account) internal view returns (bool) {
         return IACL(ACL_ADDRESS).isAllowed(euint256.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eint256 handle, address account) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isAllowed(eint256.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isPubliclyDecryptable(ebool.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isPubliclyDecryptable(eaddress.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isPubliclyDecryptable(euint256.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isPubliclyDecryptable(eint256.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(ebool handle, address viewer) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isViewer(ebool.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(eaddress handle, address viewer) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isViewer(eaddress.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(euint256 handle, address viewer) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isViewer(euint256.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(eint256 handle, address viewer) internal view returns (bool) {
+        return IACL(ACL_ADDRESS).isViewer(eint256.unwrap(handle), viewer);
     }
 }
