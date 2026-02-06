@@ -178,10 +178,9 @@ async function deployFixture() {
     return {
         // Dynamically deployed contracts (for unit tests that don't use TEEPrimitives)
         acl,
-        teeComputeManager,
         // Contracts at hardcoded addresses (for integration tests using TEEPrimitives)
         aclAtHardcodedAddress: aclAtHardcoded,
-        teeComputeManagerAtHardcodedAddress: teeComputeManagerAtHardcoded,
+        teeComputeManager: teeComputeManagerAtHardcoded,
         // Accounts
         admin: accounts[0],
         wallet1: accounts[1],
