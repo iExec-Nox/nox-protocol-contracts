@@ -41,6 +41,12 @@ jobs:
       - name: Build contracts
         run: pnpm run build
 
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: deployment-artifacts-${{ inputs.network }}
+          path: ignition/deployments/${{ inputs.network }}/
+
       - name: Set gateway address
         env:
           RPC_URL: ${{ secrets.RPC_URL }}

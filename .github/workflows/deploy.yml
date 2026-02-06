@@ -48,6 +48,14 @@ jobs:
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
         run: pnpm run deploy --network ${{ inputs.network }}
 
+      - name: Upload deployment artifacts
+        if: inputs.network != 'hardhat'
+        uses: actions/upload-artifact@v4
+        with:
+          name: deployment-artifacts-${{ inputs.network }}
+          path: ignition/deployments/${{ inputs.network }}/
+          retention-days: 1
+
       - name: Save deployment artifacts
         if: inputs.network != 'hardhat' && inputs.network != 'tenderlyArbitrumSepolia'
         uses: stefanzweifel/git-auto-commit-action@v5
