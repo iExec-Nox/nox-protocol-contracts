@@ -8,7 +8,7 @@ export const CREATE2_SALT = "0x7a3f9e2b1c8d4f6a5e0b3c7d9f1a2e4b6c8d0f1a3e5b7c9d1
 
 // Hardcoded addresses matching TEEPrimitives.sol
 // These addresses must match the constants in contracts/lib/TEEPrimitives.sol
-export const TEE_COMPUTE_MANAGER_ADDRESS = "0xf07E9032F06E44e2c04930484aD0C8865779e08e" as const;
+export const TEE_COMPUTE_MANAGER_ADDRESS = "0xAfd2dCabfc7bd9461edbFad6B6B6D269c2B82f5F" as const;
 export const ACL_ADDRESS = "0x8bEa38F8915c35E61bd3c95a23A7370d5B344F7b" as const;
 
 export default {

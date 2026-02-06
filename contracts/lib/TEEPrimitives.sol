@@ -20,7 +20,7 @@ import "encrypted-types/EncryptedTypes.sol";
  */
 library TEEPrimitives {
     // TODO: Update these addresses after deploying with the production salt.
-    address internal constant TEE_COMPUTE_MANAGER = 0xf07E9032F06E44e2c04930484aD0C8865779e08e;
+    address internal constant TEE_COMPUTE_MANAGER = 0xAfd2dCabfc7bd9461edbFad6B6B6D269c2B82f5F;
     address internal constant ACL_ADDRESS = 0x8bEa38F8915c35E61bd3c95a23A7370d5B344F7b;
 
     // ============ Trivial Encryption Functions ============
