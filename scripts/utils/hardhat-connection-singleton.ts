@@ -6,4 +6,7 @@ import hre from "hardhat";
 // This ConnectionSingleton ensures that only one instance of NetworkConnection is created
 // and shared between the deployment scripts and tests.
 
-export default await hre.network.connect();
+// Explicitly connect to the hardhat network if no network is selected
+// This is needed for the Node.js test runner which doesn't auto-select a network
+const networkName = hre.network?.name ?? "hardhat";
+export default await hre.network.connect(networkName);

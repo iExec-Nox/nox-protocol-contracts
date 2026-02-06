@@ -34,7 +34,11 @@ export default defineConfig({
     networks: {
         hardhat: {
             type: "edr-simulated",
-            chainType: "op",
+            chainType: "l1",
+            // Fork Sepolia to have CreateX available at 0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed
+            forking: {
+                url: "https://gateway.tenderly.co/public/sepolia",
+            },
         },
         arbitrumSepolia: {
             type: "http",
