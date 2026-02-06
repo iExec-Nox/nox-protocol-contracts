@@ -3,8 +3,8 @@ export const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed" as c
 
 // Hardcoded addresses matching TEEPrimitives.sol
 // These addresses must match the constants in contracts/lib/TEEPrimitives.sol
-export const TEE_COMPUTE_MANAGER_ADDRESS = "0x029Ab6663e4F73477494082EB88915ea74Df5e83" as const;
-export const ACL_ADDRESS = "0x310163c93461AB5c6445044B15B0DA1784b595FB" as const;
+export const TEE_COMPUTE_MANAGER_ADDRESS = "0xf07E9032F06E44e2c04930484aD0C8865779e08e" as const;
+export const ACL_ADDRESS = "0x8bEa38F8915c35E61bd3c95a23A7370d5B344F7b" as const;
 
 export default {
     // Default Hardhat network.
