@@ -50,7 +50,7 @@ jobs:
 
       - name: Upload deployment artifacts
         if: inputs.network != 'hardhat'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: deployment-artifacts-${{ inputs.network }}
           path: ignition/deployments/${{ inputs.network }}/
