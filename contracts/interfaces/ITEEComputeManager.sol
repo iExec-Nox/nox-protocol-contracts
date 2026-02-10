@@ -14,6 +14,7 @@ interface ITEEComputeManager is IErrors {
     error IncompatibleTypes();
 
     event GatewayUpdated(address indexed newGateway);
+    event ProofExpirationDurationUpdated(uint256 newDuration);
 
     event PlaintextToEncrypted(
         address indexed caller,
@@ -121,6 +122,12 @@ interface ITEEComputeManager is IErrors {
     }
 
     function setGateway(address gatewayAddress) external;
+
+    /**
+     * @notice Sets the proof expiration duration
+     * @param newDuration The new expiration duration in seconds
+     */
+    function setProofExpirationDuration(uint256 newDuration) external;
 
     /**
      * @notice Converts a plaintext value into an encrypted value
@@ -284,6 +291,7 @@ interface ITEEComputeManager is IErrors {
     function domainSeparator() external view returns (bytes32);
     function ACL() external view returns (IACL);
     function gateway() external view returns (address);
+    function proofExpirationDuration() external view returns (uint256);
 
     /// @dev See {IACL-isAllowed}
     function isAllowed(bytes32 handle, address account) external view returns (bool);
