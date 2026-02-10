@@ -35,22 +35,26 @@ contract TEEPrimitivesTest is Test {
         acl = address(aclContract);
         teeComputeManager = address(teeComputeManagerContract);
         TEEPrimitives.setNoxConfig(teeComputeManager);
-        _allowCaller(uint256HandleA);
-        _allowCaller(uint256HandleB);
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
+        _allowCaller(uint256HandleA);
+        _allowCaller(uint256HandleB);
         _allowCaller(int256Handle);
         vm.label(account, "account");
     }
 
     // ============ isInitialized ============
 
-    function test_isInitialized_ShouldReturnTrueForNonZeroValues() public pure {
-        assertTrue(TEEPrimitives.isInitialized(euint256.wrap(bytes32(uint256(1)))));
-        assertTrue(TEEPrimitives.isInitialized(eint256.wrap(bytes32(uint256(1)))));
+    function test_isInitialized_True() public view {
+        assertTrue(TEEPrimitives.isInitialized(ebool.wrap(boolHandle)));
+        assertTrue(TEEPrimitives.isInitialized(eaddress.wrap(addressHandle)));
+        assertTrue(TEEPrimitives.isInitialized(euint256.wrap(uint256HandleA)));
+        assertTrue(TEEPrimitives.isInitialized(eint256.wrap(int256Handle)));
     }
 
-    function test_isInitialized_ShouldReturnFalseForZeroValues() public pure {
+    function test_isInitialized_False() public pure {
+        assertFalse(TEEPrimitives.isInitialized(ebool.wrap(0)));
+        assertFalse(TEEPrimitives.isInitialized(eaddress.wrap(0)));
         assertFalse(TEEPrimitives.isInitialized(euint256.wrap(0)));
         assertFalse(TEEPrimitives.isInitialized(eint256.wrap(0)));
     }
