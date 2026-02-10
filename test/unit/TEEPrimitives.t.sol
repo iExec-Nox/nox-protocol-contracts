@@ -21,7 +21,6 @@ import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
 
 contract TEEPrimitivesTest is Test {
     address owner = makeAddr("owner");
-    address caller = makeAddr("caller");
     address account = makeAddr("account");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
@@ -40,7 +39,6 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.setNoxConfig(teeComputeManager);
         _allowCaller(handleA);
         _allowCaller(handleB);
-        vm.label(caller, "caller");
         vm.label(account, "account");
     }
 
@@ -63,7 +61,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (1, TEEType.Bool))
         );
-        vm.prank(caller);
         ebool result = TEEPrimitives.toEbool(true);
         assertNotEq(ebool.unwrap(result), 0);
     }
@@ -73,7 +70,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (0, TEEType.Bool))
         );
-        vm.prank(caller);
         ebool result = TEEPrimitives.toEbool(false);
         assertNotEq(ebool.unwrap(result), 0);
     }
@@ -89,7 +85,6 @@ contract TEEPrimitivesTest is Test {
                 (uint256(uint160(testAddress)), TEEType.Address)
             )
         );
-        vm.prank(caller);
         eaddress result = TEEPrimitives.toEaddress(testAddress);
         assertNotEq(eaddress.unwrap(result), 0);
     }
@@ -102,7 +97,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (value, TEEType.Uint256))
         );
-        vm.prank(caller);
         euint256 result = TEEPrimitives.toEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -118,7 +112,6 @@ contract TEEPrimitivesTest is Test {
                 (uint256(value), TEEType.Int256)
             )
         );
-        vm.prank(caller);
         eint256 result = TEEPrimitives.toEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
     }
@@ -136,7 +129,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.add, (handleA, handleB))
         );
-        vm.prank(caller);
         euint256 result = TEEPrimitives.add(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -150,7 +142,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.sub, (handleA, handleB))
         );
-        vm.prank(caller);
         euint256 result = TEEPrimitives.sub(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -164,7 +155,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.mul, (handleA, handleB))
         );
-        vm.prank(caller);
         euint256 result = TEEPrimitives.mul(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -178,7 +168,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.div, (handleA, handleB))
         );
-        vm.prank(caller);
         euint256 result = TEEPrimitives.div(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -192,7 +181,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.safeAdd, (handleA, handleB))
         );
-        vm.prank(caller);
         (ebool success, euint256 result) = TEEPrimitives.safeAdd(a, b);
         assertNotEq(ebool.unwrap(success), 0);
         assertNotEq(euint256.unwrap(result), 0);
@@ -207,7 +195,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.safeSub, (handleA, handleB))
         );
-        vm.prank(caller);
         (ebool success, euint256 result) = TEEPrimitives.safeSub(a, b);
         assertNotEq(ebool.unwrap(success), 0);
         assertNotEq(euint256.unwrap(result), 0);
@@ -225,7 +212,6 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.select, (conditionHandle, handleA, handleB))
         );
-        vm.prank(caller);
         euint256 result = TEEPrimitives.select(condition, ifTrue, ifFalse);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -237,7 +223,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         ebool value = ebool.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, account)));
-        vm.prank(caller);
         TEEPrimitives.allow(value, account);
     }
 
@@ -248,7 +233,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         eaddress value = eaddress.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, account)));
-        vm.prank(caller);
         TEEPrimitives.allow(value, account);
     }
 
@@ -257,7 +241,6 @@ contract TEEPrimitivesTest is Test {
     function test_allow_euint256() public {
         euint256 value = euint256.wrap(handleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handleA, account)));
-        vm.prank(caller);
         TEEPrimitives.allow(value, account);
     }
 
@@ -266,7 +249,6 @@ contract TEEPrimitivesTest is Test {
     function test_allow_eint256() public {
         eint256 value = eint256.wrap(handleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handleA, account)));
-        vm.prank(caller);
         TEEPrimitives.allow(value, account);
     }
 
@@ -277,7 +259,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         ebool value = ebool.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, address(this))));
-        vm.prank(caller);
         TEEPrimitives.allowThis(value);
     }
 
@@ -286,7 +267,6 @@ contract TEEPrimitivesTest is Test {
     function test_allowThis_euint256() public {
         euint256 value = euint256.wrap(handleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handleA, address(this))));
-        vm.prank(caller);
         TEEPrimitives.allowThis(value);
     }
 
@@ -297,7 +277,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         eint256 value = eint256.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, address(this))));
-        vm.prank(caller);
         TEEPrimitives.allowThis(value);
     }
 
@@ -308,7 +287,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         eaddress value = eaddress.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, address(this))));
-        vm.prank(caller);
         TEEPrimitives.allowThis(value);
     }
 
@@ -319,7 +297,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         ebool value = ebool.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handle, account)));
-        vm.prank(caller);
         TEEPrimitives.allowTransient(value, account);
     }
 
@@ -330,7 +307,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         eaddress value = eaddress.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handle, account)));
-        vm.prank(caller);
         TEEPrimitives.allowTransient(value, account);
     }
 
@@ -339,7 +315,6 @@ contract TEEPrimitivesTest is Test {
     function test_allowTransient_euint256() public {
         euint256 value = euint256.wrap(handleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handleA, account)));
-        vm.prank(caller);
         TEEPrimitives.allowTransient(value, account);
     }
 
@@ -350,7 +325,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         eint256 value = eint256.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handle, account)));
-        vm.prank(caller);
         TEEPrimitives.allowTransient(value, account);
     }
 
@@ -361,7 +335,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         ebool value = ebool.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handle)));
-        vm.prank(caller);
         TEEPrimitives.allowPublicDecryption(value);
     }
 
@@ -372,7 +345,6 @@ contract TEEPrimitivesTest is Test {
         _allowCaller(handle);
         eaddress value = eaddress.wrap(handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handle)));
-        vm.prank(caller);
         TEEPrimitives.allowPublicDecryption(value);
     }
 
@@ -381,7 +353,6 @@ contract TEEPrimitivesTest is Test {
     function test_allowPublicDecryption_euint256() public {
         euint256 value = euint256.wrap(handleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handleA)));
-        vm.prank(caller);
         TEEPrimitives.allowPublicDecryption(value);
     }
 
@@ -393,7 +364,6 @@ contract TEEPrimitivesTest is Test {
         eint256 value = eint256.wrap(handle);
 
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handle)));
-        vm.prank(caller);
         TEEPrimitives.allowPublicDecryption(value);
     }
 
@@ -405,9 +375,13 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.isAllowed(value, account);
     }
 
+    /**
+     * Helper function to allow this test contract as a caller of the given handle.
+     */
     function _allowCaller(bytes32 handle) internal {
-        vm.prank(teeComputeManager);
+        vm.startPrank(teeComputeManager);
         aclContract.allowTransient(handle, address(this));
-        aclContract.allow(handle, caller);
+        vm.stopPrank();
+        aclContract.allow(handle, address(this));
     }
 }
