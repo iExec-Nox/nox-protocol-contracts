@@ -13,10 +13,12 @@ library TestHelper {
     }
 
     function createHandle(uint256 chainId, TEEType teeType) internal view returns (bytes32 handle) {
+        Vm vm = getVm();
         return
             bytes32(
                 abi.encodePacked(
-                    bytes26(uint208(block.timestamp)), // Random pre-handle
+                    vm.randomBytes(26), // Random pre-handle
+                    // bytes26(abi.encodePacked(vm.randomBytes(26))), // Random pre-handle
                     bytes4(uint32(chainId)),
                     bytes1(uint8(teeType)),
                     bytes1(0x00) // Version 0
