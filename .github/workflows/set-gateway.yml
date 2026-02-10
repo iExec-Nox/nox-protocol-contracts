@@ -18,10 +18,6 @@ on:
           - arbitrumSepolia
           - tenderlyArbitrumSepolia
         default: "arbitrumSepolia"
-      gateway_address:
-        description: "Gateway wallet address to set (uses secret if not provided)"
-        required: false
-        type: string
 
 jobs:
   set-gateway:
@@ -51,5 +47,5 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          GATEWAY_ADDRESS: ${{ inputs.gateway_address || secrets.GATEWAY_ADDRESS }}
+          GATEWAY_ADDRESS: ${{ env.GATEWAY_ADDRESS }}
         run: pnpm run set-gateway --network ${{ inputs.network }}
