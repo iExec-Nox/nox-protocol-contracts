@@ -3,14 +3,10 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import "encrypted-types/EncryptedTypes.sol";
-import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
-import {ACL} from "../../contracts/ACL.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
-import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
 
 // Note: these tests are here to make sure the library calls the correct
@@ -24,8 +20,8 @@ contract TEEPrimitivesTest is Test {
     address account = makeAddr("account");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
-    ACL aclContract;
-    TEEComputeManager teeComputeManagerContract;
+    IACL aclContract;
+    ITEEComputeManager teeComputeManagerContract;
     address acl;
     address teeComputeManager;
     bytes32 boolHandle = TestHelper.createHandle(TEEType.Bool);
