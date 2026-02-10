@@ -226,8 +226,8 @@ contract TEEPrimitivesTest is Test {
     }
 
     function test_allow_eint256() public {
-        eint256 value = eint256.wrap(uint256HandleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, account)));
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (int256Handle, account)));
         TEEPrimitives.allow(value, account);
     }
 
