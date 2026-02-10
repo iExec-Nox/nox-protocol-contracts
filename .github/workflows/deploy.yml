@@ -46,6 +46,7 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          OWNER_PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
         run: pnpm run deploy --network ${{ inputs.network }}
 
       - name: Upload deployment artifacts
