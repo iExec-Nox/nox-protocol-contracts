@@ -28,17 +28,22 @@ contract TEEPrimitivesTest is Test {
     TEEComputeManager teeComputeManagerContract;
     address acl;
     address teeComputeManager;
-    uint256 createdAt = block.timestamp;
-    bytes32 handleA = TestHelper.createHandle(TEEType.Uint256);
-    bytes32 handleB = TestHelper.createHandle(TEEType.Uint256);
+    bytes32 boolHandle = TestHelper.createHandle(TEEType.Bool);
+    bytes32 addressHandle = TestHelper.createHandle(TEEType.Address);
+    bytes32 int256Handle = TestHelper.createHandle(TEEType.Int256);
+    bytes32 uint256HandleA = TestHelper.createHandle(TEEType.Uint256);
+    bytes32 uint256HandleB = TestHelper.createHandle(TEEType.Uint256);
 
     function setUp() public {
         (aclContract, teeComputeManagerContract) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
         teeComputeManager = address(teeComputeManagerContract);
         TEEPrimitives.setNoxConfig(teeComputeManager);
-        _allowCaller(handleA);
-        _allowCaller(handleB);
+        _allowCaller(uint256HandleA);
+        _allowCaller(uint256HandleB);
+        _allowCaller(boolHandle);
+        _allowCaller(addressHandle);
+        _allowCaller(int256Handle);
         vm.label(account, "account");
     }
 
@@ -123,11 +128,11 @@ contract TEEPrimitivesTest is Test {
     // ============ add ============
 
     function test_add() public {
-        euint256 a = euint256.wrap(handleA);
-        euint256 b = euint256.wrap(handleB);
+        euint256 a = euint256.wrap(uint256HandleA);
+        euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.add, (handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.add, (uint256HandleA, uint256HandleB))
         );
         euint256 result = TEEPrimitives.add(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -136,11 +141,11 @@ contract TEEPrimitivesTest is Test {
     // ============ sub ============
 
     function test_sub() public {
-        euint256 a = euint256.wrap(handleA);
-        euint256 b = euint256.wrap(handleB);
+        euint256 a = euint256.wrap(uint256HandleA);
+        euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.sub, (handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.sub, (uint256HandleA, uint256HandleB))
         );
         euint256 result = TEEPrimitives.sub(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -149,11 +154,11 @@ contract TEEPrimitivesTest is Test {
     // ============ mul ============
 
     function test_mul() public {
-        euint256 a = euint256.wrap(handleA);
-        euint256 b = euint256.wrap(handleB);
+        euint256 a = euint256.wrap(uint256HandleA);
+        euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.mul, (handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.mul, (uint256HandleA, uint256HandleB))
         );
         euint256 result = TEEPrimitives.mul(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -162,11 +167,11 @@ contract TEEPrimitivesTest is Test {
     // ============ div ============
 
     function test_div() public {
-        euint256 a = euint256.wrap(handleA);
-        euint256 b = euint256.wrap(handleB);
+        euint256 a = euint256.wrap(uint256HandleA);
+        euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.div, (handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.div, (uint256HandleA, uint256HandleB))
         );
         euint256 result = TEEPrimitives.div(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -175,11 +180,11 @@ contract TEEPrimitivesTest is Test {
     // ============ safeAdd ============
 
     function test_safeAdd() public {
-        euint256 a = euint256.wrap(handleA);
-        euint256 b = euint256.wrap(handleB);
+        euint256 a = euint256.wrap(uint256HandleA);
+        euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.safeAdd, (handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.safeAdd, (uint256HandleA, uint256HandleB))
         );
         (ebool success, euint256 result) = TEEPrimitives.safeAdd(a, b);
         assertNotEq(ebool.unwrap(success), 0);
@@ -189,11 +194,11 @@ contract TEEPrimitivesTest is Test {
     // ============ safeSub ============
 
     function test_safeSub() public {
-        euint256 a = euint256.wrap(handleA);
-        euint256 b = euint256.wrap(handleB);
+        euint256 a = euint256.wrap(uint256HandleA);
+        euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.safeSub, (handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.safeSub, (uint256HandleA, uint256HandleB))
         );
         (ebool success, euint256 result) = TEEPrimitives.safeSub(a, b);
         assertNotEq(ebool.unwrap(success), 0);
@@ -203,14 +208,12 @@ contract TEEPrimitivesTest is Test {
     // ============ select ============
 
     function test_select() public {
-        bytes32 conditionHandle = TestHelper.createHandle(TEEType.Bool);
-        _allowCaller(conditionHandle);
-        ebool condition = ebool.wrap(conditionHandle);
-        euint256 ifTrue = euint256.wrap(handleA);
-        euint256 ifFalse = euint256.wrap(handleB);
+        ebool condition = ebool.wrap(boolHandle);
+        euint256 ifTrue = euint256.wrap(uint256HandleA);
+        euint256 ifFalse = euint256.wrap(uint256HandleB);
         vm.expectCall(
             teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.select, (conditionHandle, handleA, handleB))
+            abi.encodeCall(ITEEComputeManager.select, (boolHandle, uint256HandleA, uint256HandleB))
         );
         euint256 result = TEEPrimitives.select(condition, ifTrue, ifFalse);
         assertNotEq(euint256.unwrap(result), 0);
@@ -219,159 +222,136 @@ contract TEEPrimitivesTest is Test {
     // ============ allow(ebool) ============
 
     function test_allow_ebool() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Bool);
-        _allowCaller(handle);
-        ebool value = ebool.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, account)));
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (boolHandle, account)));
         TEEPrimitives.allow(value, account);
     }
 
     // ============ allow(eaddress) ============
 
     function test_allow_eaddress() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Address);
-        _allowCaller(handle);
-        eaddress value = eaddress.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, account)));
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (addressHandle, account)));
         TEEPrimitives.allow(value, account);
     }
 
     // ============ allow(euint256) ============
 
     function test_allow_euint256() public {
-        euint256 value = euint256.wrap(handleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handleA, account)));
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, account)));
         TEEPrimitives.allow(value, account);
     }
 
     // ============ allow(eint256) ============
 
     function test_allow_eint256() public {
-        eint256 value = eint256.wrap(handleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handleA, account)));
+        eint256 value = eint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, account)));
         TEEPrimitives.allow(value, account);
     }
 
     // ============ allowThis(ebool) ============
 
     function test_allowThis_ebool() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Bool);
-        _allowCaller(handle);
-        ebool value = ebool.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, address(this))));
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (boolHandle, address(this))));
         TEEPrimitives.allowThis(value);
     }
 
     // ============ allowThis(euint256) ============
 
     function test_allowThis_euint256() public {
-        euint256 value = euint256.wrap(handleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handleA, address(this))));
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, address(this))));
         TEEPrimitives.allowThis(value);
     }
 
     // ============ allowThis(eint256) ============
 
     function test_allowThis_eint256() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Int256);
-        _allowCaller(handle);
-        eint256 value = eint256.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, address(this))));
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (int256Handle, address(this))));
         TEEPrimitives.allowThis(value);
     }
 
     // ============ allowThis(eaddress) ============
 
     function test_allowThis_eaddress() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Address);
-        _allowCaller(handle);
-        eaddress value = eaddress.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allow, (handle, address(this))));
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allow, (addressHandle, address(this))));
         TEEPrimitives.allowThis(value);
     }
 
     // ============ allowTransient(ebool) ============
 
     function test_allowTransient_ebool() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Bool);
-        _allowCaller(handle);
-        ebool value = ebool.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handle, account)));
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (boolHandle, account)));
         TEEPrimitives.allowTransient(value, account);
     }
 
     // ============ allowTransient(eaddress) ============
 
     function test_allowTransient_eaddress() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Address);
-        _allowCaller(handle);
-        eaddress value = eaddress.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handle, account)));
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (addressHandle, account)));
         TEEPrimitives.allowTransient(value, account);
     }
 
     // ============ allowTransient(euint256) ============
 
     function test_allowTransient_euint256() public {
-        euint256 value = euint256.wrap(handleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handleA, account)));
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (uint256HandleA, account)));
         TEEPrimitives.allowTransient(value, account);
     }
 
     // ============ allowTransient(eint256) ============
 
     function test_allowTransient_eint256() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Int256);
-        _allowCaller(handle);
-        eint256 value = eint256.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (handle, account)));
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (int256Handle, account)));
         TEEPrimitives.allowTransient(value, account);
     }
 
     // ============ allowPublicDecryption(ebool) ============
 
     function test_allowPublicDecryption_ebool() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Bool);
-        _allowCaller(handle);
-        ebool value = ebool.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handle)));
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (boolHandle)));
         TEEPrimitives.allowPublicDecryption(value);
     }
 
     // ============ allowPublicDecryption(eaddress) ============
 
     function test_allowPublicDecryption_eaddress() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Address);
-        _allowCaller(handle);
-        eaddress value = eaddress.wrap(handle);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handle)));
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (addressHandle)));
         TEEPrimitives.allowPublicDecryption(value);
     }
 
     // ============ allowPublicDecryption(euint256) ============
 
     function test_allowPublicDecryption_euint256() public {
-        euint256 value = euint256.wrap(handleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handleA)));
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (uint256HandleA)));
         TEEPrimitives.allowPublicDecryption(value);
     }
 
     // ============ allowPublicDecryption(eint256) ============
 
     function test_allowPublicDecryption_eint256() public {
-        bytes32 handle = TestHelper.createHandle(TEEType.Int256);
-        _allowCaller(handle);
-        eint256 value = eint256.wrap(handle);
-
-        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (handle)));
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (int256Handle)));
         TEEPrimitives.allowPublicDecryption(value);
     }
 
     // ============ isAllowed ============
 
     function test_isAllowed() public {
-        euint256 value = euint256.wrap(handleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (handleA, account)));
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (uint256HandleA, account)));
         TEEPrimitives.isAllowed(value, account);
     }
 
