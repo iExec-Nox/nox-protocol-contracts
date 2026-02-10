@@ -46,6 +46,7 @@ jobs:
       - name: Set gateway address
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
+          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           OWNER_PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
           GATEWAY_ADDRESS: ${{ env.GATEWAY_ADDRESS }}
         run: pnpm run set-gateway --network ${{ inputs.network }}
