@@ -68,8 +68,6 @@ export async function setGateway(printLogs = true) {
     if (currentGateway.toLowerCase() !== gatewayAddress.toLowerCase()) {
         throw new Error(`Gateway address mismatch: expected ${gatewayAddress}, got ${currentGateway}`);
     }
-
-    return txHash;
 }
 
 // Execute the script only if run directly
