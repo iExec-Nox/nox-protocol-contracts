@@ -218,6 +218,34 @@ library TEEPrimitives {
         _acl().allowTransient(eint256.unwrap(value), account);
     }
 
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(ebool handle, address account) internal view returns (bool) {
+        return _acl().isAllowed(ebool.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eaddress handle, address account) internal view returns (bool) {
+        return _acl().isAllowed(eaddress.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(euint256 handle, address account) internal view returns (bool) {
+        return _acl().isAllowed(euint256.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eint256 handle, address account) internal view returns (bool) {
+        return _acl().isAllowed(eint256.unwrap(handle), account);
+    }
+
     // ============ PUBLIC DECRYPTION ============
     /**
      * @dev Marks an ebool handle as publicly decryptable.
@@ -245,13 +273,6 @@ library TEEPrimitives {
      */
     function allowPublicDecryption(eint256 value) internal {
         _acl().allowPublicDecryption(eint256.unwrap(value));
-    }
-
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(euint256 handle, address account) internal view returns (bool) {
-        return _acl().isAllowed(euint256.unwrap(handle), account);
     }
 
     // ============ NOX CONFIGURATION ============

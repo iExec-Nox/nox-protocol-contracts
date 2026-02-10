@@ -59,7 +59,7 @@ contract TEEPrimitivesTest is Test {
         assertFalse(TEEPrimitives.isInitialized(eint256.wrap(0)));
     }
 
-    // ============ toEbool ============
+    // ============ to<Type> ============
 
     function test_toEbool_True() public {
         vm.expectCall(
@@ -79,8 +79,6 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(ebool.unwrap(result), 0);
     }
 
-    // ============ toEaddress ============
-
     function test_toEaddress() public {
         address testAddress = address(0x1234567890123456789012345678901234567890);
         vm.expectCall(
@@ -94,8 +92,6 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(eaddress.unwrap(result), 0);
     }
 
-    // ============ toEuint256 ============
-
     function test_toEuint256() public {
         uint256 value = 12345;
         vm.expectCall(
@@ -105,8 +101,6 @@ contract TEEPrimitivesTest is Test {
         euint256 result = TEEPrimitives.toEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
     }
-
-    // ============ toEint256 ============
 
     function test_toEint256() public {
         int256 value = -12345;
@@ -125,7 +119,7 @@ contract TEEPrimitivesTest is Test {
 
     // TODO function test_fromExternal() public {}
 
-    // ============ add ============
+    // ============ Unsafe Arithmetic primitives ============
 
     function test_add() public {
         euint256 a = euint256.wrap(uint256HandleA);
@@ -138,8 +132,6 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(euint256.unwrap(result), 0);
     }
 
-    // ============ sub ============
-
     function test_sub() public {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
@@ -150,8 +142,6 @@ contract TEEPrimitivesTest is Test {
         euint256 result = TEEPrimitives.sub(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
-
-    // ============ mul ============
 
     function test_mul() public {
         euint256 a = euint256.wrap(uint256HandleA);
@@ -164,8 +154,6 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(euint256.unwrap(result), 0);
     }
 
-    // ============ div ============
-
     function test_div() public {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
@@ -177,7 +165,7 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(euint256.unwrap(result), 0);
     }
 
-    // ============ safeAdd ============
+    // ============ Safe arithmetic primitives ============
 
     function test_safeAdd() public {
         euint256 a = euint256.wrap(uint256HandleA);
@@ -190,8 +178,6 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(ebool.unwrap(success), 0);
         assertNotEq(euint256.unwrap(result), 0);
     }
-
-    // ============ safeSub ============
 
     function test_safeSub() public {
         euint256 a = euint256.wrap(uint256HandleA);
@@ -219,7 +205,7 @@ contract TEEPrimitivesTest is Test {
         assertNotEq(euint256.unwrap(result), 0);
     }
 
-    // ============ allow(ebool) ============
+    // ============ allow(<type>) ============
 
     function test_allow_ebool() public {
         ebool value = ebool.wrap(boolHandle);
@@ -227,15 +213,11 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allow(value, account);
     }
 
-    // ============ allow(eaddress) ============
-
     function test_allow_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (addressHandle, account)));
         TEEPrimitives.allow(value, account);
     }
-
-    // ============ allow(euint256) ============
 
     function test_allow_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
@@ -243,15 +225,13 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allow(value, account);
     }
 
-    // ============ allow(eint256) ============
-
     function test_allow_eint256() public {
         eint256 value = eint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, account)));
         TEEPrimitives.allow(value, account);
     }
 
-    // ============ allowThis(ebool) ============
+    // ============ allowThis(<type>) ============
 
     function test_allowThis_ebool() public {
         ebool value = ebool.wrap(boolHandle);
@@ -259,15 +239,11 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allowThis(value);
     }
 
-    // ============ allowThis(euint256) ============
-
     function test_allowThis_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, address(this))));
         TEEPrimitives.allowThis(value);
     }
-
-    // ============ allowThis(eint256) ============
 
     function test_allowThis_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
@@ -275,15 +251,13 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allowThis(value);
     }
 
-    // ============ allowThis(eaddress) ============
-
     function test_allowThis_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (addressHandle, address(this))));
         TEEPrimitives.allowThis(value);
     }
 
-    // ============ allowTransient(ebool) ============
+    // ============ allowTransient(<type>) ============
 
     function test_allowTransient_ebool() public {
         ebool value = ebool.wrap(boolHandle);
@@ -291,15 +265,11 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allowTransient(value, account);
     }
 
-    // ============ allowTransient(eaddress) ============
-
     function test_allowTransient_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (addressHandle, account)));
         TEEPrimitives.allowTransient(value, account);
     }
-
-    // ============ allowTransient(euint256) ============
 
     function test_allowTransient_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
@@ -307,15 +277,39 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allowTransient(value, account);
     }
 
-    // ============ allowTransient(eint256) ============
-
     function test_allowTransient_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (int256Handle, account)));
         TEEPrimitives.allowTransient(value, account);
     }
 
-    // ============ allowPublicDecryption(ebool) ============
+    // ============ isAllowed(<type>) ============
+
+    function test_IsAllowed_Ebool() public {
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (boolHandle, account)));
+        TEEPrimitives.isAllowed(value, account);
+    }
+
+    function test_IsAllowed_Eaddress() public {
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (addressHandle, account)));
+        TEEPrimitives.isAllowed(value, account);
+    }
+
+    function test_IsAllowed_Euint256() public {
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (uint256HandleA, account)));
+        TEEPrimitives.isAllowed(value, account);
+    }
+
+    function test_IsAllowed_Eint256() public {
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (int256Handle, account)));
+        TEEPrimitives.isAllowed(value, account);
+    }
+
+    // ============ allowPublicDecryption(<type>) ============
 
     function test_allowPublicDecryption_ebool() public {
         ebool value = ebool.wrap(boolHandle);
@@ -323,15 +317,11 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allowPublicDecryption(value);
     }
 
-    // ============ allowPublicDecryption(eaddress) ============
-
     function test_allowPublicDecryption_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (addressHandle)));
         TEEPrimitives.allowPublicDecryption(value);
     }
-
-    // ============ allowPublicDecryption(euint256) ============
 
     function test_allowPublicDecryption_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
@@ -339,20 +329,10 @@ contract TEEPrimitivesTest is Test {
         TEEPrimitives.allowPublicDecryption(value);
     }
 
-    // ============ allowPublicDecryption(eint256) ============
-
     function test_allowPublicDecryption_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (int256Handle)));
         TEEPrimitives.allowPublicDecryption(value);
-    }
-
-    // ============ isAllowed ============
-
-    function test_isAllowed() public {
-        euint256 value = euint256.wrap(uint256HandleA);
-        vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (uint256HandleA, account)));
-        TEEPrimitives.isAllowed(value, account);
     }
 
     /**
