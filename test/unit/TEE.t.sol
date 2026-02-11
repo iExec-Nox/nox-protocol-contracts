@@ -22,7 +22,6 @@ contract TEELibTest is Test {
         (acl, teeComputeManager) = TestHelper.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
-        TEEPrimitives.setNoxConfig(address(teeComputeManager));
     }
 
     // ============ Trivial Encryption ============
@@ -341,7 +340,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Eaddress_ReturnsTrueWhenPublic() public {
@@ -352,7 +351,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Euint256_ReturnsTrueWhenPublic() public {
@@ -363,7 +362,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Eint256_ReturnsTrueWhenPublic() public {
@@ -374,7 +373,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     // ============ Authorization Queries - isViewer ============

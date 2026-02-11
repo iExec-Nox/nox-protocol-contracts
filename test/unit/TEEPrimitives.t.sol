@@ -34,7 +34,6 @@ contract TEEPrimitivesTest is Test {
         (aclContract, teeComputeManagerContract) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
         teeComputeManager = address(teeComputeManagerContract);
-        TEEPrimitives.setNoxConfig(teeComputeManager);
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
         _allowCaller(uint256HandleA);

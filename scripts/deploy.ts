@@ -3,9 +3,10 @@ import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
 import config from "../config/config.js";
 import connection from "./utils/hardhat-connection-singleton.js";
 
-// Deployment script for the Nox Contracts. It fetches the target chain config
-// from the config file and uses the Hardhat Ignition plugin to import and deploy
-// the modules defined in the `ignition/modules` folder.
+// Deployment script for the Nox Contracts.
+// Uses deterministic CREATE2 deployment via CreateX factory.
+// On local networks (chainId 31337), Ignition automatically deploys CreateX if not present.
+//
 // Usage: `hardhat run scripts/deploy.ts --network <network-name>`
 
 /**
@@ -21,12 +22,14 @@ export async function deploy(printLogs = true) {
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
     }
+
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Chain config:`, chainConfig);
     // Deploy ACL proxy (initialized with owner).
     const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
+        strategy: "create2",
         parameters: {
             ACL: {
                 initialOwner: chainConfig.initialOwner,
@@ -38,6 +41,7 @@ export async function deploy(printLogs = true) {
     const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
+        strategy: "create2",
         parameters: {
             TEEComputeManager: {
                 initialOwner: chainConfig.initialOwner,

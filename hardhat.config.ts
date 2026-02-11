@@ -1,8 +1,16 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
+import { CREATE2_SALT } from "./config/config.js";
 
 export default defineConfig({
     plugins: [hardhatToolboxViemPlugin],
+    ignition: {
+        strategyConfig: {
+            create2: {
+                salt: CREATE2_SALT,
+            },
+        },
+    },
     solidity: {
         profiles: {
             default: {
@@ -22,7 +30,7 @@ export default defineConfig({
         npmFilesToBuild: ["@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"],
     },
     networks: {
-        hardhat: {
+        default: {
             type: "edr-simulated",
             chainType: "op",
         },

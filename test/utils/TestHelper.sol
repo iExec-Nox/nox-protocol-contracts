@@ -6,8 +6,17 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
 
 library TestHelper {
+    address internal constant TEE_COMPUTE_MANAGER_ADDRESS =
+        address(TEEPrimitives.TEE_COMPUTE_MANAGER);
+    address internal constant ACL_ADDRESS = address(TEEPrimitives.ACL);
+
+    // ERC1967 implementation slot
+    bytes32 private constant IMPLEMENTATION_SLOT =
+        0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+
     /**
      * Generates a random unique handle with the given type.
      * @param teeType target type
@@ -35,34 +44,64 @@ library TestHelper {
     }
 
     /**
-     * Deploys the protocol contracts (ACL and TEEComputeManager) and
-     * initializes them with the given owner and gateway.
-     * The deployed contracts and the used addresses (owner, gateway)
-     * are labeled for easier debugging in tests.
+     * @notice Deploys ACL and TEEComputeManager at the hardcoded addresses used by TEEPrimitives.
+     * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
+     * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring TEEPrimitives
+     *      library calls work correctly in tests.
      */
     function deploy(
         address owner,
         address gateway
     ) internal returns (ACL acl, TEEComputeManager teeComputeManager) {
         Vm vm = getVm();
-        // Deploy ACL
+
+        // Deploy ACL implementation
         address aclImplementation = address(new ACL());
-        acl = ACL(deployProxy(aclImplementation));
-        // Deploy TEEComputeManager (with ACL address as immutable)
-        address teeComputeManagerImplementation = address(new TEEComputeManager(address(acl)));
-        teeComputeManager = TEEComputeManager(deployProxy(teeComputeManagerImplementation));
-        // Initialize both
+
+        // Deploy a temporary proxy to get its runtime bytecode
+        ERC1967Proxy aclProxyTemp = new ERC1967Proxy(aclImplementation, "");
+
+        // Etch the proxy bytecode at the hardcoded ACL address
+        vm.etch(ACL_ADDRESS, address(aclProxyTemp).code);
+        // Set the implementation slot
+        vm.store(ACL_ADDRESS, IMPLEMENTATION_SLOT, bytes32(uint256(uint160(aclImplementation))));
+
+        acl = ACL(ACL_ADDRESS);
         acl.initialize(owner);
-        vm.prank(owner);
-        acl.setTeeComputeManager(address(teeComputeManager));
+
+        // Deploy TEEComputeManager implementation (with ACL address as immutable)
+        address teeComputeManagerImplementation = address(new TEEComputeManager(ACL_ADDRESS));
+
+        // Deploy a temporary proxy to get its runtime bytecode
+        ERC1967Proxy teeComputeManagerProxyTemp = new ERC1967Proxy(
+            teeComputeManagerImplementation,
+            ""
+        );
+
+        // Etch the proxy bytecode at the hardcoded TEEComputeManager address
+        vm.etch(TEE_COMPUTE_MANAGER_ADDRESS, address(teeComputeManagerProxyTemp).code);
+        // Set the implementation slot
+        vm.store(
+            TEE_COMPUTE_MANAGER_ADDRESS,
+            IMPLEMENTATION_SLOT,
+            bytes32(uint256(uint160(teeComputeManagerImplementation)))
+        );
+
+        teeComputeManager = TEEComputeManager(TEE_COMPUTE_MANAGER_ADDRESS);
         teeComputeManager.initialize(owner);
+
+        // Configure contracts
+        vm.prank(owner);
+        acl.setTeeComputeManager(TEE_COMPUTE_MANAGER_ADDRESS);
         vm.prank(owner);
         teeComputeManager.setGateway(gateway);
+
         // Set labels
         vm.label(owner, "owner");
         vm.label(gateway, "gateway");
-        vm.label(address(acl), "acl");
-        vm.label(address(teeComputeManager), "teeComputeManager");
+        vm.label(ACL_ADDRESS, "acl");
+        vm.label(TEE_COMPUTE_MANAGER_ADDRESS, "teeComputeManager");
+
         return (acl, teeComputeManager);
     }
 

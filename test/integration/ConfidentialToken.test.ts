@@ -30,10 +30,7 @@ describe("[IT] ConfidentialToken", function () {
         // Deploy the ConfidentialTokenMock contract.
         //
         const totalSupply = 1_000_000_000n;
-        const confidentialTokenMock = await connection.viem.deployContract("ConfidentialTokenMock", [
-            totalSupply,
-            teeComputeManager.address,
-        ]);
+        const confidentialTokenMock = await connection.viem.deployContract("ConfidentialTokenMock", [totalSupply]);
         await offChainServices.waitForEventProcessing();
         //
         // Check initial balances
