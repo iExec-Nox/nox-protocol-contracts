@@ -17,10 +17,10 @@ export async function setGateway(printLogs = true) {
     const publicClient = await viem.getPublicClient();
     const walletClients = await viem.getWalletClients();
 
-    // Use owner wallet (second account, index 1)
-    const ownerClient = walletClients[1];
+    // Use owner wallet (first account when running with PRIVATE_KEY set to owner key)
+    const ownerClient = walletClients[0];
     if (!ownerClient) {
-        throw new Error("No owner wallet available. Set OWNER_PRIVATE_KEY environment variable.");
+        throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
     }
 
     const gatewayAddress = process.env.GATEWAY_ADDRESS;
