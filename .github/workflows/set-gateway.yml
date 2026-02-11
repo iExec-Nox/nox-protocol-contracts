@@ -1,0 +1,51 @@
+name: Set Gateway
+
+on:
+  workflow_call:
+    inputs:
+      network:
+        description: "Network where contracts are deployed"
+        required: true
+        type: string
+
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network where contracts are deployed"
+        required: true
+        type: choice
+        options:
+          - arbitrumSepolia
+          - tenderlyArbitrumSepolia
+        default: "arbitrumSepolia"
+
+jobs:
+  set-gateway:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.network }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm run build
+
+      - name: Download deployment artifacts
+        uses: actions/download-artifact@v6
+        with:
+          name: deployment-artifacts-${{ inputs.network }}
+          path: ignition/deployments/${{ inputs.network }}/
+
+      - name: Set gateway address
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
+          GATEWAY_ADDRESS: ${{ vars.GATEWAY_ADDRESS }}
+        run: pnpm run set-gateway --network ${{ inputs.network }}

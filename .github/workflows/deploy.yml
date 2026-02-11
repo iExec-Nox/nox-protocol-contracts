@@ -45,8 +45,16 @@ jobs:
         if: inputs.network != 'hardhat'
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
-          DEPLOYER_PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
         run: pnpm run deploy --network ${{ inputs.network }}
+
+      - name: Upload deployment artifacts
+        if: inputs.network != 'hardhat'
+        uses: actions/upload-artifact@v6
+        with:
+          name: deployment-artifacts-${{ inputs.network }}
+          path: ignition/deployments/${{ inputs.network }}/
+          retention-days: 1
 
       - name: Save deployment artifacts
         if: inputs.network != 'hardhat' && inputs.network != 'tenderlyArbitrumSepolia'
@@ -67,3 +75,11 @@ jobs:
       #     RPC_URL: ${{ secrets.RPC_URL }}
       #   run: |
       #     make verify-all-${{ inputs.network }}
+
+  set-gateway:
+    needs: deploy
+    if: inputs.network != 'hardhat'
+    uses: ./.github/workflows/set-gateway.yml
+    with:
+      network: ${{ inputs.network }}
+    secrets: inherit
