@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import "encrypted-types/EncryptedTypes.sol";
-import {IACL} from "../../contracts/interfaces/IACL.sol";
-import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
-import {TEEType} from "../../contracts/shared/TypeUtils.sol";
-import {TestHelper} from "../utils/TestHelper.sol";
-import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
+import {IACL} from "../../../contracts/interfaces/IACL.sol";
+import {ITEEComputeManager} from "../../../contracts/interfaces/ITEEComputeManager.sol";
+import {TEEType} from "../../../contracts/shared/TypeUtils.sol";
+import {TestHelper} from "../../utils/TestHelper.sol";
+import {Nox} from "../../../contracts/sdk/Nox.sol";
 
 // Note: these tests are here to make sure the library calls the correct
 // functions on the TEEComputeManager and ACL, and that the `isInitialized`

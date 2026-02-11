@@ -6,7 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
-import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
+import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
     address internal constant TEE_COMPUTE_MANAGER_ADDRESS =

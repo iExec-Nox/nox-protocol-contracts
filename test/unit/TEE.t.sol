@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
-import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
+import {Nox} from "../../contracts/sdk/Nox.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
