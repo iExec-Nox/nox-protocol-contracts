@@ -48,7 +48,7 @@ jobs:
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
         run: pnpm run deploy --network ${{ inputs.network }}
 
-      // Used in set-gateway job.
+      # Used in set-gateway job.
       - name: Upload deployment artifacts
         if: inputs.network != 'hardhat'
         uses: actions/upload-artifact@v6
