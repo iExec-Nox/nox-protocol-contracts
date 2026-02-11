@@ -366,4 +366,32 @@ library TEEPrimitives {
     function isViewer(eint256 handle, address viewer) internal view returns (bool) {
         return ACL.isViewer(eint256.unwrap(handle), viewer);
     }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
+        return ACL.isPubliclyDecryptable(ebool.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
+        return ACL.isPubliclyDecryptable(eaddress.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
+        return ACL.isPubliclyDecryptable(euint256.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
+        return ACL.isPubliclyDecryptable(eint256.unwrap(handle));
+    }
 }

@@ -1,4 +1,3 @@
 ignore:
   - "contracts/mock/**"
   - "contracts/interfaces/**"
-  - "contracts/lib/**" #TODO: remove this when we have tests for the libraries
