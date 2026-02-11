@@ -96,10 +96,14 @@ interface IACL is IErrors {
     function validateAllowedForAll(address account, bytes32[] calldata handles) external view;
 
     /**
-     * Returns whether the account is a viewer for the handle.
+     * Returns whether the account can view the handle.
+     * @dev Returns true if any of the following conditions are met:
+     *      - The handle is publicly decryptable
+     *      - The account was added as a viewer via `addViewer`
+     *      - The account has persistent access (is allowed) on the handle
      * @param handle Handle.
      * @param viewer Address of the viewer.
-     * @return Whether the account is a viewer for the handle.
+     * @return Whether the account can view the handle.
      */
     function isViewer(bytes32 handle, address viewer) external view returns (bool);
 }

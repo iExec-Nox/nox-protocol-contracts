@@ -253,6 +253,68 @@ library TEEPrimitives {
         _acl().allowTransient(eint256.unwrap(value), account);
     }
 
+    // ============ VIEWER MANAGEMENT ============
+
+    /**
+     * @dev Adds a viewer for an ebool handle.
+     */
+    function addViewer(ebool value, address viewer) internal {
+        _acl().addViewer(ebool.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an eaddress handle.
+     */
+    function addViewer(eaddress value, address viewer) internal {
+        _acl().addViewer(eaddress.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an euint256 handle.
+     */
+    function addViewer(euint256 value, address viewer) internal {
+        _acl().addViewer(euint256.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an eint256 handle.
+     */
+    function addViewer(eint256 value, address viewer) internal {
+        _acl().addViewer(eint256.unwrap(value), viewer);
+    }
+
+    // ============ PUBLIC DECRYPTION ============
+
+    /**
+     * @dev Marks an ebool handle as publicly decryptable.
+     */
+    function allowPublicDecryption(ebool value) internal {
+        _acl().allowPublicDecryption(ebool.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an eaddress handle as publicly decryptable.
+     */
+    function allowPublicDecryption(eaddress value) internal {
+        _acl().allowPublicDecryption(eaddress.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an euint256 handle as publicly decryptable.
+     */
+    function allowPublicDecryption(euint256 value) internal {
+        _acl().allowPublicDecryption(euint256.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an eint256 handle as publicly decryptable.
+     */
+    function allowPublicDecryption(eint256 value) internal {
+        _acl().allowPublicDecryption(eint256.unwrap(value));
+    }
+
+    // ============ AUTHORIZATION QUERIES ============
+
     /**
      * @dev Checks if the handle is allowed for the account.
      */
@@ -281,33 +343,60 @@ library TEEPrimitives {
         return _acl().isAllowed(eint256.unwrap(handle), account);
     }
 
-    // ============ PUBLIC DECRYPTION ============
     /**
-     * @dev Marks an ebool handle as publicly decryptable.
+     * @dev Checks if the viewer can view the handle.
      */
-    function allowPublicDecryption(ebool value) internal {
-        _acl().allowPublicDecryption(ebool.unwrap(value));
+    function isViewer(ebool handle, address viewer) internal view returns (bool) {
+        return _acl().isViewer(ebool.unwrap(handle), viewer);
     }
 
     /**
-     * @dev Marks an eaddress handle as publicly decryptable.
+     * @dev Checks if the viewer can view the handle.
      */
-    function allowPublicDecryption(eaddress value) internal {
-        _acl().allowPublicDecryption(eaddress.unwrap(value));
+    function isViewer(eaddress handle, address viewer) internal view returns (bool) {
+        return _acl().isViewer(eaddress.unwrap(handle), viewer);
     }
 
     /**
-     * @dev Marks an euint256 handle as publicly decryptable.
+     * @dev Checks if the viewer can view the handle.
      */
-    function allowPublicDecryption(euint256 value) internal {
-        _acl().allowPublicDecryption(euint256.unwrap(value));
+    function isViewer(euint256 handle, address viewer) internal view returns (bool) {
+        return _acl().isViewer(euint256.unwrap(handle), viewer);
     }
 
     /**
-     * @dev Marks an eint256 handle as publicly decryptable.
+     * @dev Checks if the viewer can view the handle.
      */
-    function allowPublicDecryption(eint256 value) internal {
-        _acl().allowPublicDecryption(eint256.unwrap(value));
+    function isViewer(eint256 handle, address viewer) internal view returns (bool) {
+        return _acl().isViewer(eint256.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(ebool.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(eaddress.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(euint256.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(eint256.unwrap(handle));
     }
 
     // ============ NOX CONFIGURATION ============
