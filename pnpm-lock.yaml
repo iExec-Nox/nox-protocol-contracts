@@ -27,9 +27,6 @@ importers:
       '@types/node':
         specifier: ^22.8.5
         version: 22.19.3
-      createx:
-        specifier: github:pcaversaccio/createx#v1.0.0
-        version: https://codeload.github.com/pcaversaccio/createx/tar.gz/cbac803268835138f86a69bfe01fcf05a50e0447
       forge-std:
         specifier: github:foundry-rs/forge-std#v1.9.4
         version: https://codeload.github.com/foundry-rs/forge-std/tar.gz/1eea5bae12ae557d589f9f0f0edae2faa47cb262
@@ -636,10 +633,6 @@ packages:
   commander@14.0.2:
     resolution: {integrity: sha512-TywoWNNRbhoD0BXs1P3ZEScW8W5iKrnbithIl0YH+uCmBd0QpPOA8yc82DS3BIE5Ma6FnBVUsJ7wVUDz4dvOWQ==}
     engines: {node: '>=20'}
-
-  createx@https://codeload.github.com/pcaversaccio/createx/tar.gz/cbac803268835138f86a69bfe01fcf05a50e0447:
-    resolution: {tarball: https://codeload.github.com/pcaversaccio/createx/tar.gz/cbac803268835138f86a69bfe01fcf05a50e0447}
-    version: 1.0.0
 
   debug@4.4.3:
     resolution: {integrity: sha512-RGwwWnwQvkVfavKVt22FGLw+xYSdzARwm0ru6DhTVA3umU5hZc28V3kO4stgYryrTlLpuvgI9GiijltAjNbcqA==}
@@ -1656,8 +1649,6 @@ snapshots:
   colorette@2.0.20: {}
 
   commander@14.0.2: {}
-
-  createx@https://codeload.github.com/pcaversaccio/createx/tar.gz/cbac803268835138f86a69bfe01fcf05a50e0447: {}
 
   debug@4.4.3:
     dependencies:

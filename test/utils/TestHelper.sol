@@ -6,12 +6,12 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {ACL} from "../../contracts/ACL.sol";
 import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
 
 library TestHelper {
-    // TODO: Read those addresses from a config file instead of hardcoding them here
     address internal constant TEE_COMPUTE_MANAGER_ADDRESS =
-        0xCFf1370bD7fA13e02Fa31681947fE08Cc84ce8e1;
-    address internal constant ACL_ADDRESS = 0x58b680917Dc3628C17bbda64888bcc43763FC9EF;
+        address(TEEPrimitives.TEE_COMPUTE_MANAGER);
+    address internal constant ACL_ADDRESS = address(TEEPrimitives.ACL);
 
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
@@ -45,6 +45,7 @@ library TestHelper {
 
     /**
      * @notice Deploys ACL and TEEComputeManager at the hardcoded addresses used by TEEPrimitives.
+     * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring TEEPrimitives
      *      library calls work correctly in tests.
      */
