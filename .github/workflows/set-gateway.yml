@@ -38,6 +38,7 @@ jobs:
         run: pnpm run build
 
       - name: Download deployment artifacts
+        if: github.event_name == 'workflow_call'
         uses: actions/download-artifact@v4
         with:
           name: deployment-artifacts-${{ inputs.network }}
