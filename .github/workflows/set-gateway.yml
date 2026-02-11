@@ -7,11 +7,6 @@ on:
         description: "Network where contracts are deployed"
         required: true
         type: string
-      from_deploy:
-        description: "Whether called from deploy workflow"
-        required: false
-        type: boolean
-        default: false
 
   workflow_dispatch:
     inputs:
@@ -44,7 +39,7 @@ jobs:
 
       # Download artifacts from deploy job (only needed when called from deploy workflow)
       - name: Download deployment artifacts
-        if: inputs.from_deploy == true
+        if: github.workflow == 'Deploy contracts'
         uses: actions/download-artifact@v6
         with:
           name: deployment-artifacts-${{ inputs.network }}

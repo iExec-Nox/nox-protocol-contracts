@@ -83,5 +83,4 @@ jobs:
     uses: ./.github/workflows/set-gateway.yml
     with:
       network: ${{ inputs.network }}
-      from_deploy: true
     secrets: inherit
