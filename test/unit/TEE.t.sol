@@ -340,7 +340,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Eaddress_ReturnsTrueWhenPublic() public {
@@ -351,7 +351,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Euint256_ReturnsTrueWhenPublic() public {
@@ -362,7 +362,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Eint256_ReturnsTrueWhenPublic() public {
@@ -373,7 +373,7 @@ contract TEELibTest is Test {
         acl.allowTransient(handle, address(this));
 
         TEEPrimitives.allowPublicDecryption(value);
-        assertTrue(TEEPrimitives.isPubliclyDecryptable(value));
+        assertTrue(acl.isPubliclyDecryptable(handle));
     }
 
     // ============ Authorization Queries - isViewer ============

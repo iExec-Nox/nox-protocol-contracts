@@ -52,7 +52,7 @@ export class OffChainServices {
      */
     async stop() {
         if (!this.running) {
-            throw new Error("Mock services are not running");
+            return;
         }
         this.running = false;
         this.handleToValueMap.clear();

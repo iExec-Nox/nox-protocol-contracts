@@ -17,15 +17,25 @@ library TestHelper {
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
 
+    /**
+     * Generates a random unique handle with the given type.
+     * @param teeType target type
+     */
     function createHandle(TEEType teeType) internal view returns (bytes32 handle) {
         return createHandle(block.chainid, teeType);
     }
 
+    /**
+     * Generates a random unique handle with the given chain id and type.
+     * @param chainId target chainId
+     * @param teeType target type
+     */
     function createHandle(uint256 chainId, TEEType teeType) internal view returns (bytes32 handle) {
+        Vm vm = getVm();
         return
             bytes32(
                 abi.encodePacked(
-                    bytes26(uint208(block.timestamp)), // Random pre-handle
+                    vm.randomBytes(26), // Random pre-handle
                     bytes4(uint32(chainId)),
                     bytes1(uint8(teeType)),
                     bytes1(0x00) // Version 0
