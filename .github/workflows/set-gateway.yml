@@ -37,8 +37,9 @@ jobs:
       - name: Build contracts
         run: pnpm run build
 
+      # Download artifacts from deploy job (only needed when called from deploy workflow)
       - name: Download deployment artifacts
-        if: github.event_name == 'workflow_call'
+        if: github.workflow == 'Deploy contracts'
         uses: actions/download-artifact@v6
         with:
           name: deployment-artifacts-${{ inputs.network }}
