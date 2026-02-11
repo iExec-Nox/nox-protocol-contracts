@@ -1,6 +1,3 @@
-// CreateX factory address (deterministically deployed at this address on all EVM chains)
-export const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed" as const;
-
 // CREATE2 deployment salt for deterministic addresses
 // TODO: For production deployment, replace with a carefully chosen and documented salt.
 // This salt is used by Ignition's create2 strategy to deploy contracts at deterministic addresses.
