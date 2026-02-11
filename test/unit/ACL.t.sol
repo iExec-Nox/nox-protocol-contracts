@@ -316,6 +316,12 @@ contract ACLTest is Test {
         assertTrue(acl.isViewer(handle, anyone));
     }
 
+    function test_IsViewer_WhenAllowed() public {
+        assertFalse(acl.isViewer(handle, user1));
+        _allow(handle, user1);
+        assertTrue(acl.isViewer(handle, user1));
+    }
+
     // ============ isAllowed ============
 
     function test_IsAllowed_ReturnsFalseByDefault() public view {

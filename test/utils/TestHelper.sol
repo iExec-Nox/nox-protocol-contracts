@@ -10,8 +10,8 @@ import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 library TestHelper {
     // TODO: Read those addresses from a config file instead of hardcoding them here
     address internal constant TEE_COMPUTE_MANAGER_ADDRESS =
-        0xAfd2dCabfc7bd9461edbFad6B6B6D269c2B82f5F;
-    address internal constant ACL_ADDRESS = 0x8bEa38F8915c35E61bd3c95a23A7370d5B344F7b;
+        0xCFf1370bD7fA13e02Fa31681947fE08Cc84ce8e1;
+    address internal constant ACL_ADDRESS = 0x58b680917Dc3628C17bbda64888bcc43763FC9EF;
 
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
