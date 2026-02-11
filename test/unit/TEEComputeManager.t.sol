@@ -203,7 +203,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
-        bytes32 badHandle = TestHelper.createHandle(type(uint32).max, TEEType.Uint256);
+        uint256 wrongChainId = type(uint32).max;
+        bytes32 badHandle = TestHelper.createHandle(wrongChainId, TEEType.Uint256);
         bytes memory proof = _buildProof(
             badHandle,
             owner,
@@ -346,8 +347,8 @@ contract TEEComputeManagerTest is Test {
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
     function test_ArithmeticOperations() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -377,8 +378,8 @@ contract TEEComputeManagerTest is Test {
     // ============ Comparison Operations (eq, ne, lt, le, gt, ge) ============
 
     function test_ComparisonOperations() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -414,8 +415,8 @@ contract TEEComputeManagerTest is Test {
     // ============ Safe Arithmetic Operations (safeAdd, safeSub) ============
 
     function test_SafeArithmeticOperations() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -457,8 +458,8 @@ contract TEEComputeManagerTest is Test {
     // ============ Binary Operations Revert Tests ============
 
     function test_RevertWhen_BinaryOperations_LhsNotAllowed() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         _allow(rightHandOperand, caller);
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
@@ -471,8 +472,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_BinaryOperations_RhsNotAllowed() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Uint256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         _allow(leftHandOperand, caller);
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
@@ -485,8 +486,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_BinaryOperations_IncompatibleTypes() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Int256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Int256);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -498,8 +499,8 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_BinaryOperations_NonArithmeticType() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(1, TEEType.Bool);
-        bytes32 rightHandOperand = TestHelper.createHandle(2, TEEType.Bool);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Bool);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Bool);
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
@@ -513,9 +514,9 @@ contract TEEComputeManagerTest is Test {
     // ============ select ============
 
     function test_Select() public {
-        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
-        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
-        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        bytes32 condition = TestHelper.createHandle(TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
         _allow(condition, caller);
         _allow(ifTrue, caller);
         _allow(ifFalse, caller);
@@ -529,9 +530,9 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Select_ConditionNotAllowed() public {
-        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
-        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
-        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        bytes32 condition = TestHelper.createHandle(TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
         _allow(ifTrue, caller);
         _allow(ifFalse, caller);
 
@@ -541,9 +542,9 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Select_IfTrueNotAllowed() public {
-        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
-        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
-        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        bytes32 condition = TestHelper.createHandle(TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
         _allow(condition, caller);
         _allow(ifFalse, caller);
 
@@ -553,9 +554,9 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Select_IfFalseNotAllowed() public {
-        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
-        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
-        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        bytes32 condition = TestHelper.createHandle(TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
         _allow(condition, caller);
         _allow(ifTrue, caller);
 
@@ -565,9 +566,9 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Select_IncompatibleTypes() public {
-        bytes32 condition = TestHelper.createHandle(1, TEEType.Bool);
-        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
-        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Int256);
+        bytes32 condition = TestHelper.createHandle(TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Int256);
         _allow(condition, caller);
         _allow(ifTrue, caller);
         _allow(ifFalse, caller);
@@ -578,9 +579,9 @@ contract TEEComputeManagerTest is Test {
     }
 
     function test_RevertWhen_Select_UnsupportedConditionType() public {
-        bytes32 condition = TestHelper.createHandle(1, TEEType.Uint256);
-        bytes32 ifTrue = TestHelper.createHandle(2, TEEType.Uint256);
-        bytes32 ifFalse = TestHelper.createHandle(3, TEEType.Uint256);
+        bytes32 condition = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
         _allow(condition, caller);
         _allow(ifTrue, caller);
         _allow(ifFalse, caller);
@@ -593,7 +594,7 @@ contract TEEComputeManagerTest is Test {
     // ============ isAllowed ============
 
     function test_IsAllowed() public {
-        bytes32 h = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 h = TestHelper.createHandle(TEEType.Uint256);
         address account = makeAddr("account");
 
         assertFalse(teeComputeManager.isAllowed(h, account));
@@ -606,7 +607,7 @@ contract TEEComputeManagerTest is Test {
     // ============ isViewer ============
 
     function test_IsViewer() public {
-        bytes32 h = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 h = TestHelper.createHandle(TEEType.Uint256);
         address viewer = makeAddr("viewer");
 
         assertFalse(teeComputeManager.isViewer(h, viewer));
@@ -621,7 +622,7 @@ contract TEEComputeManagerTest is Test {
     // ============ isPubliclyDecryptable ============
 
     function test_IsPubliclyDecryptable() public {
-        bytes32 h = TestHelper.createHandle(1, TEEType.Uint256);
+        bytes32 h = TestHelper.createHandle(TEEType.Uint256);
 
         assertFalse(teeComputeManager.isPubliclyDecryptable(h));
 

@@ -28,11 +28,49 @@ library TEEPrimitives {
     /// @notice Emitted when Nox protocol config is updated
     event NoxConfigSet(address teeComputeManager, address acl);
 
-    // ============ Trivial Encryption Functions ============
+    // =========== Handle initialization checks ============
 
+    /**
+     * @dev Checks if an encrypted boolean handle is initialized.
+     * This is a basic check and does not guarantee that the handle
+     * is valid or recognized by the ACL.
+     * @param handle encrypted boolean handle
+     */
+    function isInitialized(ebool handle) internal pure returns (bool) {
+        return ebool.unwrap(handle) != 0;
+    }
+
+    /**
+     * @dev Checks if an encrypted address handle is initialized.
+     * This is a basic check and does not guarantee that the handle
+     * is valid or recognized by the ACL.
+     * @param handle encrypted address handle
+     */
+    function isInitialized(eaddress handle) internal pure returns (bool) {
+        return eaddress.unwrap(handle) != 0;
+    }
+
+    /**
+     * @dev Checks if an encrypted uint256 handle is initialized.
+     * This is a basic check and does not guarantee that the handle
+     * is valid or recognized by the ACL.
+     * @param handle encrypted uint256 handle
+     */
     function isInitialized(euint256 handle) internal pure returns (bool) {
         return euint256.unwrap(handle) != 0;
     }
+
+    /**
+     * @dev Checks if an encrypted int256 handle is initialized.
+     * This is a basic check and does not guarantee that the handle
+     * is valid or recognized by the ACL.
+     * @param handle encrypted int256 handle
+     */
+    function isInitialized(eint256 handle) internal pure returns (bool) {
+        return eint256.unwrap(handle) != 0;
+    }
+
+    // ============ Trivial Encryption Functions ============
 
     /**
      * @dev Converts a plaintext boolean to an encrypted boolean.
@@ -66,7 +104,7 @@ library TEEPrimitives {
             eint256.wrap(_teeComputeManager().plaintextToEncrypted(uint256(value), TEEType.Int256));
     }
 
-    // ============ Handle conversion ============
+    // ============ Handle validation ============
 
     function fromExternal(
         externalEuint256 externalHandle,
@@ -78,6 +116,7 @@ library TEEPrimitives {
     }
 
     // ============ Arithmetic primitives ============
+    // TODO add primitives for all numeric types.
 
     function add(euint256 a, euint256 b) internal returns (euint256) {
         return euint256.wrap(_teeComputeManager().add(euint256.unwrap(a), euint256.unwrap(b)));
@@ -245,6 +284,7 @@ library TEEPrimitives {
     }
 
     // ============ PUBLIC DECRYPTION ============
+
     /**
      * @dev Marks an ebool handle as publicly decryptable.
      */
@@ -304,34 +344,6 @@ library TEEPrimitives {
     }
 
     /**
-     * @dev Checks if the handle is publicly decryptable.
-     */
-    function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
-        return _acl().isPubliclyDecryptable(ebool.unwrap(handle));
-    }
-
-    /**
-     * @dev Checks if the handle is publicly decryptable.
-     */
-    function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
-        return _acl().isPubliclyDecryptable(eaddress.unwrap(handle));
-    }
-
-    /**
-     * @dev Checks if the handle is publicly decryptable.
-     */
-    function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
-        return _acl().isPubliclyDecryptable(euint256.unwrap(handle));
-    }
-
-    /**
-     * @dev Checks if the handle is publicly decryptable.
-     */
-    function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
-        return _acl().isPubliclyDecryptable(eint256.unwrap(handle));
-    }
-
-    /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(ebool handle, address viewer) internal view returns (bool) {
@@ -357,6 +369,34 @@ library TEEPrimitives {
      */
     function isViewer(eint256 handle, address viewer) internal view returns (bool) {
         return _acl().isViewer(eint256.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(ebool.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(eaddress.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(euint256.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
+        return _acl().isPubliclyDecryptable(eint256.unwrap(handle));
     }
 
     // ============ NOX CONFIGURATION ============

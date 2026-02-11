@@ -8,15 +8,25 @@ import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 
 library TestHelper {
+    /**
+     * Generates a random unique handle with the given type.
+     * @param teeType target type
+     */
     function createHandle(TEEType teeType) internal view returns (bytes32 handle) {
         return createHandle(block.chainid, teeType);
     }
 
+    /**
+     * Generates a random unique handle with the given chain id and type.
+     * @param chainId target chainId
+     * @param teeType target type
+     */
     function createHandle(uint256 chainId, TEEType teeType) internal view returns (bytes32 handle) {
+        Vm vm = getVm();
         return
             bytes32(
                 abi.encodePacked(
-                    bytes26(uint208(block.timestamp)), // Random pre-handle
+                    vm.randomBytes(26), // Random pre-handle
                     bytes4(uint32(chainId)),
                     bytes1(uint8(teeType)),
                     bytes1(0x00) // Version 0
@@ -24,6 +34,12 @@ library TestHelper {
             );
     }
 
+    /**
+     * Deploys the protocol contracts (ACL and TEEComputeManager) and
+     * initializes them with the given owner and gateway.
+     * The deployed contracts and the used addresses (owner, gateway)
+     * are labeled for easier debugging in tests.
+     */
     function deploy(
         address owner,
         address gateway
