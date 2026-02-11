@@ -9,7 +9,6 @@ import connection from "./utils/hardhat-connection-singleton.js";
 /**
  * Sets the gateway address on the TEEComputeManager contract.
  * @param printLogs whether to print logs or not
- * @returns the transaction hash
  */
 export async function setGateway(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
