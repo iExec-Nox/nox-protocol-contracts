@@ -9,12 +9,18 @@ import connection from "./utils/hardhat-connection-singleton.js";
 /**
  * Sets the gateway address on the TEEComputeManager contract.
  * @param printLogs whether to print logs or not
- * @returns the transaction hash
  */
 export async function setGateway(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
+    const walletClients = await viem.getWalletClients();
+
+    // Use owner wallet (first account when running with PRIVATE_KEY set to owner key)
+    const ownerClient = walletClients[0];
+    if (!ownerClient) {
+        throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
+    }
 
     const gatewayAddress = process.env.GATEWAY_ADDRESS;
     if (!gatewayAddress) {
@@ -22,6 +28,7 @@ export async function setGateway(printLogs = true) {
     }
 
     _log(`Setting gateway address: ${gatewayAddress}`);
+    _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
     // Read TEEComputeManager proxy address from ignition deployment artifacts
@@ -51,8 +58,10 @@ export async function setGateway(printLogs = true) {
 
     _log(`TEEComputeManager address: ${teeComputeManagerAddress}`);
 
-    // Get TEEComputeManager contract instance
-    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerAddress);
+    // Get TEEComputeManager contract instance with owner wallet
+    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerAddress, {
+        client: { wallet: ownerClient },
+    });
 
     // Set the gateway address
     const txHash = await teeComputeManager.write.setGateway([gatewayAddress as `0x${string}`]);
@@ -68,8 +77,6 @@ export async function setGateway(printLogs = true) {
     if (currentGateway.toLowerCase() !== gatewayAddress.toLowerCase()) {
         throw new Error(`Gateway address mismatch: expected ${gatewayAddress}, got ${currentGateway}`);
     }
-
-    return txHash;
 }
 
 // Execute the script only if run directly
