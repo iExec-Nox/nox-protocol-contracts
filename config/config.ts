@@ -6,11 +6,6 @@ export const CREATEX_ADDRESS = "0xba5Ed099633D3B313e4D5F7bdc1305d3c28ba5Ed" as c
 // This salt is used by Ignition's create2 strategy to deploy contracts at deterministic addresses.
 export const CREATE2_SALT = "0x7a3f9e2b1c8d4f6a5e0b3c7d9f1a2e4b6c8d0f1a3e5b7c9d1f3a5e7b9c1d3f5a" as const;
 
-// Hardcoded addresses matching TEEPrimitives.sol
-// These addresses must match the constants in contracts/lib/TEEPrimitives.sol
-export const TEE_COMPUTE_MANAGER_ADDRESS = "0xAfd2dCabfc7bd9461edbFad6B6B6D269c2B82f5F" as const;
-export const ACL_ADDRESS = "0x8bEa38F8915c35E61bd3c95a23A7370d5B344F7b" as const;
-
 export default {
     // Default Hardhat network.
     default: {
