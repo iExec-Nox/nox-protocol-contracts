@@ -9,9 +9,8 @@ import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
-    address internal constant TEE_COMPUTE_MANAGER_ADDRESS =
-        address(TEEPrimitives.TEE_COMPUTE_MANAGER);
-    address internal constant ACL_ADDRESS = address(TEEPrimitives.ACL);
+    address internal constant TEE_COMPUTE_MANAGER_ADDRESS = address(Nox.TEE_COMPUTE_MANAGER);
+    address internal constant ACL_ADDRESS = address(Nox.ACL);
 
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
@@ -44,9 +43,9 @@ library TestHelper {
     }
 
     /**
-     * @notice Deploys ACL and TEEComputeManager at the hardcoded addresses used by TEEPrimitives.
+     * @notice Deploys ACL and TEEComputeManager at the hardcoded addresses used by Nox.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
-     * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring TEEPrimitives
+     * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
      */
     function deploy(
