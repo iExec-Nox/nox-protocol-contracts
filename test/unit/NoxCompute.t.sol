@@ -54,6 +54,17 @@ contract NoxComputeTest is Test {
         binaryOps[11] = INoxCompute.safeSub.selector;
     }
 
+    // ============ constructor ============
+
+    function test_Constructor() public view {
+        assertEq(address(noxCompute.ACL()), acl);
+    }
+
+    function test_RevertIf_ConstructorAclIsZeroAddress() public {
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        new NoxCompute(address(0));
+    }
+
     // ============ initialize ============
 
     function test_Initialize() public view {
