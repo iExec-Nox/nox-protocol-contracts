@@ -5,12 +5,12 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/U
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {ITEEComputeManager} from "./interfaces/ITEEComputeManager.sol";
+import {INoxCompute} from "./interfaces/INoxCompute.sol";
 import {IACL} from "./interfaces/IACL.sol";
 import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 
 /**
- * @title TEEComputeManager
+ * @title NoxCompute
  * This contract is the main entry point to the TEE compute functionalities of the Nox protocol.
  * It's role includes:
  * - Managing the access control list (ACL) for encrypted handles
@@ -18,14 +18,9 @@ import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
  * - Facilitating the conversion of plaintext values to encrypted values
  * - Triggering off-chain TEE computations through event emissions
  */
-contract TEEComputeManager is
-    ITEEComputeManager,
-    UUPSUpgradeable,
-    OwnableUpgradeable,
-    EIP712Upgradeable
-{
-    /// @custom:storage-location erc7201:nox.storage.TEEComputeManager
-    struct TEEComputeManagerStorage {
+contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712Upgradeable {
+    /// @custom:storage-location erc7201:nox.storage.NoxCompute
+    struct NoxComputeStorage {
         address gateway;
         uint256 proofExpirationDuration;
     }
@@ -35,9 +30,9 @@ contract TEEComputeManager is
     /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     IACL public immutable ACL;
 
-    // keccak256(abi.encode(uint256(keccak256("nox.storage.TEEComputeManager")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant TEE_COMPUTE_MANAGER_STORAGE_LOCATION =
-        0xc3e1031bc9fe6b2927aae1aa699e4b02aecc2dc8724a4333ac8dcd9db8c62b00;
+    // keccak256(abi.encode(uint256(keccak256("nox.storage.NoxCompute")) - 1)) & ~bytes32(uint256(0xff))
+    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
+        0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
     bytes32 public constant HANDLE_PROOF_TYPEHASH =
         keccak256("HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)");
 
@@ -59,8 +54,8 @@ contract TEEComputeManager is
     function initialize(address initialOwner) public initializer {
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
-        __EIP712_init("TEEComputeManager", "1");
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        __EIP712_init("NoxCompute", "1");
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
     }
 
@@ -73,7 +68,7 @@ contract TEEComputeManager is
         if (gatewayAddress == address(0)) {
             revert InvalidZeroAddress();
         }
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.gateway = gatewayAddress;
         emit GatewayUpdated(gatewayAddress);
     }
@@ -84,12 +79,12 @@ contract TEEComputeManager is
      * @param newDuration New expiration duration in seconds
      */
     function setProofExpirationDuration(uint256 newDuration) external onlyOwner {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = newDuration;
         emit ProofExpirationDurationUpdated(newDuration);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function plaintextToEncrypted(
         uint256 value,
         TEEType teeType
@@ -145,7 +140,7 @@ contract TEEComputeManager is
         address appInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         if (block.timestamp > createdAt + $.proofExpirationDuration) {
             revert InvalidProof(proof, "Proof expired");
         }
@@ -167,7 +162,7 @@ contract TEEComputeManager is
         ACL.allowTransient(handle, msg.sender);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function add(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -179,7 +174,7 @@ contract TEEComputeManager is
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function sub(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -191,7 +186,7 @@ contract TEEComputeManager is
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result) {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
@@ -200,7 +195,7 @@ contract TEEComputeManager is
         emit Div(msg.sender, numerator, denominator, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function mul(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -212,7 +207,7 @@ contract TEEComputeManager is
         emit Mul(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function eq(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -221,7 +216,7 @@ contract TEEComputeManager is
         emit Eq(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function ne(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -230,7 +225,7 @@ contract TEEComputeManager is
         emit Ne(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function lt(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -239,7 +234,7 @@ contract TEEComputeManager is
         emit Lt(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function le(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -248,7 +243,7 @@ contract TEEComputeManager is
         emit Le(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function gt(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -257,7 +252,7 @@ contract TEEComputeManager is
         emit Gt(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function ge(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -266,7 +261,7 @@ contract TEEComputeManager is
         emit Ge(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function safeAdd(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -278,7 +273,7 @@ contract TEEComputeManager is
         emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function safeSub(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -290,7 +285,7 @@ contract TEEComputeManager is
         emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function select(
         bytes32 condition,
         bytes32 ifTrue,
@@ -324,7 +319,7 @@ contract TEEComputeManager is
      * Returns the Gateway wallet address.
      */
     function gateway() external view returns (address) {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         return $.gateway;
     }
 
@@ -332,21 +327,21 @@ contract TEEComputeManager is
      * Returns the proof expiration duration in seconds.
      */
     function proofExpirationDuration() external view returns (uint256) {
-        TEEComputeManagerStorage storage $ = _getTEEComputeManagerStorage();
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         return $.proofExpirationDuration;
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function isAllowed(bytes32 handle, address account) external view returns (bool) {
         return ACL.isAllowed(handle, account);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function isViewer(bytes32 handle, address viewer) external view returns (bool) {
         return ACL.isViewer(handle, viewer);
     }
 
-    /// @inheritdoc ITEEComputeManager
+    /// @inheritdoc INoxCompute
     function isPubliclyDecryptable(bytes32 handle) external view returns (bool) {
         return ACL.isPubliclyDecryptable(handle);
     }
@@ -356,13 +351,9 @@ contract TEEComputeManager is
      */
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
 
-    function _getTEEComputeManagerStorage()
-        internal
-        pure
-        returns (TEEComputeManagerStorage storage $)
-    {
+    function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
         assembly {
-            $.slot := TEE_COMPUTE_MANAGER_STORAGE_LOCATION
+            $.slot := NOX_COMPUTE_STORAGE_LOCATION
         }
     }
 
@@ -455,7 +446,7 @@ contract TEEComputeManager is
      *   keccak256(abi.encodePacked(
      *       operator,        // Operator identifier (e.g., Add, Sub, Div)
      *       operands,        // Array of operand handles
-     *       address(this),   // TEEComputeManager contract address
+     *       address(this),   // NoxCompute contract address
      *       msg.sender,      // Caller address
      *       block.timestamp, // Current block timestamp
      *       outputIndex      // For operations that return multiple outputs

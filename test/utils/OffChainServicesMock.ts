@@ -21,15 +21,15 @@ const client = await connection.viem.getPublicClient();
 export class OffChainServices {
     // Can be used for manual debugging.
     private printLogs = false;
-    private teeComputeManagerAddress: `0x${string}`;
+    private noxComputeAddress: `0x${string}`;
     private gateway: PrivateKeyAccount;
     private chainId: number;
     private running = false;
     private handleToValueMap!: Map<`0x${string}`, bigint | undefined>;
     private stopGatewayService!: WatchEventReturnType;
 
-    constructor(teeComputeManagerAddress: `0x${string}`, gateway: PrivateKeyAccount) {
-        this.teeComputeManagerAddress = teeComputeManagerAddress;
+    constructor(noxComputeAddress: `0x${string}`, gateway: PrivateKeyAccount) {
+        this.noxComputeAddress = noxComputeAddress;
         this.gateway = gateway;
         this.chainId = client.chain.id;
     }
@@ -91,10 +91,10 @@ export class OffChainServices {
         const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, versionByte]);
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const domain = {
-            name: "TEEComputeManager",
+            name: "NoxCompute",
             version: "1",
             chainId: this.chainId,
-            verifyingContract: this.teeComputeManagerAddress,
+            verifyingContract: this.noxComputeAddress,
         } as const;
         const types = {
             HandleProof: [
@@ -147,7 +147,7 @@ export class OffChainServices {
 
     private async _startGateway() {
         const unwatch = client.watchEvent({
-            address: this.teeComputeManagerAddress,
+            address: this.noxComputeAddress,
             events: eventsToWatch.map((e) => parseAbiItem(e)),
             // pollingInterval: 10,
             onLogs: (logs) => this._processEvents(logs),

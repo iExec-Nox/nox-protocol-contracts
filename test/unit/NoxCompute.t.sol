@@ -7,10 +7,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
-import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
+import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {
     TEEType,
     TypeUtils,
@@ -20,14 +20,14 @@ import {
 import {TestHelper} from "../utils/TestHelper.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
-contract TEEComputeManagerTest is Test {
+contract NoxComputeTest is Test {
     address owner = makeAddr("owner");
     address caller = makeAddr("caller");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
     ACL aclContract;
     address acl;
-    TEEComputeManager teeComputeManager;
+    NoxCompute noxCompute;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
@@ -35,31 +35,31 @@ contract TEEComputeManagerTest is Test {
     bytes4[] internal binaryOps;
 
     function setUp() public {
-        (aclContract, teeComputeManager) = TestHelper.deploy(owner, gateway);
+        (aclContract, noxCompute) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
         vm.label(caller, "caller");
 
         binaryOps = new bytes4[](12);
-        binaryOps[0] = ITEEComputeManager.add.selector;
-        binaryOps[1] = ITEEComputeManager.sub.selector;
-        binaryOps[2] = ITEEComputeManager.mul.selector;
-        binaryOps[3] = ITEEComputeManager.div.selector;
-        binaryOps[4] = ITEEComputeManager.eq.selector;
-        binaryOps[5] = ITEEComputeManager.ne.selector;
-        binaryOps[6] = ITEEComputeManager.lt.selector;
-        binaryOps[7] = ITEEComputeManager.le.selector;
-        binaryOps[8] = ITEEComputeManager.gt.selector;
-        binaryOps[9] = ITEEComputeManager.ge.selector;
-        binaryOps[10] = ITEEComputeManager.safeAdd.selector;
-        binaryOps[11] = ITEEComputeManager.safeSub.selector;
+        binaryOps[0] = INoxCompute.add.selector;
+        binaryOps[1] = INoxCompute.sub.selector;
+        binaryOps[2] = INoxCompute.mul.selector;
+        binaryOps[3] = INoxCompute.div.selector;
+        binaryOps[4] = INoxCompute.eq.selector;
+        binaryOps[5] = INoxCompute.ne.selector;
+        binaryOps[6] = INoxCompute.lt.selector;
+        binaryOps[7] = INoxCompute.le.selector;
+        binaryOps[8] = INoxCompute.gt.selector;
+        binaryOps[9] = INoxCompute.ge.selector;
+        binaryOps[10] = INoxCompute.safeAdd.selector;
+        binaryOps[11] = INoxCompute.safeSub.selector;
     }
 
     // ============ initialize ============
 
     function test_Initialize() public view {
-        assertEq(teeComputeManager.owner(), owner);
-        assertEq(address(teeComputeManager.ACL()), acl);
-        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
+        assertEq(noxCompute.owner(), owner);
+        assertEq(address(noxCompute.ACL()), acl);
+        assertEq(noxCompute.proofExpirationDuration(), 1 hours);
         (
             , // bytes1 fields
             string memory name,
@@ -68,26 +68,26 @@ contract TEEComputeManagerTest is Test {
             , // address verifyingContract
             , // uint256[] memory extensions, // bytes32 salt
 
-        ) = teeComputeManager.eip712Domain();
-        assertTrue(keccak256(bytes(name)) == keccak256(bytes("TEEComputeManager")));
+        ) = noxCompute.eip712Domain();
+        assertTrue(keccak256(bytes(name)) == keccak256(bytes("NoxCompute")));
         assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        teeComputeManager.initialize(owner);
+        noxCompute.initialize(owner);
     }
 
     // ============ setGateway ============
 
     function test_SetGateway() public {
-        assertTrue(teeComputeManager.gateway() == gateway);
+        assertTrue(noxCompute.gateway() == gateway);
         address newGateway = makeAddr("newGateway");
         vm.prank(owner);
         vm.expectEmit();
-        emit ITEEComputeManager.GatewayUpdated(newGateway);
-        teeComputeManager.setGateway(newGateway);
-        assertTrue(teeComputeManager.gateway() == newGateway);
+        emit INoxCompute.GatewayUpdated(newGateway);
+        noxCompute.setGateway(newGateway);
+        assertTrue(noxCompute.gateway() == newGateway);
     }
 
     function test_RevertWhen_SetGateway_UnauthorizedCaller() public {
@@ -97,31 +97,31 @@ contract TEEComputeManagerTest is Test {
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
                 unauthorizedCaller,
-                teeComputeManager
+                noxCompute
             )
         );
         vm.prank(unauthorizedCaller);
-        teeComputeManager.setGateway(newGateway);
+        noxCompute.setGateway(newGateway);
     }
 
     function test_RevertWhen_SetGateway_ZeroAddress() public {
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
-        teeComputeManager.setGateway(address(0));
+        noxCompute.setGateway(address(0));
     }
 
     // ============ setProofExpirationDuration ============
 
     function test_SetProofExpirationDuration() public {
         // Default is set during initialization
-        assertEq(teeComputeManager.proofExpirationDuration(), 1 hours);
+        assertEq(noxCompute.proofExpirationDuration(), 1 hours);
 
         uint256 newDuration = 2 hours;
         vm.prank(owner);
         vm.expectEmit();
-        emit ITEEComputeManager.ProofExpirationDurationUpdated(newDuration);
-        teeComputeManager.setProofExpirationDuration(newDuration);
-        assertEq(teeComputeManager.proofExpirationDuration(), newDuration);
+        emit INoxCompute.ProofExpirationDurationUpdated(newDuration);
+        noxCompute.setProofExpirationDuration(newDuration);
+        assertEq(noxCompute.proofExpirationDuration(), newDuration);
     }
 
     function test_RevertWhen_SetProofExpirationDuration_UnauthorizedCaller() public {
@@ -130,11 +130,11 @@ contract TEEComputeManagerTest is Test {
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
                 unauthorizedCaller,
-                teeComputeManager
+                noxCompute
             )
         );
         vm.prank(unauthorizedCaller);
-        teeComputeManager.setProofExpirationDuration(2 hours);
+        noxCompute.setProofExpirationDuration(2 hours);
     }
 
     // ============ plaintextToEncrypted ============
@@ -143,7 +143,7 @@ contract TEEComputeManagerTest is Test {
         uint256 value = 1;
         vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
         vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Bool);
+        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Bool);
 
         _assertValidHandle(result, TEEType.Bool);
     }
@@ -152,7 +152,7 @@ contract TEEComputeManagerTest is Test {
         uint256 value = 42;
         vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
         vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
 
         _assertValidHandle(result, TEEType.Uint256);
     }
@@ -161,7 +161,7 @@ contract TEEComputeManagerTest is Test {
         int256 value = -999;
         vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
         vm.prank(caller);
-        bytes32 result = teeComputeManager.plaintextToEncrypted(uint256(value), TEEType.Int256);
+        bytes32 result = noxCompute.plaintextToEncrypted(uint256(value), TEEType.Int256);
 
         _assertValidHandle(result, TEEType.Int256);
     }
@@ -169,10 +169,10 @@ contract TEEComputeManagerTest is Test {
     function test_PlaintextToEncrypted_UniqueHandles() public {
         uint256 value = 42;
         vm.prank(caller);
-        bytes32 result1 = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result1 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
         vm.warp(block.timestamp + 1);
         vm.prank(caller);
-        bytes32 result2 = teeComputeManager.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result2 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
 
         assertTrue(result1 != result2);
     }
@@ -181,9 +181,9 @@ contract TEEComputeManagerTest is Test {
         uint256 value = 42;
         // Use low-level call to pass invalid TEEType value (100) which is > Bytes32 (99)
         vm.prank(caller);
-        (bool success, ) = address(teeComputeManager).call(
+        (bool success, ) = address(noxCompute).call(
             abi.encodeWithSelector(
-                ITEEComputeManager.plaintextToEncrypted.selector,
+                INoxCompute.plaintextToEncrypted.selector,
                 value,
                 uint256(100) // Pass as uint256 to match function signature
             )
@@ -198,7 +198,7 @@ contract TEEComputeManagerTest is Test {
         bytes memory proof = _buildProof(handle, owner, app, createdAt, gatewayPrivateKey);
         vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
         vm.prank(app);
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(ACL(acl).isAllowed(handle, app));
     }
 
@@ -214,12 +214,12 @@ contract TEEComputeManagerTest is Test {
         );
         vm.expectRevert(
             abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
+                INoxCompute.InvalidProof.selector,
                 proof,
                 "Handle chain id mismatch"
             )
         );
-        teeComputeManager.validateProof(badHandle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_HandleTypeMismatch() public {
@@ -231,43 +231,39 @@ contract TEEComputeManagerTest is Test {
             gatewayPrivateKey
         );
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
-                proof,
-                "Handle type mismatch"
-            )
+            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Handle type mismatch")
         );
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Bool); // Wrong type
+        noxCompute.validateProof(handle, owner, proof, TEEType.Bool); // Wrong type
     }
 
     function test_RevertWhen_ValidateProof_InvalidProofLength() public {
         bytes memory longProof = new bytes(138);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
+                INoxCompute.InvalidProof.selector,
                 longProof,
                 "Invalid proof length"
             )
         );
-        teeComputeManager.validateProof(handle, owner, longProof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, longProof, TEEType.Uint256);
         bytes memory shortProof = new bytes(136);
         vm.expectRevert(
             abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
+                INoxCompute.InvalidProof.selector,
                 shortProof,
                 "Invalid proof length"
             )
         );
-        teeComputeManager.validateProof(handle, owner, shortProof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, shortProof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidAppInProof() public {
         address badApp = makeAddr("badApp");
         bytes memory proof = _buildProof(handle, owner, badApp, createdAt, gatewayPrivateKey);
         vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "App mismatch")
+            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "App mismatch")
         );
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidOwnerInProof() public {
@@ -280,26 +276,18 @@ contract TEEComputeManagerTest is Test {
             gatewayPrivateKey
         );
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
-                proof,
-                "Owner mismatch"
-            )
+            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Owner mismatch")
         );
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidSigner() public {
         uint256 badSigner = 9999;
         bytes memory proof = _buildProof(handle, owner, address(this), createdAt, badSigner);
         vm.expectRevert(
-            abi.encodeWithSelector(
-                ITEEComputeManager.InvalidProof.selector,
-                proof,
-                "Invalid signature"
-            )
+            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Invalid signature")
         );
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_NotExpiredWhenWithinDuration() public {
@@ -312,7 +300,7 @@ contract TEEComputeManagerTest is Test {
 
         // Should succeed since proof is still within expiration window
         vm.prank(app);
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(ACL(acl).isAllowed(handle, app));
     }
 
@@ -326,7 +314,7 @@ contract TEEComputeManagerTest is Test {
 
         // Should succeed since block.timestamp == createdAt + expirationDuration (not >)
         vm.prank(app);
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(ACL(acl).isAllowed(handle, app));
     }
 
@@ -339,10 +327,10 @@ contract TEEComputeManagerTest is Test {
         bytes memory proof = _buildProof(handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         vm.expectRevert(
-            abi.encodeWithSelector(ITEEComputeManager.InvalidProof.selector, proof, "Proof expired")
+            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Proof expired")
         );
         vm.prank(app);
-        teeComputeManager.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
     }
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
@@ -353,21 +341,21 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         bytes4[4] memory ops = [
-            ITEEComputeManager.add.selector,
-            ITEEComputeManager.sub.selector,
-            ITEEComputeManager.mul.selector,
-            ITEEComputeManager.div.selector
+            INoxCompute.add.selector,
+            INoxCompute.sub.selector,
+            INoxCompute.mul.selector,
+            INoxCompute.div.selector
         ];
         for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (ops[i] == ITEEComputeManager.add.selector) {
-                emit ITEEComputeManager.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.sub.selector) {
-                emit ITEEComputeManager.Sub(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.mul.selector) {
-                emit ITEEComputeManager.Mul(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.div.selector) {
-                emit ITEEComputeManager.Div(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            if (ops[i] == INoxCompute.add.selector) {
+                emit INoxCompute.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.sub.selector) {
+                emit INoxCompute.Sub(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.mul.selector) {
+                emit INoxCompute.Mul(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.div.selector) {
+                emit INoxCompute.Div(caller, leftHandOperand, rightHandOperand, bytes32(0));
             }
             vm.prank(caller);
             bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
@@ -384,27 +372,27 @@ contract TEEComputeManagerTest is Test {
         _allow(rightHandOperand, caller);
 
         bytes4[6] memory ops = [
-            ITEEComputeManager.eq.selector,
-            ITEEComputeManager.ne.selector,
-            ITEEComputeManager.lt.selector,
-            ITEEComputeManager.le.selector,
-            ITEEComputeManager.gt.selector,
-            ITEEComputeManager.ge.selector
+            INoxCompute.eq.selector,
+            INoxCompute.ne.selector,
+            INoxCompute.lt.selector,
+            INoxCompute.le.selector,
+            INoxCompute.gt.selector,
+            INoxCompute.ge.selector
         ];
         for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (ops[i] == ITEEComputeManager.eq.selector) {
-                emit ITEEComputeManager.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.ne.selector) {
-                emit ITEEComputeManager.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.lt.selector) {
-                emit ITEEComputeManager.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.le.selector) {
-                emit ITEEComputeManager.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.gt.selector) {
-                emit ITEEComputeManager.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == ITEEComputeManager.ge.selector) {
-                emit ITEEComputeManager.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            if (ops[i] == INoxCompute.eq.selector) {
+                emit INoxCompute.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.ne.selector) {
+                emit INoxCompute.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.lt.selector) {
+                emit INoxCompute.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.le.selector) {
+                emit INoxCompute.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.gt.selector) {
+                emit INoxCompute.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (ops[i] == INoxCompute.ge.selector) {
+                emit INoxCompute.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
             }
             vm.prank(caller);
             bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
@@ -420,22 +408,19 @@ contract TEEComputeManagerTest is Test {
         _allow(leftHandOperand, caller);
         _allow(rightHandOperand, caller);
 
-        bytes4[2] memory ops = [
-            ITEEComputeManager.safeAdd.selector,
-            ITEEComputeManager.safeSub.selector
-        ];
+        bytes4[2] memory ops = [INoxCompute.safeAdd.selector, INoxCompute.safeSub.selector];
         for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (ops[i] == ITEEComputeManager.safeAdd.selector) {
-                emit ITEEComputeManager.SafeAdd(
+            if (ops[i] == INoxCompute.safeAdd.selector) {
+                emit INoxCompute.SafeAdd(
                     caller,
                     leftHandOperand,
                     rightHandOperand,
                     bytes32(0),
                     bytes32(0)
                 );
-            } else if (ops[i] == ITEEComputeManager.safeSub.selector) {
-                emit ITEEComputeManager.SafeSub(
+            } else if (ops[i] == INoxCompute.safeSub.selector) {
+                emit INoxCompute.SafeSub(
                     caller,
                     leftHandOperand,
                     rightHandOperand,
@@ -493,7 +478,7 @@ contract TEEComputeManagerTest is Test {
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
-            vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
+            vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
             _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
         }
     }
@@ -523,8 +508,8 @@ contract TEEComputeManagerTest is Test {
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
-        emit ITEEComputeManager.Select(caller, condition, ifTrue, ifFalse, bytes32(0));
-        bytes32 result = teeComputeManager.select(condition, ifTrue, ifFalse);
+        emit INoxCompute.Select(caller, condition, ifTrue, ifFalse, bytes32(0));
+        bytes32 result = noxCompute.select(condition, ifTrue, ifFalse);
 
         _assertValidHandle(result, TEEType.Uint256);
     }
@@ -538,7 +523,7 @@ contract TEEComputeManagerTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, condition, caller));
-        teeComputeManager.select(condition, ifTrue, ifFalse);
+        noxCompute.select(condition, ifTrue, ifFalse);
     }
 
     function test_RevertWhen_Select_IfTrueNotAllowed() public {
@@ -550,7 +535,7 @@ contract TEEComputeManagerTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifTrue, caller));
-        teeComputeManager.select(condition, ifTrue, ifFalse);
+        noxCompute.select(condition, ifTrue, ifFalse);
     }
 
     function test_RevertWhen_Select_IfFalseNotAllowed() public {
@@ -562,7 +547,7 @@ contract TEEComputeManagerTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, ifFalse, caller));
-        teeComputeManager.select(condition, ifTrue, ifFalse);
+        noxCompute.select(condition, ifTrue, ifFalse);
     }
 
     function test_RevertWhen_Select_IncompatibleTypes() public {
@@ -574,8 +559,8 @@ contract TEEComputeManagerTest is Test {
         _allow(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(ITEEComputeManager.IncompatibleTypes.selector);
-        teeComputeManager.select(condition, ifTrue, ifFalse);
+        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        noxCompute.select(condition, ifTrue, ifFalse);
     }
 
     function test_RevertWhen_Select_UnsupportedConditionType() public {
@@ -588,7 +573,7 @@ contract TEEComputeManagerTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(UnsupportedType.selector);
-        teeComputeManager.select(condition, ifTrue, ifFalse);
+        noxCompute.select(condition, ifTrue, ifFalse);
     }
 
     // ============ isAllowed ============
@@ -597,11 +582,11 @@ contract TEEComputeManagerTest is Test {
         bytes32 h = TestHelper.createHandle(TEEType.Uint256);
         address account = makeAddr("account");
 
-        assertFalse(teeComputeManager.isAllowed(h, account));
+        assertFalse(noxCompute.isAllowed(h, account));
 
         _allow(h, account);
 
-        assertTrue(teeComputeManager.isAllowed(h, account));
+        assertTrue(noxCompute.isAllowed(h, account));
     }
 
     // ============ isViewer ============
@@ -610,13 +595,13 @@ contract TEEComputeManagerTest is Test {
         bytes32 h = TestHelper.createHandle(TEEType.Uint256);
         address viewer = makeAddr("viewer");
 
-        assertFalse(teeComputeManager.isViewer(h, viewer));
+        assertFalse(noxCompute.isViewer(h, viewer));
 
         _allow(h, caller);
         vm.prank(caller);
         aclContract.addViewer(h, viewer);
 
-        assertTrue(teeComputeManager.isViewer(h, viewer));
+        assertTrue(noxCompute.isViewer(h, viewer));
     }
 
     // ============ isPubliclyDecryptable ============
@@ -624,23 +609,23 @@ contract TEEComputeManagerTest is Test {
     function test_IsPubliclyDecryptable() public {
         bytes32 h = TestHelper.createHandle(TEEType.Uint256);
 
-        assertFalse(teeComputeManager.isPubliclyDecryptable(h));
+        assertFalse(noxCompute.isPubliclyDecryptable(h));
 
         _allow(h, caller);
         vm.prank(caller);
         aclContract.allowPublicDecryption(h);
 
-        assertTrue(teeComputeManager.isPubliclyDecryptable(h));
+        assertTrue(noxCompute.isPubliclyDecryptable(h));
     }
 
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
-        address newImplementation = address(new TEEComputeManager(acl));
+        address newImplementation = address(new NoxCompute(acl));
         vm.prank(owner);
         vm.expectEmit();
         emit IERC1967.Upgraded(newImplementation);
-        teeComputeManager.upgradeToAndCall(newImplementation, "");
+        noxCompute.upgradeToAndCall(newImplementation, "");
     }
 
     function test_RevertWhen_UpgradeToAndCall_UnauthorizedCaller() public {
@@ -649,11 +634,11 @@ contract TEEComputeManagerTest is Test {
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
                 unauthorizedUpgrader,
-                teeComputeManager
+                noxCompute
             )
         );
         vm.prank(unauthorizedUpgrader);
-        teeComputeManager.upgradeToAndCall(makeAddr("newImpl"), "");
+        noxCompute.upgradeToAndCall(makeAddr("newImpl"), "");
     }
 
     // ============ Test Helpers ============
@@ -671,7 +656,7 @@ contract TEEComputeManagerTest is Test {
     }
 
     function _allow(bytes32 h, address account) internal {
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         aclContract.allowTransient(h, address(this));
         aclContract.allow(h, account);
     }
@@ -681,7 +666,7 @@ contract TEEComputeManagerTest is Test {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) internal returns (bytes32) {
-        (bool success, bytes memory returnData) = address(teeComputeManager).call(
+        (bool success, bytes memory returnData) = address(noxCompute).call(
             abi.encodeWithSelector(selector, leftHandOperand, rightHandOperand)
         );
         if (!success) {
@@ -697,7 +682,7 @@ contract TEEComputeManagerTest is Test {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) internal returns (bytes32, bytes32) {
-        (bool success, bytes memory returnData) = address(teeComputeManager).call(
+        (bool success, bytes memory returnData) = address(noxCompute).call(
             abi.encodeWithSelector(selector, leftHandOperand, rightHandOperand)
         );
         if (!success) {
@@ -717,12 +702,9 @@ contract TEEComputeManagerTest is Test {
     ) internal view returns (bytes memory) {
         // HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)
         bytes32 structHash = keccak256(
-            abi.encode(teeComputeManager.HANDLE_PROOF_TYPEHASH(), handle_, owner_, app_, createdAt_)
+            abi.encode(noxCompute.HANDLE_PROOF_TYPEHASH(), handle_, owner_, app_, createdAt_)
         );
-        bytes32 digest = MessageHashUtils.toTypedDataHash(
-            teeComputeManager.domainSeparator(),
-            structHash
-        );
+        bytes32 digest = MessageHashUtils.toTypedDataHash(noxCompute.domainSeparator(), structHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         return abi.encodePacked(bytes20(owner_), bytes20(app_), bytes32(createdAt_), r, s, v);
     }

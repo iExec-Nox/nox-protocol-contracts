@@ -16,7 +16,7 @@ async function deployFixture() {
     const deployment = await deploy(false);
     const accounts = await viem.getWalletClients();
     const gateway = privateKeyToAccount(generatePrivateKey());
-    const tx = await deployment.teeComputeManager.write.setGateway([gateway.address]);
+    const tx = await deployment.noxCompute.write.setGateway([gateway.address]);
     await publicClient.waitForTransactionReceipt({ hash: tx });
     return {
         ...deployment,

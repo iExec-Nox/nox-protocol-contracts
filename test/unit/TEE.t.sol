@@ -3,13 +3,13 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract TEELibTest is Test {
-    TEEComputeManager internal teeComputeManager;
+    NoxCompute internal noxCompute;
     ACL internal acl;
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");
@@ -17,7 +17,7 @@ contract TEELibTest is Test {
     address internal gateway = makeAddr("gateway");
 
     function setUp() public {
-        (acl, teeComputeManager) = TestHelper.deploy(owner, gateway);
+        (acl, noxCompute) = TestHelper.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
     }
@@ -55,8 +55,8 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        // TEEComputeManager grants transient access first
-        vm.prank(address(teeComputeManager));
+        // NoxCompute grants transient access first
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         // Now allow for user1
@@ -69,7 +69,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user1);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user2);
@@ -80,7 +80,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(999);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user2);
@@ -91,7 +91,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
@@ -104,7 +104,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(false);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
@@ -115,7 +115,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(777);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
@@ -126,7 +126,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-777);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
@@ -137,7 +137,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user2);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
@@ -150,7 +150,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user1);
@@ -161,7 +161,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user2);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user1);
@@ -172,7 +172,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(555);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user2);
@@ -183,7 +183,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-555);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user1);
@@ -196,7 +196,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -207,7 +207,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user2);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -218,7 +218,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(12345);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -229,7 +229,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -242,7 +242,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -253,7 +253,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user1);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -264,7 +264,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(12345);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -275,7 +275,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -288,7 +288,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
@@ -299,7 +299,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user2);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
@@ -310,7 +310,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(12345);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
@@ -321,7 +321,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
@@ -334,7 +334,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -345,7 +345,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user1);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -356,7 +356,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(12345);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -367,7 +367,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
@@ -380,7 +380,7 @@ contract TEELibTest is Test {
         ebool value = Nox.toEbool(true);
         bytes32 handle = ebool.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -391,7 +391,7 @@ contract TEELibTest is Test {
         eaddress value = Nox.toEaddress(user2);
         bytes32 handle = eaddress.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -402,7 +402,7 @@ contract TEELibTest is Test {
         euint256 value = Nox.toEuint256(12345);
         bytes32 handle = euint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
@@ -413,7 +413,7 @@ contract TEELibTest is Test {
         eint256 value = Nox.toEint256(-999);
         bytes32 handle = eint256.unwrap(value);
 
-        vm.prank(address(teeComputeManager));
+        vm.prank(address(noxCompute));
         acl.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);

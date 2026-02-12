@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import {TEEType} from "../shared/TypeUtils.sol";
-import {ITEEComputeManager} from "../interfaces/ITEEComputeManager.sol";
+import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {IACL} from "../interfaces/IACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
@@ -12,7 +12,7 @@ import "encrypted-types/EncryptedTypes.sol";
  * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
  *      the transaction will revert as it will not be recognized by the ACL.
  *
- *      TEE_COMPUTE_MANAGER and ACL are deterministic across all EVM chains using the CreateX factory.
+ *      NOX_COMPUTE and ACL are deterministic across all EVM chains using the CreateX factory.
  *      These addresses are derived from the CREATE2 salt configured in hardhat.config.ts.
  *
  *      IMPORTANT: If a fresh deployment is performed (not an upgrade), the proxy addresses will change.
@@ -20,8 +20,8 @@ import "encrypted-types/EncryptedTypes.sol";
  */
 library Nox {
     // TODO: Update these addresses after deploying with the production salt.
-    ITEEComputeManager internal constant TEE_COMPUTE_MANAGER =
-        ITEEComputeManager(0xCFf1370bD7fA13e02Fa31681947fE08Cc84ce8e1);
+    INoxCompute internal constant NOX_COMPUTE =
+        INoxCompute(0xCFf1370bD7fA13e02Fa31681947fE08Cc84ce8e1);
     IACL internal constant ACL = IACL(0x58b680917Dc3628C17bbda64888bcc43763FC9EF);
 
     // =========== Handle initialization checks ============
@@ -72,7 +72,7 @@ library Nox {
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
     function toEbool(bool value) internal returns (ebool) {
-        return ebool.wrap(TEE_COMPUTE_MANAGER.plaintextToEncrypted(value ? 1 : 0, TEEType.Bool));
+        return ebool.wrap(NOX_COMPUTE.plaintextToEncrypted(value ? 1 : 0, TEEType.Bool));
     }
 
     /**
@@ -81,7 +81,7 @@ library Nox {
     function toEaddress(address value) internal returns (eaddress) {
         return
             eaddress.wrap(
-                TEE_COMPUTE_MANAGER.plaintextToEncrypted(uint256(uint160(value)), TEEType.Address)
+                NOX_COMPUTE.plaintextToEncrypted(uint256(uint160(value)), TEEType.Address)
             );
     }
 
@@ -89,15 +89,14 @@ library Nox {
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
-        return euint256.wrap(TEE_COMPUTE_MANAGER.plaintextToEncrypted(value, TEEType.Uint256));
+        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(value, TEEType.Uint256));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
     function toEint256(int256 value) internal returns (eint256) {
-        return
-            eint256.wrap(TEE_COMPUTE_MANAGER.plaintextToEncrypted(uint256(value), TEEType.Int256));
+        return eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(uint256(value), TEEType.Int256));
     }
 
     // ============ Handle validation ============
@@ -107,7 +106,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (euint256) {
         bytes32 handle = externalEuint256.unwrap(externalHandle);
-        TEE_COMPUTE_MANAGER.validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
         return euint256.wrap(handle);
     }
 
@@ -115,23 +114,23 @@ library Nox {
     // TODO add primitives for all numeric types.
 
     function add(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(TEE_COMPUTE_MANAGER.add(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(NOX_COMPUTE.add(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function sub(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(TEE_COMPUTE_MANAGER.sub(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(NOX_COMPUTE.sub(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function mul(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(TEE_COMPUTE_MANAGER.mul(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(NOX_COMPUTE.mul(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function div(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(TEE_COMPUTE_MANAGER.div(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(NOX_COMPUTE.div(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
-        (bytes32 success, bytes32 result) = TEE_COMPUTE_MANAGER.safeAdd(
+        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeAdd(
             euint256.unwrap(a),
             euint256.unwrap(b)
         );
@@ -139,7 +138,7 @@ library Nox {
     }
 
     function safeSub(euint256 a, euint256 b) internal returns (ebool, euint256) {
-        (bytes32 success, bytes32 result) = TEE_COMPUTE_MANAGER.safeSub(
+        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeSub(
             euint256.unwrap(a),
             euint256.unwrap(b)
         );
@@ -155,7 +154,7 @@ library Nox {
     ) internal returns (euint256) {
         return
             euint256.wrap(
-                TEE_COMPUTE_MANAGER.select(
+                NOX_COMPUTE.select(
                     ebool.unwrap(condition),
                     euint256.unwrap(ifTrue),
                     euint256.unwrap(ifFalse)

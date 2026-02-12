@@ -1,5 +1,5 @@
 import ACL from "../ignition/modules/ACL.js";
-import TEEComputeManager from "../ignition/modules/TEEComputeManager.js";
+import NoxCompute from "../ignition/modules/NoxCompute.js";
 import config from "../config/config.js";
 import connection from "./utils/hardhat-connection-singleton.js";
 
@@ -37,29 +37,29 @@ export async function deploy(printLogs = true) {
         },
     });
     _log(`ACL: ${aclProxy.address}`);
-    // Deploy TEEComputeManager with ACL address as constructor arg.
-    const { proxy: teeComputeManagerProxy } = await connection.ignition.deploy(TEEComputeManager, {
+    // Deploy NoxCompute with ACL address as constructor arg.
+    const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
         strategy: "create2",
         parameters: {
-            TEEComputeManager: {
+            NoxCompute: {
                 initialOwner: chainConfig.initialOwner,
                 acl: aclProxy.address,
             },
         },
     });
-    _log(`TEEComputeManager: ${teeComputeManagerProxy.address}`);
-    // Set TEEComputeManager address in ACL.
+    _log(`NoxCompute: ${noxComputeProxy.address}`);
+    // Set NoxCompute address in ACL.
     const acl = await viem.getContractAt("ACL", aclProxy.address);
-    const setTxHash = await acl.write.setTeeComputeManager([teeComputeManagerProxy.address]);
+    const setTxHash = await acl.write.setNoxCompute([noxComputeProxy.address]);
     await publicClient.waitForTransactionReceipt({ hash: setTxHash });
 
-    // Get TEEComputeManager contract instance.
-    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerProxy.address);
+    // Get NoxCompute contract instance.
+    const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
     return {
         acl,
-        teeComputeManager,
+        noxCompute,
     };
 }
 

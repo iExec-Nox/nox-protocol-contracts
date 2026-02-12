@@ -13,7 +13,7 @@ import "./interfaces/IACL.sol";
  * encrypted resources in a secure and controlled manner.
  */
 contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
-    /// Main storage structure following ERC-7201 pattern
+    /// @custom:storage-location erc7201:nox.storage.ACL
     struct ACLStorage {
         /// Admins can use a handle as input in computations, and can add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
@@ -23,7 +23,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         /// Handles that are publicly decryptable
         mapping(bytes32 handle => bool) isPubliclyDecryptable;
         //TODO: Add Delegated Viewers
-        address teeComputeManager;
+        address noxCompute;
     }
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.ACL")) - 1)) & ~bytes32(uint256(0xff))
@@ -75,12 +75,10 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     // ============ ADMIN ============
 
     /// @inheritdoc IACL
-    function setTeeComputeManager(
-        address newTeeComputeManager
-    ) external onlyOwner notZeroAddress(newTeeComputeManager) {
+    function setNoxCompute(address newNoxCompute) external onlyOwner notZeroAddress(newNoxCompute) {
         ACLStorage storage $ = _getACLStorage();
-        $.teeComputeManager = newTeeComputeManager;
-        emit TeeComputeManagerUpdated(newTeeComputeManager);
+        $.noxCompute = newNoxCompute;
+        emit NoxComputeUpdated(newNoxCompute);
     }
 
     // ============ PUBLIC DECRYPTION ============
@@ -113,10 +111,10 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
     /**
      * @inheritdoc IACL
      * @dev To grant transient access, the caller must already have permission on `handle`.
-     *      The TEEComputeManager is exempt from this requirement and can always grant
+     *      The NoxCompute is exempt from this requirement and can always grant
      *      transient permissions — a privilege not available with persistent `allow()`.
      *
-     *      The TEEComputeManager uses this function in two scenarios:
+     *      The NoxCompute uses this function in two scenarios:
      *      - For handles generated off-chain by the Handle Gateway, once the proof has been verified
      *      - For handles resulting from on-chain operations, where the caller naturally
      *        inherits rights on the output handle
@@ -130,7 +128,7 @@ contract ACL is IACL, UUPSUpgradeable, OwnableUpgradeable {
         address account
     ) external override notZeroAddress(account) {
         ACLStorage storage $ = _getACLStorage();
-        if (msg.sender != $.teeComputeManager && !isAllowed(handle, msg.sender)) {
+        if (msg.sender != $.noxCompute && !isAllowed(handle, msg.sender)) {
             revert UnauthorizedSender(msg.sender);
         }
         bytes32 key = keccak256(abi.encodePacked(handle, account));

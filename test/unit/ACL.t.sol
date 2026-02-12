@@ -7,7 +7,7 @@ import {Ownable} from "@openzeppelin/contracts/access/Ownable.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {ACL} from "../../contracts/ACL.sol";
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
 import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
@@ -22,12 +22,12 @@ contract ACLTest is Test {
     bytes32 internal handle2 = keccak256("handle2");
     bytes32 internal handle3 = keccak256("handle3");
     ACL internal acl;
-    address internal teeComputeManager;
+    address internal noxCompute;
 
     function setUp() public {
-        TEEComputeManager teeComputeManagerContract;
-        (acl, teeComputeManagerContract) = TestHelper.deploy(owner, makeAddr("gateway"));
-        teeComputeManager = address(teeComputeManagerContract);
+        NoxCompute noxComputeContract;
+        (acl, noxComputeContract) = TestHelper.deploy(owner, makeAddr("gateway"));
+        noxCompute = address(noxComputeContract);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
@@ -45,34 +45,34 @@ contract ACLTest is Test {
         acl.initialize(owner);
     }
 
-    // ============ setTeeComputeManager ============
+    // ============ setNoxCompute ============
 
-    function test_SetTeeComputeManager() public {
-        address newTeeComputeManager = makeAddr("newTeeComputeManager");
+    function test_SetNoxCompute() public {
+        address newNoxCompute = makeAddr("newNoxCompute");
         vm.prank(owner);
         vm.expectEmit();
-        emit IACL.TeeComputeManagerUpdated(newTeeComputeManager);
-        acl.setTeeComputeManager(newTeeComputeManager);
+        emit IACL.NoxComputeUpdated(newNoxCompute);
+        acl.setNoxCompute(newNoxCompute);
 
-        // Verify the new TEEComputeManager can grant transient access
-        vm.prank(newTeeComputeManager);
+        // Verify the new NoxCompute can grant transient access
+        vm.prank(newNoxCompute);
         acl.allowTransient(handle, user1);
         assertTrue(acl.isAllowed(handle, user1));
     }
 
-    function test_RevertWhen_SetTeeComputeManager_UnauthorizedAccount() public {
+    function test_RevertWhen_SetNoxCompute_UnauthorizedAccount() public {
         address unauthorized = makeAddr("unauthorized");
         vm.expectRevert(
             abi.encodeWithSelector(Ownable.OwnableUnauthorizedAccount.selector, unauthorized)
         );
         vm.prank(unauthorized);
-        acl.setTeeComputeManager(makeAddr("newTeeComputeManager"));
+        acl.setNoxCompute(makeAddr("newNoxCompute"));
     }
 
-    function test_RevertWhen_SetTeeComputeManager_ZeroAddress() public {
+    function test_RevertWhen_SetNoxCompute_ZeroAddress() public {
         vm.expectRevert(IErrors.InvalidZeroAddress.selector);
         vm.prank(owner);
-        acl.setTeeComputeManager(address(0));
+        acl.setNoxCompute(address(0));
     }
 
     // ============ allowPublicDecryption ============
@@ -93,7 +93,7 @@ contract ACLTest is Test {
 
     function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
         // Setup: grant user1 transient access to handle
-        vm.prank(teeComputeManager);
+        vm.prank(noxCompute);
         acl.allowTransient(handle, user1);
 
         // Mark handle as publicly decryptable (in same transaction)
@@ -121,8 +121,8 @@ contract ACLTest is Test {
     // ============ allow ============
 
     function test_Allow_SucceedsAfterTransientAccess() public {
-        // TEEComputeManager grants transient access to user1
-        vm.prank(teeComputeManager);
+        // NoxCompute grants transient access to user1
+        vm.prank(noxCompute);
         acl.allowTransient(handle, user1);
 
         // user1 can now grant permanent access to user2 (in same transaction due to transient)
@@ -160,7 +160,7 @@ contract ACLTest is Test {
 
     function test_Allow_RevertWhen_InvalidZeroAddress() public {
         // First grant access to user1
-        vm.prank(teeComputeManager);
+        vm.prank(noxCompute);
         acl.allowTransient(handle, user1);
 
         // Try to grant to zero address
@@ -215,7 +215,7 @@ contract ACLTest is Test {
 
     function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
         // First grant access to user1
-        vm.prank(teeComputeManager);
+        vm.prank(noxCompute);
         acl.allowTransient(handle, user1);
 
         // Try to add zero address as viewer
@@ -242,8 +242,8 @@ contract ACLTest is Test {
 
     // ============ allowTransient ============
 
-    function test_AllowTransient_SucceedsWhenCalledByTEEComputeManager() public {
-        vm.prank(teeComputeManager);
+    function test_AllowTransient_SucceedsWhenCalledByNoxCompute() public {
+        vm.prank(noxCompute);
         acl.allowTransient(handle, user1);
 
         // Transient access should be available in the same transaction
@@ -259,8 +259,8 @@ contract ACLTest is Test {
     // ============ cleanTransientStorage ============
 
     function test_CleanTransientStorage_ClearsMultipleTransientPermissions() public {
-        // Simulate a userOp context where TEEComputeManager grants multiple transient permissions
-        vm.startPrank(teeComputeManager);
+        // Simulate a userOp context where NoxCompute grants multiple transient permissions
+        vm.startPrank(noxCompute);
         acl.allowTransient(handle, user1);
         acl.allowTransient(handle2, user2);
         vm.stopPrank();
@@ -282,7 +282,7 @@ contract ACLTest is Test {
         _allow(handle, user1);
 
         // Grant multiple transient permissions in a userOp context
-        vm.startPrank(teeComputeManager);
+        vm.startPrank(noxCompute);
         acl.allowTransient(handle2, user2);
         vm.stopPrank();
 
@@ -361,9 +361,9 @@ contract ACLTest is Test {
 
     function test_ValidateAllowedForAll_WithTransientAccess() public {
         // Grant transient access
-        vm.prank(teeComputeManager);
+        vm.prank(noxCompute);
         acl.allowTransient(handle, user1);
-        vm.prank(teeComputeManager);
+        vm.prank(noxCompute);
         acl.allowTransient(handle2, user1);
 
         bytes32[] memory handles = new bytes32[](2);
@@ -418,7 +418,7 @@ contract ACLTest is Test {
     // ============ Test Helpers ============
 
     function _allow(bytes32 h, address account) internal {
-        vm.prank(teeComputeManager);
+        vm.prank(noxCompute);
         acl.allowTransient(h, account);
         vm.prank(account);
         acl.allow(h, account);
