@@ -331,6 +331,32 @@ contract NoxTest is Test {
         Nox.allowPublicDecryption(value);
     }
 
+    // ============ isPubliclyDecryptable(<type>) ============
+
+    function test_isPubliclyDecryptable_ebool() public {
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (boolHandle)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
+    function test_isPubliclyDecryptable_eaddress() public {
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (addressHandle)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
+    function test_isPubliclyDecryptable_euint256() public {
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (uint256HandleA)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
+    function test_isPubliclyDecryptable_eint256() public {
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (int256Handle)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
     /**
      * Helper function to allow this test contract as a caller of the given handle.
      */
