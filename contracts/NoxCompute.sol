@@ -335,13 +335,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
 
     /// @inheritdoc INoxCompute
     function mint(
-        bytes32 amount,
         bytes32 balanceTo,
+        bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) {
         bytes32[] memory operands = new bytes32[](3);
-        operands[0] = amount;
-        operands[1] = balanceTo;
+        operands[0] = balanceTo;
+        operands[1] = amount;
         operands[2] = totalSupply;
         (success, newBalanceTo, newTotalSupply) = _executeCompositeOperation(
             Operator.Mint,
@@ -352,13 +352,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
 
     /// @inheritdoc INoxCompute
     function burn(
-        bytes32 amount,
         bytes32 balanceFrom,
+        bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply) {
         bytes32[] memory operands = new bytes32[](3);
-        operands[0] = amount;
-        operands[1] = balanceFrom;
+        operands[0] = balanceFrom;
+        operands[1] = amount;
         operands[2] = totalSupply;
         (success, newBalanceFrom, newTotalSupply) = _executeCompositeOperation(
             Operator.Burn,

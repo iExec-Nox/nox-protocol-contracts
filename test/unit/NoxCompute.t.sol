@@ -633,11 +633,11 @@ contract NoxComputeTest is Test {
     // ============ Mint Tests ============
 
     function test_Mint() public {
-        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(amount, caller);
         _allow(balanceTo, caller);
+        _allow(amount, caller);
         _allow(totalSupply, caller);
 
         vm.prank(caller);
@@ -652,7 +652,7 @@ contract NoxComputeTest is Test {
             bytes32(0)
         );
         (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) =
-            noxCompute.mint(amount, balanceTo, totalSupply);
+            noxCompute.mint(balanceTo, amount, totalSupply);
 
         _assertValidHandle(success, TEEType.Bool);
         _assertValidHandle(newBalanceTo, TEEType.Uint256);

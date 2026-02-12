@@ -328,31 +328,31 @@ interface INoxCompute is IErrors {
 
     /**
      * @notice Computes a confidential mint operation.
-     * @param amount Amount handle to mint
      * @param balanceTo Recipient's current balance handle
+     * @param amount Amount handle to mint
      * @param totalSupply Current total supply handle
      * @return success Bool handle indicating if the mint succeeded
      * @return newBalanceTo Recipient's new balance handle
      * @return newTotalSupply New total supply handle
      */
     function mint(
-        bytes32 amount,
         bytes32 balanceTo,
+        bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply);
 
     /**
      * @notice Computes a confidential burn operation.
-     * @param amount Amount handle to burn
      * @param balanceFrom Sender's current balance handle
+     * @param amount Amount handle to burn
      * @param totalSupply Current total supply handle
      * @return success Bool handle indicating if the burn succeeded
      * @return newBalanceFrom Sender's new balance handle
      * @return newTotalSupply New total supply handle
      */
     function burn(
-        bytes32 amount,
         bytes32 balanceFrom,
+        bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
 
