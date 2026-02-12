@@ -124,15 +124,6 @@ library Nox {
     // ============ Handle validation ============
 
     function fromExternal(
-        externalEuint16 externalHandle,
-        bytes calldata handleProof
-    ) internal returns (euint16) {
-        bytes32 handle = externalEuint16.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
-        return euint16.wrap(handle);
-    }
-
-    function fromExternal(
         externalEbool externalHandle,
         bytes calldata handleProof
     ) internal returns (ebool) {
@@ -148,6 +139,15 @@ library Nox {
         bytes32 handle = externalEaddress.unwrap(externalHandle);
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Address);
         return eaddress.wrap(handle);
+    }
+
+    function fromExternal(
+        externalEuint16 externalHandle,
+        bytes calldata handleProof
+    ) internal returns (euint16) {
+        bytes32 handle = externalEuint16.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
+        return euint16.wrap(handle);
     }
 
     function fromExternal(

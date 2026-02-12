@@ -208,6 +208,27 @@ contract NoxTest is Test {
         noxFromExternalMock.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
     }
 
+    function test_FromExternal_Euint16() public {
+        address handleOwner = makeAddr("handleOwner");
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            uint16HandleA,
+            handleOwner,
+            address(noxFromExternalMock),
+            block.timestamp,
+            gatewayPrivateKey
+        );
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (uint16HandleA, handleOwner, proof, TEEType.Uint16)
+            )
+        );
+        vm.prank(handleOwner);
+        noxFromExternalMock.fromExternalEuint16(externalEuint16.wrap(uint16HandleA), proof);
+    }
+
     function test_FromExternal_Euint256() public {
         address handleOwner = makeAddr("handleOwner");
         bytes memory proof = TestHelper.buildProof(
