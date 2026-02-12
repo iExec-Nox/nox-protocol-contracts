@@ -1,5 +1,5 @@
 {
-  "name": "@iexec-nox/nox-contracts",
+  "name": "@iexec-nox/nox-protocol-contracts",
   "version": "0.0.0",
   "description": "Nox protocol smart contracts",
   "keywords": [
@@ -48,12 +48,12 @@
     "typescript": "~5.8.0",
     "viem": "^2.30.0"
   },
-  "homepage": "https://github.com/iExec-Nox/nox-contracts#readme",
+  "homepage": "https://github.com/iExec-Nox/nox-protocol-contracts#readme",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/iExec-Nox/nox-contracts.git"
+    "url": "git+https://github.com/iExec-Nox/nox-protocol-contracts.git"
   },
   "bugs": {
-    "url": "https://github.com/iExec-Nox/nox-contracts/issues"
+    "url": "https://github.com/iExec-Nox/nox-protocol-contracts/issues"
   }
 }

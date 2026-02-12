@@ -103,6 +103,33 @@ interface INoxCompute is IErrors {
         bytes32 ifFalse,
         bytes32 result
     );
+    event Transfer(
+        address indexed caller,
+        bytes32 balanceFrom,
+        bytes32 balanceTo,
+        bytes32 amount,
+        bytes32 success,
+        bytes32 newBalanceFrom,
+        bytes32 newBalanceTo
+    );
+    event Mint(
+        address indexed caller,
+        bytes32 balanceTo,
+        bytes32 amount,
+        bytes32 totalSupply,
+        bytes32 success,
+        bytes32 newBalanceTo,
+        bytes32 newTotalSupply
+    );
+    event Burn(
+        address indexed caller,
+        bytes32 balanceFrom,
+        bytes32 amount,
+        bytes32 totalSupply,
+        bytes32 success,
+        bytes32 newBalanceFrom,
+        bytes32 newTotalSupply
+    );
 
     enum Operator {
         PlaintextToEncrypted,
@@ -118,7 +145,10 @@ interface INoxCompute is IErrors {
         Lt,
         Le,
         Gt,
-        Ge
+        Ge,
+        Transfer,
+        Mint,
+        Burn
     }
 
     function setGateway(address gatewayAddress) external;
@@ -280,6 +310,51 @@ interface INoxCompute is IErrors {
      * @return result Selected value handle
      */
     function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
+
+    /**
+     * @notice Computes a confidential transfer between two balances.
+     * @param balanceFrom Sender's current balance handle
+     * @param balanceTo Recipient's current balance handle
+     * @param amount Amount handle to transfer
+     * @return success Bool handle indicating if the transfer succeeded
+     * @return newBalanceFrom Sender's new balance handle
+     * @return newBalanceTo Recipient's new balance handle
+     */
+    function transfer(
+        bytes32 balanceFrom,
+        bytes32 balanceTo,
+        bytes32 amount
+    ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newBalanceTo);
+
+    /**
+     * @notice Computes a confidential mint operation.
+     * @param balanceTo Recipient's current balance handle
+     * @param amount Amount handle to mint
+     * @param totalSupply Current total supply handle
+     * @return success Bool handle indicating if the mint succeeded
+     * @return newBalanceTo Recipient's new balance handle
+     * @return newTotalSupply New total supply handle
+     */
+    function mint(
+        bytes32 balanceTo,
+        bytes32 amount,
+        bytes32 totalSupply
+    ) external returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply);
+
+    /**
+     * @notice Computes a confidential burn operation.
+     * @param balanceFrom Sender's current balance handle
+     * @param amount Amount handle to burn
+     * @param totalSupply Current total supply handle
+     * @return success Bool handle indicating if the burn succeeded
+     * @return newBalanceFrom Sender's new balance handle
+     * @return newTotalSupply New total supply handle
+     */
+    function burn(
+        bytes32 balanceFrom,
+        bytes32 amount,
+        bytes32 totalSupply
+    ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
 
     function validateProof(
         bytes32 handle,
