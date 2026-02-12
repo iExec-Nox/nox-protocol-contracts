@@ -118,15 +118,25 @@ contract NoxTest is Test {
 
     function test_FromExternal_Ebool() public {
         address handleOwner = makeAddr("handleOwner");
-        NoxFromExternalMock noxFromExternalMock = new NoxFromExternalMock();
-        bytes memory proof = TestHelper.buildProof(noxCompute, boolHandle, handleOwner, address(noxFromExternalMock), block.timestamp, gatewayPrivateKey);
+        NoxFromExternalMock nox = new NoxFromExternalMock();
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            boolHandle,
+            handleOwner,
+            address(nox),
+            block.timestamp,
+            gatewayPrivateKey
+        );
         externalEbool value = externalEbool.wrap(boolHandle);
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.validateProof, (boolHandle, handleOwner, proof, TEEType.Bool))
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (boolHandle, handleOwner, proof, TEEType.Bool)
+            )
         );
         vm.prank(handleOwner);
-        noxFromExternalMock.fromExternal(value, proof);
+        nox.fromExternal(value, proof);
     }
 
     // ============ Unsafe Arithmetic primitives ============
