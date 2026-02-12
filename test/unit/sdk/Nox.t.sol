@@ -482,7 +482,7 @@ contract NoxTest is Test {
     }
 
     // ============ Internal Helpers ============
-    
+
     /**
      * Helper function to allow this test contract as a caller of the given handle.
      */
