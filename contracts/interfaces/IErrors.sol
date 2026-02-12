@@ -8,4 +8,7 @@ pragma solidity ^0.8.0;
 interface IErrors {
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
+
+    /// Error thrown when bytes parameter is empty
+    error InvalidEmptyBytes();
 }

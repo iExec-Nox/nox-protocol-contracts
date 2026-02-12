@@ -121,6 +121,40 @@ contract NoxComputeTest is Test {
         noxCompute.setGateway(address(0));
     }
 
+    // ============ setKmsPublicKey ============
+
+    function test_SetKmsPublicKey() public {
+        // 33-byte compressed SEC1 secp256k1 public key
+        bytes
+            memory newKey = hex"0204a5e54c61b7a7c36db3e69a3398398e0e29283ada420f1a76cd058653853a91";
+        vm.prank(owner);
+        vm.expectEmit();
+        emit INoxCompute.KmsPublicKeyUpdated(newKey);
+        noxCompute.setKmsPublicKey(newKey);
+        assertEq(noxCompute.kmsPublicKey(), newKey);
+    }
+
+    function test_RevertWhen_SetKmsPublicKey_UnauthorizedCaller() public {
+        address unauthorizedCaller = makeAddr("unauthorized");
+        bytes
+            memory newKey = hex"0204a5e54c61b7a7c36db3e69a3398398e0e29283ada420f1a76cd058653853a91";
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
+                unauthorizedCaller,
+                noxCompute
+            )
+        );
+        vm.prank(unauthorizedCaller);
+        noxCompute.setKmsPublicKey(newKey);
+    }
+
+    function test_RevertWhen_SetKmsPublicKey_EmptyKey() public {
+        vm.expectRevert(IErrors.InvalidEmptyBytes.selector);
+        vm.prank(owner);
+        noxCompute.setKmsPublicKey("");
+    }
+
     // ============ setProofExpirationDuration ============
 
     function test_SetProofExpirationDuration() public {

@@ -13,6 +13,7 @@ interface INoxCompute is IErrors {
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
 
+    event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
 
@@ -150,6 +151,12 @@ interface INoxCompute is IErrors {
         Mint,
         Burn
     }
+
+    /**
+     * @notice Sets the KMS public key used for ECIES encryption
+     * @param newKmsPublicKey The compressed SEC1 secp256k1 public key (33 bytes)
+     */
+    function setKmsPublicKey(bytes calldata newKmsPublicKey) external;
 
     function setGateway(address gatewayAddress) external;
 
@@ -367,6 +374,7 @@ interface INoxCompute is IErrors {
     function ACL() external view returns (IACL);
     function gateway() external view returns (address);
     function proofExpirationDuration() external view returns (uint256);
+    function kmsPublicKey() external view returns (bytes memory);
 
     /// @dev See {IACL-isAllowed}
     function isAllowed(bytes32 handle, address account) external view returns (bool);

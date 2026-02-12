@@ -21,6 +21,7 @@ import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712Upgradeable {
     /// @custom:storage-location erc7201:nox.storage.NoxCompute
     struct NoxComputeStorage {
+        bytes kmsPublicKey;
         address gateway;
         uint256 proofExpirationDuration;
     }
@@ -57,6 +58,20 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         __EIP712_init("NoxCompute", "1");
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
+    }
+
+    /**
+     * Sets the KMS public key used for ECIES encryption.
+     * Only callable by the owner.
+     * @param newKmsPublicKey Compressed SEC1 secp256k1 public key (33 bytes)
+     */
+    function setKmsPublicKey(bytes calldata newKmsPublicKey) external onlyOwner {
+        if (newKmsPublicKey.length == 0) {
+            revert InvalidEmptyBytes();
+        }
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.kmsPublicKey = newKmsPublicKey;
+        emit KmsPublicKeyUpdated(newKmsPublicKey);
     }
 
     /**
@@ -388,6 +403,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
      */
     function domainSeparator() external view returns (bytes32) {
         return _domainSeparatorV4();
+    }
+
+    /**
+     * Returns the KMS public key used for ECIES encryption.
+     */
+    function kmsPublicKey() external view returns (bytes memory) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.kmsPublicKey;
     }
 
     /**
