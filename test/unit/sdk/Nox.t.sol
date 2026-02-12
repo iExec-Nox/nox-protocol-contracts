@@ -119,7 +119,14 @@ contract NoxTest is Test {
     function test_FromExternal_Ebool() public {
         address handleOwner = makeAddr("handleOwner");
         NoxFromExternalMock nox = new NoxFromExternalMock();
-        bytes memory proof = new bytes(0); // Dummy proof
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            boolHandle,
+            handleOwner,
+            address(nox),
+            block.timestamp,
+            gatewayPrivateKey
+        );
         vm.expectCall(
             noxCompute,
             abi.encodeCall(
@@ -127,7 +134,6 @@ contract NoxTest is Test {
                 (boolHandle, handleOwner, proof, TEEType.Bool)
             )
         );
-        vm.expectRevert(); // Ignore revert from proof validation.
         vm.prank(handleOwner);
         nox.fromExternalEbool(externalEbool.wrap(boolHandle), proof);
     }
@@ -135,7 +141,14 @@ contract NoxTest is Test {
     function test_FromExternal_Eaddress() public {
         address handleOwner = makeAddr("handleOwner");
         NoxFromExternalMock nox = new NoxFromExternalMock();
-        bytes memory proof = new bytes(0); // Dummy proof
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            addressHandle,
+            handleOwner,
+            address(nox),
+            block.timestamp,
+            gatewayPrivateKey
+        );
         vm.expectCall(
             noxCompute,
             abi.encodeCall(
@@ -143,7 +156,6 @@ contract NoxTest is Test {
                 (addressHandle, handleOwner, proof, TEEType.Address)
             )
         );
-        vm.expectRevert(); // Ignore revert from proof validation.
         vm.prank(handleOwner);
         nox.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
     }
@@ -151,7 +163,14 @@ contract NoxTest is Test {
     function test_FromExternal_Euint256() public {
         address handleOwner = makeAddr("handleOwner");
         NoxFromExternalMock nox = new NoxFromExternalMock();
-        bytes memory proof = new bytes(0); // Dummy proof
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            uint256HandleA,
+            handleOwner,
+            address(nox),
+            block.timestamp,
+            gatewayPrivateKey
+        );
         vm.expectCall(
             noxCompute,
             abi.encodeCall(
@@ -159,7 +178,6 @@ contract NoxTest is Test {
                 (uint256HandleA, handleOwner, proof, TEEType.Uint256)
             )
         );
-        vm.expectRevert(); // Ignore revert from proof validation.
         vm.prank(handleOwner);
         nox.fromExternalEuint256(externalEuint256.wrap(uint256HandleA), proof);
     }
@@ -167,7 +185,14 @@ contract NoxTest is Test {
     function test_FromExternal_Eint256() public {
         address handleOwner = makeAddr("handleOwner");
         NoxFromExternalMock nox = new NoxFromExternalMock();
-        bytes memory proof = new bytes(0); // Dummy proof
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            int256Handle,
+            handleOwner,
+            address(nox),
+            block.timestamp,
+            gatewayPrivateKey
+        );
         vm.expectCall(
             noxCompute,
             abi.encodeCall(
@@ -175,7 +200,6 @@ contract NoxTest is Test {
                 (int256Handle, handleOwner, proof, TEEType.Int256)
             )
         );
-        vm.expectRevert(); // Ignore revert from proof validation.
         vm.prank(handleOwner);
         nox.fromExternalEint256(externalEint256.wrap(int256Handle), proof);
     }
