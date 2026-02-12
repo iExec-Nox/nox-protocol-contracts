@@ -12,7 +12,7 @@ let user: Awaited<ReturnType<typeof loadFixture>>["wallet1"];
 let gateway: Awaited<ReturnType<typeof loadFixture>>["gateway"];
 let offChainServices: OffChainServices;
 
-describe("[IT] ConfidentialToken", function () {
+describe("[IT] ConfidentialTokenMock", function () {
     beforeEach(async function () {
         ({ noxCompute, admin, wallet1: user, gateway } = await loadFixture());
         // Start the off-chain services mock.
