@@ -9,8 +9,6 @@ import "encrypted-types/EncryptedTypes.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract TEELibTest is Test {
-    using Nox for *;
-
     TEEComputeManager internal teeComputeManager;
     ACL internal acl;
     address internal user1 = makeAddr("user1");
