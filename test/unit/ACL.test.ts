@@ -1,8 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { keccak256, toHex } from "viem";
-import { loadFixture } from "../utils/fixture.js";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
+import { loadFixture } from "../utils/fixture.ts";
+import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 describe("ACL", function () {
     describe("Transient & Persistent permissions", function () {

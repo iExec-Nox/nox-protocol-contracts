@@ -1,9 +1,9 @@
 // A mock service to simulate the Gateway and the Runner.
 
 import { randomBytes } from "crypto";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
+import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
-import { TEEType } from "./TEEType.js";
+import { TEEType } from "./TEEType.ts";
 
 const MAX_UINT256 = 2n ** 256n - 1n;
 const eventsToWatch = [
