@@ -195,7 +195,7 @@ contract NoxComputeTest is Test {
 
     function test_ValidateProof() public {
         address app = makeAddr("app");
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, owner, app, createdAt, gatewayPrivateKey);
+        bytes memory proof = TestHelper.buildProof(address(noxCompute), handle, owner, app, createdAt, gatewayPrivateKey);
         vm.expectCall(acl, abi.encodeCall(ACL(acl).allowTransient, (handle, app)), 1);
         vm.prank(app);
         noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
@@ -206,7 +206,7 @@ contract NoxComputeTest is Test {
         uint256 wrongChainId = type(uint32).max;
         bytes32 badHandle = TestHelper.createHandle(wrongChainId, TEEType.Uint256);
         bytes memory proof = TestHelper.buildProof(
-            noxCompute,
+            address(noxCompute),
             badHandle,
             owner,
             address(this),
@@ -225,7 +225,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_ValidateProof_HandleTypeMismatch() public {
         bytes memory proof = TestHelper.buildProof(
-            noxCompute,
+            address(noxCompute),
             handle,
             owner,
             address(this),
@@ -261,7 +261,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_ValidateProof_InvalidAppInProof() public {
         address badApp = makeAddr("badApp");
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, owner, badApp, createdAt, gatewayPrivateKey);
+        bytes memory proof = TestHelper.buildProof(address(noxCompute), handle, owner, badApp, createdAt, gatewayPrivateKey);
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "App mismatch")
         );
@@ -271,7 +271,7 @@ contract NoxComputeTest is Test {
     function test_RevertWhen_ValidateProof_InvalidOwnerInProof() public {
         address badOwner = makeAddr("badOwner");
         bytes memory proof = TestHelper.buildProof(
-            noxCompute,
+            address(noxCompute),
             handle,
             badOwner,
             address(this),
@@ -286,7 +286,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_ValidateProof_InvalidSigner() public {
         uint256 badSigner = 9999;
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, owner, address(this), createdAt, badSigner);
+        bytes memory proof = TestHelper.buildProof(address(noxCompute), handle, owner, address(this), createdAt, badSigner);
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Invalid signature")
         );
@@ -299,7 +299,7 @@ contract NoxComputeTest is Test {
 
         address app = makeAddr("app");
         uint256 proofCreatedAt = block.timestamp - 30 minutes;
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+        bytes memory proof = TestHelper.buildProof(address(noxCompute), handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         // Should succeed since proof is still within expiration window
         vm.prank(app);
@@ -313,7 +313,7 @@ contract NoxComputeTest is Test {
 
         address app = makeAddr("app");
         uint256 proofCreatedAt = block.timestamp - 1 hours;
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+        bytes memory proof = TestHelper.buildProof(address(noxCompute), handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         // Should succeed since block.timestamp == createdAt + expirationDuration (not >)
         vm.prank(app);
@@ -327,7 +327,7 @@ contract NoxComputeTest is Test {
 
         address app = makeAddr("app");
         uint256 proofCreatedAt = block.timestamp - 1 hours - 1;
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, owner, app, proofCreatedAt, gatewayPrivateKey);
+        bytes memory proof = TestHelper.buildProof(address(noxCompute), handle, owner, app, proofCreatedAt, gatewayPrivateKey);
 
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Proof expired")

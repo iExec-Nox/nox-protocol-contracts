@@ -105,7 +105,10 @@ contract NoxTest is Test {
         int256 value = -12345;
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(uint256(value)), TEEType.Int256))
+            abi.encodeCall(
+                INoxCompute.plaintextToEncrypted,
+                (bytes32(uint256(value)), TEEType.Int256)
+            )
         );
         eint256 result = Nox.toEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
@@ -113,7 +116,19 @@ contract NoxTest is Test {
 
     // ============ fromExternal ============
 
-    // TODO function test_fromExternal() public {}
+    function test_FromExternal_Ebool() public {
+        address handleOwner = makeAddr("handleOwner");
+        NoxFromExternalMock noxFromExternalMock = new NoxFromExternalMock();
+        bytes32 handle = TestHelper.createHandle(TEEType.Bool);
+        bytes memory proof = TestHelper.buildProof(noxCompute, handle, handleOwner, address(noxFromExternalMock), block.timestamp, gatewayPrivateKey);
+        externalEbool value = externalEbool.wrap(handle);
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.validateProof, (handle, handleOwner, proof, TEEType.Bool))
+        );
+        vm.prank(handleOwner);
+        noxFromExternalMock.fromExternal(value, proof);
+    }
 
     // ============ Unsafe Arithmetic primitives ============
 
@@ -365,5 +380,35 @@ contract NoxTest is Test {
         aclContract.allowTransient(handle, address(this));
         vm.stopPrank();
         aclContract.allow(handle, address(this));
+    }
+}
+
+/**
+ * This contract is used to call the `fromExternal` function with calldata bytes.
+ * We cannot call `Nox.fromExternal(handle, proof)` directly because the proof
+ * would have the type `bytes memory`, which is incompatible with the `bytes calldata`
+ * in the function signature.
+ */
+contract NoxFromExternalMock {
+    function fromExternal(externalEbool handle, bytes calldata proof) external returns (ebool) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternal(
+        externalEaddress handle,
+        bytes calldata proof
+    ) internal returns (eaddress) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternal(
+        externalEuint256 handle,
+        bytes calldata proof
+    ) internal returns (euint256) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternal(externalEint256 handle, bytes calldata proof) internal returns (eint256) {
+        return Nox.fromExternal(handle, proof);
     }
 }
