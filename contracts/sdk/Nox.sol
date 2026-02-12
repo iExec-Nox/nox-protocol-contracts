@@ -72,7 +72,7 @@ library Nox {
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
     function toEbool(bool value) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.plaintextToEncrypted(value ? 1 : 0, TEEType.Bool));
+        return ebool.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value ? 1 : 0)), TEEType.Bool));
     }
 
     /**
@@ -81,7 +81,7 @@ library Nox {
     function toEaddress(address value) internal returns (eaddress) {
         return
             eaddress.wrap(
-                NOX_COMPUTE.plaintextToEncrypted(uint256(uint160(value)), TEEType.Address)
+                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint160(value))), TEEType.Address)
             );
     }
 
@@ -89,14 +89,14 @@ library Nox {
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(value, TEEType.Uint256));
+        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(value), TEEType.Uint256));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
     function toEint256(int256 value) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(uint256(value), TEEType.Int256));
+        return eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Int256));
     }
 
     // ============ Handle validation ============

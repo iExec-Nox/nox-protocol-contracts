@@ -63,7 +63,7 @@ contract NoxTest is Test {
     function test_toEbool_True() public {
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (1, TEEType.Bool))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(uint256(1)), TEEType.Bool))
         );
         ebool result = Nox.toEbool(true);
         assertNotEq(ebool.unwrap(result), 0);
@@ -72,7 +72,7 @@ contract NoxTest is Test {
     function test_toEbool_False() public {
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (0, TEEType.Bool))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(uint256(0)), TEEType.Bool))
         );
         ebool result = Nox.toEbool(false);
         assertNotEq(ebool.unwrap(result), 0);
@@ -84,7 +84,7 @@ contract NoxTest is Test {
             noxCompute,
             abi.encodeCall(
                 INoxCompute.plaintextToEncrypted,
-                (uint256(uint160(testAddress)), TEEType.Address)
+                (bytes32(uint256(uint160(testAddress))), TEEType.Address)
             )
         );
         eaddress result = Nox.toEaddress(testAddress);
@@ -95,7 +95,7 @@ contract NoxTest is Test {
         uint256 value = 12345;
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (value, TEEType.Uint256))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(value), TEEType.Uint256))
         );
         euint256 result = Nox.toEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
@@ -105,7 +105,7 @@ contract NoxTest is Test {
         int256 value = -12345;
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (uint256(value), TEEType.Int256))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(uint256(value)), TEEType.Int256))
         );
         eint256 result = Nox.toEint256(value);
         assertNotEq(eint256.unwrap(result), 0);

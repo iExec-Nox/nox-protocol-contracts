@@ -140,7 +140,7 @@ contract NoxComputeTest is Test {
     // ============ plaintextToEncrypted ============
 
     function test_PlaintextToEncrypted_Bool() public {
-        uint256 value = 1;
+        bytes32 value = bytes32(uint256(1));
         vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
         vm.prank(caller);
         bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Bool);
@@ -149,7 +149,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_PlaintextToEncrypted_Uint256() public {
-        uint256 value = 42;
+        bytes32 value = bytes32(uint256(42));
         vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
         vm.prank(caller);
         bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
@@ -158,16 +158,16 @@ contract NoxComputeTest is Test {
     }
 
     function test_PlaintextToEncrypted_Int256() public {
-        int256 value = -999;
+        bytes32 value = bytes32(uint256(int256(-999)));
         vm.expectCall(acl, abi.encodeWithSelector(ACL.allowTransient.selector));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(uint256(value), TEEType.Int256);
+        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Int256);
 
         _assertValidHandle(result, TEEType.Int256);
     }
 
     function test_PlaintextToEncrypted_UniqueHandles() public {
-        uint256 value = 42;
+        bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
         bytes32 result1 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
         vm.warp(block.timestamp + 1);
@@ -178,7 +178,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
-        uint256 value = 42;
+        bytes32 value = bytes32(uint256(42));
         // Use low-level call to pass invalid TEEType value (100) which is > Bytes32 (99)
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
