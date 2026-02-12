@@ -119,15 +119,7 @@ contract NoxTest is Test {
     function test_FromExternal_Ebool() public {
         address handleOwner = makeAddr("handleOwner");
         NoxFromExternalMock nox = new NoxFromExternalMock();
-        bytes memory proof = TestHelper.buildProof(
-            noxCompute,
-            boolHandle,
-            handleOwner,
-            address(nox),
-            block.timestamp,
-            gatewayPrivateKey
-        );
-        externalEbool value = externalEbool.wrap(boolHandle);
+        bytes memory proof = new bytes(0); // Dummy proof
         vm.expectCall(
             noxCompute,
             abi.encodeCall(
@@ -135,8 +127,57 @@ contract NoxTest is Test {
                 (boolHandle, handleOwner, proof, TEEType.Bool)
             )
         );
+        vm.expectRevert(); // Ignore revert from proof validation.
         vm.prank(handleOwner);
-        nox.fromExternal(value, proof);
+        nox.fromExternalEbool(externalEbool.wrap(boolHandle), proof);
+    }
+
+    function test_FromExternal_Eaddress() public {
+        address handleOwner = makeAddr("handleOwner");
+        NoxFromExternalMock nox = new NoxFromExternalMock();
+        bytes memory proof = new bytes(0); // Dummy proof
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (addressHandle, handleOwner, proof, TEEType.Address)
+            )
+        );
+        vm.expectRevert(); // Ignore revert from proof validation.
+        vm.prank(handleOwner);
+        nox.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
+    }
+
+    function test_FromExternal_Euint256() public {
+        address handleOwner = makeAddr("handleOwner");
+        NoxFromExternalMock nox = new NoxFromExternalMock();
+        bytes memory proof = new bytes(0); // Dummy proof
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (uint256HandleA, handleOwner, proof, TEEType.Uint256)
+            )
+        );
+        vm.expectRevert(); // Ignore revert from proof validation.
+        vm.prank(handleOwner);
+        nox.fromExternalEuint256(externalEuint256.wrap(uint256HandleA), proof);
+    }
+
+    function test_FromExternal_Eint256() public {
+        address handleOwner = makeAddr("handleOwner");
+        NoxFromExternalMock nox = new NoxFromExternalMock();
+        bytes memory proof = new bytes(0); // Dummy proof
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (int256Handle, handleOwner, proof, TEEType.Int256)
+            )
+        );
+        vm.expectRevert(); // Ignore revert from proof validation.
+        vm.prank(handleOwner);
+        nox.fromExternalEint256(externalEint256.wrap(int256Handle), proof);
     }
 
     // ============ Unsafe Arithmetic primitives ============
@@ -399,25 +440,31 @@ contract NoxTest is Test {
  * in the function signature.
  */
 contract NoxFromExternalMock {
-    function fromExternal(externalEbool handle, bytes calldata proof) external returns (ebool) {
+    function fromExternalEbool(
+        externalEbool handle,
+        bytes calldata proof
+    ) external returns (ebool) {
         return Nox.fromExternal(handle, proof);
     }
 
-    function fromExternal(
+    function fromExternalEaddress(
         externalEaddress handle,
         bytes calldata proof
-    ) internal returns (eaddress) {
+    ) external returns (eaddress) {
         return Nox.fromExternal(handle, proof);
     }
 
-    function fromExternal(
+    function fromExternalEuint256(
         externalEuint256 handle,
         bytes calldata proof
-    ) internal returns (euint256) {
+    ) external returns (euint256) {
         return Nox.fromExternal(handle, proof);
     }
 
-    function fromExternal(externalEint256 handle, bytes calldata proof) internal returns (eint256) {
+    function fromExternalEint256(
+        externalEint256 handle,
+        bytes calldata proof
+    ) external returns (eint256) {
         return Nox.fromExternal(handle, proof);
     }
 }
