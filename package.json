@@ -19,7 +19,7 @@
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
-    "coverage": "pnpm hardhat test --coverage test/unit/**",
+    "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
     "format": "pnpm prettier --write .",
