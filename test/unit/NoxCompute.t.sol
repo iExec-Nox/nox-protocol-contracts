@@ -664,7 +664,7 @@ contract NoxComputeTest is Test {
         _assertValidHandle(newBalanceTo, TEEType.Uint256);
     }
 
-    function test_RevertWhen_Transfer_NotAllowed() public {
+    function test_RevertWhen_Transfer_BalanceFromNotAllowed() public {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
@@ -673,6 +673,30 @@ contract NoxComputeTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, balanceFrom, caller));
+        noxCompute.transfer(balanceFrom, balanceTo, amount);
+    }
+
+    function test_RevertWhen_Transfer_BalanceToNotAllowed() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceFrom, caller);
+        _allow(amount, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, balanceTo, caller));
+        noxCompute.transfer(balanceFrom, balanceTo, amount);
+    }
+
+    function test_RevertWhen_Transfer_AmountNotAllowed() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceFrom, caller);
+        _allow(balanceTo, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, amount, caller));
         noxCompute.transfer(balanceFrom, balanceTo, amount);
     }
 
@@ -721,7 +745,19 @@ contract NoxComputeTest is Test {
         _assertValidHandle(newTotalSupply, TEEType.Uint256);
     }
 
-    function test_RevertWhen_Mint_NotAllowed() public {
+    function test_RevertWhen_Mint_BalanceToNotAllowed() public {
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(amount, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, balanceTo, caller));
+        noxCompute.mint(balanceTo, amount, totalSupply);
+    }
+
+    function test_RevertWhen_Mint_AmountNotAllowed() public {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
@@ -730,6 +766,18 @@ contract NoxComputeTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, amount, caller));
+        noxCompute.mint(balanceTo, amount, totalSupply);
+    }
+
+    function test_RevertWhen_Mint_TotalSupplyNotAllowed() public {
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceTo, caller);
+        _allow(amount, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, totalSupply, caller));
         noxCompute.mint(balanceTo, amount, totalSupply);
     }
 
@@ -778,7 +826,19 @@ contract NoxComputeTest is Test {
         _assertValidHandle(newTotalSupply, TEEType.Uint256);
     }
 
-    function test_RevertWhen_Burn_NotAllowed() public {
+    function test_RevertWhen_Burn_BalanceFromNotAllowed() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(amount, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, balanceFrom, caller));
+        noxCompute.burn(balanceFrom, amount, totalSupply);
+    }
+
+    function test_RevertWhen_Burn_AmountNotAllowed() public {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
@@ -787,6 +847,18 @@ contract NoxComputeTest is Test {
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, amount, caller));
+        noxCompute.burn(balanceFrom, amount, totalSupply);
+    }
+
+    function test_RevertWhen_Burn_TotalSupplyNotAllowed() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceFrom, caller);
+        _allow(amount, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, totalSupply, caller));
         noxCompute.burn(balanceFrom, amount, totalSupply);
     }
 
