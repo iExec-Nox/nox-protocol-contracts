@@ -208,8 +208,11 @@ contract NoxTest is Test {
                 noxCompute,
                 abi.encodeCall(INoxCompute.validateProof, (allHandles[i], handleOwner, proof, t))
             );
-            vm.prank(handleOwner);
+            // Use startPrank/stopPrank instead of prank to avoid coverage instrumentation
+            // consuming the single-use prank before the intended external call.
+            vm.startPrank(handleOwner);
             _noxFromExternal(allHandles[i], proof);
+            vm.stopPrank();
         }
     }
 
