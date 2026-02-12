@@ -89,38 +89,6 @@ contract NoxComputeTest is Test {
         noxCompute.initialize(owner);
     }
 
-    // ============ setGateway ============
-
-    function test_SetGateway() public {
-        assertTrue(noxCompute.gateway() == gateway);
-        address newGateway = makeAddr("newGateway");
-        vm.prank(owner);
-        vm.expectEmit();
-        emit INoxCompute.GatewayUpdated(newGateway);
-        noxCompute.setGateway(newGateway);
-        assertTrue(noxCompute.gateway() == newGateway);
-    }
-
-    function test_RevertWhen_SetGateway_UnauthorizedCaller() public {
-        address unauthorizedCaller = makeAddr("unauthorized");
-        address newGateway = makeAddr("newGateway");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
-        vm.prank(unauthorizedCaller);
-        noxCompute.setGateway(newGateway);
-    }
-
-    function test_RevertWhen_SetGateway_ZeroAddress() public {
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
-        vm.prank(owner);
-        noxCompute.setGateway(address(0));
-    }
-
     // ============ setKmsPublicKey ============
 
     function test_SetKmsPublicKey() public {
@@ -153,6 +121,38 @@ contract NoxComputeTest is Test {
         vm.expectRevert(IErrors.InvalidEmptyBytes.selector);
         vm.prank(owner);
         noxCompute.setKmsPublicKey("");
+    }
+
+    // ============ setGateway ============
+
+    function test_SetGateway() public {
+        assertTrue(noxCompute.gateway() == gateway);
+        address newGateway = makeAddr("newGateway");
+        vm.prank(owner);
+        vm.expectEmit();
+        emit INoxCompute.GatewayUpdated(newGateway);
+        noxCompute.setGateway(newGateway);
+        assertTrue(noxCompute.gateway() == newGateway);
+    }
+
+    function test_RevertWhen_SetGateway_UnauthorizedCaller() public {
+        address unauthorizedCaller = makeAddr("unauthorized");
+        address newGateway = makeAddr("newGateway");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
+                unauthorizedCaller,
+                noxCompute
+            )
+        );
+        vm.prank(unauthorizedCaller);
+        noxCompute.setGateway(newGateway);
+    }
+
+    function test_RevertWhen_SetGateway_ZeroAddress() public {
+        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        vm.prank(owner);
+        noxCompute.setGateway(address(0));
     }
 
     // ============ setProofExpirationDuration ============
