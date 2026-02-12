@@ -308,6 +308,81 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
     }
 
+    /// @inheritdoc INoxCompute
+    function transfer(
+        bytes32 balanceFrom,
+        bytes32 balanceTo,
+        bytes32 amount
+    ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newBalanceTo) {
+        bytes32[] memory operands = new bytes32[](3);
+        operands[0] = balanceFrom;
+        operands[1] = balanceTo;
+        operands[2] = amount;
+        (success, newBalanceFrom, newBalanceTo) = _executeCompositeOperation(
+            Operator.Transfer,
+            operands
+        );
+        emit Transfer(
+            msg.sender,
+            balanceFrom,
+            balanceTo,
+            amount,
+            success,
+            newBalanceFrom,
+            newBalanceTo
+        );
+    }
+
+    /// @inheritdoc INoxCompute
+    function mint(
+        bytes32 balanceTo,
+        bytes32 amount,
+        bytes32 totalSupply
+    ) external returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) {
+        bytes32[] memory operands = new bytes32[](3);
+        operands[0] = balanceTo;
+        operands[1] = amount;
+        operands[2] = totalSupply;
+        (success, newBalanceTo, newTotalSupply) = _executeCompositeOperation(
+            Operator.Mint,
+            operands
+        );
+        emit Mint(
+            msg.sender,
+            balanceTo,
+            amount,
+            totalSupply,
+            success,
+            newBalanceTo,
+            newTotalSupply
+        );
+    }
+
+    /// @inheritdoc INoxCompute
+    function burn(
+        bytes32 balanceFrom,
+        bytes32 amount,
+        bytes32 totalSupply
+    ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply) {
+        bytes32[] memory operands = new bytes32[](3);
+        operands[0] = balanceFrom;
+        operands[1] = amount;
+        operands[2] = totalSupply;
+        (success, newBalanceFrom, newTotalSupply) = _executeCompositeOperation(
+            Operator.Burn,
+            operands
+        );
+        emit Burn(
+            msg.sender,
+            balanceFrom,
+            amount,
+            totalSupply,
+            success,
+            newBalanceFrom,
+            newTotalSupply
+        );
+    }
+
     /**
      * Returns the EIP-712 domain separator.
      */
@@ -426,6 +501,37 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         ACL.validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, TEEType.Bool);
         ACL.allowTransient(result, msg.sender);
+    }
+
+    /**
+     * Executes a composite operation on 3 encrypted handles (e.g. transfer, mint, burn).
+     * All operands must share the same arithmetic type.
+     * Generates 3 output handles: a Bool success flag and two result handles of the input type.
+     *
+     * @param operator The operator to apply
+     * @param operands Array of 3 operand handles
+     * @return success The success flag handle (Bool type)
+     * @return result1 First result handle
+     * @return result2 Second result handle
+     */
+    function _executeCompositeOperation(
+        Operator operator,
+        bytes32[] memory operands
+    ) private returns (bytes32 success, bytes32 result1, bytes32 result2) {
+        TEEType resultType = TypeUtils.typeOf(operands[0]);
+        TypeUtils.validateArithmeticType(resultType);
+        for (uint256 i = 1; i < operands.length; i++) {
+            if (resultType != TypeUtils.typeOf(operands[i])) {
+                revert IncompatibleTypes();
+            }
+        }
+        ACL.validateAllowedForAll(msg.sender, operands);
+        success = _generateHandle(operator, operands, TEEType.Bool, 0);
+        result1 = _generateHandle(operator, operands, resultType, 1);
+        result2 = _generateHandle(operator, operands, resultType, 2);
+        ACL.allowTransient(success, msg.sender);
+        ACL.allowTransient(result1, msg.sender);
+        ACL.allowTransient(result2, msg.sender);
     }
 
     /**

@@ -1,7 +1,7 @@
 # ⚠️ THIS WORKFLOW IS THE TRUSTED PUBLISHER CONFIGURED ON NPMJS.COM, DO NOT RENAME OR DELETE THIS FILE ⚠️
 
 # TODO configure this file as trusted publisher and test it
-# when @iexec-nox/nox-contracts is created on NPM registry.
+# when @iexec-nox/nox-protocol-contracts is created on NPM registry.
 
 name: Publish NPM Package
 
