@@ -1,6 +1,6 @@
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-import { deploy } from "../../scripts/deploy.js";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
+import { deploy } from "../../scripts/deploy.ts";
+import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 export async function loadFixture() {
     return await connection.networkHelpers.loadFixture(deployFixture);

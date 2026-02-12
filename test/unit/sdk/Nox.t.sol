@@ -8,6 +8,7 @@ import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
 import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
+import {NoxFromExternalMock} from "../../../contracts/mock/NoxFromExternalMock.sol";
 
 // Note: these tests are here to make sure the library calls the correct
 // functions on the NoxCompute and ACL, and that the `isInitialized`
@@ -35,6 +36,7 @@ contract NoxTest is Test {
     bytes32 uint16HandleB = TestHelper.createHandle(TEEType.Uint16);
     bytes32 uint256HandleA = TestHelper.createHandle(TEEType.Uint256);
     bytes32 uint256HandleB = TestHelper.createHandle(TEEType.Uint256);
+    NoxFromExternalMock noxFromExternalMock;
 
     // Arithmetic type handle pairs (types that support add/sub/mul/div/safe/select)
     bytes32[] arithmeticA;
@@ -48,6 +50,7 @@ contract NoxTest is Test {
         acl = address(aclContract);
         noxCompute = address(noxComputeContract);
 
+        noxFromExternalMock = new NoxFromExternalMock();
         // Allow all handles for the test contract
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
@@ -71,6 +74,7 @@ contract NoxTest is Test {
         allHandles.push(int256Handle);
 
         vm.label(account, "account");
+        vm.label(address(noxFromExternalMock), "NoxFromExternalMock");
     }
 
     // ============ isInitialized ============
@@ -96,7 +100,7 @@ contract NoxTest is Test {
     function test_toEbool_True() public {
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (1, TEEType.Bool))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(uint256(1)), TEEType.Bool))
         );
         ebool result = Nox.toEbool(true);
         assertNotEq(ebool.unwrap(result), 0);
@@ -105,7 +109,7 @@ contract NoxTest is Test {
     function test_toEbool_False() public {
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (0, TEEType.Bool))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(uint256(0)), TEEType.Bool))
         );
         ebool result = Nox.toEbool(false);
         assertNotEq(ebool.unwrap(result), 0);
@@ -117,7 +121,7 @@ contract NoxTest is Test {
             noxCompute,
             abi.encodeCall(
                 INoxCompute.plaintextToEncrypted,
-                (uint256(uint160(testAddress)), TEEType.Address)
+                (bytes32(uint256(uint160(testAddress))), TEEType.Address)
             )
         );
         eaddress result = Nox.toEaddress(testAddress);
@@ -128,7 +132,10 @@ contract NoxTest is Test {
         uint16 value = 42;
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (uint256(value), TEEType.Uint16))
+            abi.encodeCall(
+                INoxCompute.plaintextToEncrypted,
+                (bytes32(uint256(value)), TEEType.Uint16)
+            )
         );
         euint16 result = Nox.toEuint16(value);
         assertNotEq(euint16.unwrap(result), 0);
@@ -138,7 +145,7 @@ contract NoxTest is Test {
         uint256 value = 12345;
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (value, TEEType.Uint256))
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(value), TEEType.Uint256))
         );
         euint256 result = Nox.toEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
@@ -148,7 +155,10 @@ contract NoxTest is Test {
         int256 value = -12345;
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (uint256(value), TEEType.Int256))
+            abi.encodeCall(
+                INoxCompute.plaintextToEncrypted,
+                (bytes32(uint256(value)), TEEType.Int256)
+            )
         );
         eint256 result = Nox.toEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
@@ -156,7 +166,89 @@ contract NoxTest is Test {
 
     // ============ fromExternal ============
 
-    // TODO function test_fromExternal() public {}
+    function test_FromExternal_Ebool() public {
+        address handleOwner = makeAddr("handleOwner");
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            boolHandle,
+            handleOwner,
+            address(noxFromExternalMock),
+            block.timestamp,
+            gatewayPrivateKey
+        );
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (boolHandle, handleOwner, proof, TEEType.Bool)
+            )
+        );
+        vm.prank(handleOwner);
+        noxFromExternalMock.fromExternalEbool(externalEbool.wrap(boolHandle), proof);
+    }
+
+    function test_FromExternal_Eaddress() public {
+        address handleOwner = makeAddr("handleOwner");
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            addressHandle,
+            handleOwner,
+            address(noxFromExternalMock),
+            block.timestamp,
+            gatewayPrivateKey
+        );
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (addressHandle, handleOwner, proof, TEEType.Address)
+            )
+        );
+        vm.prank(handleOwner);
+        noxFromExternalMock.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
+    }
+
+    function test_FromExternal_Euint256() public {
+        address handleOwner = makeAddr("handleOwner");
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            uint256HandleA,
+            handleOwner,
+            address(noxFromExternalMock),
+            block.timestamp,
+            gatewayPrivateKey
+        );
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (uint256HandleA, handleOwner, proof, TEEType.Uint256)
+            )
+        );
+        vm.prank(handleOwner);
+        noxFromExternalMock.fromExternalEuint256(externalEuint256.wrap(uint256HandleA), proof);
+    }
+
+    function test_FromExternal_Eint256() public {
+        address handleOwner = makeAddr("handleOwner");
+        bytes memory proof = TestHelper.buildProof(
+            noxCompute,
+            int256Handle,
+            handleOwner,
+            address(noxFromExternalMock),
+            block.timestamp,
+            gatewayPrivateKey
+        );
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.validateProof,
+                (int256Handle, handleOwner, proof, TEEType.Int256)
+            )
+        );
+        vm.prank(handleOwner);
+        noxFromExternalMock.fromExternalEint256(externalEint256.wrap(int256Handle), proof);
+    }
 
     // ============ Unsafe Arithmetic primitives ============
 

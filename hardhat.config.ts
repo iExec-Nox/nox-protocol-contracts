@@ -1,6 +1,6 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
-import { CREATE2_SALT } from "./config/config.js";
+import { CREATE2_SALT } from "./config/config.ts";
 
 export default defineConfig({
     plugins: [hardhatToolboxViemPlugin],
