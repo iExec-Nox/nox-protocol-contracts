@@ -482,7 +482,10 @@ contract NoxTest is Test {
     }
 
     // ============ Internal Helpers ============
-
+    
+    /**
+     * Helper function to allow this test contract as a caller of the given handle.
+     */
     function _allowCaller(bytes32 handle) internal {
         vm.startPrank(noxCompute);
         aclContract.allowTransient(handle, address(this));
