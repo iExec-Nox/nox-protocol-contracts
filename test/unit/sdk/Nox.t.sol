@@ -8,6 +8,7 @@ import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
 import {TEEType} from "../../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
+import {NoxFromExternalMock} from "../../../contracts/mock/NoxFromExternalMock.sol";
 
 // Note: these tests are here to make sure the library calls the correct
 // functions on the NoxCompute and ACL, and that the `isInitialized`
@@ -29,17 +30,20 @@ contract NoxTest is Test {
     bytes32 int256Handle = TestHelper.createHandle(TEEType.Int256);
     bytes32 uint256HandleA = TestHelper.createHandle(TEEType.Uint256);
     bytes32 uint256HandleB = TestHelper.createHandle(TEEType.Uint256);
+    NoxFromExternalMock noxFromExternalMock;
 
     function setUp() public {
         (aclContract, noxComputeContract) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
         noxCompute = address(noxComputeContract);
+        noxFromExternalMock = new NoxFromExternalMock();
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
         _allowCaller(uint256HandleA);
         _allowCaller(uint256HandleB);
         _allowCaller(int256Handle);
         vm.label(account, "account");
+        vm.label(address(noxFromExternalMock), "NoxFromExternalMock");
     }
 
     // ============ isInitialized ============
@@ -118,12 +122,11 @@ contract NoxTest is Test {
 
     function test_FromExternal_Ebool() public {
         address handleOwner = makeAddr("handleOwner");
-        NoxFromExternalMock nox = new NoxFromExternalMock();
         bytes memory proof = TestHelper.buildProof(
             noxCompute,
             boolHandle,
             handleOwner,
-            address(nox),
+            address(noxFromExternalMock),
             block.timestamp,
             gatewayPrivateKey
         );
@@ -135,17 +138,16 @@ contract NoxTest is Test {
             )
         );
         vm.prank(handleOwner);
-        nox.fromExternalEbool(externalEbool.wrap(boolHandle), proof);
+        noxFromExternalMock.fromExternalEbool(externalEbool.wrap(boolHandle), proof);
     }
 
     function test_FromExternal_Eaddress() public {
         address handleOwner = makeAddr("handleOwner");
-        NoxFromExternalMock nox = new NoxFromExternalMock();
         bytes memory proof = TestHelper.buildProof(
             noxCompute,
             addressHandle,
             handleOwner,
-            address(nox),
+            address(noxFromExternalMock),
             block.timestamp,
             gatewayPrivateKey
         );
@@ -157,17 +159,16 @@ contract NoxTest is Test {
             )
         );
         vm.prank(handleOwner);
-        nox.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
+        noxFromExternalMock.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
     }
 
     function test_FromExternal_Euint256() public {
         address handleOwner = makeAddr("handleOwner");
-        NoxFromExternalMock nox = new NoxFromExternalMock();
         bytes memory proof = TestHelper.buildProof(
             noxCompute,
             uint256HandleA,
             handleOwner,
-            address(nox),
+            address(noxFromExternalMock),
             block.timestamp,
             gatewayPrivateKey
         );
@@ -179,17 +180,16 @@ contract NoxTest is Test {
             )
         );
         vm.prank(handleOwner);
-        nox.fromExternalEuint256(externalEuint256.wrap(uint256HandleA), proof);
+        noxFromExternalMock.fromExternalEuint256(externalEuint256.wrap(uint256HandleA), proof);
     }
 
     function test_FromExternal_Eint256() public {
         address handleOwner = makeAddr("handleOwner");
-        NoxFromExternalMock nox = new NoxFromExternalMock();
         bytes memory proof = TestHelper.buildProof(
             noxCompute,
             int256Handle,
             handleOwner,
-            address(nox),
+            address(noxFromExternalMock),
             block.timestamp,
             gatewayPrivateKey
         );
@@ -201,7 +201,7 @@ contract NoxTest is Test {
             )
         );
         vm.prank(handleOwner);
-        nox.fromExternalEint256(externalEint256.wrap(int256Handle), proof);
+        noxFromExternalMock.fromExternalEint256(externalEint256.wrap(int256Handle), proof);
     }
 
     // ============ Unsafe Arithmetic primitives ============
@@ -454,41 +454,5 @@ contract NoxTest is Test {
         aclContract.allowTransient(handle, address(this));
         vm.stopPrank();
         aclContract.allow(handle, address(this));
-    }
-}
-
-/**
- * This contract is used to call the `fromExternal` function with calldata bytes.
- * We cannot call `Nox.fromExternal(handle, proof)` directly because the proof
- * would have the type `bytes memory`, which is incompatible with the `bytes calldata`
- * in the function signature.
- */
-contract NoxFromExternalMock {
-    function fromExternalEbool(
-        externalEbool handle,
-        bytes calldata proof
-    ) external returns (ebool) {
-        return Nox.fromExternal(handle, proof);
-    }
-
-    function fromExternalEaddress(
-        externalEaddress handle,
-        bytes calldata proof
-    ) external returns (eaddress) {
-        return Nox.fromExternal(handle, proof);
-    }
-
-    function fromExternalEuint256(
-        externalEuint256 handle,
-        bytes calldata proof
-    ) external returns (euint256) {
-        return Nox.fromExternal(handle, proof);
-    }
-
-    function fromExternalEint256(
-        externalEint256 handle,
-        bytes calldata proof
-    ) external returns (eint256) {
-        return Nox.fromExternal(handle, proof);
     }
 }
