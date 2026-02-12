@@ -3,6 +3,7 @@ pragma solidity ^0.8.0;
 
 import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
+import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {ACL} from "../../contracts/ACL.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
@@ -40,6 +41,28 @@ library TestHelper {
                     bytes1(0x00) // Version 0
                 )
             );
+    }
+
+    /**
+     * Builds a valid proof for the given parameters, signed by the given private key.
+     */
+    function buildProof(
+        address noxComputeAddress,
+        bytes32 handle,
+        address owner,
+        address app,
+        uint256 createdAt,
+        uint256 signerPrivateKey
+    ) internal view returns (bytes memory) {
+        Vm vm = getVm();
+        NoxCompute noxCompute = NoxCompute(noxComputeAddress);
+        // HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)
+        bytes32 structHash = keccak256(
+            abi.encode(noxCompute.HANDLE_PROOF_TYPEHASH(), handle, owner, app, createdAt)
+        );
+        bytes32 digest = MessageHashUtils.toTypedDataHash(noxCompute.domainSeparator(), structHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
+        return abi.encodePacked(bytes20(owner), bytes20(app), bytes32(createdAt), r, s, v);
     }
 
     /**
