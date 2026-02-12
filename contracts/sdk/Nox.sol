@@ -7,7 +7,7 @@ import {IACL} from "../interfaces/IACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
 /**
- * @title TEEPrimitives
+ * @title Nox
  * @notice Library providing convenient functions for TEE confidential computations.
  * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
  *      the transaction will revert as it will not be recognized by the ACL.
@@ -18,7 +18,7 @@ import "encrypted-types/EncryptedTypes.sol";
  *      IMPORTANT: If a fresh deployment is performed (not an upgrade), the proxy addresses will change.
  *      In that case, update these constants with the new deployed addresses.
  */
-library TEEPrimitives {
+library Nox {
     // TODO: Update these addresses after deploying with the production salt.
     ITEEComputeManager internal constant TEE_COMPUTE_MANAGER =
         ITEEComputeManager(0xCFf1370bD7fA13e02Fa31681947fE08Cc84ce8e1);

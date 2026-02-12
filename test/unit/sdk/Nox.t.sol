@@ -3,11 +3,11 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import "encrypted-types/EncryptedTypes.sol";
-import {IACL} from "../../contracts/interfaces/IACL.sol";
-import {ITEEComputeManager} from "../../contracts/interfaces/ITEEComputeManager.sol";
-import {TEEType} from "../../contracts/shared/TypeUtils.sol";
-import {TestHelper} from "../utils/TestHelper.sol";
-import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
+import {IACL} from "../../../contracts/interfaces/IACL.sol";
+import {ITEEComputeManager} from "../../../contracts/interfaces/ITEEComputeManager.sol";
+import {TEEType} from "../../../contracts/shared/TypeUtils.sol";
+import {TestHelper} from "../../utils/TestHelper.sol";
+import {Nox} from "../../../contracts/sdk/Nox.sol";
 
 // Note: these tests are here to make sure the library calls the correct
 // functions on the TEEComputeManager and ACL, and that the `isInitialized`
@@ -15,7 +15,7 @@ import {TEEPrimitives} from "../../contracts/lib/TEEPrimitives.sol";
 // in the TEEComputeManager and ACL tests, so we can keep these tests
 // relatively light.
 
-contract TEEPrimitivesTest is Test {
+contract NoxTest is Test {
     address owner = makeAddr("owner");
     address account = makeAddr("account");
     uint256 gatewayPrivateKey = 123456789;
@@ -45,17 +45,17 @@ contract TEEPrimitivesTest is Test {
     // ============ isInitialized ============
 
     function test_isInitialized_True() public view {
-        assertTrue(TEEPrimitives.isInitialized(ebool.wrap(boolHandle)));
-        assertTrue(TEEPrimitives.isInitialized(eaddress.wrap(addressHandle)));
-        assertTrue(TEEPrimitives.isInitialized(euint256.wrap(uint256HandleA)));
-        assertTrue(TEEPrimitives.isInitialized(eint256.wrap(int256Handle)));
+        assertTrue(Nox.isInitialized(ebool.wrap(boolHandle)));
+        assertTrue(Nox.isInitialized(eaddress.wrap(addressHandle)));
+        assertTrue(Nox.isInitialized(euint256.wrap(uint256HandleA)));
+        assertTrue(Nox.isInitialized(eint256.wrap(int256Handle)));
     }
 
     function test_isInitialized_False() public pure {
-        assertFalse(TEEPrimitives.isInitialized(ebool.wrap(0)));
-        assertFalse(TEEPrimitives.isInitialized(eaddress.wrap(0)));
-        assertFalse(TEEPrimitives.isInitialized(euint256.wrap(0)));
-        assertFalse(TEEPrimitives.isInitialized(eint256.wrap(0)));
+        assertFalse(Nox.isInitialized(ebool.wrap(0)));
+        assertFalse(Nox.isInitialized(eaddress.wrap(0)));
+        assertFalse(Nox.isInitialized(euint256.wrap(0)));
+        assertFalse(Nox.isInitialized(eint256.wrap(0)));
     }
 
     // ============ to<Type> ============
@@ -65,7 +65,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (1, TEEType.Bool))
         );
-        ebool result = TEEPrimitives.toEbool(true);
+        ebool result = Nox.toEbool(true);
         assertNotEq(ebool.unwrap(result), 0);
     }
 
@@ -74,7 +74,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (0, TEEType.Bool))
         );
-        ebool result = TEEPrimitives.toEbool(false);
+        ebool result = Nox.toEbool(false);
         assertNotEq(ebool.unwrap(result), 0);
     }
 
@@ -87,7 +87,7 @@ contract TEEPrimitivesTest is Test {
                 (uint256(uint160(testAddress)), TEEType.Address)
             )
         );
-        eaddress result = TEEPrimitives.toEaddress(testAddress);
+        eaddress result = Nox.toEaddress(testAddress);
         assertNotEq(eaddress.unwrap(result), 0);
     }
 
@@ -97,7 +97,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (value, TEEType.Uint256))
         );
-        euint256 result = TEEPrimitives.toEuint256(value);
+        euint256 result = Nox.toEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
@@ -110,7 +110,7 @@ contract TEEPrimitivesTest is Test {
                 (uint256(value), TEEType.Int256)
             )
         );
-        eint256 result = TEEPrimitives.toEint256(value);
+        eint256 result = Nox.toEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
     }
 
@@ -127,7 +127,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.add, (uint256HandleA, uint256HandleB))
         );
-        euint256 result = TEEPrimitives.add(a, b);
+        euint256 result = Nox.add(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
@@ -138,7 +138,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.sub, (uint256HandleA, uint256HandleB))
         );
-        euint256 result = TEEPrimitives.sub(a, b);
+        euint256 result = Nox.sub(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
@@ -149,7 +149,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.mul, (uint256HandleA, uint256HandleB))
         );
-        euint256 result = TEEPrimitives.mul(a, b);
+        euint256 result = Nox.mul(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
@@ -160,7 +160,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.div, (uint256HandleA, uint256HandleB))
         );
-        euint256 result = TEEPrimitives.div(a, b);
+        euint256 result = Nox.div(a, b);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
@@ -173,7 +173,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.safeAdd, (uint256HandleA, uint256HandleB))
         );
-        (ebool success, euint256 result) = TEEPrimitives.safeAdd(a, b);
+        (ebool success, euint256 result) = Nox.safeAdd(a, b);
         assertNotEq(ebool.unwrap(success), 0);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -185,7 +185,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.safeSub, (uint256HandleA, uint256HandleB))
         );
-        (ebool success, euint256 result) = TEEPrimitives.safeSub(a, b);
+        (ebool success, euint256 result) = Nox.safeSub(a, b);
         assertNotEq(ebool.unwrap(success), 0);
         assertNotEq(euint256.unwrap(result), 0);
     }
@@ -200,7 +200,7 @@ contract TEEPrimitivesTest is Test {
             teeComputeManager,
             abi.encodeCall(ITEEComputeManager.select, (boolHandle, uint256HandleA, uint256HandleB))
         );
-        euint256 result = TEEPrimitives.select(condition, ifTrue, ifFalse);
+        euint256 result = Nox.select(condition, ifTrue, ifFalse);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
@@ -209,25 +209,25 @@ contract TEEPrimitivesTest is Test {
     function test_allow_ebool() public {
         ebool value = ebool.wrap(boolHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (boolHandle, account)));
-        TEEPrimitives.allow(value, account);
+        Nox.allow(value, account);
     }
 
     function test_allow_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (addressHandle, account)));
-        TEEPrimitives.allow(value, account);
+        Nox.allow(value, account);
     }
 
     function test_allow_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, account)));
-        TEEPrimitives.allow(value, account);
+        Nox.allow(value, account);
     }
 
     function test_allow_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (int256Handle, account)));
-        TEEPrimitives.allow(value, account);
+        Nox.allow(value, account);
     }
 
     // ============ allowThis(<type>) ============
@@ -235,25 +235,25 @@ contract TEEPrimitivesTest is Test {
     function test_allowThis_ebool() public {
         ebool value = ebool.wrap(boolHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (boolHandle, address(this))));
-        TEEPrimitives.allowThis(value);
+        Nox.allowThis(value);
     }
 
     function test_allowThis_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (uint256HandleA, address(this))));
-        TEEPrimitives.allowThis(value);
+        Nox.allowThis(value);
     }
 
     function test_allowThis_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (int256Handle, address(this))));
-        TEEPrimitives.allowThis(value);
+        Nox.allowThis(value);
     }
 
     function test_allowThis_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allow, (addressHandle, address(this))));
-        TEEPrimitives.allowThis(value);
+        Nox.allowThis(value);
     }
 
     // ============ allowTransient(<type>) ============
@@ -261,25 +261,25 @@ contract TEEPrimitivesTest is Test {
     function test_allowTransient_ebool() public {
         ebool value = ebool.wrap(boolHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (boolHandle, account)));
-        TEEPrimitives.allowTransient(value, account);
+        Nox.allowTransient(value, account);
     }
 
     function test_allowTransient_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (addressHandle, account)));
-        TEEPrimitives.allowTransient(value, account);
+        Nox.allowTransient(value, account);
     }
 
     function test_allowTransient_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (uint256HandleA, account)));
-        TEEPrimitives.allowTransient(value, account);
+        Nox.allowTransient(value, account);
     }
 
     function test_allowTransient_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (int256Handle, account)));
-        TEEPrimitives.allowTransient(value, account);
+        Nox.allowTransient(value, account);
     }
 
     // ============ isAllowed(<type>) ============
@@ -287,25 +287,25 @@ contract TEEPrimitivesTest is Test {
     function test_IsAllowed_Ebool() public {
         ebool value = ebool.wrap(boolHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (boolHandle, account)));
-        TEEPrimitives.isAllowed(value, account);
+        Nox.isAllowed(value, account);
     }
 
     function test_IsAllowed_Eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (addressHandle, account)));
-        TEEPrimitives.isAllowed(value, account);
+        Nox.isAllowed(value, account);
     }
 
     function test_IsAllowed_Euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (uint256HandleA, account)));
-        TEEPrimitives.isAllowed(value, account);
+        Nox.isAllowed(value, account);
     }
 
     function test_IsAllowed_Eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (int256Handle, account)));
-        TEEPrimitives.isAllowed(value, account);
+        Nox.isAllowed(value, account);
     }
 
     // ============ allowPublicDecryption(<type>) ============
@@ -313,25 +313,25 @@ contract TEEPrimitivesTest is Test {
     function test_allowPublicDecryption_ebool() public {
         ebool value = ebool.wrap(boolHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (boolHandle)));
-        TEEPrimitives.allowPublicDecryption(value);
+        Nox.allowPublicDecryption(value);
     }
 
     function test_allowPublicDecryption_eaddress() public {
         eaddress value = eaddress.wrap(addressHandle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (addressHandle)));
-        TEEPrimitives.allowPublicDecryption(value);
+        Nox.allowPublicDecryption(value);
     }
 
     function test_allowPublicDecryption_euint256() public {
         euint256 value = euint256.wrap(uint256HandleA);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (uint256HandleA)));
-        TEEPrimitives.allowPublicDecryption(value);
+        Nox.allowPublicDecryption(value);
     }
 
     function test_allowPublicDecryption_eint256() public {
         eint256 value = eint256.wrap(int256Handle);
         vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (int256Handle)));
-        TEEPrimitives.allowPublicDecryption(value);
+        Nox.allowPublicDecryption(value);
     }
 
     /**

@@ -2,7 +2,7 @@
 pragma solidity ^0.8.0;
 
 import "encrypted-types/EncryptedTypes.sol";
-import {TEEPrimitives} from "../lib/TEEPrimitives.sol";
+import {Nox} from "../sdk/Nox.sol";
 
 // TODO remove this interface and use @openzeppelin/contracts when the rest
 // of the functions are implemented.
@@ -51,11 +51,11 @@ contract ConfidentialTokenMock is IERC7984 {
     error ERC7984UnauthorizedUseOfEncryptedAmount(euint256 amount, address user);
 
     constructor(uint256 totalSupply) {
-        _totalSupply = TEEPrimitives.toEuint256(totalSupply);
-        euint256 msgSenderBalance = TEEPrimitives.toEuint256(totalSupply);
+        _totalSupply = Nox.toEuint256(totalSupply);
+        euint256 msgSenderBalance = Nox.toEuint256(totalSupply);
         _balances[msg.sender] = msgSenderBalance;
-        TEEPrimitives.allowThis(msgSenderBalance);
-        TEEPrimitives.allow(msgSenderBalance, msg.sender);
+        Nox.allowThis(msgSenderBalance);
+        Nox.allow(msgSenderBalance, msg.sender);
     }
 
     function confidentialTotalSupply() public view override returns (euint256) {
@@ -72,13 +72,13 @@ contract ConfidentialTokenMock is IERC7984 {
         externalEuint256 encryptedAmount,
         bytes calldata inputProof
     ) public virtual returns (euint256) {
-        return _transfer(msg.sender, to, TEEPrimitives.fromExternal(encryptedAmount, inputProof));
+        return _transfer(msg.sender, to, Nox.fromExternal(encryptedAmount, inputProof));
     }
 
     /// @inheritdoc IERC7984
     function confidentialTransfer(address to, euint256 amount) public virtual returns (euint256) {
         require(
-            TEEPrimitives.isAllowed(amount, msg.sender),
+            Nox.isAllowed(amount, msg.sender),
             ERC7984UnauthorizedUseOfEncryptedAmount(amount, msg.sender)
         );
         return _transfer(msg.sender, to, amount);
@@ -103,40 +103,40 @@ contract ConfidentialTokenMock is IERC7984 {
         euint256 ptr;
 
         if (from == address(0)) {
-            (success, ptr) = TEEPrimitives.safeAdd(_totalSupply, amount);
-            TEEPrimitives.allowThis(ptr);
+            (success, ptr) = Nox.safeAdd(_totalSupply, amount);
+            Nox.allowThis(ptr);
             _totalSupply = ptr;
         } else {
             euint256 fromBalance = _balances[from];
-            require(TEEPrimitives.isInitialized(fromBalance), ERC7984ZeroBalance(from));
-            (success, ptr) = TEEPrimitives.safeSub(fromBalance, amount);
-            TEEPrimitives.allowThis(ptr);
-            TEEPrimitives.allow(ptr, from);
+            require(Nox.isInitialized(fromBalance), ERC7984ZeroBalance(from));
+            (success, ptr) = Nox.safeSub(fromBalance, amount);
+            Nox.allowThis(ptr);
+            Nox.allow(ptr, from);
             _balances[from] = ptr;
         }
 
-        transferred = TEEPrimitives.select(success, amount, TEEPrimitives.toEuint256(0));
+        transferred = Nox.select(success, amount, Nox.toEuint256(0));
 
         if (to == address(0)) {
-            ptr = TEEPrimitives.sub(_totalSupply, transferred);
-            TEEPrimitives.allowThis(ptr);
+            ptr = Nox.sub(_totalSupply, transferred);
+            Nox.allowThis(ptr);
             _totalSupply = ptr;
         } else {
             euint256 toBalance = _balances[to];
-            if (!TEEPrimitives.isInitialized(toBalance)) {
+            if (!Nox.isInitialized(toBalance)) {
                 // If the recipient has no balance, we need to initialize it.
-                toBalance = TEEPrimitives.toEuint256(0);
-                TEEPrimitives.allowThis(toBalance);
+                toBalance = Nox.toEuint256(0);
+                Nox.allowThis(toBalance);
             }
-            ptr = TEEPrimitives.add(toBalance, transferred);
-            TEEPrimitives.allowThis(ptr);
-            TEEPrimitives.allow(ptr, to);
+            ptr = Nox.add(toBalance, transferred);
+            Nox.allowThis(ptr);
+            Nox.allow(ptr, to);
             _balances[to] = ptr;
         }
 
-        if (from != address(0)) TEEPrimitives.allow(transferred, from);
-        if (to != address(0)) TEEPrimitives.allow(transferred, to);
-        TEEPrimitives.allowThis(transferred);
+        if (from != address(0)) Nox.allow(transferred, from);
+        if (to != address(0)) Nox.allow(transferred, to);
+        Nox.allowThis(transferred);
         emit ConfidentialTransfer(from, to, transferred);
     }
 }
