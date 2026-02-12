@@ -347,7 +347,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
             Operator.Mint,
             operands
         );
-        emit Mint(msg.sender, balanceTo, amount, totalSupply, success, newBalanceTo, newTotalSupply);
+        emit Mint(
+            msg.sender,
+            balanceTo,
+            amount,
+            totalSupply,
+            success,
+            newBalanceTo,
+            newTotalSupply
+        );
     }
 
     /// @inheritdoc INoxCompute
