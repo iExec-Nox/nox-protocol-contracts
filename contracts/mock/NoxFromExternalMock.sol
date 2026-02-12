@@ -39,6 +39,13 @@ contract NoxFromExternalMock {
         return Nox.fromExternal(handle, proof);
     }
 
+    function fromExternalEint16(
+        externalEint16 handle,
+        bytes calldata proof
+    ) external returns (eint16) {
+        return Nox.fromExternal(handle, proof);
+    }
+
     function fromExternalEint256(
         externalEint256 handle,
         bytes calldata proof
