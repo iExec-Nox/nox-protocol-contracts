@@ -6,10 +6,10 @@ import {IACL} from "./IACL.sol";
 import {TEEType} from "../shared/TypeUtils.sol";
 
 /**
- * @title ITEEComputeManager
- * @notice Interface for the TEE Compute Manager contract
+ * @title INoxCompute
+ * @notice Interface for the Nox compute contract powered by TEE.
  */
-interface ITEEComputeManager is IErrors {
+interface INoxCompute is IErrors {
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
 

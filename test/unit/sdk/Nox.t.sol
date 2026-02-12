@@ -4,15 +4,15 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {IACL} from "../../../contracts/interfaces/IACL.sol";
-import {ITEEComputeManager} from "../../../contracts/interfaces/ITEEComputeManager.sol";
+import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
 import {TEEType} from "../../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
 
 // Note: these tests are here to make sure the library calls the correct
-// functions on the TEEComputeManager and ACL, and that the `isInitialized`
-// function works as expected. The actual logic of those functions is tested
-// in the TEEComputeManager and ACL tests, so we can keep these tests
+// functions on the NoxCompute and ACL, and that the `isInitialized`
+// function works as expected. The actual logic of most functions is tested
+// in the NoxCompute and ACL tests, so we can keep these tests
 // relatively light.
 
 contract NoxTest is Test {
@@ -21,9 +21,9 @@ contract NoxTest is Test {
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
     IACL aclContract;
-    ITEEComputeManager teeComputeManagerContract;
+    INoxCompute noxComputeContract;
     address acl;
-    address teeComputeManager;
+    address noxCompute;
     bytes32 boolHandle = TestHelper.createHandle(TEEType.Bool);
     bytes32 addressHandle = TestHelper.createHandle(TEEType.Address);
     bytes32 int256Handle = TestHelper.createHandle(TEEType.Int256);
@@ -31,9 +31,9 @@ contract NoxTest is Test {
     bytes32 uint256HandleB = TestHelper.createHandle(TEEType.Uint256);
 
     function setUp() public {
-        (aclContract, teeComputeManagerContract) = TestHelper.deploy(owner, gateway);
+        (aclContract, noxComputeContract) = TestHelper.deploy(owner, gateway);
         acl = address(aclContract);
-        teeComputeManager = address(teeComputeManagerContract);
+        noxCompute = address(noxComputeContract);
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
         _allowCaller(uint256HandleA);
@@ -62,8 +62,8 @@ contract NoxTest is Test {
 
     function test_toEbool_True() public {
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (1, TEEType.Bool))
+            noxCompute,
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (1, TEEType.Bool))
         );
         ebool result = Nox.toEbool(true);
         assertNotEq(ebool.unwrap(result), 0);
@@ -71,8 +71,8 @@ contract NoxTest is Test {
 
     function test_toEbool_False() public {
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (0, TEEType.Bool))
+            noxCompute,
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (0, TEEType.Bool))
         );
         ebool result = Nox.toEbool(false);
         assertNotEq(ebool.unwrap(result), 0);
@@ -81,9 +81,9 @@ contract NoxTest is Test {
     function test_toEaddress() public {
         address testAddress = address(0x1234567890123456789012345678901234567890);
         vm.expectCall(
-            teeComputeManager,
+            noxCompute,
             abi.encodeCall(
-                ITEEComputeManager.plaintextToEncrypted,
+                INoxCompute.plaintextToEncrypted,
                 (uint256(uint160(testAddress)), TEEType.Address)
             )
         );
@@ -94,8 +94,8 @@ contract NoxTest is Test {
     function test_toEuint256() public {
         uint256 value = 12345;
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.plaintextToEncrypted, (value, TEEType.Uint256))
+            noxCompute,
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (value, TEEType.Uint256))
         );
         euint256 result = Nox.toEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
@@ -104,11 +104,8 @@ contract NoxTest is Test {
     function test_toEint256() public {
         int256 value = -12345;
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(
-                ITEEComputeManager.plaintextToEncrypted,
-                (uint256(value), TEEType.Int256)
-            )
+            noxCompute,
+            abi.encodeCall(INoxCompute.plaintextToEncrypted, (uint256(value), TEEType.Int256))
         );
         eint256 result = Nox.toEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
@@ -124,8 +121,8 @@ contract NoxTest is Test {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.add, (uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.add, (uint256HandleA, uint256HandleB))
         );
         euint256 result = Nox.add(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -135,8 +132,8 @@ contract NoxTest is Test {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.sub, (uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.sub, (uint256HandleA, uint256HandleB))
         );
         euint256 result = Nox.sub(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -146,8 +143,8 @@ contract NoxTest is Test {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.mul, (uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.mul, (uint256HandleA, uint256HandleB))
         );
         euint256 result = Nox.mul(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -157,8 +154,8 @@ contract NoxTest is Test {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.div, (uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.div, (uint256HandleA, uint256HandleB))
         );
         euint256 result = Nox.div(a, b);
         assertNotEq(euint256.unwrap(result), 0);
@@ -170,8 +167,8 @@ contract NoxTest is Test {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.safeAdd, (uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.safeAdd, (uint256HandleA, uint256HandleB))
         );
         (ebool success, euint256 result) = Nox.safeAdd(a, b);
         assertNotEq(ebool.unwrap(success), 0);
@@ -182,8 +179,8 @@ contract NoxTest is Test {
         euint256 a = euint256.wrap(uint256HandleA);
         euint256 b = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.safeSub, (uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.safeSub, (uint256HandleA, uint256HandleB))
         );
         (ebool success, euint256 result) = Nox.safeSub(a, b);
         assertNotEq(ebool.unwrap(success), 0);
@@ -197,8 +194,8 @@ contract NoxTest is Test {
         euint256 ifTrue = euint256.wrap(uint256HandleA);
         euint256 ifFalse = euint256.wrap(uint256HandleB);
         vm.expectCall(
-            teeComputeManager,
-            abi.encodeCall(ITEEComputeManager.select, (boolHandle, uint256HandleA, uint256HandleB))
+            noxCompute,
+            abi.encodeCall(INoxCompute.select, (boolHandle, uint256HandleA, uint256HandleB))
         );
         euint256 result = Nox.select(condition, ifTrue, ifFalse);
         assertNotEq(euint256.unwrap(result), 0);
@@ -334,11 +331,37 @@ contract NoxTest is Test {
         Nox.allowPublicDecryption(value);
     }
 
+    // ============ isPubliclyDecryptable(<type>) ============
+
+    function test_isPubliclyDecryptable_ebool() public {
+        ebool value = ebool.wrap(boolHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (boolHandle)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
+    function test_isPubliclyDecryptable_eaddress() public {
+        eaddress value = eaddress.wrap(addressHandle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (addressHandle)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
+    function test_isPubliclyDecryptable_euint256() public {
+        euint256 value = euint256.wrap(uint256HandleA);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (uint256HandleA)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
+    function test_isPubliclyDecryptable_eint256() public {
+        eint256 value = eint256.wrap(int256Handle);
+        vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (int256Handle)));
+        Nox.isPubliclyDecryptable(value);
+    }
+
     /**
      * Helper function to allow this test contract as a caller of the given handle.
      */
     function _allowCaller(bytes32 handle) internal {
-        vm.startPrank(teeComputeManager);
+        vm.startPrank(noxCompute);
         aclContract.allowTransient(handle, address(this));
         vm.stopPrank();
         aclContract.allow(handle, address(this));

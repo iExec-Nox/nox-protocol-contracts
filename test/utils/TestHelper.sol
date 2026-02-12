@@ -4,12 +4,12 @@ pragma solidity ^0.8.0;
 import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {ACL} from "../../contracts/ACL.sol";
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
-    address internal constant TEE_COMPUTE_MANAGER_ADDRESS = address(Nox.TEE_COMPUTE_MANAGER);
+    address internal constant NOX_COMPUTE_ADDRESS = address(Nox.NOX_COMPUTE);
     address internal constant ACL_ADDRESS = address(Nox.ACL);
 
     // ERC1967 implementation slot
@@ -43,7 +43,7 @@ library TestHelper {
     }
 
     /**
-     * @notice Deploys ACL and TEEComputeManager at the hardcoded addresses used by Nox.
+     * @notice Deploys ACL and NoxCompute at the hardcoded addresses used by Nox.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
@@ -51,7 +51,7 @@ library TestHelper {
     function deploy(
         address owner,
         address gateway
-    ) internal returns (ACL acl, TEEComputeManager teeComputeManager) {
+    ) internal returns (ACL acl, NoxCompute noxCompute) {
         Vm vm = getVm();
 
         // Deploy ACL implementation
@@ -68,40 +68,37 @@ library TestHelper {
         acl = ACL(ACL_ADDRESS);
         acl.initialize(owner);
 
-        // Deploy TEEComputeManager implementation (with ACL address as immutable)
-        address teeComputeManagerImplementation = address(new TEEComputeManager(ACL_ADDRESS));
+        // Deploy NoxCompute implementation (with ACL address as immutable)
+        address noxComputeImplementation = address(new NoxCompute(ACL_ADDRESS));
 
         // Deploy a temporary proxy to get its runtime bytecode
-        ERC1967Proxy teeComputeManagerProxyTemp = new ERC1967Proxy(
-            teeComputeManagerImplementation,
-            ""
-        );
+        ERC1967Proxy noxComputeProxyTemp = new ERC1967Proxy(noxComputeImplementation, "");
 
-        // Etch the proxy bytecode at the hardcoded TEEComputeManager address
-        vm.etch(TEE_COMPUTE_MANAGER_ADDRESS, address(teeComputeManagerProxyTemp).code);
+        // Etch the proxy bytecode at the hardcoded NoxCompute address
+        vm.etch(NOX_COMPUTE_ADDRESS, address(noxComputeProxyTemp).code);
         // Set the implementation slot
         vm.store(
-            TEE_COMPUTE_MANAGER_ADDRESS,
+            NOX_COMPUTE_ADDRESS,
             IMPLEMENTATION_SLOT,
-            bytes32(uint256(uint160(teeComputeManagerImplementation)))
+            bytes32(uint256(uint160(noxComputeImplementation)))
         );
 
-        teeComputeManager = TEEComputeManager(TEE_COMPUTE_MANAGER_ADDRESS);
-        teeComputeManager.initialize(owner);
+        noxCompute = NoxCompute(NOX_COMPUTE_ADDRESS);
+        noxCompute.initialize(owner);
 
         // Configure contracts
         vm.prank(owner);
-        acl.setTeeComputeManager(TEE_COMPUTE_MANAGER_ADDRESS);
+        acl.setNoxCompute(NOX_COMPUTE_ADDRESS);
         vm.prank(owner);
-        teeComputeManager.setGateway(gateway);
+        noxCompute.setGateway(gateway);
 
         // Set labels
         vm.label(owner, "owner");
         vm.label(gateway, "gateway");
         vm.label(ACL_ADDRESS, "acl");
-        vm.label(TEE_COMPUTE_MANAGER_ADDRESS, "teeComputeManager");
+        vm.label(NOX_COMPUTE_ADDRESS, "noxCompute");
 
-        return (acl, teeComputeManager);
+        return (acl, noxCompute);
     }
 
     function deployProxy(address implementation) internal returns (address) {

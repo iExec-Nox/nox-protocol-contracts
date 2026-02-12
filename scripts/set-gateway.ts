@@ -2,12 +2,12 @@ import { readFile } from "fs/promises";
 import { join } from "path";
 import connection from "./utils/hardhat-connection-singleton.js";
 
-// Script to set the gateway address on the TEEComputeManager contract.
+// Script to set the gateway address on the NoxCompute contract.
 // It reads the deployed contract address from ignition deployment artifacts.
 // Requires GATEWAY_ADDRESS environment variable to be set.
 
 /**
- * Sets the gateway address on the TEEComputeManager contract.
+ * Sets the gateway address on the NoxCompute contract.
  * @param printLogs whether to print logs or not
  */
 export async function setGateway(printLogs = true) {
@@ -31,7 +31,7 @@ export async function setGateway(printLogs = true) {
     _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
-    // Read TEEComputeManager proxy address from ignition deployment artifacts
+    // Read NoxCompute proxy address from ignition deployment artifacts
     const deploymentPath = join(
         process.cwd(),
         "ignition",
@@ -51,27 +51,27 @@ export async function setGateway(printLogs = true) {
         );
     }
 
-    const teeComputeManagerAddress = deployedAddresses["TEEComputeManager#proxy"];
-    if (!teeComputeManagerAddress) {
-        throw new Error("TEEComputeManager#proxy not found in deployment artifacts");
+    const noxComputeAddress = deployedAddresses["NoxCompute#proxy"];
+    if (!noxComputeAddress) {
+        throw new Error("NoxCompute#proxy not found in deployment artifacts");
     }
 
-    _log(`TEEComputeManager address: ${teeComputeManagerAddress}`);
+    _log(`NoxCompute address: ${noxComputeAddress}`);
 
-    // Get TEEComputeManager contract instance with owner wallet
-    const teeComputeManager = await viem.getContractAt("TEEComputeManager", teeComputeManagerAddress, {
+    // Get NoxCompute contract instance with owner wallet
+    const noxCompute = await viem.getContractAt("NoxCompute", noxComputeAddress, {
         client: { wallet: ownerClient },
     });
 
     // Set the gateway address
-    const txHash = await teeComputeManager.write.setGateway([gatewayAddress as `0x${string}`]);
+    const txHash = await noxCompute.write.setGateway([gatewayAddress as `0x${string}`]);
     _log(`Transaction hash: ${txHash}`);
 
     await publicClient.waitForTransactionReceipt({ hash: txHash });
     _log("Gateway address set successfully");
 
     // Verify the gateway was set correctly
-    const currentGateway = await teeComputeManager.read.gateway();
+    const currentGateway = await noxCompute.read.gateway();
     _log(`Current gateway: ${currentGateway}`);
 
     if (currentGateway.toLowerCase() !== gatewayAddress.toLowerCase()) {

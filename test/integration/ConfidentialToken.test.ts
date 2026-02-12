@@ -6,7 +6,7 @@ import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 import { OffChainServices } from "../utils/OffChainServicesMock.js";
 import { TEEType } from "../utils/TEEType.js";
 
-let teeComputeManager: Awaited<ReturnType<typeof loadFixture>>["teeComputeManager"];
+let noxCompute: Awaited<ReturnType<typeof loadFixture>>["noxCompute"];
 let admin: Awaited<ReturnType<typeof loadFixture>>["admin"];
 let user: Awaited<ReturnType<typeof loadFixture>>["wallet1"];
 let gateway: Awaited<ReturnType<typeof loadFixture>>["gateway"];
@@ -14,9 +14,9 @@ let offChainServices: OffChainServices;
 
 describe("[IT] ConfidentialToken", function () {
     beforeEach(async function () {
-        ({ teeComputeManager, admin, wallet1: user, gateway } = await loadFixture());
+        ({ noxCompute, admin, wallet1: user, gateway } = await loadFixture());
         // Start the off-chain services mock.
-        offChainServices = new OffChainServices(teeComputeManager.address, gateway);
+        offChainServices = new OffChainServices(noxCompute.address, gateway);
         await offChainServices.start();
     });
 

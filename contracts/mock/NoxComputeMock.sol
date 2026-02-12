@@ -1,16 +1,15 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {TEEComputeManager} from "../../contracts/TEEComputeManager.sol";
+import {NoxCompute} from "../../contracts/NoxCompute.sol";
 
 /**
- * @title TEEComputeManagerMock
- * @dev Mock TEEComputeManager contract for testing ACL functionality with helper functions
- * This contract acts as a mock TEE Compute Manager to test ACL permissions
+ * @title NoxComputeMock
+ * @dev Mock NoxCompute contract for testing ACL functionality with helper functions
  */
-contract TEEComputeManagerMock is TEEComputeManager {
+contract NoxComputeMock is NoxCompute {
     /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address acl_) TEEComputeManager(acl_) {}
+    constructor(address acl_) NoxCompute(acl_) {}
 
     /**
      * @dev Helper function to grant transient access and then persistent access in the same transaction.

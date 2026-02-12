@@ -23,15 +23,15 @@ interface IACL is IErrors {
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
 
-    /// Emitted when the TEEComputeManager address is updated
-    event TeeComputeManagerUpdated(address indexed newTeeComputeManager);
+    /// Emitted when the NoxCompute address is updated
+    event NoxComputeUpdated(address indexed newNoxCompute);
 
     /**
-     * Updates the TEE Compute Manager address.
+     * Updates the NoxCompute address.
      * @dev Only callable by the owner.
-     * @param newTeeComputeManager The new TEE Compute Manager address.
+     * @param newNoxCompute The new NoxCompute address.
      */
-    function setTeeComputeManager(address newTeeComputeManager) external;
+    function setNoxCompute(address newNoxCompute) external;
 
     /**
      * Mark a handle as publicly decryptable.
@@ -65,7 +65,7 @@ interface IACL is IErrors {
 
     /**
      * Removes all transient authorizations. This is useful for integration with Account Abstraction
-     * when bundling several UserOps calling the TEEComputeManager.
+     * when bundling several UserOps calling the NoxCompute.
      * @dev Can be called by anyone (typically by AA bundlers between UserOps).
      */
     function cleanTransientStorage() external;
