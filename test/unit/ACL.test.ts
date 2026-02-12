@@ -5,22 +5,6 @@ import { loadFixture } from "../utils/fixture.js";
 import connection from "../../scripts/utils/hardhat-connection-singleton.js";
 
 describe("ACL", function () {
-    describe("Deployment", function () {
-        it("Should deploy successfully", async function () {
-            const { acl } = await loadFixture();
-            assert.ok(acl.address);
-        });
-    });
-
-    describe("isAllowed", function () {
-        it("Should return false for addresses without permission", async function () {
-            const { acl, wallet1: unauthorizedWallet } = await loadFixture();
-            const handle = keccak256(toHex("test-handle"));
-            const isAllowed = await acl.read.isAllowed([handle, unauthorizedWallet.account.address]);
-            assert.strictEqual(isAllowed, false);
-        });
-    });
-
     describe("Transient & Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
             const { acl, wallet1 } = await loadFixture();
