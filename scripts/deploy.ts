@@ -1,7 +1,7 @@
-import ACL from "../ignition/modules/ACL.js";
-import NoxCompute from "../ignition/modules/NoxCompute.js";
-import config from "../config/config.js";
-import connection from "./utils/hardhat-connection-singleton.js";
+import ACL from "../ignition/modules/ACL.ts";
+import NoxCompute from "../ignition/modules/NoxCompute.ts";
+import config from "../config/config.ts";
+import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Deployment script for the Nox Contracts.
 // Uses deterministic CREATE2 deployment via CreateX factory.

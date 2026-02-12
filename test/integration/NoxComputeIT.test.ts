@@ -1,7 +1,7 @@
 import { describe, it } from "node:test";
-import { loadFixture } from "../utils/fixture.js";
-import { OffChainServices } from "../utils/OffChainServicesMock.js";
-import { TEEType } from "../utils/TEEType.js";
+import { loadFixture } from "../utils/fixture.ts";
+import { OffChainServices } from "../utils/OffChainServicesMock.ts";
+import { TEEType } from "../utils/TEEType.ts";
 
 describe("[IT] NoxCompute", function () {
     it("Should validate handle proof", async function () {

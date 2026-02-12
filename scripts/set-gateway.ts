@@ -1,6 +1,6 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
-import connection from "./utils/hardhat-connection-singleton.js";
+import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to set the gateway address on the NoxCompute contract.
 // It reads the deployed contract address from ignition deployment artifacts.

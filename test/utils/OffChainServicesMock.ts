@@ -1,13 +1,13 @@
 // A mock service to simulate the Gateway and the Runner.
 
 import { randomBytes } from "crypto";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
+import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
-import { TEEType } from "./TEEType.js";
+import { TEEType } from "./TEEType.ts";
 
 const MAX_UINT256 = 2n ** 256n - 1n;
 const eventsToWatch = [
-    "event PlaintextToEncrypted(address indexed caller,uint256 plaintext,uint8 toType,bytes32 result)",
+    "event PlaintextToEncrypted(address indexed caller,bytes32 plaintext,uint8 toType,bytes32 result)",
     "event Add(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Sub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Div(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
@@ -25,7 +25,7 @@ export class OffChainServices {
     private gateway: PrivateKeyAccount;
     private chainId: number;
     private running = false;
-    private handleToValueMap!: Map<`0x${string}`, bigint | undefined>;
+    private handleToValueMap!: Map<`0x${string}`, bigint>;
     private stopGatewayService!: WatchEventReturnType;
 
     constructor(noxComputeAddress: `0x${string}`, gateway: PrivateKeyAccount) {
@@ -140,7 +140,7 @@ export class OffChainServices {
         return value;
     }
 
-    private _saveHandle(handle: `0x${string}`, value: bigint | undefined) {
+    private _saveHandle(handle: `0x${string}`, value: bigint) {
         this.handleToValueMap.set(handle, value);
         this._log(`Saved handle: ${handle} -> ${value}`);
     }
@@ -190,9 +190,9 @@ export class OffChainServices {
     }
 
     private _processPlaintextToEncryptedEvent(log: any) {
-        const { plaintext, result } = log.args as { plaintext: bigint; result: `0x${string}` };
+        const { plaintext, result } = log.args as { plaintext: `0x${string}`; result: `0x${string}` };
         this._log(`(e) PlaintextToEncrypted: ${result} -> ${plaintext}`);
-        this._saveHandle(result, plaintext);
+        this._saveHandle(result, BigInt(plaintext));
     }
 
     private _processAddEvent(log: any) {
@@ -257,20 +257,16 @@ export class OffChainServices {
         };
         const lhoValue = this.decrypt(leftHandOperand);
         const rhoValue = this.decrypt(rightHandOperand);
-        let successValue: boolean;
-        let addResult: bigint | undefined;
-        if (lhoValue + rhoValue > MAX_UINT256) {
+        const addResult = lhoValue + rhoValue;
+        if (addResult <= MAX_UINT256) {
+            this._log(`(e) SafeAdd: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
+            this._saveHandle(success, 1n); // Save success handle as true.
+            this._saveHandle(result, addResult); // Save result handle.
+        } else {
             // overflow
             this._log(`SafeAdd overflow: ${result}`);
-            successValue = false;
-            addResult = undefined;
-        } else {
-            successValue = true;
-            addResult = lhoValue + rhoValue;
+            this._saveHandle(success, 0n); // Save only success handle as false.
         }
-        this._log(`(e) SafeAdd: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
-        this._saveHandle(success, successValue ? 1n : 0n);
-        this._saveHandle(result, addResult);
     }
 
     private _processSafeSubEvent(log: any) {
@@ -282,20 +278,16 @@ export class OffChainServices {
         };
         const lhoValue = this.decrypt(leftHandOperand);
         const rhoValue = this.decrypt(rightHandOperand);
-        let successValue: boolean;
-        let subResult: bigint | undefined;
-        if (lhoValue - rhoValue < 0n) {
+        const subResult = lhoValue - rhoValue;
+        if (subResult >= 0n) {
+            this._log(`(e) SafeSub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
+            this._saveHandle(success, 1n); // Save success handle as true.
+            this._saveHandle(result, subResult); // Save result handle.
+        } else {
             // underflow
             this._log(`SafeSub underflow: ${result}`);
-            successValue = false;
-            subResult = undefined;
-        } else {
-            successValue = true;
-            subResult = lhoValue - rhoValue;
+            this._saveHandle(success, 0n); // Save only success handle as false.
         }
-        this._log(`(e) SafeSub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
-        this._saveHandle(success, successValue ? 1n : 0n);
-        this._saveHandle(result, subResult);
     }
 
     private _processSelectEvent(log: any) {

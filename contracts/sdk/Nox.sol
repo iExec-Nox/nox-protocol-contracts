@@ -21,7 +21,7 @@ import "encrypted-types/EncryptedTypes.sol";
 library Nox {
     // TODO: Update these addresses after deploying with the production salt.
     INoxCompute internal constant NOX_COMPUTE =
-        INoxCompute(0xF932D65622b6Ea00E100aAD447fd863e3A197b61);
+        INoxCompute(0x0b94E7219C86b7cd8a608E482D65742fb1f06D0a);
     IACL internal constant ACL = IACL(0x192f11A5B56aB295ea176FBFFCb96AF99468e955);
 
     // =========== Handle initialization checks ============
@@ -72,7 +72,10 @@ library Nox {
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
     function toEbool(bool value) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.plaintextToEncrypted(value ? 1 : 0, TEEType.Bool));
+        return
+            ebool.wrap(
+                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value ? 1 : 0)), TEEType.Bool)
+            );
     }
 
     /**
@@ -81,7 +84,7 @@ library Nox {
     function toEaddress(address value) internal returns (eaddress) {
         return
             eaddress.wrap(
-                NOX_COMPUTE.plaintextToEncrypted(uint256(uint160(value)), TEEType.Address)
+                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint160(value))), TEEType.Address)
             );
     }
 
@@ -89,17 +92,36 @@ library Nox {
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(value, TEEType.Uint256));
+        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(value), TEEType.Uint256));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
     function toEint256(int256 value) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(uint256(value), TEEType.Int256));
+        return
+            eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Int256));
     }
 
     // ============ Handle validation ============
+
+    function fromExternal(
+        externalEbool externalHandle,
+        bytes calldata handleProof
+    ) internal returns (ebool) {
+        bytes32 handle = externalEbool.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Bool);
+        return ebool.wrap(handle);
+    }
+
+    function fromExternal(
+        externalEaddress externalHandle,
+        bytes calldata handleProof
+    ) internal returns (eaddress) {
+        bytes32 handle = externalEaddress.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Address);
+        return eaddress.wrap(handle);
+    }
 
     function fromExternal(
         externalEuint256 externalHandle,
@@ -108,6 +130,15 @@ library Nox {
         bytes32 handle = externalEuint256.unwrap(externalHandle);
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
         return euint256.wrap(handle);
+    }
+
+    function fromExternal(
+        externalEint256 externalHandle,
+        bytes calldata handleProof
+    ) internal returns (eint256) {
+        bytes32 handle = externalEint256.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Int256);
+        return eint256.wrap(handle);
     }
 
     // ============ Arithmetic primitives ============
