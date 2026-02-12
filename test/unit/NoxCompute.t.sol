@@ -576,6 +576,168 @@ contract NoxComputeTest is Test {
         noxCompute.select(condition, ifTrue, ifFalse);
     }
 
+    // ============ Transfer Tests ============
+
+    function test_Transfer() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceFrom, caller);
+        _allow(balanceTo, caller);
+        _allow(amount, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Transfer(
+            caller,
+            balanceFrom,
+            balanceTo,
+            amount,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        (bytes32 success, bytes32 newBalanceFrom, bytes32 newBalanceTo) =
+            noxCompute.transfer(balanceFrom, balanceTo, amount);
+
+        _assertValidHandle(success, TEEType.Bool);
+        _assertValidHandle(newBalanceFrom, TEEType.Uint256);
+        _assertValidHandle(newBalanceTo, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_Transfer_NotAllowed() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceTo, caller);
+        _allow(amount, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, balanceFrom, caller));
+        noxCompute.transfer(balanceFrom, balanceTo, amount);
+    }
+
+    function test_RevertWhen_Transfer_IncompatibleTypes() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Int256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceFrom, caller);
+        _allow(balanceTo, caller);
+        _allow(amount, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        noxCompute.transfer(balanceFrom, balanceTo, amount);
+    }
+
+    // ============ Mint Tests ============
+
+    function test_Mint() public {
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(amount, caller);
+        _allow(balanceTo, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Mint(
+            caller,
+            balanceTo,
+            amount,
+            totalSupply,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) =
+            noxCompute.mint(amount, balanceTo, totalSupply);
+
+        _assertValidHandle(success, TEEType.Bool);
+        _assertValidHandle(newBalanceTo, TEEType.Uint256);
+        _assertValidHandle(newTotalSupply, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_Mint_NotAllowed() public {
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceTo, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, amount, caller));
+        noxCompute.mint(amount, balanceTo, totalSupply);
+    }
+
+    function test_RevertWhen_Mint_IncompatibleTypes() public {
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Int256);
+        _allow(amount, caller);
+        _allow(balanceTo, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        noxCompute.mint(amount, balanceTo, totalSupply);
+    }
+
+    // ============ Burn Tests ============
+
+    function test_Burn() public {
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(amount, caller);
+        _allow(balanceFrom, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Burn(
+            caller,
+            balanceFrom,
+            amount,
+            totalSupply,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply) =
+            noxCompute.burn(amount, balanceFrom, totalSupply);
+
+        _assertValidHandle(success, TEEType.Bool);
+        _assertValidHandle(newBalanceFrom, TEEType.Uint256);
+        _assertValidHandle(newTotalSupply, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_Burn_NotAllowed() public {
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(balanceFrom, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(IACL.NotAllowed.selector, amount, caller));
+        noxCompute.burn(amount, balanceFrom, totalSupply);
+    }
+
+    function test_RevertWhen_Burn_IncompatibleTypes() public {
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Int256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        _allow(amount, caller);
+        _allow(balanceFrom, caller);
+        _allow(totalSupply, caller);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        noxCompute.burn(amount, balanceFrom, totalSupply);
+    }
+
     // ============ isAllowed ============
 
     function test_IsAllowed() public {
