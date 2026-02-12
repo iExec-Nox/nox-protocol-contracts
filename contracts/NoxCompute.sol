@@ -86,12 +86,12 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
 
     /// @inheritdoc INoxCompute
     function plaintextToEncrypted(
-        uint256 value,
+        bytes32 value,
         TEEType teeType
     ) external returns (bytes32 result) {
         TypeUtils.validateType(teeType);
         bytes32[] memory operands = new bytes32[](1);
-        operands[0] = bytes32(value);
+        operands[0] = value;
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
         ACL.allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);

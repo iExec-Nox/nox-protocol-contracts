@@ -21,7 +21,7 @@ import "encrypted-types/EncryptedTypes.sol";
 library Nox {
     // TODO: Update these addresses after deploying with the production salt.
     INoxCompute internal constant NOX_COMPUTE =
-        INoxCompute(0xf4A5f3B874B2f0F60aE68cC3ecd19796eA6bCa41);
+        INoxCompute(0xBA7674d7a58595cc453d422D332d693413ae5267);
     IACL internal constant ACL = IACL(0x192f11A5B56aB295ea176FBFFCb96AF99468e955);
 
     // =========== Handle initialization checks ============
@@ -44,6 +44,16 @@ library Nox {
      */
     function isInitialized(eaddress handle) internal pure returns (bool) {
         return eaddress.unwrap(handle) != 0;
+    }
+
+    /**
+     * @dev Checks if an encrypted uint16 handle is initialized.
+     * This is a basic check and does not guarantee that the handle
+     * is valid or recognized by the ACL.
+     * @param handle encrypted uint16 handle
+     */
+    function isInitialized(euint16 handle) internal pure returns (bool) {
+        return euint16.unwrap(handle) != 0;
     }
 
     /**
@@ -72,7 +82,10 @@ library Nox {
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
     function toEbool(bool value) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.plaintextToEncrypted(value ? 1 : 0, TEEType.Bool));
+        return
+            ebool.wrap(
+                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value ? 1 : 0)), TEEType.Bool)
+            );
     }
 
     /**
@@ -81,25 +94,61 @@ library Nox {
     function toEaddress(address value) internal returns (eaddress) {
         return
             eaddress.wrap(
-                NOX_COMPUTE.plaintextToEncrypted(uint256(uint160(value)), TEEType.Address)
+                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint160(value))), TEEType.Address)
             );
+    }
+
+    /**
+     * @dev Convert a plaintext value to an encrypted euint16 integer.
+     */
+    function toEuint16(uint16 value) internal returns (euint16) {
+        return
+            euint16.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Uint16));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(value, TEEType.Uint256));
+        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(value), TEEType.Uint256));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
     function toEint256(int256 value) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(uint256(value), TEEType.Int256));
+        return
+            eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Int256));
     }
 
     // ============ Handle validation ============
+
+    function fromExternal(
+        externalEbool externalHandle,
+        bytes calldata handleProof
+    ) internal returns (ebool) {
+        bytes32 handle = externalEbool.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Bool);
+        return ebool.wrap(handle);
+    }
+
+    function fromExternal(
+        externalEaddress externalHandle,
+        bytes calldata handleProof
+    ) internal returns (eaddress) {
+        bytes32 handle = externalEaddress.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Address);
+        return eaddress.wrap(handle);
+    }
+
+    function fromExternal(
+        externalEuint16 externalHandle,
+        bytes calldata handleProof
+    ) internal returns (euint16) {
+        bytes32 handle = externalEuint16.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
+        return euint16.wrap(handle);
+    }
 
     function fromExternal(
         externalEuint256 externalHandle,
@@ -110,8 +159,32 @@ library Nox {
         return euint256.wrap(handle);
     }
 
+    function fromExternal(
+        externalEint256 externalHandle,
+        bytes calldata handleProof
+    ) internal returns (eint256) {
+        bytes32 handle = externalEint256.unwrap(externalHandle);
+        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Int256);
+        return eint256.wrap(handle);
+    }
+
     // ============ Arithmetic primitives ============
-    // TODO add primitives for all numeric types.
+
+    function add(euint16 a, euint16 b) internal returns (euint16) {
+        return euint16.wrap(NOX_COMPUTE.add(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function sub(euint16 a, euint16 b) internal returns (euint16) {
+        return euint16.wrap(NOX_COMPUTE.sub(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function mul(euint16 a, euint16 b) internal returns (euint16) {
+        return euint16.wrap(NOX_COMPUTE.mul(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function div(euint16 a, euint16 b) internal returns (euint16) {
+        return euint16.wrap(NOX_COMPUTE.div(euint16.unwrap(a), euint16.unwrap(b)));
+    }
 
     function add(euint256 a, euint256 b) internal returns (euint256) {
         return euint256.wrap(NOX_COMPUTE.add(euint256.unwrap(a), euint256.unwrap(b)));
@@ -127,6 +200,22 @@ library Nox {
 
     function div(euint256 a, euint256 b) internal returns (euint256) {
         return euint256.wrap(NOX_COMPUTE.div(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function safeAdd(euint16 a, euint16 b) internal returns (ebool, euint16) {
+        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeAdd(
+            euint16.unwrap(a),
+            euint16.unwrap(b)
+        );
+        return (ebool.wrap(success), euint16.wrap(result));
+    }
+
+    function safeSub(euint16 a, euint16 b) internal returns (ebool, euint16) {
+        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeSub(
+            euint16.unwrap(a),
+            euint16.unwrap(b)
+        );
+        return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
@@ -146,6 +235,17 @@ library Nox {
     }
 
     // TODO add safeMul and safeDiv.
+
+    function select(ebool condition, euint16 ifTrue, euint16 ifFalse) internal returns (euint16) {
+        return
+            euint16.wrap(
+                NOX_COMPUTE.select(
+                    ebool.unwrap(condition),
+                    euint16.unwrap(ifTrue),
+                    euint16.unwrap(ifFalse)
+                )
+            );
+    }
 
     function select(
         ebool condition,
@@ -181,6 +281,13 @@ library Nox {
     /**
      * @dev Allows the use of value for the address account.
      */
+    function allow(euint16 value, address account) internal {
+        ACL.allow(euint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
     function allow(euint256 value, address account) internal {
         ACL.allow(euint256.unwrap(value), account);
     }
@@ -197,6 +304,13 @@ library Nox {
      */
     function allowThis(ebool value) internal {
         ACL.allow(ebool.unwrap(value), address(this));
+    }
+
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(euint16 value) internal {
+        ACL.allow(euint16.unwrap(value), address(this));
     }
 
     /**
@@ -237,6 +351,13 @@ library Nox {
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
+    function allowTransient(euint16 value, address account) internal {
+        ACL.allowTransient(euint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
     function allowTransient(euint256 value, address account) internal {
         ACL.allowTransient(euint256.unwrap(value), account);
     }
@@ -262,6 +383,13 @@ library Nox {
      */
     function addViewer(eaddress value, address viewer) internal {
         ACL.addViewer(eaddress.unwrap(value), viewer);
+    }
+
+    /**
+     * @dev Adds a viewer for an euint16 handle.
+     */
+    function addViewer(euint16 value, address viewer) internal {
+        ACL.addViewer(euint16.unwrap(value), viewer);
     }
 
     /**
@@ -292,6 +420,13 @@ library Nox {
      */
     function allowPublicDecryption(eaddress value) internal {
         ACL.allowPublicDecryption(eaddress.unwrap(value));
+    }
+
+    /**
+     * @dev Marks an euint16 handle as publicly decryptable.
+     */
+    function allowPublicDecryption(euint16 value) internal {
+        ACL.allowPublicDecryption(euint16.unwrap(value));
     }
 
     /**
@@ -327,6 +462,13 @@ library Nox {
     /**
      * @dev Checks if the handle is allowed for the account.
      */
+    function isAllowed(euint16 handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(euint16.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
     function isAllowed(euint256 handle, address account) internal view returns (bool) {
         return ACL.isAllowed(euint256.unwrap(handle), account);
     }
@@ -355,6 +497,13 @@ library Nox {
     /**
      * @dev Checks if the viewer can view the handle.
      */
+    function isViewer(euint16 handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(euint16.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
     function isViewer(euint256 handle, address viewer) internal view returns (bool) {
         return ACL.isViewer(euint256.unwrap(handle), viewer);
     }
@@ -378,6 +527,13 @@ library Nox {
      */
     function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
         return ACL.isPubliclyDecryptable(eaddress.unwrap(handle));
+    }
+
+    /**
+     * @dev Checks if the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(euint16 handle) internal view returns (bool) {
+        return ACL.isPubliclyDecryptable(euint16.unwrap(handle));
     }
 
     /**

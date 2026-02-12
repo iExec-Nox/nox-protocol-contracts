@@ -1,10 +1,10 @@
 import { afterEach, beforeEach, describe, it } from "node:test";
 import assert from "node:assert";
 import { zeroHash } from "viem";
-import { loadFixture } from "../utils/fixture.js";
-import connection from "../../scripts/utils/hardhat-connection-singleton.js";
-import { OffChainServices } from "../utils/OffChainServicesMock.js";
-import { TEEType } from "../utils/TEEType.js";
+import { loadFixture } from "../utils/fixture.ts";
+import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
+import { OffChainServices } from "../utils/OffChainServicesMock.ts";
+import { TEEType } from "../utils/TEEType.ts";
 
 let noxCompute: Awaited<ReturnType<typeof loadFixture>>["noxCompute"];
 let admin: Awaited<ReturnType<typeof loadFixture>>["admin"];
@@ -12,7 +12,7 @@ let user: Awaited<ReturnType<typeof loadFixture>>["wallet1"];
 let gateway: Awaited<ReturnType<typeof loadFixture>>["gateway"];
 let offChainServices: OffChainServices;
 
-describe("[IT] ConfidentialToken", function () {
+describe("[IT] ConfidentialTokenMock", function () {
     beforeEach(async function () {
         ({ noxCompute, admin, wallet1: user, gateway } = await loadFixture());
         // Start the off-chain services mock.

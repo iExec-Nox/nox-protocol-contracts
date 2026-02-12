@@ -18,7 +18,7 @@ interface INoxCompute is IErrors {
 
     event PlaintextToEncrypted(
         address indexed caller,
-        uint256 plaintext,
+        bytes32 plaintext,
         TEEType toType,
         bytes32 result
     );
@@ -165,7 +165,7 @@ interface INoxCompute is IErrors {
      * @param teeType The type of the encrypted value
      * @return The encrypted value
      */
-    function plaintextToEncrypted(uint256 value, TEEType teeType) external returns (bytes32);
+    function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
      * @notice Computes TEE Add operation
