@@ -119,12 +119,11 @@ contract NoxTest is Test {
     function test_FromExternal_Ebool() public {
         address handleOwner = makeAddr("handleOwner");
         NoxFromExternalMock noxFromExternalMock = new NoxFromExternalMock();
-        bytes32 handle = TestHelper.createHandle(TEEType.Bool);
-        bytes memory proof = TestHelper.buildProof(noxCompute, handle, handleOwner, address(noxFromExternalMock), block.timestamp, gatewayPrivateKey);
-        externalEbool value = externalEbool.wrap(handle);
+        bytes memory proof = TestHelper.buildProof(noxCompute, boolHandle, handleOwner, address(noxFromExternalMock), block.timestamp, gatewayPrivateKey);
+        externalEbool value = externalEbool.wrap(boolHandle);
         vm.expectCall(
             noxCompute,
-            abi.encodeCall(INoxCompute.validateProof, (handle, handleOwner, proof, TEEType.Bool))
+            abi.encodeCall(INoxCompute.validateProof, (boolHandle, handleOwner, proof, TEEType.Bool))
         );
         vm.prank(handleOwner);
         noxFromExternalMock.fromExternal(value, proof);
