@@ -1,7 +1,7 @@
 // CREATE2 deployment salt for deterministic addresses
 // TODO: For production deployment, replace with a carefully chosen and documented salt.
 // This salt is used by Ignition's create2 strategy to deploy contracts at deterministic addresses.
-export const CREATE2_SALT = "0x7a3f9e2b1c8d4f6a5e0b3c7d9f1a2e4b6c8d0f1a3e5b7c9d1f3a5e7b9c1d3f5a" as const;
+export const CREATE2_SALT = "0x7ca392fef4d64c717e8251af66db8361674f99ec878f738bf72f4a9e6074bac7" as const;
 
 export default {
     // Default Hardhat network.
