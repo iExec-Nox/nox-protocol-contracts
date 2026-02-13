@@ -1,10 +1,14 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
+import { deploy } from "./deploy.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to upgrade the ACL proxy to a new implementation.
 // It reads the deployed proxy address from ignition deployment artifacts,
 // deploys the new implementation, and calls upgradeToAndCall on the proxy.
+//
+// When running on a local (edr-simulated) network, a fresh deployment is performed first
+// since each `hardhat run` starts a clean chain.
 //
 // Usage: `hardhat run scripts/upgrade-acl.ts --network <network-name>`
 
@@ -32,7 +36,41 @@ export async function upgradeACL(printLogs = true) {
     _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
-    // Read ACL proxy address from ignition deployment artifacts
+    const aclProxyAddress = await _resolveACLProxyAddress(_log);
+    _log(`ACL proxy address: ${aclProxyAddress}`);
+
+    // Deploy new implementation
+    const newImplementation = await viem.deployContract(contractName, [], {
+        client: { wallet: ownerClient },
+    });
+    _log(`New implementation deployed at: ${newImplementation.address}`);
+
+    // Upgrade the proxy via UUPS upgradeToAndCall
+    const proxy = await viem.getContractAt(contractName, aclProxyAddress, {
+        client: { wallet: ownerClient },
+    });
+    const txHash = await proxy.write.upgradeToAndCall([newImplementation.address, "0x"]);
+    _log(`Upgrade transaction hash: ${txHash}`);
+
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    _log("ACL proxy upgraded successfully");
+
+    return newImplementation.address;
+}
+
+/**
+ * Resolves the ACL proxy address.
+ * On local (edr-simulated) networks, deploys contracts first since each
+ * `hardhat run` starts a fresh chain with no prior state.
+ * On remote networks, reads from ignition deployment artifacts.
+ */
+async function _resolveACLProxyAddress(_log: (...args: unknown[]) => void): Promise<string> {
+    if (connection.networkConfig.type === "edr-simulated") {
+        _log("Local network detected, deploying contracts first...");
+        const { acl } = await deploy(false);
+        return acl.address;
+    }
+
     const deploymentPath = join(
         process.cwd(),
         "ignition",
@@ -57,25 +95,7 @@ export async function upgradeACL(printLogs = true) {
         throw new Error("ACL#proxy not found in deployment artifacts");
     }
 
-    _log(`ACL proxy address: ${aclProxyAddress}`);
-
-    // Deploy new implementation
-    const newImplementation = await viem.deployContract(contractName, [], {
-        client: { wallet: ownerClient },
-    });
-    _log(`New implementation deployed at: ${newImplementation.address}`);
-
-    // Upgrade the proxy via UUPS upgradeToAndCall
-    const proxy = await viem.getContractAt(contractName, aclProxyAddress, {
-        client: { wallet: ownerClient },
-    });
-    const txHash = await proxy.write.upgradeToAndCall([newImplementation.address, "0x"]);
-    _log(`Upgrade transaction hash: ${txHash}`);
-
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
-    _log("ACL proxy upgraded successfully");
-
-    return newImplementation.address;
+    return aclProxyAddress;
 }
 
 // Execute the script only if run directly

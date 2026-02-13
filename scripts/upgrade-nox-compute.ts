@@ -1,10 +1,14 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
+import { deploy } from "./deploy.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
 // It reads the deployed proxy and ACL addresses from ignition deployment artifacts,
 // deploys the new implementation (with ACL as constructor arg), and calls upgradeToAndCall on the proxy.
+//
+// When running on a local (edr-simulated) network, a fresh deployment is performed first
+// since each `hardhat run` starts a clean chain.
 //
 // Usage: `hardhat run scripts/upgrade-nox-compute.ts --network <network-name>`
 
@@ -32,7 +36,44 @@ export async function upgradeNoxCompute(printLogs = true) {
     _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
-    // Read addresses from ignition deployment artifacts
+    const { noxComputeProxyAddress, aclProxyAddress } = await _resolveProxyAddresses(_log);
+    _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
+    _log(`ACL proxy address: ${aclProxyAddress}`);
+
+    // Deploy new implementation with ACL address as constructor arg
+    const newImplementation = await viem.deployContract(contractName, [aclProxyAddress], {
+        client: { wallet: ownerClient },
+    });
+    _log(`New implementation deployed at: ${newImplementation.address}`);
+
+    // Upgrade the proxy via UUPS upgradeToAndCall
+    const proxy = await viem.getContractAt(contractName, noxComputeProxyAddress, {
+        client: { wallet: ownerClient },
+    });
+    const txHash = await proxy.write.upgradeToAndCall([newImplementation.address, "0x"]);
+    _log(`Upgrade transaction hash: ${txHash}`);
+
+    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    _log("NoxCompute proxy upgraded successfully");
+
+    return newImplementation.address;
+}
+
+/**
+ * Resolves the NoxCompute and ACL proxy addresses.
+ * On local (edr-simulated) networks, deploys contracts first since each
+ * `hardhat run` starts a fresh chain with no prior state.
+ * On remote networks, reads from ignition deployment artifacts.
+ */
+async function _resolveProxyAddresses(
+    _log: (...args: unknown[]) => void,
+): Promise<{ noxComputeProxyAddress: string; aclProxyAddress: string }> {
+    if (connection.networkConfig.type === "edr-simulated") {
+        _log("Local network detected, deploying contracts first...");
+        const { acl, noxCompute } = await deploy(false);
+        return { noxComputeProxyAddress: noxCompute.address, aclProxyAddress: acl.address };
+    }
+
     const deploymentPath = join(
         process.cwd(),
         "ignition",
@@ -62,26 +103,7 @@ export async function upgradeNoxCompute(printLogs = true) {
         throw new Error("ACL#proxy not found in deployment artifacts");
     }
 
-    _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
-    _log(`ACL proxy address: ${aclProxyAddress}`);
-
-    // Deploy new implementation with ACL address as constructor arg
-    const newImplementation = await viem.deployContract(contractName, [aclProxyAddress], {
-        client: { wallet: ownerClient },
-    });
-    _log(`New implementation deployed at: ${newImplementation.address}`);
-
-    // Upgrade the proxy via UUPS upgradeToAndCall
-    const proxy = await viem.getContractAt(contractName, noxComputeProxyAddress, {
-        client: { wallet: ownerClient },
-    });
-    const txHash = await proxy.write.upgradeToAndCall([newImplementation.address, "0x"]);
-    _log(`Upgrade transaction hash: ${txHash}`);
-
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
-    _log("NoxCompute proxy upgraded successfully");
-
-    return newImplementation.address;
+    return { noxComputeProxyAddress, aclProxyAddress };
 }
 
 // Execute the script only if run directly
