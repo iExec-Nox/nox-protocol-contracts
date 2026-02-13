@@ -1,0 +1,38 @@
+name: Set KMS Public Key
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network where contracts are deployed"
+        required: true
+        type: choice
+        options:
+          - arbitrumSepolia
+          - tenderlyArbitrumSepolia
+        default: "arbitrumSepolia"
+
+jobs:
+  set-kms-public-key:
+    runs-on: ubuntu-latest
+    environment: ${{ inputs.network }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build contracts
+        run: pnpm run build
+
+      - name: Set KMS public key
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
+          KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
+        run: pnpm run set-kms-public-key --network ${{ inputs.network }}

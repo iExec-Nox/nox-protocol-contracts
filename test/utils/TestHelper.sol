@@ -107,7 +107,7 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(NOX_COMPUTE_ADDRESS);
-        noxCompute.initialize(owner);
+        noxCompute.initialize(owner, vm.randomBytes(33));
 
         // Configure contracts
         vm.prank(owner);
