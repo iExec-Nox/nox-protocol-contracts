@@ -337,15 +337,6 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ isAllowed ============
-
-    function test_isAllowed() public {
-        for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (allHandles[i], account)));
-            _noxIsAllowed(allHandles[i], account);
-        }
-    }
-
     // ============ allowPublicDecryption ============
 
     function test_allowPublicDecryption() public {
@@ -355,12 +346,12 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ isPubliclyDecryptable ============
+    // ============ isAllowed ============
 
-    function test_isPubliclyDecryptable() public {
+    function test_isAllowed() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (allHandles[i])));
-            _noxIsPubliclyDecryptable(allHandles[i]);
+            vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (allHandles[i], account)));
+            _noxIsAllowed(allHandles[i], account);
         }
     }
 
@@ -370,6 +361,15 @@ contract NoxTest is Test {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(acl, abi.encodeCall(IACL.isViewer, (allHandles[i], account)));
             _noxIsViewer(allHandles[i], account);
+        }
+    }
+
+    // ============ isPubliclyDecryptable ============
+
+    function test_isPubliclyDecryptable() public {
+        for (uint256 i = 0; i < allHandles.length; i++) {
+            vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (allHandles[i])));
+            _noxIsPubliclyDecryptable(allHandles[i]);
         }
     }
 
