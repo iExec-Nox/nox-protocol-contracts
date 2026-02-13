@@ -328,24 +328,6 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ addViewer ============
-
-    function test_addViewer() public {
-        for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.addViewer, (allHandles[i], account)));
-            _noxAddViewer(allHandles[i], account);
-        }
-    }
-
-    // ============ allowPublicDecryption ============
-
-    function test_allowPublicDecryption() public {
-        for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (allHandles[i])));
-            _noxAllowPublicDecryption(allHandles[i]);
-        }
-    }
-
     // ============ isAllowed ============
 
     function test_isAllowed() public {
@@ -355,12 +337,30 @@ contract NoxTest is Test {
         }
     }
 
+    // ============ addViewer ============
+
+    function test_addViewer() public {
+        for (uint256 i = 0; i < allHandles.length; i++) {
+            vm.expectCall(acl, abi.encodeCall(IACL.addViewer, (allHandles[i], account)));
+            _noxAddViewer(allHandles[i], account);
+        }
+    }
+
     // ============ isViewer ============
 
     function test_isViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(acl, abi.encodeCall(IACL.isViewer, (allHandles[i], account)));
             _noxIsViewer(allHandles[i], account);
+        }
+    }
+
+    // ============ allowPublicDecryption ============
+
+    function test_allowPublicDecryption() public {
+        for (uint256 i = 0; i < allHandles.length; i++) {
+            vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (allHandles[i])));
+            _noxAllowPublicDecryption(allHandles[i]);
         }
     }
 
@@ -549,6 +549,17 @@ contract NoxTest is Test {
         else revert("unsupported type");
     }
 
+    function _noxIsAllowed(bytes32 handle, address acc) internal view {
+        TEEType t = handle.typeOf();
+        if (t == TEEType.Bool) Nox.isAllowed(ebool.wrap(handle), acc);
+        else if (t == TEEType.Address) Nox.isAllowed(eaddress.wrap(handle), acc);
+        else if (t == TEEType.Uint16) Nox.isAllowed(euint16.wrap(handle), acc);
+        else if (t == TEEType.Uint256) Nox.isAllowed(euint256.wrap(handle), acc);
+        else if (t == TEEType.Int16) Nox.isAllowed(eint16.wrap(handle), acc);
+        else if (t == TEEType.Int256) Nox.isAllowed(eint256.wrap(handle), acc);
+        else revert("unsupported type");
+    }
+
     function _noxAddViewer(bytes32 handle, address viewer) internal {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) Nox.addViewer(ebool.wrap(handle), viewer);
@@ -560,14 +571,14 @@ contract NoxTest is Test {
         else revert("unsupported type");
     }
 
-    function _noxIsAllowed(bytes32 handle, address acc) internal view {
+    function _noxIsViewer(bytes32 handle, address viewer) internal view {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.isAllowed(ebool.wrap(handle), acc);
-        else if (t == TEEType.Address) Nox.isAllowed(eaddress.wrap(handle), acc);
-        else if (t == TEEType.Uint16) Nox.isAllowed(euint16.wrap(handle), acc);
-        else if (t == TEEType.Uint256) Nox.isAllowed(euint256.wrap(handle), acc);
-        else if (t == TEEType.Int16) Nox.isAllowed(eint16.wrap(handle), acc);
-        else if (t == TEEType.Int256) Nox.isAllowed(eint256.wrap(handle), acc);
+        if (t == TEEType.Bool) Nox.isViewer(ebool.wrap(handle), viewer);
+        else if (t == TEEType.Address) Nox.isViewer(eaddress.wrap(handle), viewer);
+        else if (t == TEEType.Uint16) Nox.isViewer(euint16.wrap(handle), viewer);
+        else if (t == TEEType.Uint256) Nox.isViewer(euint256.wrap(handle), viewer);
+        else if (t == TEEType.Int16) Nox.isViewer(eint16.wrap(handle), viewer);
+        else if (t == TEEType.Int256) Nox.isViewer(eint256.wrap(handle), viewer);
         else revert("unsupported type");
     }
 
@@ -590,17 +601,6 @@ contract NoxTest is Test {
         else if (t == TEEType.Uint256) Nox.isPubliclyDecryptable(euint256.wrap(handle));
         else if (t == TEEType.Int16) Nox.isPubliclyDecryptable(eint16.wrap(handle));
         else if (t == TEEType.Int256) Nox.isPubliclyDecryptable(eint256.wrap(handle));
-        else revert("unsupported type");
-    }
-
-    function _noxIsViewer(bytes32 handle, address viewer) internal view {
-        TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.isViewer(ebool.wrap(handle), viewer);
-        else if (t == TEEType.Address) Nox.isViewer(eaddress.wrap(handle), viewer);
-        else if (t == TEEType.Uint16) Nox.isViewer(euint16.wrap(handle), viewer);
-        else if (t == TEEType.Uint256) Nox.isViewer(euint256.wrap(handle), viewer);
-        else if (t == TEEType.Int16) Nox.isViewer(eint16.wrap(handle), viewer);
-        else if (t == TEEType.Int256) Nox.isViewer(eint256.wrap(handle), viewer);
         else revert("unsupported type");
     }
 
