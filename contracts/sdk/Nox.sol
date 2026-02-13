@@ -544,30 +544,35 @@ library Nox {
     function addViewer(ebool value, address viewer) internal {
         ACL.addViewer(ebool.unwrap(value), viewer);
     }
+
     /**
      * @dev Adds a viewer for an eaddress handle.
      */
     function addViewer(eaddress value, address viewer) internal {
         ACL.addViewer(eaddress.unwrap(value), viewer);
     }
+
     /**
      * @dev Adds a viewer for an euint16 handle.
      */
     function addViewer(euint16 value, address viewer) internal {
         ACL.addViewer(euint16.unwrap(value), viewer);
     }
+
     /**
      * @dev Adds a viewer for an euint256 handle.
      */
     function addViewer(euint256 value, address viewer) internal {
         ACL.addViewer(euint256.unwrap(value), viewer);
     }
+
     /**
      * @dev Adds a viewer for an eint16 handle.
      */
     function addViewer(eint16 value, address viewer) internal {
         ACL.addViewer(eint16.unwrap(value), viewer);
     }
+
     /**
      * @dev Adds a viewer for an eint256 handle.
      */
@@ -625,30 +630,35 @@ library Nox {
     function allowPublicDecryption(ebool value) internal {
         ACL.allowPublicDecryption(ebool.unwrap(value));
     }
+
     /**
      * @dev Marks an eaddress handle as publicly decryptable.
      */
     function allowPublicDecryption(eaddress value) internal {
         ACL.allowPublicDecryption(eaddress.unwrap(value));
     }
+
     /**
      * @dev Marks an euint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint16 value) internal {
         ACL.allowPublicDecryption(euint16.unwrap(value));
     }
+
     /**
      * @dev Marks an euint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint256 value) internal {
         ACL.allowPublicDecryption(euint256.unwrap(value));
     }
+
     /**
      * @dev Marks an eint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(eint16 value) internal {
         ACL.allowPublicDecryption(eint16.unwrap(value));
     }
+
     /**
      * @dev Marks an eint256 handle as publicly decryptable.
      */
