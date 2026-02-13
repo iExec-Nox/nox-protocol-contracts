@@ -89,6 +89,13 @@ contract NoxComputeTest is Test {
         noxCompute.initialize(owner, vm.randomBytes(33));
     }
 
+    function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
+        NoxCompute impl = new NoxCompute(acl);
+        NoxCompute proxy = NoxCompute(TestHelper.deployProxy(address(impl)));
+        vm.expectRevert(IErrors.InvalidEmptyBytes.selector);
+        proxy.initialize(owner, "");
+    }
+
     // ============ setKmsPublicKey ============
 
     function test_SetKmsPublicKey() public {

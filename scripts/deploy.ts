@@ -38,7 +38,10 @@ export async function deploy(printLogs = true) {
     });
     _log(`ACL: ${aclProxy.address}`);
     // Deploy NoxCompute with ACL address as constructor arg.
-    const kmsPublicKey = process.env.KMS_PUBLIC_KEY ?? "0x";
+    const kmsPublicKey = process.env.KMS_PUBLIC_KEY;
+    if (!kmsPublicKey) {
+        throw new Error("KMS_PUBLIC_KEY environment variable is required");
+    }
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,

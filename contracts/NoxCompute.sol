@@ -54,6 +54,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
      * @param kmsPublicKey_ KMS public key for ECIES encryption
      */
     function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
+        if (kmsPublicKey_.length == 0) {
+            revert InvalidEmptyBytes();
+        }
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         __EIP712_init("NoxCompute", "1");
