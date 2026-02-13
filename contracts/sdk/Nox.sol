@@ -87,6 +87,7 @@ library Nox {
     }
 
     // ============ Trivial Encryption Functions ============
+
     /**
      * @dev Converts a plaintext boolean to an encrypted boolean.
      */
@@ -136,6 +137,7 @@ library Nox {
     }
 
     // ============ Handle validation ============
+
     function fromExternal(
         externalEbool externalHandle,
         bytes calldata handleProof
@@ -144,6 +146,7 @@ library Nox {
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Bool);
         return ebool.wrap(handle);
     }
+
     function fromExternal(
         externalEaddress externalHandle,
         bytes calldata handleProof
@@ -152,6 +155,7 @@ library Nox {
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Address);
         return eaddress.wrap(handle);
     }
+
     function fromExternal(
         externalEuint16 externalHandle,
         bytes calldata handleProof
@@ -160,6 +164,7 @@ library Nox {
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
         return euint16.wrap(handle);
     }
+
     function fromExternal(
         externalEuint256 externalHandle,
         bytes calldata handleProof
@@ -168,6 +173,7 @@ library Nox {
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
         return euint256.wrap(handle);
     }
+
     function fromExternal(
         externalEint16 externalHandle,
         bytes calldata handleProof
@@ -176,6 +182,7 @@ library Nox {
         NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Int16);
         return eint16.wrap(handle);
     }
+
     function fromExternal(
         externalEint256 externalHandle,
         bytes calldata handleProof
@@ -360,6 +367,7 @@ library Nox {
     }
 
     // ============ PERMISSION MANAGEMENT ============
+
     /**
      * @dev Allows the use of value for the address account.
      */
@@ -482,6 +490,7 @@ library Nox {
     }
 
     // ============ VIEWER MANAGEMENT ============
+
     /**
      * @dev Adds a viewer for an ebool handle.
      */
@@ -520,6 +529,7 @@ library Nox {
     }
 
     // ============ PUBLIC DECRYPTION ============
+
     /**
      * @dev Marks an ebool handle as publicly decryptable.
      */
@@ -558,6 +568,7 @@ library Nox {
     }
 
     // ============ AUTHORIZATION QUERIES ============
+
     /**
      * @dev Checks if the handle is allowed for the account.
      */
