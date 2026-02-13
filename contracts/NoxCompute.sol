@@ -51,13 +51,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     /**
      * Initializes the proxy contract state.
      * @param initialOwner Initial owner address
+     * @param kmsPublicKey_ KMS public key for ECIES encryption
      */
-    function initialize(address initialOwner) public initializer {
+    function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         __EIP712_init("NoxCompute", "1");
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
+        $.kmsPublicKey = kmsPublicKey_;
     }
 
     /**

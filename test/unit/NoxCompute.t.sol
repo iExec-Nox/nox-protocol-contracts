@@ -86,7 +86,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        noxCompute.initialize(owner);
+        noxCompute.initialize(owner, vm.randomBytes(33));
     }
 
     // ============ setKmsPublicKey ============

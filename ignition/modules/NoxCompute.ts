@@ -6,10 +6,11 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
 export default buildModule("NoxCompute", (m) => {
     const initialOwner = m.getParameter("initialOwner");
     const acl = m.getParameter("acl");
+    const kmsPublicKey = m.getParameter("kmsPublicKey");
     const implementation = m.contract("NoxCompute", [acl], {
         id: "implementation",
     });
-    const initData = m.encodeFunctionCall(implementation, "initialize", [initialOwner]);
+    const initData = m.encodeFunctionCall(implementation, "initialize", [initialOwner, kmsPublicKey]);
     const proxy = m.contract("ERC1967Proxy", [implementation, initData], {
         id: "proxy",
     });
