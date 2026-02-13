@@ -376,23 +376,45 @@ library Nox {
     }
 
     /**
-     * @dev Allows the use of value for this address (address(this)).
-     */
-    function allowThis(ebool value) internal {
-        ACL.allow(ebool.unwrap(value), address(this));
-    }
-
-    /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(ebool value, address account) internal {
-        ACL.allowTransient(ebool.unwrap(value), account);
-    }
-    /**
      * @dev Allows the use of value for the address account.
      */
     function allow(eaddress value, address account) internal {
         ACL.allow(eaddress.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(euint16 value, address account) internal {
+        ACL.allow(euint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(euint256 value, address account) internal {
+        ACL.allow(euint256.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(eint16 value, address account) internal {
+        ACL.allow(eint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for the address account.
+     */
+    function allow(eint256 value, address account) internal {
+        ACL.allow(eint256.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value for this address (address(this)).
+     */
+    function allowThis(ebool value) internal {
+        ACL.allow(ebool.unwrap(value), address(this));
     }
 
     /**
@@ -403,36 +425,10 @@ library Nox {
     }
 
     /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(eaddress value, address account) internal {
-        ACL.allowTransient(eaddress.unwrap(value), account);
-    }
-    /**
-     * @dev Allows the use of value for the address account.
-     */
-    function allow(euint16 value, address account) internal {
-        ACL.allow(euint16.unwrap(value), account);
-    }
-
-    /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(euint16 value) internal {
         ACL.allow(euint16.unwrap(value), address(this));
-    }
-
-    /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(euint16 value, address account) internal {
-        ACL.allowTransient(euint16.unwrap(value), account);
-    }
-    /**
-     * @dev Allows the use of value for the address account.
-     */
-    function allow(euint256 value, address account) internal {
-        ACL.allow(euint256.unwrap(value), account);
     }
 
     /**
@@ -443,36 +439,10 @@ library Nox {
     }
 
     /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(euint256 value, address account) internal {
-        ACL.allowTransient(euint256.unwrap(value), account);
-    }
-    /**
-     * @dev Allows the use of value for the address account.
-     */
-    function allow(eint16 value, address account) internal {
-        ACL.allow(eint16.unwrap(value), account);
-    }
-
-    /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(eint16 value) internal {
         ACL.allow(eint16.unwrap(value), address(this));
-    }
-
-    /**
-     * @dev Allows the use of value by address account for this transaction.
-     */
-    function allowTransient(eint16 value, address account) internal {
-        ACL.allowTransient(eint16.unwrap(value), account);
-    }
-    /**
-     * @dev Allows the use of value for the address account.
-     */
-    function allow(eint256 value, address account) internal {
-        ACL.allow(eint256.unwrap(value), account);
     }
 
     /**
@@ -485,8 +455,85 @@ library Nox {
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
+    function allowTransient(ebool value, address account) internal {
+        ACL.allowTransient(ebool.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(eaddress value, address account) internal {
+        ACL.allowTransient(eaddress.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(euint16 value, address account) internal {
+        ACL.allowTransient(euint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(euint256 value, address account) internal {
+        ACL.allowTransient(euint256.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
+    function allowTransient(eint16 value, address account) internal {
+        ACL.allowTransient(eint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Allows the use of value by address account for this transaction.
+     */
     function allowTransient(eint256 value, address account) internal {
         ACL.allowTransient(eint256.unwrap(value), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(ebool handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(ebool.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eaddress handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(eaddress.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(euint16 handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(euint16.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(euint256 handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(euint256.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eint16 handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(eint16.unwrap(handle), account);
+    }
+
+    /**
+     * @dev Checks if the handle is allowed for the account.
+     */
+    function isAllowed(eint256 handle, address account) internal view returns (bool) {
+        return ACL.isAllowed(eint256.unwrap(handle), account);
     }
 
     // ============ VIEWER MANAGEMENT ============
@@ -528,6 +575,48 @@ library Nox {
         ACL.addViewer(eint256.unwrap(value), viewer);
     }
 
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(ebool handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(ebool.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(eaddress handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(eaddress.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(euint16 handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(euint16.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(euint256 handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(euint256.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(eint16 handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(eint16.unwrap(handle), viewer);
+    }
+
+    /**
+     * @dev Checks if the viewer can view the handle.
+     */
+    function isViewer(eint256 handle, address viewer) internal view returns (bool) {
+        return ACL.isViewer(eint256.unwrap(handle), viewer);
+    }
+
     // ============ PUBLIC DECRYPTION ============
 
     /**
@@ -567,40 +656,11 @@ library Nox {
         ACL.allowPublicDecryption(eint256.unwrap(value));
     }
 
-    // ============ AUTHORIZATION QUERIES ============
-
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(ebool handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(ebool.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
-    function isViewer(ebool handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(ebool.unwrap(handle), viewer);
-    }
-
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
         return ACL.isPubliclyDecryptable(ebool.unwrap(handle));
-    }
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(eaddress handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(eaddress.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
-    function isViewer(eaddress handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(eaddress.unwrap(handle), viewer);
     }
 
     /**
@@ -609,38 +669,12 @@ library Nox {
     function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
         return ACL.isPubliclyDecryptable(eaddress.unwrap(handle));
     }
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(euint16 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(euint16.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
-    function isViewer(euint16 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(euint16.unwrap(handle), viewer);
-    }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(euint16 handle) internal view returns (bool) {
         return ACL.isPubliclyDecryptable(euint16.unwrap(handle));
-    }
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(euint256 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(euint256.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
-    function isViewer(euint256 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(euint256.unwrap(handle), viewer);
     }
 
     /**
@@ -649,38 +683,12 @@ library Nox {
     function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
         return ACL.isPubliclyDecryptable(euint256.unwrap(handle));
     }
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(eint16 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(eint16.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
-    function isViewer(eint16 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(eint16.unwrap(handle), viewer);
-    }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(eint16 handle) internal view returns (bool) {
         return ACL.isPubliclyDecryptable(eint16.unwrap(handle));
-    }
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
-    function isAllowed(eint256 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(eint256.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
-    function isViewer(eint256 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(eint256.unwrap(handle), viewer);
     }
 
     /**
