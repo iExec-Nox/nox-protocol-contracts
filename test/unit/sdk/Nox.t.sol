@@ -31,7 +31,10 @@ contract NoxTest is Test {
     // Individual handles
     bytes32 boolHandle = TestHelper.createHandle(TEEType.Bool);
     bytes32 addressHandle = TestHelper.createHandle(TEEType.Address);
-    bytes32 int256Handle = TestHelper.createHandle(TEEType.Int256);
+    bytes32 int16HandleA = TestHelper.createHandle(TEEType.Int16);
+    bytes32 int16HandleB = TestHelper.createHandle(TEEType.Int16);
+    bytes32 int256HandleA = TestHelper.createHandle(TEEType.Int256);
+    bytes32 int256HandleB = TestHelper.createHandle(TEEType.Int256);
     bytes32 uint16HandleA = TestHelper.createHandle(TEEType.Uint16);
     bytes32 uint16HandleB = TestHelper.createHandle(TEEType.Uint16);
     bytes32 uint256HandleA = TestHelper.createHandle(TEEType.Uint256);
@@ -54,24 +57,32 @@ contract NoxTest is Test {
         // Allow all handles for the test contract
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
-        _allowCaller(int256Handle);
+        _allowCaller(int16HandleA);
+        _allowCaller(int16HandleB);
+        _allowCaller(int256HandleA);
+        _allowCaller(int256HandleB);
         _allowCaller(uint16HandleA);
         _allowCaller(uint16HandleB);
         _allowCaller(uint256HandleA);
         _allowCaller(uint256HandleB);
 
-        // Build arithmetic handle pairs: euint16, euint256
+        // Build arithmetic handle pairs: euint16, euint256, eint16, eint256
         arithmeticA.push(uint16HandleA);
         arithmeticA.push(uint256HandleA);
+        arithmeticA.push(int16HandleA);
+        arithmeticA.push(int256HandleA);
         arithmeticB.push(uint16HandleB);
         arithmeticB.push(uint256HandleB);
+        arithmeticB.push(int16HandleB);
+        arithmeticB.push(int256HandleB);
 
-        // Build all handles: ebool, eaddress, euint16, euint256, eint256
+        // Build all handles: ebool, eaddress, euint16, euint256, eint16, eint256
         allHandles.push(boolHandle);
         allHandles.push(addressHandle);
         allHandles.push(uint16HandleA);
         allHandles.push(uint256HandleA);
-        allHandles.push(int256Handle);
+        allHandles.push(int16HandleA);
+        allHandles.push(int256HandleA);
 
         vm.label(account, "account");
         vm.label(address(noxFromExternalMock), "NoxFromExternalMock");
@@ -84,7 +95,8 @@ contract NoxTest is Test {
         assertTrue(Nox.isInitialized(eaddress.wrap(addressHandle)));
         assertTrue(Nox.isInitialized(euint16.wrap(uint16HandleA)));
         assertTrue(Nox.isInitialized(euint256.wrap(uint256HandleA)));
-        assertTrue(Nox.isInitialized(eint256.wrap(int256Handle)));
+        assertTrue(Nox.isInitialized(eint16.wrap(int16HandleA)));
+        assertTrue(Nox.isInitialized(eint256.wrap(int256HandleA)));
     }
 
     function test_isInitialized_False() public pure {
@@ -92,6 +104,7 @@ contract NoxTest is Test {
         assertFalse(Nox.isInitialized(eaddress.wrap(0)));
         assertFalse(Nox.isInitialized(euint16.wrap(0)));
         assertFalse(Nox.isInitialized(euint256.wrap(0)));
+        assertFalse(Nox.isInitialized(eint16.wrap(0)));
         assertFalse(Nox.isInitialized(eint256.wrap(0)));
     }
 
@@ -151,6 +164,19 @@ contract NoxTest is Test {
         assertNotEq(euint256.unwrap(result), 0);
     }
 
+    function test_toEint16() public {
+        int16 value = -42;
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(
+                INoxCompute.plaintextToEncrypted,
+                (bytes32(uint256(uint16(value))), TEEType.Int16)
+            )
+        );
+        eint16 result = Nox.toEint16(value);
+        assertNotEq(eint16.unwrap(result), 0);
+    }
+
     function test_toEint256() public {
         int256 value = -12345;
         vm.expectCall(
@@ -166,109 +192,28 @@ contract NoxTest is Test {
 
     // ============ fromExternal ============
 
-    function test_FromExternal_Ebool() public {
-        address handleOwner = makeAddr("handleOwner");
-        bytes memory proof = TestHelper.buildProof(
-            noxCompute,
-            boolHandle,
-            handleOwner,
-            address(noxFromExternalMock),
-            block.timestamp,
-            gatewayPrivateKey
-        );
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(
-                INoxCompute.validateProof,
-                (boolHandle, handleOwner, proof, TEEType.Bool)
-            )
-        );
-        vm.prank(handleOwner);
-        noxFromExternalMock.fromExternalEbool(externalEbool.wrap(boolHandle), proof);
-    }
-
-    function test_FromExternal_Eaddress() public {
-        address handleOwner = makeAddr("handleOwner");
-        bytes memory proof = TestHelper.buildProof(
-            noxCompute,
-            addressHandle,
-            handleOwner,
-            address(noxFromExternalMock),
-            block.timestamp,
-            gatewayPrivateKey
-        );
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(
-                INoxCompute.validateProof,
-                (addressHandle, handleOwner, proof, TEEType.Address)
-            )
-        );
-        vm.prank(handleOwner);
-        noxFromExternalMock.fromExternalEaddress(externalEaddress.wrap(addressHandle), proof);
-    }
-
-    function test_FromExternal_Euint16() public {
-        address handleOwner = makeAddr("handleOwner");
-        bytes memory proof = TestHelper.buildProof(
-            noxCompute,
-            uint16HandleA,
-            handleOwner,
-            address(noxFromExternalMock),
-            block.timestamp,
-            gatewayPrivateKey
-        );
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(
-                INoxCompute.validateProof,
-                (uint16HandleA, handleOwner, proof, TEEType.Uint16)
-            )
-        );
-        vm.prank(handleOwner);
-        noxFromExternalMock.fromExternalEuint16(externalEuint16.wrap(uint16HandleA), proof);
-    }
-
-    function test_FromExternal_Euint256() public {
-        address handleOwner = makeAddr("handleOwner");
-        bytes memory proof = TestHelper.buildProof(
-            noxCompute,
-            uint256HandleA,
-            handleOwner,
-            address(noxFromExternalMock),
-            block.timestamp,
-            gatewayPrivateKey
-        );
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(
-                INoxCompute.validateProof,
-                (uint256HandleA, handleOwner, proof, TEEType.Uint256)
-            )
-        );
-        vm.prank(handleOwner);
-        noxFromExternalMock.fromExternalEuint256(externalEuint256.wrap(uint256HandleA), proof);
-    }
-
-    function test_FromExternal_Eint256() public {
-        address handleOwner = makeAddr("handleOwner");
-        bytes memory proof = TestHelper.buildProof(
-            noxCompute,
-            int256Handle,
-            handleOwner,
-            address(noxFromExternalMock),
-            block.timestamp,
-            gatewayPrivateKey
-        );
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(
-                INoxCompute.validateProof,
-                (int256Handle, handleOwner, proof, TEEType.Int256)
-            )
-        );
-        vm.prank(handleOwner);
-        noxFromExternalMock.fromExternalEint256(externalEint256.wrap(int256Handle), proof);
+    function test_fromExternal() public {
+        for (uint256 i = 0; i < allHandles.length; i++) {
+            address handleOwner = makeAddr("handleOwner");
+            TEEType t = allHandles[i].typeOf();
+            bytes memory proof = TestHelper.buildProof(
+                noxCompute,
+                allHandles[i],
+                handleOwner,
+                address(noxFromExternalMock),
+                block.timestamp,
+                gatewayPrivateKey
+            );
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.validateProof, (allHandles[i], handleOwner, proof, t))
+            );
+            // Use startPrank/stopPrank instead of prank to avoid coverage instrumentation
+            // consuming the single-use prank before the intended external call.
+            vm.startPrank(handleOwner);
+            _noxFromExternal(allHandles[i], proof);
+            vm.stopPrank();
+        }
     }
 
     // ============ Unsafe Arithmetic primitives ============
@@ -383,6 +328,15 @@ contract NoxTest is Test {
         }
     }
 
+    // ============ isAllowed ============
+
+    function test_isAllowed() public {
+        for (uint256 i = 0; i < allHandles.length; i++) {
+            vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (allHandles[i], account)));
+            _noxIsAllowed(allHandles[i], account);
+        }
+    }
+
     // ============ addViewer ============
 
     function test_addViewer() public {
@@ -392,12 +346,12 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ isAllowed ============
+    // ============ isViewer ============
 
-    function test_isAllowed() public {
+    function test_isViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (allHandles[i], account)));
-            _noxIsAllowed(allHandles[i], account);
+            vm.expectCall(acl, abi.encodeCall(IACL.isViewer, (allHandles[i], account)));
+            _noxIsViewer(allHandles[i], account);
         }
     }
 
@@ -419,16 +373,26 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ isViewer ============
+    // ============ Dispatch Helpers ============
 
-    function test_isViewer() public {
-        for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isViewer, (allHandles[i], account)));
-            _noxIsViewer(allHandles[i], account);
+    function _noxFromExternal(bytes32 handle, bytes memory proof) internal {
+        TEEType t = handle.typeOf();
+        if (t == TEEType.Bool) {
+            noxFromExternalMock.fromExternalEbool(externalEbool.wrap(handle), proof);
+        } else if (t == TEEType.Address) {
+            noxFromExternalMock.fromExternalEaddress(externalEaddress.wrap(handle), proof);
+        } else if (t == TEEType.Uint16) {
+            noxFromExternalMock.fromExternalEuint16(externalEuint16.wrap(handle), proof);
+        } else if (t == TEEType.Uint256) {
+            noxFromExternalMock.fromExternalEuint256(externalEuint256.wrap(handle), proof);
+        } else if (t == TEEType.Int16) {
+            noxFromExternalMock.fromExternalEint16(externalEint16.wrap(handle), proof);
+        } else if (t == TEEType.Int256) {
+            noxFromExternalMock.fromExternalEint256(externalEint256.wrap(handle), proof);
+        } else {
+            revert("unsupported type");
         }
     }
-
-    // ============ Dispatch Helpers ============
 
     function _noxAdd(bytes32 a, bytes32 b) internal returns (bytes32) {
         TEEType t = a.typeOf();
@@ -436,6 +400,10 @@ contract NoxTest is Test {
             return euint16.unwrap(Nox.add(euint16.wrap(a), euint16.wrap(b)));
         } else if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.add(euint256.wrap(a), euint256.wrap(b)));
+        } else if (t == TEEType.Int16) {
+            return eint16.unwrap(Nox.add(eint16.wrap(a), eint16.wrap(b)));
+        } else if (t == TEEType.Int256) {
+            return eint256.unwrap(Nox.add(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
     }
@@ -446,6 +414,10 @@ contract NoxTest is Test {
             return euint16.unwrap(Nox.sub(euint16.wrap(a), euint16.wrap(b)));
         } else if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.sub(euint256.wrap(a), euint256.wrap(b)));
+        } else if (t == TEEType.Int16) {
+            return eint16.unwrap(Nox.sub(eint16.wrap(a), eint16.wrap(b)));
+        } else if (t == TEEType.Int256) {
+            return eint256.unwrap(Nox.sub(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
     }
@@ -456,6 +428,10 @@ contract NoxTest is Test {
             return euint16.unwrap(Nox.mul(euint16.wrap(a), euint16.wrap(b)));
         } else if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.mul(euint256.wrap(a), euint256.wrap(b)));
+        } else if (t == TEEType.Int16) {
+            return eint16.unwrap(Nox.mul(eint16.wrap(a), eint16.wrap(b)));
+        } else if (t == TEEType.Int256) {
+            return eint256.unwrap(Nox.mul(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
     }
@@ -466,6 +442,10 @@ contract NoxTest is Test {
             return euint16.unwrap(Nox.div(euint16.wrap(a), euint16.wrap(b)));
         } else if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.div(euint256.wrap(a), euint256.wrap(b)));
+        } else if (t == TEEType.Int16) {
+            return eint16.unwrap(Nox.div(eint16.wrap(a), eint16.wrap(b)));
+        } else if (t == TEEType.Int256) {
+            return eint256.unwrap(Nox.div(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
     }
@@ -478,6 +458,12 @@ contract NoxTest is Test {
         } else if (t == TEEType.Uint256) {
             (ebool s, euint256 r) = Nox.safeAdd(euint256.wrap(a), euint256.wrap(b));
             return (ebool.unwrap(s), euint256.unwrap(r));
+        } else if (t == TEEType.Int16) {
+            (ebool s, eint16 r) = Nox.safeAdd(eint16.wrap(a), eint16.wrap(b));
+            return (ebool.unwrap(s), eint16.unwrap(r));
+        } else if (t == TEEType.Int256) {
+            (ebool s, eint256 r) = Nox.safeAdd(eint256.wrap(a), eint256.wrap(b));
+            return (ebool.unwrap(s), eint256.unwrap(r));
         }
         revert("unsupported type");
     }
@@ -490,6 +476,12 @@ contract NoxTest is Test {
         } else if (t == TEEType.Uint256) {
             (ebool s, euint256 r) = Nox.safeSub(euint256.wrap(a), euint256.wrap(b));
             return (ebool.unwrap(s), euint256.unwrap(r));
+        } else if (t == TEEType.Int16) {
+            (ebool s, eint16 r) = Nox.safeSub(eint16.wrap(a), eint16.wrap(b));
+            return (ebool.unwrap(s), eint16.unwrap(r));
+        } else if (t == TEEType.Int256) {
+            (ebool s, eint256 r) = Nox.safeSub(eint256.wrap(a), eint256.wrap(b));
+            return (ebool.unwrap(s), eint256.unwrap(r));
         }
         revert("unsupported type");
     }
@@ -510,6 +502,16 @@ contract NoxTest is Test {
                 euint256.unwrap(
                     Nox.select(ebool.wrap(condition), euint256.wrap(ifTrue), euint256.wrap(ifFalse))
                 );
+        } else if (t == TEEType.Int16) {
+            return
+                eint16.unwrap(
+                    Nox.select(ebool.wrap(condition), eint16.wrap(ifTrue), eint16.wrap(ifFalse))
+                );
+        } else if (t == TEEType.Int256) {
+            return
+                eint256.unwrap(
+                    Nox.select(ebool.wrap(condition), eint256.wrap(ifTrue), eint256.wrap(ifFalse))
+                );
         }
         revert("unsupported type");
     }
@@ -520,6 +522,7 @@ contract NoxTest is Test {
         else if (t == TEEType.Address) Nox.allow(eaddress.wrap(handle), acc);
         else if (t == TEEType.Uint16) Nox.allow(euint16.wrap(handle), acc);
         else if (t == TEEType.Uint256) Nox.allow(euint256.wrap(handle), acc);
+        else if (t == TEEType.Int16) Nox.allow(eint16.wrap(handle), acc);
         else if (t == TEEType.Int256) Nox.allow(eint256.wrap(handle), acc);
         else revert("unsupported type");
     }
@@ -530,6 +533,7 @@ contract NoxTest is Test {
         else if (t == TEEType.Address) Nox.allowThis(eaddress.wrap(handle));
         else if (t == TEEType.Uint16) Nox.allowThis(euint16.wrap(handle));
         else if (t == TEEType.Uint256) Nox.allowThis(euint256.wrap(handle));
+        else if (t == TEEType.Int16) Nox.allowThis(eint16.wrap(handle));
         else if (t == TEEType.Int256) Nox.allowThis(eint256.wrap(handle));
         else revert("unsupported type");
     }
@@ -540,17 +544,8 @@ contract NoxTest is Test {
         else if (t == TEEType.Address) Nox.allowTransient(eaddress.wrap(handle), acc);
         else if (t == TEEType.Uint16) Nox.allowTransient(euint16.wrap(handle), acc);
         else if (t == TEEType.Uint256) Nox.allowTransient(euint256.wrap(handle), acc);
+        else if (t == TEEType.Int16) Nox.allowTransient(eint16.wrap(handle), acc);
         else if (t == TEEType.Int256) Nox.allowTransient(eint256.wrap(handle), acc);
-        else revert("unsupported type");
-    }
-
-    function _noxAddViewer(bytes32 handle, address viewer) internal {
-        TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.addViewer(ebool.wrap(handle), viewer);
-        else if (t == TEEType.Address) Nox.addViewer(eaddress.wrap(handle), viewer);
-        else if (t == TEEType.Uint16) Nox.addViewer(euint16.wrap(handle), viewer);
-        else if (t == TEEType.Uint256) Nox.addViewer(euint256.wrap(handle), viewer);
-        else if (t == TEEType.Int256) Nox.addViewer(eint256.wrap(handle), viewer);
         else revert("unsupported type");
     }
 
@@ -560,7 +555,30 @@ contract NoxTest is Test {
         else if (t == TEEType.Address) Nox.isAllowed(eaddress.wrap(handle), acc);
         else if (t == TEEType.Uint16) Nox.isAllowed(euint16.wrap(handle), acc);
         else if (t == TEEType.Uint256) Nox.isAllowed(euint256.wrap(handle), acc);
+        else if (t == TEEType.Int16) Nox.isAllowed(eint16.wrap(handle), acc);
         else if (t == TEEType.Int256) Nox.isAllowed(eint256.wrap(handle), acc);
+        else revert("unsupported type");
+    }
+
+    function _noxAddViewer(bytes32 handle, address viewer) internal {
+        TEEType t = handle.typeOf();
+        if (t == TEEType.Bool) Nox.addViewer(ebool.wrap(handle), viewer);
+        else if (t == TEEType.Address) Nox.addViewer(eaddress.wrap(handle), viewer);
+        else if (t == TEEType.Uint16) Nox.addViewer(euint16.wrap(handle), viewer);
+        else if (t == TEEType.Uint256) Nox.addViewer(euint256.wrap(handle), viewer);
+        else if (t == TEEType.Int16) Nox.addViewer(eint16.wrap(handle), viewer);
+        else if (t == TEEType.Int256) Nox.addViewer(eint256.wrap(handle), viewer);
+        else revert("unsupported type");
+    }
+
+    function _noxIsViewer(bytes32 handle, address viewer) internal view {
+        TEEType t = handle.typeOf();
+        if (t == TEEType.Bool) Nox.isViewer(ebool.wrap(handle), viewer);
+        else if (t == TEEType.Address) Nox.isViewer(eaddress.wrap(handle), viewer);
+        else if (t == TEEType.Uint16) Nox.isViewer(euint16.wrap(handle), viewer);
+        else if (t == TEEType.Uint256) Nox.isViewer(euint256.wrap(handle), viewer);
+        else if (t == TEEType.Int16) Nox.isViewer(eint16.wrap(handle), viewer);
+        else if (t == TEEType.Int256) Nox.isViewer(eint256.wrap(handle), viewer);
         else revert("unsupported type");
     }
 
@@ -570,6 +588,7 @@ contract NoxTest is Test {
         else if (t == TEEType.Address) Nox.allowPublicDecryption(eaddress.wrap(handle));
         else if (t == TEEType.Uint16) Nox.allowPublicDecryption(euint16.wrap(handle));
         else if (t == TEEType.Uint256) Nox.allowPublicDecryption(euint256.wrap(handle));
+        else if (t == TEEType.Int16) Nox.allowPublicDecryption(eint16.wrap(handle));
         else if (t == TEEType.Int256) Nox.allowPublicDecryption(eint256.wrap(handle));
         else revert("unsupported type");
     }
@@ -580,17 +599,8 @@ contract NoxTest is Test {
         else if (t == TEEType.Address) Nox.isPubliclyDecryptable(eaddress.wrap(handle));
         else if (t == TEEType.Uint16) Nox.isPubliclyDecryptable(euint16.wrap(handle));
         else if (t == TEEType.Uint256) Nox.isPubliclyDecryptable(euint256.wrap(handle));
+        else if (t == TEEType.Int16) Nox.isPubliclyDecryptable(eint16.wrap(handle));
         else if (t == TEEType.Int256) Nox.isPubliclyDecryptable(eint256.wrap(handle));
-        else revert("unsupported type");
-    }
-
-    function _noxIsViewer(bytes32 handle, address viewer) internal view {
-        TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.isViewer(ebool.wrap(handle), viewer);
-        else if (t == TEEType.Address) Nox.isViewer(eaddress.wrap(handle), viewer);
-        else if (t == TEEType.Uint16) Nox.isViewer(euint16.wrap(handle), viewer);
-        else if (t == TEEType.Uint256) Nox.isViewer(euint256.wrap(handle), viewer);
-        else if (t == TEEType.Int256) Nox.isViewer(eint256.wrap(handle), viewer);
         else revert("unsupported type");
     }
 
