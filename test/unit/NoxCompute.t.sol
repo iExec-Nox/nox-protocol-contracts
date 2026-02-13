@@ -93,8 +93,7 @@ contract NoxComputeTest is Test {
 
     function test_SetKmsPublicKey() public {
         // 33-byte compressed SEC1 secp256k1 public key
-        bytes
-            memory newKey = hex"0204a5e54c61b7a7c36db3e69a3398398e0e29283ada420f1a76cd058653853a91";
+        bytes memory newKey = vm.randomBytes(33);
         vm.prank(owner);
         vm.expectEmit();
         emit INoxCompute.KmsPublicKeyUpdated(newKey);
@@ -104,8 +103,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_SetKmsPublicKey_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        bytes
-            memory newKey = hex"0204a5e54c61b7a7c36db3e69a3398398e0e29283ada420f1a76cd058653853a91";
+        bytes memory newKey = vm.randomBytes(33);
         vm.expectRevert(
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
