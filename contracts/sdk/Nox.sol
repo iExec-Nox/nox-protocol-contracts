@@ -97,6 +97,7 @@ library Nox {
                 NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value ? 1 : 0)), TEEType.Bool)
             );
     }
+
     /**
      * @dev Convert a plaintext address to an encrypted address.
      */
@@ -106,6 +107,7 @@ library Nox {
                 NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint160(value))), TEEType.Address)
             );
     }
+
     /**
      * @dev Convert a plaintext value to an encrypted euint16 integer.
      */
@@ -113,12 +115,14 @@ library Nox {
         return
             euint16.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Uint16));
     }
+
     /**
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
         return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(value), TEEType.Uint256));
     }
+
     /**
      * @dev Convert a plaintext value to an encrypted eint16 integer.
      */
@@ -128,6 +132,7 @@ library Nox {
                 NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint16(value))), TEEType.Int16)
             );
     }
+
     /**
      * @dev Convert a plaintext value to an encrypted eint256 integer.
      */
