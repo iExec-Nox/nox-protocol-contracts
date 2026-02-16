@@ -23,26 +23,26 @@ pnpm install
 ## Build
 
 ```bash
-pnpm build
+pnpm run build
 ```
 
 ## Test
 
 ```bash
-pnpm test
+pnpm run test
 ```
 
 ## Coverage
 
 ```bash
-pnpm coverage
+pnpm run coverage
 ```
 
 ## Formatting
 
 ```bash
-pnpm format
-pnpm format:check
+pnpm run format
+pnpm run format:check
 ```
 
 ## Deployment
@@ -53,7 +53,7 @@ The default network is a local EDR simulation. For external networks, configure 
 - `PRIVATE_KEY`
 
 ```bash
-pnpm deploy
+pnpm run deploy
 ```
 
 ## Configuration notes
