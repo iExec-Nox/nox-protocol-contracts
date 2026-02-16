@@ -14,14 +14,19 @@ jobs:
   pre-publish:
     uses: ./.github/workflows/main.yml
 
-  determine-tag:
+  publish-setup:
     needs: pre-publish
     runs-on: ubuntu-latest
     outputs:
-      TAG: ${{ steps.set-dist-tag.outputs.TAG }}
+      NODE_VERSION: ${{ steps.get-node-version.outputs.NODE_VERSION }}
+      TAG: ${{ steps.get-dist-tag.outputs.TAG }}
     steps:
+      - uses: actions/checkout@v5
+      - name: Determine Node.js version
+        id: get-node-version
+        run: echo "NODE_VERSION=`cat .nvmrc`" >> $GITHUB_OUTPUT
       - name: Determine package dist tag
-        id: set-dist-tag
+        id: get-dist-tag
         run: |
           if [[ "${GITHUB_REF#refs/tags/}" == *"-rc"* ]]; then
             echo "TAG=rc" >> $GITHUB_OUTPUT
@@ -32,16 +37,16 @@ jobs:
           fi
 
   publish:
-    needs: determine-tag
+    needs: publish-setup
     permissions:
       id-token: write # Required for OIDC
       packages: write
       contents: read
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@publish-npm-v1.6.0
     with:
-      node-version: 24
+      node-version: ${{ needs.publish-setup.outputs.NODE_VERSION }}
       scope: "@iexec-nox"
-      tag: ${{ needs.determine-tag.outputs.TAG }}
+      tag: ${{ needs.publish-setup.outputs.TAG }}
       install-command: corepack enable && pnpm install --frozen-lockfile
       build-command: pnpm run build
       run-tests: false # Tests already run in the pre-publish job
