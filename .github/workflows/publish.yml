@@ -9,6 +9,7 @@ on:
   push:
     tags:
       - "v*"
+  workflow_dispatch:
 
 jobs:
   pre-publish:
@@ -25,6 +26,8 @@ jobs:
         run: |
           if [[ "${GITHUB_REF#refs/tags/}" == *"-rc"* ]]; then
             echo "TAG=rc" >> $GITHUB_OUTPUT
+          elif [[ "${GITHUB_REF#refs/tags/}" == *"-beta"* ]]; then
+            echo "TAG=beta" >> $GITHUB_OUTPUT
           else
             echo "TAG=latest" >> $GITHUB_OUTPUT
           fi
@@ -38,3 +41,10 @@ jobs:
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@publish-npm-v1.6.0
     with:
       tag: ${{ needs.determine-tag.outputs.TAG }}
+      install-command: corepack enable && pnpm install --frozen-lockfile
+      build-command: pnpm run build
+      run-tests: false # Tests already run in the pre-publish job
+      lint-command: ""
+      type-check-command: ""
+      format-check-command: pnpm run format:check
+      dry-run: true
