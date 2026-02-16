@@ -1,6 +1,6 @@
 {
   "name": "@iexec-nox/nox-protocol-contracts",
-  "version": "0.0.0",
+  "version": "0.1.0-beta.2",
   "description": "Nox protocol smart contracts",
   "keywords": [
     "Nox",
@@ -11,8 +11,9 @@
   "packageManager": "pnpm@10.28.2",
   "type": "module",
   "files": [
-    "/contracts",
-    "!/contracts/mock"
+    "/contracts/interfaces/",
+    "/contracts/sdk/",
+    "/contracts/shared/"
   ],
   "scripts": {
     "prepare": "husky",
