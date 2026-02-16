@@ -1,6 +1,6 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { deploy } from "./deploy.ts";
+import { isFreshLocalNetwork } from "./utils/network.ts";
+import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
@@ -12,12 +12,17 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 //
 // Usage: `hardhat run scripts/upgrade-nox-compute.ts --network <network-name>`
 
+// TODO: Use @openzeppelin/hardhat-upgrades plugin for upgrade safety checks
+// (storage layout validation, implementation compatibility) when it becomes compatible with Hardhat 3.
+
 /**
  * Upgrades the NoxCompute proxy to a new implementation.
+ * @param proxyAddress the NoxCompute proxy address to upgrade, resolved automatically if not provided
+ * @param aclAddress the ACL proxy address (constructor arg), resolved automatically if not provided
  * @param printLogs whether to print logs or not
  * @returns The new implementation address
  */
-export async function upgradeNoxCompute(printLogs = true) {
+export async function upgradeNoxCompute(proxyAddress?: string, aclAddress?: string, printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
@@ -36,7 +41,7 @@ export async function upgradeNoxCompute(printLogs = true) {
     _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
-    const { noxComputeProxyAddress, aclProxyAddress } = await _resolveProxyAddresses(_log);
+    const { noxComputeProxyAddress, aclProxyAddress } = await _resolveProxyAddresses(proxyAddress, aclAddress, _log);
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
     _log(`ACL proxy address: ${aclProxyAddress}`);
 
@@ -61,48 +66,28 @@ export async function upgradeNoxCompute(printLogs = true) {
 
 /**
  * Resolves the NoxCompute and ACL proxy addresses.
- * On local (edr-simulated) networks, deploys contracts first since each
+ * Uses provided addresses if available, otherwise:
+ * On local non-forked (edr-simulated) networks, deploys contracts first since each
  * `hardhat run` starts a fresh chain with no prior state.
- * On remote networks, reads from ignition deployment artifacts.
+ * On remote or forked networks, reads from ignition deployment artifacts.
  */
 async function _resolveProxyAddresses(
+    proxyAddress: string | undefined,
+    aclAddress: string | undefined,
     _log: (...args: unknown[]) => void,
 ): Promise<{ noxComputeProxyAddress: string; aclProxyAddress: string }> {
-    if (connection.networkConfig.type === "edr-simulated") {
+    if (proxyAddress && aclAddress) {
+        return { noxComputeProxyAddress: proxyAddress, aclProxyAddress: aclAddress };
+    }
+
+    if (isFreshLocalNetwork()) {
         _log("Local network detected, deploying contracts first...");
         const { acl, noxCompute } = await deploy(false);
         return { noxComputeProxyAddress: noxCompute.address, aclProxyAddress: acl.address };
     }
 
-    const deploymentPath = join(
-        process.cwd(),
-        "ignition",
-        "deployments",
-        connection.networkName,
-        "deployed_addresses.json",
-    );
-
-    let deployedAddresses: Record<string, string>;
-    try {
-        const content = await readFile(deploymentPath, "utf-8");
-        deployedAddresses = JSON.parse(content);
-    } catch {
-        throw new Error(
-            `Failed to read deployment artifacts at ${deploymentPath}. ` +
-                `Make sure contracts are deployed on ${connection.networkName}.`,
-        );
-    }
-
-    const noxComputeProxyAddress = deployedAddresses["NoxCompute#proxy"];
-    if (!noxComputeProxyAddress) {
-        throw new Error("NoxCompute#proxy not found in deployment artifacts");
-    }
-
-    const aclProxyAddress = deployedAddresses["ACL#proxy"];
-    if (!aclProxyAddress) {
-        throw new Error("ACL#proxy not found in deployment artifacts");
-    }
-
+    const noxComputeProxyAddress = proxyAddress ?? (await readDeployedAddress("NoxCompute#proxy"));
+    const aclProxyAddress = aclAddress ?? (await readDeployedAddress("ACL#proxy"));
     return { noxComputeProxyAddress, aclProxyAddress };
 }
 

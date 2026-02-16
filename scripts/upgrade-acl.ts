@@ -1,6 +1,6 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
 import { deploy } from "./deploy.ts";
+import { isFreshLocalNetwork } from "./utils/network.ts";
+import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to upgrade the ACL proxy to a new implementation.
@@ -12,12 +12,16 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 //
 // Usage: `hardhat run scripts/upgrade-acl.ts --network <network-name>`
 
+// TODO: Use @openzeppelin/hardhat-upgrades plugin for upgrade safety checks
+// (storage layout validation, implementation compatibility) when it becomes compatible with Hardhat 3.
+
 /**
  * Upgrades the ACL proxy to a new implementation.
+ * @param proxyAddress the proxy address to upgrade, resolved automatically if not provided
  * @param printLogs whether to print logs or not
  * @returns The new implementation address
  */
-export async function upgradeACL(printLogs = true) {
+export async function upgradeACL(proxyAddress?: string, printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
@@ -36,7 +40,7 @@ export async function upgradeACL(printLogs = true) {
     _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
-    const aclProxyAddress = await _resolveACLProxyAddress(_log);
+    const aclProxyAddress = proxyAddress ?? (await _resolveACLProxyAddress(_log));
     _log(`ACL proxy address: ${aclProxyAddress}`);
 
     // Deploy new implementation
@@ -60,42 +64,18 @@ export async function upgradeACL(printLogs = true) {
 
 /**
  * Resolves the ACL proxy address.
- * On local (edr-simulated) networks, deploys contracts first since each
+ * On local non-forked (edr-simulated) networks, deploys contracts first since each
  * `hardhat run` starts a fresh chain with no prior state.
- * On remote networks, reads from ignition deployment artifacts.
+ * On remote or forked networks, reads from ignition deployment artifacts.
  */
 async function _resolveACLProxyAddress(_log: (...args: unknown[]) => void): Promise<string> {
-    if (connection.networkConfig.type === "edr-simulated") {
+    if (isFreshLocalNetwork()) {
         _log("Local network detected, deploying contracts first...");
         const { acl } = await deploy(false);
         return acl.address;
     }
 
-    const deploymentPath = join(
-        process.cwd(),
-        "ignition",
-        "deployments",
-        connection.networkName,
-        "deployed_addresses.json",
-    );
-
-    let deployedAddresses: Record<string, string>;
-    try {
-        const content = await readFile(deploymentPath, "utf-8");
-        deployedAddresses = JSON.parse(content);
-    } catch {
-        throw new Error(
-            `Failed to read deployment artifacts at ${deploymentPath}. ` +
-                `Make sure contracts are deployed on ${connection.networkName}.`,
-        );
-    }
-
-    const aclProxyAddress = deployedAddresses["ACL#proxy"];
-    if (!aclProxyAddress) {
-        throw new Error("ACL#proxy not found in deployment artifacts");
-    }
-
-    return aclProxyAddress;
+    return await readDeployedAddress("ACL#proxy");
 }
 
 // Execute the script only if run directly

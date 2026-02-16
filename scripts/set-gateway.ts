@@ -1,5 +1,4 @@
-import { readFile } from "fs/promises";
-import { join } from "path";
+import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to set the gateway address on the NoxCompute contract.
@@ -32,29 +31,7 @@ export async function setGateway(printLogs = true) {
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
     // Read NoxCompute proxy address from ignition deployment artifacts
-    const deploymentPath = join(
-        process.cwd(),
-        "ignition",
-        "deployments",
-        connection.networkName,
-        "deployed_addresses.json",
-    );
-
-    let deployedAddresses: Record<string, string>;
-    try {
-        const content = await readFile(deploymentPath, "utf-8");
-        deployedAddresses = JSON.parse(content);
-    } catch {
-        throw new Error(
-            `Failed to read deployment artifacts at ${deploymentPath}. ` +
-                `Make sure contracts are deployed on ${connection.networkName}.`,
-        );
-    }
-
-    const noxComputeAddress = deployedAddresses["NoxCompute#proxy"];
-    if (!noxComputeAddress) {
-        throw new Error("NoxCompute#proxy not found in deployment artifacts");
-    }
+    const noxComputeAddress = await readDeployedAddress("NoxCompute#proxy");
 
     _log(`NoxCompute address: ${noxComputeAddress}`);
 

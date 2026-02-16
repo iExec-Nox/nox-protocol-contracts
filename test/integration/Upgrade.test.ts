@@ -1,6 +1,8 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { loadFixture } from "../utils/fixture.ts";
+import { upgradeACL } from "../../scripts/upgrade-acl.ts";
+import { upgradeNoxCompute } from "../../scripts/upgrade-nox-compute.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 describe("[IT] Upgrade", function () {
@@ -8,14 +10,9 @@ describe("[IT] Upgrade", function () {
         it("Should upgrade ACL proxy to V2 implementation", async function () {
             const { acl } = await loadFixture();
             const viem = connection.viem;
-            const publicClient = await viem.getPublicClient();
 
-            // Deploy new ACLV2Mock implementation
-            const newImpl = await viem.deployContract("ACLV2Mock", []);
-
-            // Upgrade the proxy
-            const txHash = await acl.write.upgradeToAndCall([newImpl.address, "0x"]);
-            await publicClient.waitForTransactionReceipt({ hash: txHash });
+            // Upgrade using the upgrade script
+            await upgradeACL(acl.address, false);
 
             // Verify upgrade: version() should return 2
             const aclV2 = await viem.getContractAt("ACLV2Mock", acl.address);
@@ -48,14 +45,9 @@ describe("[IT] Upgrade", function () {
         it("Should upgrade NoxCompute proxy to V2 implementation", async function () {
             const { acl, noxCompute, gateway } = await loadFixture();
             const viem = connection.viem;
-            const publicClient = await viem.getPublicClient();
 
-            // Deploy new NoxComputeV2Mock implementation with ACL address
-            const newImpl = await viem.deployContract("NoxComputeV2Mock", [acl.address]);
-
-            // Upgrade the proxy
-            const txHash = await noxCompute.write.upgradeToAndCall([newImpl.address, "0x"]);
-            await publicClient.waitForTransactionReceipt({ hash: txHash });
+            // Upgrade using the upgrade script
+            await upgradeNoxCompute(noxCompute.address, acl.address, false);
 
             // Verify upgrade: version() should return 2
             const noxComputeV2 = await viem.getContractAt("NoxComputeV2Mock", noxCompute.address);
