@@ -4,8 +4,8 @@ Smart contracts for the Nox protocol, including on-chain access control for encr
 
 ## What’s inside
 
-- `ACL`: access control list for encrypted handles (admins, viewers, public decryption flags).
-- `NoxCompute`: TEE compute entry point (handle validation, plaintext → encrypted conversion, arithmetic ops).
+- `IACL`: access control list for encrypted handles (admins, viewers, public decryption flags).
+- `INoxCompute`: TEE compute entry point (handle validation, plaintext → encrypted conversion, arithmetic ops).
 - `Nox` SDK library: convenience wrapper for app contracts that call `NoxCompute` and `ACL`.
 
 ## Requirements

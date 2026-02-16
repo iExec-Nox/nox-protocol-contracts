@@ -30,8 +30,6 @@ jobs:
         run: |
           if [[ "${GITHUB_REF#refs/tags/}" == *"-rc"* ]]; then
             echo "TAG=rc" >> $GITHUB_OUTPUT
-          elif [[ "${GITHUB_REF#refs/tags/}" == *"-beta"* ]]; then
-            echo "TAG=beta" >> $GITHUB_OUTPUT
           else
             echo "TAG=latest" >> $GITHUB_OUTPUT
           fi
