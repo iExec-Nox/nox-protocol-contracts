@@ -9,6 +9,8 @@ on:
   push:
     tags:
       - "v*"
+    branches:
+      - "*"
   workflow_dispatch:
 
 jobs:
@@ -40,6 +42,7 @@ jobs:
       contents: read
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/publish-npm.yml@publish-npm-v1.6.0
     with:
+      node-version: 24
       tag: ${{ needs.determine-tag.outputs.TAG }}
       install-command: corepack enable && pnpm install --frozen-lockfile
       build-command: pnpm run build
