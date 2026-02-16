@@ -1,75 +1,63 @@
-# TODO
+# Nox Protocol Contracts
 
-# Sample Hardhat 3 Beta Project (`node:test` and `viem`)
+Smart contracts for the Nox protocol, including on-chain access control for encrypted handles and the compute gateway for confidential operations.
 
-This project showcases a Hardhat 3 Beta project using the native Node.js test runner (`node:test`) and the `viem` library for Ethereum interactions.
+## What’s inside
 
-To learn more about the Hardhat 3 Beta, please visit the [Getting Started guide](https://hardhat.org/docs/getting-started#getting-started-with-hardhat-3). To share your feedback, join our [Hardhat 3 Beta](https://hardhat.org/hardhat3-beta-telegram-group) Telegram group or [open an issue](https://github.com/NomicFoundation/hardhat/issues/new) in our GitHub issue tracker.
+- `IACL`: access control list for encrypted handles (admins, viewers, public decryption flags).
+- `INoxCompute`: TEE compute entry point (handle validation, plaintext → encrypted conversion, arithmetic ops).
+- `Nox` SDK library: convenience wrapper for app contracts that call `NoxCompute` and `ACL`.
 
-## Project Overview
+## Requirements
 
-This example project includes:
+- Node.js version from `.nvmrc`
+- `pnpm` (see `packageManager` in `package.json`)
 
-- A simple Hardhat configuration file.
-- Foundry-compatible Solidity unit tests.
-- TypeScript integration tests using [`node:test`](nodejs.org/api/test.html), the new Node.js native test runner, and [`viem`](https://viem.sh/).
-- Examples demonstrating how to connect to different types of networks, including locally simulating OP mainnet.
+## Setup
 
-## Project setup
-
-Checkout the NodeJS version specified in `.nvmrc` file:
-
-```
+```bash
 nvm install && nvm use
-```
-
-The project uses `pnpm` package manager:
-
-```
-npm install -g pnpm
-pnpm config set ignore-scripts=true
 pnpm install
 ```
 
-## Usage
+## Build
 
-### Running Tests
-
-To run all the tests in the project, execute the following command:
-
-```shell
-npx hardhat test
+```bash
+pnpm run build
 ```
 
-You can also selectively run the Solidity or `node:test` tests:
+## Test
 
-```shell
-npx hardhat test solidity
-npx hardhat test nodejs
+```bash
+pnpm run test
 ```
 
-### Make a deployment to Sepolia
+## Coverage
 
-This project includes an example Ignition module to deploy the contract. You can deploy this module to a locally simulated chain or to Sepolia.
-
-To run the deployment to a local chain:
-
-```shell
-npx hardhat ignition deploy ignition/modules/Counter.ts
+```bash
+pnpm run coverage
 ```
 
-To run the deployment to Sepolia, you need an account with funds to send the transaction. The provided Hardhat configuration includes a Configuration Variable called `SEPOLIA_PRIVATE_KEY`, which you can use to set the private key of the account you want to use.
+## Formatting
 
-You can set the `SEPOLIA_PRIVATE_KEY` variable using the `hardhat-keystore` plugin or by setting it as an environment variable.
-
-To set the `SEPOLIA_PRIVATE_KEY` config variable using `hardhat-keystore`:
-
-```shell
-npx hardhat keystore set SEPOLIA_PRIVATE_KEY
+```bash
+pnpm run format
+pnpm run format:check
 ```
 
-After setting the variable, you can run the deployment with the Sepolia network:
+## Deployment
 
-```shell
-npx hardhat ignition deploy --network sepolia ignition/modules/Counter.ts
+The default network is a local EDR simulation. For external networks, configure the required variables:
+
+- `RPC_URL`
+- `PRIVATE_KEY`
+
+```bash
+pnpm run deploy
 ```
+
+## Configuration notes
+
+- Create2 salt is defined in [config/config.ts](config/config.ts).
+- Default owner addresses and KMS public keys per network are also defined in [config/config.ts](config/config.ts).
+- The SDK constants in [contracts/sdk/Nox.sol](contracts/sdk/Nox.sol) must match the deployed proxy addresses.
