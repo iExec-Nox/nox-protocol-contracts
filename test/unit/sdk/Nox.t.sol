@@ -39,6 +39,7 @@ contract NoxTest is Test {
     bytes32 uint16HandleB = TestHelper.createHandle(TEEType.Uint16);
     bytes32 uint256HandleA = TestHelper.createHandle(TEEType.Uint256);
     bytes32 uint256HandleB = TestHelper.createHandle(TEEType.Uint256);
+    bytes32 uint256HandleC = TestHelper.createHandle(TEEType.Uint256);
     NoxFromExternalMock noxFromExternalMock;
 
     // Arithmetic type handle pairs (types that support add/sub/mul/div/safe/select)
@@ -65,7 +66,7 @@ contract NoxTest is Test {
         _allowCaller(uint16HandleB);
         _allowCaller(uint256HandleA);
         _allowCaller(uint256HandleB);
-
+        _allowCaller(uint256HandleC);
         // Build arithmetic handle pairs: euint16, euint256, eint16, eint256
         arithmeticA.push(uint16HandleA);
         arithmeticA.push(uint256HandleA);
@@ -299,6 +300,44 @@ contract NoxTest is Test {
             bytes32 result = _noxSelect(boolHandle, arithmeticA[i], arithmeticB[i]);
             assertNotEq(result, 0);
         }
+    }
+
+    // ============ Advanced functions ============
+
+    function test_Transfer() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.transfer, (uint256HandleA, uint256HandleB, uint256HandleC))
+        );
+        Nox.transfer(
+            euint256.wrap(uint256HandleA),
+            euint256.wrap(uint256HandleB),
+            euint256.wrap(uint256HandleC)
+        );
+    }
+
+    function test_Mint() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.mint, (uint256HandleA, uint256HandleB, uint256HandleC))
+        );
+        Nox.burn(
+            euint256.wrap(uint256HandleA),
+            euint256.wrap(uint256HandleB),
+            euint256.wrap(uint256HandleC)
+        );
+    }
+
+    function test_Burn() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.burn, (uint256HandleA, uint256HandleB, uint256HandleC))
+        );
+        Nox.burn(
+            euint256.wrap(uint256HandleA),
+            euint256.wrap(uint256HandleB),
+            euint256.wrap(uint256HandleC)
+        );
     }
 
     // ============ allow ============
