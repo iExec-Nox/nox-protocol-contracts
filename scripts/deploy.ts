@@ -1,3 +1,4 @@
+import { parseEther } from "viem";
 import ACL from "../ignition/modules/ACL.ts";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
 import config from "../config/config.ts";
@@ -57,8 +58,19 @@ export async function deploy(printLogs = true) {
     });
     _log(`NoxCompute: ${noxComputeProxy.address}`);
     // Set NoxCompute address in ACL.
+    // On local EDR networks, the initialOwner is not a Hardhat account,
+    // so we need to impersonate it to call owner-only functions.
+    const isLocalNetwork = connection.networkConfig.type === "edr-simulated";
+    const owner = chainConfig.initialOwner as `0x${string}`;
+    if (isLocalNetwork) {
+        await connection.networkHelpers.impersonateAccount(owner);
+        await connection.networkHelpers.setBalance(owner, parseEther("1000"));
+    }
     const acl = await viem.getContractAt("ACL", aclProxy.address);
-    const setTxHash = await acl.write.setNoxCompute([noxComputeProxy.address]);
+    const setTxHash = await acl.write.setNoxCompute(
+        [noxComputeProxy.address],
+        isLocalNetwork ? { account: owner } : undefined,
+    );
     await publicClient.waitForTransactionReceipt({ hash: setTxHash });
 
     // Get NoxCompute contract instance.

@@ -2,6 +2,7 @@ import assert from "node:assert/strict";
 import { describe, it } from "node:test";
 import { keccak256, toHex } from "viem";
 import { loadFixture } from "../utils/fixture.ts";
+import config from "../../config/config.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 describe("ACL", function () {
@@ -11,8 +12,9 @@ describe("ACL", function () {
             const viem = connection.viem;
             // Deploy NoxComputeMock with ACL address
             const noxComputeMock = await viem.deployContract("NoxComputeMock", [acl.address]);
-            // Set noxComputeMock in the ACL
-            await acl.write.setNoxCompute([noxComputeMock.address]);
+            // Set noxComputeMock in the ACL (requires owner account)
+            const owner = config[connection.networkName].initialOwner as `0x${string}`;
+            await acl.write.setNoxCompute([noxComputeMock.address], { account: owner });
             const handleTransient = keccak256(toHex("handle-transient"));
             const handlePersistent = keccak256(toHex("handle-persistent"));
 

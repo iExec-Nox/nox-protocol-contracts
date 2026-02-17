@@ -21,8 +21,8 @@ import "encrypted-types/EncryptedTypes.sol";
 library Nox {
     // TODO: Update these addresses after deploying with the production salt.
     INoxCompute internal constant NOX_COMPUTE =
-        INoxCompute(0x463Bdd46031353138713a47D7056F7c85024a4A6);
-    IACL internal constant ACL = IACL(0x3219A802B61028Fc29848863268FE17d750E5701);
+        INoxCompute(0xd2856C55447FBb45c85a4C484796fe690981B069);
+    IACL internal constant ACL = IACL(0xDC91Ec3F965F2F5F143DbBfcC92cC1340857D3d1);
 
     // =========== Handle initialization checks ============
 

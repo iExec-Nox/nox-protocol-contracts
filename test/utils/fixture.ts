@@ -1,5 +1,6 @@
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
 import { deploy } from "../../scripts/deploy.ts";
+import config from "../../config/config.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 export async function loadFixture() {
@@ -16,7 +17,8 @@ async function deployFixture() {
     const deployment = await deploy(false);
     const accounts = await viem.getWalletClients();
     const gateway = privateKeyToAccount(generatePrivateKey());
-    const tx = await deployment.noxCompute.write.setGateway([gateway.address]);
+    const owner = config[connection.networkName].initialOwner as `0x${string}`;
+    const tx = await deployment.noxCompute.write.setGateway([gateway.address], { account: owner });
     await publicClient.waitForTransactionReceipt({ hash: tx });
     return {
         ...deployment,
