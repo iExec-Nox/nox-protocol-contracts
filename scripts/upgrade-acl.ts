@@ -1,6 +1,8 @@
+import { parseEther } from "viem";
 import { deploy } from "./deploy.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
+import config from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Script to upgrade the ACL proxy to a new implementation.
@@ -27,9 +29,15 @@ export async function upgradeACL(proxyAddress?: string, printLogs = true) {
     const publicClient = await viem.getPublicClient();
     const walletClients = await viem.getWalletClients();
 
-    const ownerClient = walletClients[0];
-    if (!ownerClient) {
-        throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
+    const isLocalNetwork = connection.networkConfig.type === "edr-simulated";
+    const chainConfig = config[connection.networkName];
+    const owner = chainConfig.initialOwner as `0x${string}`;
+
+    if (!isLocalNetwork) {
+        const ownerClient = walletClients[0];
+        if (!ownerClient) {
+            throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
+        }
     }
 
     // TODO: Replace with the actual new ACL contract name
@@ -37,23 +45,28 @@ export async function upgradeACL(proxyAddress?: string, printLogs = true) {
 
     _log(`Upgrading ACL proxy`);
     _log(`New implementation contract: ${contractName}`);
-    _log(`Using owner address: ${ownerClient.account.address}`);
+    _log(`Using owner address: ${owner}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
     const aclProxyAddress = proxyAddress ?? (await _resolveACLProxyAddress(_log));
     _log(`ACL proxy address: ${aclProxyAddress}`);
 
+    // On local EDR networks, impersonate the owner account
+    if (isLocalNetwork) {
+        await connection.networkHelpers.impersonateAccount(owner);
+        await connection.networkHelpers.setBalance(owner, parseEther("1000"));
+    }
+
     // Deploy new implementation
-    const newImplementation = await viem.deployContract(contractName, [], {
-        client: { wallet: ownerClient },
-    });
+    const newImplementation = await viem.deployContract(contractName, []);
     _log(`New implementation deployed at: ${newImplementation.address}`);
 
     // Upgrade the proxy via UUPS upgradeToAndCall
-    const proxy = await viem.getContractAt(contractName, aclProxyAddress, {
-        client: { wallet: ownerClient },
-    });
-    const txHash = await proxy.write.upgradeToAndCall([newImplementation.address, "0x"]);
+    const proxy = await viem.getContractAt(contractName, aclProxyAddress as `0x${string}`);
+    const txHash = await proxy.write.upgradeToAndCall(
+        [newImplementation.address, "0x"],
+        isLocalNetwork ? { account: owner } : undefined,
+    );
     _log(`Upgrade transaction hash: ${txHash}`);
 
     await publicClient.waitForTransactionReceipt({ hash: txHash });
