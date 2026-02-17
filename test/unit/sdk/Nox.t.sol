@@ -321,7 +321,7 @@ contract NoxTest is Test {
             noxCompute,
             abi.encodeCall(INoxCompute.mint, (uint256HandleA, uint256HandleB, uint256HandleC))
         );
-        Nox.burn(
+        Nox.mint(
             euint256.wrap(uint256HandleA),
             euint256.wrap(uint256HandleB),
             euint256.wrap(uint256HandleC)
