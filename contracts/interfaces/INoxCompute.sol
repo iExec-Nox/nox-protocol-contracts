@@ -200,7 +200,7 @@ interface INoxCompute is IErrors {
      * @notice Performs a division between two encrypted values.
      * In the case of a division by zero, the result will be as follows:
      *  - For unsigned integers uintN: encrypted MAX_UintN (i.e., 2^N - 1)
-     *  - For signed integers intN: encrypted MAX_IntN (i.e., 2^N - 1)
+     *  - For signed integers intN: encrypted MAX_IntN (i.e., 2^(N-1) - 1)
      * @param numerator Value to be divided
      * @param denominator Value to divide by
      * @return result Result handle
