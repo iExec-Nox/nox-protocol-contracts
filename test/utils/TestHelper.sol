@@ -10,9 +10,6 @@ import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
-    address internal constant NOX_COMPUTE_ADDRESS = address(Nox.NOX_COMPUTE);
-    address internal constant ACL_ADDRESS = address(Nox.ACL);
-
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -66,7 +63,7 @@ library TestHelper {
     }
 
     /**
-     * @notice Deploys ACL and NoxCompute at the hardcoded addresses used by Nox.
+     * @notice Deploys ACL and NoxCompute at the addresses resolved by Nox for the current chain.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
@@ -76,6 +73,8 @@ library TestHelper {
         address gateway
     ) internal returns (ACL acl, NoxCompute noxCompute) {
         Vm vm = getVm();
+        address aclAddress = address(Nox._acl());
+        address noxComputeAddress = address(Nox._compute());
 
         // Deploy ACL implementation
         address aclImplementation = address(new ACL());
@@ -83,43 +82,43 @@ library TestHelper {
         // Deploy a temporary proxy to get its runtime bytecode
         ERC1967Proxy aclProxyTemp = new ERC1967Proxy(aclImplementation, "");
 
-        // Etch the proxy bytecode at the hardcoded ACL address
-        vm.etch(ACL_ADDRESS, address(aclProxyTemp).code);
+        // Etch the proxy bytecode at the ACL address resolved by Nox
+        vm.etch(aclAddress, address(aclProxyTemp).code);
         // Set the implementation slot
-        vm.store(ACL_ADDRESS, IMPLEMENTATION_SLOT, bytes32(uint256(uint160(aclImplementation))));
+        vm.store(aclAddress, IMPLEMENTATION_SLOT, bytes32(uint256(uint160(aclImplementation))));
 
-        acl = ACL(ACL_ADDRESS);
+        acl = ACL(aclAddress);
         acl.initialize(owner);
 
         // Deploy NoxCompute implementation (with ACL address as immutable)
-        address noxComputeImplementation = address(new NoxCompute(ACL_ADDRESS));
+        address noxComputeImplementation = address(new NoxCompute(aclAddress));
 
         // Deploy a temporary proxy to get its runtime bytecode
         ERC1967Proxy noxComputeProxyTemp = new ERC1967Proxy(noxComputeImplementation, "");
 
-        // Etch the proxy bytecode at the hardcoded NoxCompute address
-        vm.etch(NOX_COMPUTE_ADDRESS, address(noxComputeProxyTemp).code);
+        // Etch the proxy bytecode at the NoxCompute address resolved by Nox
+        vm.etch(noxComputeAddress, address(noxComputeProxyTemp).code);
         // Set the implementation slot
         vm.store(
-            NOX_COMPUTE_ADDRESS,
+            noxComputeAddress,
             IMPLEMENTATION_SLOT,
             bytes32(uint256(uint160(noxComputeImplementation)))
         );
 
-        noxCompute = NoxCompute(NOX_COMPUTE_ADDRESS);
+        noxCompute = NoxCompute(noxComputeAddress);
         noxCompute.initialize(owner, vm.randomBytes(33));
 
         // Configure contracts
         vm.prank(owner);
-        acl.setNoxCompute(NOX_COMPUTE_ADDRESS);
+        acl.setNoxCompute(noxComputeAddress);
         vm.prank(owner);
         noxCompute.setGateway(gateway);
 
         // Set labels
         vm.label(owner, "owner");
         vm.label(gateway, "gateway");
-        vm.label(ACL_ADDRESS, "acl");
-        vm.label(NOX_COMPUTE_ADDRESS, "noxCompute");
+        vm.label(aclAddress, "acl");
+        vm.label(noxComputeAddress, "noxCompute");
 
         return (acl, noxCompute);
     }

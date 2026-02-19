@@ -11,18 +11,53 @@ import "encrypted-types/EncryptedTypes.sol";
  * @notice Library providing convenient functions for TEE confidential computations.
  * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
  *      the transaction will revert as it will not be recognized by the ACL.
- *
- *      NOX_COMPUTE and ACL are deterministic across all EVM chains using the CreateX factory.
- *      These addresses are derived from the CREATE2 salt configured in hardhat.config.ts.
- *
- *      IMPORTANT: If a fresh deployment is performed (not an upgrade), the proxy addresses will change.
- *      In that case, update these constants with the new deployed addresses.
  */
 library Nox {
-    // TODO: Update these addresses after deploying with the production salt.
-    INoxCompute internal constant NOX_COMPUTE =
-        INoxCompute(0x463Bdd46031353138713a47D7056F7c85024a4A6);
-    IACL internal constant ACL = IACL(0x3219A802B61028Fc29848863268FE17d750E5701);
+    // ============ Internal address resolution ============
+
+    /**
+     * @dev Returns the NoxCompute contract address for the current chain.
+     *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
+     *      including local forks of each network.
+     */
+    function _compute() internal view returns (INoxCompute) {
+        // Arbitrum mainnet or its fork
+        if (block.chainid == 42161) {
+            // TODO: Update after mainnet deployment.
+            return INoxCompute(address(0));
+        }
+        // Arbitrum Sepolia or its fork
+        if (block.chainid == 421614) {
+            return INoxCompute(0xd2856C55447FBb45c85a4C484796fe690981B069);
+        }
+        // Local development chain
+        if (block.chainid == 31337) {
+            return INoxCompute(0x463Bdd46031353138713a47D7056F7c85024a4A6);
+        }
+        revert("Nox: Unsupported chain");
+    }
+
+    /**
+     * @dev Returns the ACL contract address for the current chain.
+     *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
+     *      including local forks of each network.
+     */
+    function _acl() internal view returns (IACL) {
+        // Arbitrum mainnet or its fork
+        if (block.chainid == 42161) {
+            // TODO: Update after mainnet deployment.
+            return IACL(address(0));
+        }
+        // Arbitrum Sepolia or its fork
+        if (block.chainid == 421614) {
+            return IACL(0xDC91Ec3F965F2F5F143DbBfcC92cC1340857D3d1);
+        }
+        // Local development chain
+        if (block.chainid == 31337) {
+            return IACL(0x3219A802B61028Fc29848863268FE17d750E5701);
+        }
+        revert("Nox: Unsupported chain");
+    }
 
     // =========== Handle initialization checks ============
 
@@ -94,7 +129,7 @@ library Nox {
     function toEbool(bool value) internal returns (ebool) {
         return
             ebool.wrap(
-                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value ? 1 : 0)), TEEType.Bool)
+                _compute().plaintextToEncrypted(bytes32(uint256(value ? 1 : 0)), TEEType.Bool)
             );
     }
 
@@ -104,7 +139,7 @@ library Nox {
     function toEaddress(address value) internal returns (eaddress) {
         return
             eaddress.wrap(
-                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint160(value))), TEEType.Address)
+                _compute().plaintextToEncrypted(bytes32(uint256(uint160(value))), TEEType.Address)
             );
     }
 
@@ -113,14 +148,14 @@ library Nox {
      */
     function toEuint16(uint16 value) internal returns (euint16) {
         return
-            euint16.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Uint16));
+            euint16.wrap(_compute().plaintextToEncrypted(bytes32(uint256(value)), TEEType.Uint16));
     }
 
     /**
      * @dev Convert a plaintext value to an encrypted euint256 integer.
      */
     function toEuint256(uint256 value) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(value), TEEType.Uint256));
+        return euint256.wrap(_compute().plaintextToEncrypted(bytes32(value), TEEType.Uint256));
     }
 
     /**
@@ -129,7 +164,7 @@ library Nox {
     function toEint16(int16 value) internal returns (eint16) {
         return
             eint16.wrap(
-                NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(uint16(value))), TEEType.Int16)
+                _compute().plaintextToEncrypted(bytes32(uint256(uint16(value))), TEEType.Int16)
             );
     }
 
@@ -138,7 +173,7 @@ library Nox {
      */
     function toEint256(int256 value) internal returns (eint256) {
         return
-            eint256.wrap(NOX_COMPUTE.plaintextToEncrypted(bytes32(uint256(value)), TEEType.Int256));
+            eint256.wrap(_compute().plaintextToEncrypted(bytes32(uint256(value)), TEEType.Int256));
     }
 
     // ============ Handle validation ============
@@ -148,7 +183,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (ebool) {
         bytes32 handle = externalEbool.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Bool);
+        _compute().validateProof(handle, msg.sender, handleProof, TEEType.Bool);
         return ebool.wrap(handle);
     }
 
@@ -157,7 +192,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (eaddress) {
         bytes32 handle = externalEaddress.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Address);
+        _compute().validateProof(handle, msg.sender, handleProof, TEEType.Address);
         return eaddress.wrap(handle);
     }
 
@@ -166,7 +201,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (euint16) {
         bytes32 handle = externalEuint16.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
+        _compute().validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
         return euint16.wrap(handle);
     }
 
@@ -175,7 +210,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (euint256) {
         bytes32 handle = externalEuint256.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
+        _compute().validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
         return euint256.wrap(handle);
     }
 
@@ -184,7 +219,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (eint16) {
         bytes32 handle = externalEint16.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Int16);
+        _compute().validateProof(handle, msg.sender, handleProof, TEEType.Int16);
         return eint16.wrap(handle);
     }
 
@@ -193,78 +228,78 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (eint256) {
         bytes32 handle = externalEint256.unwrap(externalHandle);
-        NOX_COMPUTE.validateProof(handle, msg.sender, handleProof, TEEType.Int256);
+        _compute().validateProof(handle, msg.sender, handleProof, TEEType.Int256);
         return eint256.wrap(handle);
     }
 
     // ============ Arithmetic primitives ============
 
     function add(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(NOX_COMPUTE.add(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_compute().add(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function add(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.add(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_compute().add(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function add(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(NOX_COMPUTE.add(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_compute().add(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function add(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.add(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_compute().add(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function sub(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(NOX_COMPUTE.sub(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_compute().sub(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function sub(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.sub(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_compute().sub(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function sub(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(NOX_COMPUTE.sub(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_compute().sub(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function sub(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.sub(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_compute().sub(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function mul(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(NOX_COMPUTE.mul(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_compute().mul(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function mul(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.mul(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_compute().mul(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function mul(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(NOX_COMPUTE.mul(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_compute().mul(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function mul(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.mul(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_compute().mul(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function div(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(NOX_COMPUTE.div(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_compute().div(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function div(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(NOX_COMPUTE.div(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_compute().div(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function div(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(NOX_COMPUTE.div(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_compute().div(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function div(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(NOX_COMPUTE.div(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_compute().div(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function safeAdd(euint16 a, euint16 b) internal returns (ebool, euint16) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeAdd(
+        (bytes32 success, bytes32 result) = _compute().safeAdd(
             euint16.unwrap(a),
             euint16.unwrap(b)
         );
@@ -272,7 +307,7 @@ library Nox {
     }
 
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeAdd(
+        (bytes32 success, bytes32 result) = _compute().safeAdd(
             euint256.unwrap(a),
             euint256.unwrap(b)
         );
@@ -280,12 +315,12 @@ library Nox {
     }
 
     function safeAdd(eint16 a, eint16 b) internal returns (ebool, eint16) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeAdd(eint16.unwrap(a), eint16.unwrap(b));
+        (bytes32 success, bytes32 result) = _compute().safeAdd(eint16.unwrap(a), eint16.unwrap(b));
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeAdd(eint256 a, eint256 b) internal returns (ebool, eint256) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeAdd(
+        (bytes32 success, bytes32 result) = _compute().safeAdd(
             eint256.unwrap(a),
             eint256.unwrap(b)
         );
@@ -293,7 +328,7 @@ library Nox {
     }
 
     function safeSub(euint16 a, euint16 b) internal returns (ebool, euint16) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeSub(
+        (bytes32 success, bytes32 result) = _compute().safeSub(
             euint16.unwrap(a),
             euint16.unwrap(b)
         );
@@ -301,7 +336,7 @@ library Nox {
     }
 
     function safeSub(euint256 a, euint256 b) internal returns (ebool, euint256) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeSub(
+        (bytes32 success, bytes32 result) = _compute().safeSub(
             euint256.unwrap(a),
             euint256.unwrap(b)
         );
@@ -309,12 +344,12 @@ library Nox {
     }
 
     function safeSub(eint16 a, eint16 b) internal returns (ebool, eint16) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeSub(eint16.unwrap(a), eint16.unwrap(b));
+        (bytes32 success, bytes32 result) = _compute().safeSub(eint16.unwrap(a), eint16.unwrap(b));
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeSub(eint256 a, eint256 b) internal returns (ebool, eint256) {
-        (bytes32 success, bytes32 result) = NOX_COMPUTE.safeSub(
+        (bytes32 success, bytes32 result) = _compute().safeSub(
             eint256.unwrap(a),
             eint256.unwrap(b)
         );
@@ -326,7 +361,7 @@ library Nox {
     function select(ebool condition, euint16 ifTrue, euint16 ifFalse) internal returns (euint16) {
         return
             euint16.wrap(
-                NOX_COMPUTE.select(
+                _compute().select(
                     ebool.unwrap(condition),
                     euint16.unwrap(ifTrue),
                     euint16.unwrap(ifFalse)
@@ -341,7 +376,7 @@ library Nox {
     ) internal returns (euint256) {
         return
             euint256.wrap(
-                NOX_COMPUTE.select(
+                _compute().select(
                     ebool.unwrap(condition),
                     euint256.unwrap(ifTrue),
                     euint256.unwrap(ifFalse)
@@ -352,7 +387,7 @@ library Nox {
     function select(ebool condition, eint16 ifTrue, eint16 ifFalse) internal returns (eint16) {
         return
             eint16.wrap(
-                NOX_COMPUTE.select(
+                _compute().select(
                     ebool.unwrap(condition),
                     eint16.unwrap(ifTrue),
                     eint16.unwrap(ifFalse)
@@ -363,7 +398,7 @@ library Nox {
     function select(ebool condition, eint256 ifTrue, eint256 ifFalse) internal returns (eint256) {
         return
             eint256.wrap(
-                NOX_COMPUTE.select(
+                _compute().select(
                     ebool.unwrap(condition),
                     eint256.unwrap(ifTrue),
                     eint256.unwrap(ifFalse)
@@ -372,99 +407,99 @@ library Nox {
     }
 
     function eq(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.eq(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_compute().eq(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function eq(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.eq(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_compute().eq(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function eq(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.eq(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_compute().eq(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function eq(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.eq(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_compute().eq(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function ne(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ne(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_compute().ne(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function ne(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ne(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_compute().ne(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function ne(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ne(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_compute().ne(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function ne(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ne(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_compute().ne(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function lt(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.lt(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_compute().lt(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function lt(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.lt(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_compute().lt(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function lt(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.lt(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_compute().lt(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function lt(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.lt(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_compute().lt(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function le(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.le(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_compute().le(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function le(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.le(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_compute().le(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function le(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.le(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_compute().le(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function le(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.le(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_compute().le(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function gt(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.gt(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_compute().gt(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function gt(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.gt(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_compute().gt(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function gt(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.gt(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_compute().gt(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function gt(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.gt(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_compute().gt(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function ge(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ge(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_compute().ge(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function ge(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ge(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_compute().ge(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function ge(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ge(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_compute().ge(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function ge(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(NOX_COMPUTE.ge(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_compute().ge(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     // ============ ADVANCED FUNCTIONS ============
@@ -479,7 +514,7 @@ library Nox {
         euint256 balanceTo,
         euint256 amount
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newBalanceTo) {
-        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = NOX_COMPUTE.transfer(
+        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = _compute().transfer(
             euint256.unwrap(balanceFrom),
             euint256.unwrap(balanceTo),
             euint256.unwrap(amount)
@@ -499,7 +534,7 @@ library Nox {
         euint256 amount,
         euint256 totalSupply
     ) internal returns (ebool success, euint256 newBalanceTo, euint256 newTotalSupply) {
-        (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = NOX_COMPUTE.mint(
+        (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = _compute().mint(
             euint256.unwrap(balanceTo),
             euint256.unwrap(amount),
             euint256.unwrap(totalSupply)
@@ -519,7 +554,7 @@ library Nox {
         euint256 amount,
         euint256 totalSupply
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newTotalSupply) {
-        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = NOX_COMPUTE.burn(
+        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = _compute().burn(
             euint256.unwrap(balanceFrom),
             euint256.unwrap(amount),
             euint256.unwrap(totalSupply)
@@ -535,168 +570,168 @@ library Nox {
      * @dev Allows the use of value for the address account.
      */
     function allow(ebool value, address account) internal {
-        ACL.allow(ebool.unwrap(value), account);
+        _acl().allow(ebool.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(eaddress value, address account) internal {
-        ACL.allow(eaddress.unwrap(value), account);
+        _acl().allow(eaddress.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(euint16 value, address account) internal {
-        ACL.allow(euint16.unwrap(value), account);
+        _acl().allow(euint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(euint256 value, address account) internal {
-        ACL.allow(euint256.unwrap(value), account);
+        _acl().allow(euint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(eint16 value, address account) internal {
-        ACL.allow(eint16.unwrap(value), account);
+        _acl().allow(eint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
      */
     function allow(eint256 value, address account) internal {
-        ACL.allow(eint256.unwrap(value), account);
+        _acl().allow(eint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(ebool value) internal {
-        ACL.allow(ebool.unwrap(value), address(this));
+        _acl().allow(ebool.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(eaddress value) internal {
-        ACL.allow(eaddress.unwrap(value), address(this));
+        _acl().allow(eaddress.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(euint16 value) internal {
-        ACL.allow(euint16.unwrap(value), address(this));
+        _acl().allow(euint16.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(euint256 value) internal {
-        ACL.allow(euint256.unwrap(value), address(this));
+        _acl().allow(euint256.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(eint16 value) internal {
-        ACL.allow(eint16.unwrap(value), address(this));
+        _acl().allow(eint16.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
      */
     function allowThis(eint256 value) internal {
-        ACL.allow(eint256.unwrap(value), address(this));
+        _acl().allow(eint256.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(ebool value, address account) internal {
-        ACL.allowTransient(ebool.unwrap(value), account);
+        _acl().allowTransient(ebool.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(eaddress value, address account) internal {
-        ACL.allowTransient(eaddress.unwrap(value), account);
+        _acl().allowTransient(eaddress.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(euint16 value, address account) internal {
-        ACL.allowTransient(euint16.unwrap(value), account);
+        _acl().allowTransient(euint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(euint256 value, address account) internal {
-        ACL.allowTransient(euint256.unwrap(value), account);
+        _acl().allowTransient(euint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(eint16 value, address account) internal {
-        ACL.allowTransient(eint16.unwrap(value), account);
+        _acl().allowTransient(eint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
      */
     function allowTransient(eint256 value, address account) internal {
-        ACL.allowTransient(eint256.unwrap(value), account);
+        _acl().allowTransient(eint256.unwrap(value), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(ebool handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(ebool.unwrap(handle), account);
+        return _acl().isAllowed(ebool.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(eaddress handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(eaddress.unwrap(handle), account);
+        return _acl().isAllowed(eaddress.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(euint16 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(euint16.unwrap(handle), account);
+        return _acl().isAllowed(euint16.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(euint256 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(euint256.unwrap(handle), account);
+        return _acl().isAllowed(euint256.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(eint16 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(eint16.unwrap(handle), account);
+        return _acl().isAllowed(eint16.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(eint256 handle, address account) internal view returns (bool) {
-        return ACL.isAllowed(eint256.unwrap(handle), account);
+        return _acl().isAllowed(eint256.unwrap(handle), account);
     }
 
     // ============ VIEWER MANAGEMENT ============
@@ -705,84 +740,84 @@ library Nox {
      * @dev Adds a viewer for an ebool handle.
      */
     function addViewer(ebool value, address viewer) internal {
-        ACL.addViewer(ebool.unwrap(value), viewer);
+        _acl().addViewer(ebool.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an eaddress handle.
      */
     function addViewer(eaddress value, address viewer) internal {
-        ACL.addViewer(eaddress.unwrap(value), viewer);
+        _acl().addViewer(eaddress.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an euint16 handle.
      */
     function addViewer(euint16 value, address viewer) internal {
-        ACL.addViewer(euint16.unwrap(value), viewer);
+        _acl().addViewer(euint16.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an euint256 handle.
      */
     function addViewer(euint256 value, address viewer) internal {
-        ACL.addViewer(euint256.unwrap(value), viewer);
+        _acl().addViewer(euint256.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an eint16 handle.
      */
     function addViewer(eint16 value, address viewer) internal {
-        ACL.addViewer(eint16.unwrap(value), viewer);
+        _acl().addViewer(eint16.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an eint256 handle.
      */
     function addViewer(eint256 value, address viewer) internal {
-        ACL.addViewer(eint256.unwrap(value), viewer);
+        _acl().addViewer(eint256.unwrap(value), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(ebool handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(ebool.unwrap(handle), viewer);
+        return _acl().isViewer(ebool.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(eaddress handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(eaddress.unwrap(handle), viewer);
+        return _acl().isViewer(eaddress.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(euint16 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(euint16.unwrap(handle), viewer);
+        return _acl().isViewer(euint16.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(euint256 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(euint256.unwrap(handle), viewer);
+        return _acl().isViewer(euint256.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(eint16 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(eint16.unwrap(handle), viewer);
+        return _acl().isViewer(eint16.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(eint256 handle, address viewer) internal view returns (bool) {
-        return ACL.isViewer(eint256.unwrap(handle), viewer);
+        return _acl().isViewer(eint256.unwrap(handle), viewer);
     }
 
     // ============ PUBLIC DECRYPTION ============
@@ -791,83 +826,83 @@ library Nox {
      * @dev Marks an ebool handle as publicly decryptable.
      */
     function allowPublicDecryption(ebool value) internal {
-        ACL.allowPublicDecryption(ebool.unwrap(value));
+        _acl().allowPublicDecryption(ebool.unwrap(value));
     }
 
     /**
      * @dev Marks an eaddress handle as publicly decryptable.
      */
     function allowPublicDecryption(eaddress value) internal {
-        ACL.allowPublicDecryption(eaddress.unwrap(value));
+        _acl().allowPublicDecryption(eaddress.unwrap(value));
     }
 
     /**
      * @dev Marks an euint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint16 value) internal {
-        ACL.allowPublicDecryption(euint16.unwrap(value));
+        _acl().allowPublicDecryption(euint16.unwrap(value));
     }
 
     /**
      * @dev Marks an euint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint256 value) internal {
-        ACL.allowPublicDecryption(euint256.unwrap(value));
+        _acl().allowPublicDecryption(euint256.unwrap(value));
     }
 
     /**
      * @dev Marks an eint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(eint16 value) internal {
-        ACL.allowPublicDecryption(eint16.unwrap(value));
+        _acl().allowPublicDecryption(eint16.unwrap(value));
     }
 
     /**
      * @dev Marks an eint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(eint256 value) internal {
-        ACL.allowPublicDecryption(eint256.unwrap(value));
+        _acl().allowPublicDecryption(eint256.unwrap(value));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
-        return ACL.isPubliclyDecryptable(ebool.unwrap(handle));
+        return _acl().isPubliclyDecryptable(ebool.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
-        return ACL.isPubliclyDecryptable(eaddress.unwrap(handle));
+        return _acl().isPubliclyDecryptable(eaddress.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(euint16 handle) internal view returns (bool) {
-        return ACL.isPubliclyDecryptable(euint16.unwrap(handle));
+        return _acl().isPubliclyDecryptable(euint16.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
-        return ACL.isPubliclyDecryptable(euint256.unwrap(handle));
+        return _acl().isPubliclyDecryptable(euint256.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(eint16 handle) internal view returns (bool) {
-        return ACL.isPubliclyDecryptable(eint16.unwrap(handle));
+        return _acl().isPubliclyDecryptable(eint16.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
-        return ACL.isPubliclyDecryptable(eint256.unwrap(handle));
+        return _acl().isPubliclyDecryptable(eint256.unwrap(handle));
     }
 }
