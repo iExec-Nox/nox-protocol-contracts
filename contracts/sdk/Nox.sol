@@ -64,7 +64,7 @@ library Nox {
     /**
      * @dev Checks if an encrypted boolean handle is initialized.
      * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the _acl().
+     * is valid or recognized by the ACL.
      * @param handle encrypted boolean handle
      */
     function isInitialized(ebool handle) internal pure returns (bool) {
@@ -74,7 +74,7 @@ library Nox {
     /**
      * @dev Checks if an encrypted address handle is initialized.
      * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the _acl().
+     * is valid or recognized by the ACL.
      * @param handle encrypted address handle
      */
     function isInitialized(eaddress handle) internal pure returns (bool) {
@@ -84,7 +84,7 @@ library Nox {
     /**
      * @dev Checks if an encrypted uint16 handle is initialized.
      * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the _acl().
+     * is valid or recognized by the ACL.
      * @param handle encrypted uint16 handle
      */
     function isInitialized(euint16 handle) internal pure returns (bool) {
@@ -94,7 +94,7 @@ library Nox {
     /**
      * @dev Checks if an encrypted uint256 handle is initialized.
      * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the _acl().
+     * is valid or recognized by the ACL.
      * @param handle encrypted uint256 handle
      */
     function isInitialized(euint256 handle) internal pure returns (bool) {
@@ -104,7 +104,7 @@ library Nox {
     /**
      * @dev Checks if an encrypted int16 handle is initialized.
      * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the _acl().
+     * is valid or recognized by the ACL.
      * @param handle encrypted int16 handle
      */
     function isInitialized(eint16 handle) internal pure returns (bool) {
@@ -114,7 +114,7 @@ library Nox {
     /**
      * @dev Checks if an encrypted int256 handle is initialized.
      * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the _acl().
+     * is valid or recognized by the ACL.
      * @param handle encrypted int256 handle
      */
     function isInitialized(eint256 handle) internal pure returns (bool) {
