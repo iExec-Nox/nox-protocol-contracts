@@ -175,7 +175,21 @@ interface INoxCompute is IErrors {
     function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
-     * @notice Computes TEE Add operation
+     * @notice Validates a handle proof for a given owner and type.
+     * @param handle handle to validate
+     * @param owner owner of the provided handle
+     * @param proof proof data
+     * @param teeType expected handle type
+     */
+    function validateProof(
+        bytes32 handle,
+        address owner,
+        bytes calldata proof,
+        TEEType teeType
+    ) external;
+
+    /**
+     * @notice Performs an addition between two encrypted values without overflow check.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -186,7 +200,7 @@ interface INoxCompute is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a subtraction between two encrypted values without safety checks.
+     * @notice Performs a subtraction between two encrypted values without underflow check.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -197,7 +211,7 @@ interface INoxCompute is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a multiplication between two encrypted values
+     * @notice Performs a multiplication between two encrypted values without overflow check.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -208,7 +222,7 @@ interface INoxCompute is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a division between two encrypted values.
+     * @notice Performs a division between two encrypted values without safety checks.
      * In the case of a division by zero, the result will be as follows:
      *  - For unsigned integers uintN: encrypted MAX_UintN (i.e., 2^N - 1)
      *  - For signed integers intN: encrypted MAX_IntN (i.e., 2^(N-1) - 1)
@@ -219,7 +233,7 @@ interface INoxCompute is IErrors {
     function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
 
     /**
-     * @notice Performs an addition between two encrypted values with safety checks.
+     * @notice Performs an addition between two encrypted values with overflow check.
      * If the operation succeeds, the value of the success handle will be an encrypted
      * `true` and the result handle's value will be the encrypted sum.
      * If the operation fails (e.g., due to overflow), the success handle will contain
@@ -235,7 +249,7 @@ interface INoxCompute is IErrors {
     ) external returns (bytes32 success, bytes32 result);
 
     /**
-     * @notice Performs a subtraction between two encrypted values with safety checks.
+     * @notice Performs a subtraction between two encrypted values with underflow check.
      * If the operation succeeds, the value of the success handle will be an encrypted
      * `true` and the result handle's value will be the encrypted difference.
      * If the operation fails (e.g., due to underflow), the success handle will contain
@@ -249,6 +263,8 @@ interface INoxCompute is IErrors {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result);
+
+    // TODO add safeMul and safeDiv
 
     /**
      * @notice Selects between two encrypted values based on a condition
@@ -379,13 +395,6 @@ interface INoxCompute is IErrors {
         bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
-
-    function validateProof(
-        bytes32 handle,
-        address owner,
-        bytes calldata proof,
-        TEEType teeType
-    ) external;
 
     function domainSeparator() external view returns (bytes32);
     function ACL() external view returns (IACL);
