@@ -371,6 +371,102 @@ library Nox {
             );
     }
 
+    function eq(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function eq(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function eq(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function eq(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function ne(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function ne(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function ne(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function ne(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function lt(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function lt(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function lt(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function lt(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function le(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function le(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function le(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function le(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function gt(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function gt(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function gt(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function gt(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function ge(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function ge(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function ge(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function ge(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
     // ============ ADVANCED FUNCTIONS ============
 
     /**
