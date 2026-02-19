@@ -371,6 +371,164 @@ library Nox {
             );
     }
 
+    function eq(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function eq(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function eq(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function eq(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.eq(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function ne(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function ne(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function ne(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function ne(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ne(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function lt(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function lt(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function lt(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function lt(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.lt(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function le(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function le(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function le(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function le(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.le(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function gt(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function gt(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function gt(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function gt(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.gt(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    function ge(euint16 a, euint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(euint16.unwrap(a), euint16.unwrap(b)));
+    }
+
+    function ge(euint256 a, euint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(euint256.unwrap(a), euint256.unwrap(b)));
+    }
+
+    function ge(eint16 a, eint16 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(eint16.unwrap(a), eint16.unwrap(b)));
+    }
+
+    function ge(eint256 a, eint256 b) internal returns (ebool) {
+        return ebool.wrap(NOX_COMPUTE.ge(eint256.unwrap(a), eint256.unwrap(b)));
+    }
+
+    // ============ ADVANCED FUNCTIONS ============
+
+    /**
+     * @dev Atomically transfers `amount` from `balanceFrom` to `balanceTo`.
+     * Returns the new balances and whether the transfer was successful.
+     * The transfer will fail if `balanceFrom < amount`.
+     */
+    function transfer(
+        euint256 balanceFrom,
+        euint256 balanceTo,
+        euint256 amount
+    ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newBalanceTo) {
+        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = NOX_COMPUTE.transfer(
+            euint256.unwrap(balanceFrom),
+            euint256.unwrap(balanceTo),
+            euint256.unwrap(amount)
+        );
+        success = ebool.wrap(_success);
+        newBalanceFrom = euint256.wrap(_newBalanceFrom);
+        newBalanceTo = euint256.wrap(_newBalanceTo);
+    }
+
+    /**
+     * @dev Atomically mints `amount` to `balanceTo` and increases `totalSupply` by `amount`.
+     * Returns the new balance, new total supply, and whether the mint was successful.
+     * The mint will fail if `totalSupply + amount` overflows.
+     */
+    function mint(
+        euint256 balanceTo,
+        euint256 amount,
+        euint256 totalSupply
+    ) internal returns (ebool success, euint256 newBalanceTo, euint256 newTotalSupply) {
+        (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = NOX_COMPUTE.mint(
+            euint256.unwrap(balanceTo),
+            euint256.unwrap(amount),
+            euint256.unwrap(totalSupply)
+        );
+        success = ebool.wrap(_success);
+        newBalanceTo = euint256.wrap(_newBalanceTo);
+        newTotalSupply = euint256.wrap(_newTotalSupply);
+    }
+
+    /**
+     * @dev Atomically burns `amount` from `balanceFrom` and decreases `totalSupply` by `amount`.
+     * Returns the new balance, new total supply, and whether the burn was successful.
+     * The burn will fail if `balanceFrom < amount`.
+     */
+    function burn(
+        euint256 balanceFrom,
+        euint256 amount,
+        euint256 totalSupply
+    ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newTotalSupply) {
+        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = NOX_COMPUTE.burn(
+            euint256.unwrap(balanceFrom),
+            euint256.unwrap(amount),
+            euint256.unwrap(totalSupply)
+        );
+        success = ebool.wrap(_success);
+        newBalanceFrom = euint256.wrap(_newBalanceFrom);
+        newTotalSupply = euint256.wrap(_newTotalSupply);
+    }
+
     // ============ PERMISSION MANAGEMENT ============
 
     /**
