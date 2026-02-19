@@ -1,9 +1,8 @@
-import { parseEther } from "viem";
 import { deploy } from "./deploy.ts";
-import { isFreshLocalNetwork } from "./utils/network.ts";
+import { isFreshLocalNetwork, isLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
-import config from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { prepareOwner } from "./utils/owner.ts";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
 // It reads the deployed proxy and ACL addresses from ignition deployment artifacts,
@@ -28,18 +27,7 @@ export async function upgradeNoxCompute(proxyAddress?: string, aclAddress?: stri
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
-    const walletClients = await viem.getWalletClients();
-
-    const isLocalNetwork = connection.networkConfig.type === "edr-simulated";
-    const chainConfig = config[connection.networkName];
-    const owner = chainConfig.initialOwner as `0x${string}`;
-
-    if (!isLocalNetwork) {
-        const ownerClient = walletClients[0];
-        if (!ownerClient) {
-            throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
-        }
-    }
+    const owner = await prepareOwner({ requireWallet: true });
 
     // TODO: Replace with the actual new NoxCompute contract name
     const contractName = "NoxComputeV2Mock";
@@ -53,12 +41,6 @@ export async function upgradeNoxCompute(proxyAddress?: string, aclAddress?: stri
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
     _log(`ACL proxy address: ${aclProxyAddress}`);
 
-    // On local EDR networks, impersonate the owner account
-    if (isLocalNetwork) {
-        await connection.networkHelpers.impersonateAccount(owner);
-        await connection.networkHelpers.setBalance(owner, parseEther("1000"));
-    }
-
     // Deploy new implementation with ACL address as constructor arg
     const newImplementation = await viem.deployContract(contractName, [aclProxyAddress]);
     _log(`New implementation deployed at: ${newImplementation.address}`);
@@ -67,7 +49,7 @@ export async function upgradeNoxCompute(proxyAddress?: string, aclAddress?: stri
     const proxy = await viem.getContractAt(contractName, noxComputeProxyAddress);
     const txHash = await proxy.write.upgradeToAndCall(
         [newImplementation.address, "0x"],
-        isLocalNetwork ? { account: owner } : undefined,
+        isLocalNetwork() ? { account: owner } : undefined,
     );
     _log(`Upgrade transaction hash: ${txHash}`);
 

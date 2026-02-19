@@ -1,8 +1,9 @@
-import { parseEther } from "viem";
 import ACL from "../ignition/modules/ACL.ts";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
 import config from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { isLocalNetwork } from "./utils/network.ts";
+import { prepareOwner } from "./utils/owner.ts";
 
 // Deployment script for the Nox Contracts.
 // Uses deterministic CREATE2 deployment via CreateX factory.
@@ -60,16 +61,11 @@ export async function deploy(printLogs = true) {
     // Set NoxCompute address in ACL.
     // On local EDR networks, the initialOwner is not a Hardhat account,
     // so we need to impersonate it to call owner-only functions.
-    const isLocalNetwork = connection.networkConfig.type === "edr-simulated";
-    const owner = chainConfig.initialOwner as `0x${string}`;
-    if (isLocalNetwork) {
-        await connection.networkHelpers.impersonateAccount(owner);
-        await connection.networkHelpers.setBalance(owner, parseEther("1000"));
-    }
+    const owner = await prepareOwner();
     const acl = await viem.getContractAt("ACL", aclProxy.address);
     const setTxHash = await acl.write.setNoxCompute(
         [noxComputeProxy.address],
-        isLocalNetwork ? { account: owner } : undefined,
+        isLocalNetwork() ? { account: owner } : undefined,
     );
     await publicClient.waitForTransactionReceipt({ hash: setTxHash });
 
