@@ -10,8 +10,9 @@ import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
-    address internal constant NOX_COMPUTE_ADDRESS = address(Nox.NOX_COMPUTE);
-    address internal constant ACL_ADDRESS = address(Nox.ACL);
+    // Addresses for chainId 31337 (local development), matching Nox._compute() and Nox._acl().
+    address internal constant NOX_COMPUTE_ADDRESS = 0xd2856C55447FBb45c85a4C484796fe690981B069;
+    address internal constant ACL_ADDRESS = 0xDC91Ec3F965F2F5F143DbBfcC92cC1340857D3d1;
 
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
