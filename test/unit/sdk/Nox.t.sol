@@ -302,6 +302,98 @@ contract NoxTest is Test {
         }
     }
 
+    // ============ Comparison functions ============
+
+    function test_Eq() public {
+        // uint16
+        _expectCall(INoxCompute.eq.selector, uint16HandleA, uint16HandleB);
+        Nox.eq(euint16.wrap(uint16HandleA), euint16.wrap(uint16HandleB));
+        // uint256
+        _expectCall(INoxCompute.eq.selector, uint256HandleA, uint256HandleB);
+        Nox.eq(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB));
+        // int16
+        _expectCall(INoxCompute.eq.selector, int16HandleA, int16HandleB);
+        Nox.eq(eint16.wrap(int16HandleA), eint16.wrap(int16HandleB));
+        // int256
+        _expectCall(INoxCompute.eq.selector, int256HandleA, int256HandleB);
+        Nox.eq(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
+    }
+
+    function test_Ne() public {
+        // uint16
+        _expectCall(INoxCompute.ne.selector, uint16HandleA, uint16HandleB);
+        Nox.ne(euint16.wrap(uint16HandleA), euint16.wrap(uint16HandleB));
+        // uint256
+        _expectCall(INoxCompute.ne.selector, uint256HandleA, uint256HandleB);
+        Nox.ne(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB));
+        // int16
+        _expectCall(INoxCompute.ne.selector, int16HandleA, int16HandleB);
+        Nox.ne(eint16.wrap(int16HandleA), eint16.wrap(int16HandleB));
+        // int256
+        _expectCall(INoxCompute.ne.selector, int256HandleA, int256HandleB);
+        Nox.ne(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
+    }
+
+    function test_Lt() public {
+        // uint16
+        _expectCall(INoxCompute.lt.selector, uint16HandleA, uint16HandleB);
+        Nox.lt(euint16.wrap(uint16HandleA), euint16.wrap(uint16HandleB));
+        // uint256
+        _expectCall(INoxCompute.lt.selector, uint256HandleA, uint256HandleB);
+        Nox.lt(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB));
+        // int16
+        _expectCall(INoxCompute.lt.selector, int16HandleA, int16HandleB);
+        Nox.lt(eint16.wrap(int16HandleA), eint16.wrap(int16HandleB));
+        // int256
+        _expectCall(INoxCompute.lt.selector, int256HandleA, int256HandleB);
+        Nox.lt(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
+    }
+
+    function test_Le() public {
+        // uint16
+        _expectCall(INoxCompute.le.selector, uint16HandleA, uint16HandleB);
+        Nox.le(euint16.wrap(uint16HandleA), euint16.wrap(uint16HandleB));
+        // uint256
+        _expectCall(INoxCompute.le.selector, uint256HandleA, uint256HandleB);
+        Nox.le(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB));
+        // int16
+        _expectCall(INoxCompute.le.selector, int16HandleA, int16HandleB);
+        Nox.le(eint16.wrap(int16HandleA), eint16.wrap(int16HandleB));
+        // int256
+        _expectCall(INoxCompute.le.selector, int256HandleA, int256HandleB);
+        Nox.le(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
+    }
+
+    function test_Gt() public {
+        // uint16
+        _expectCall(INoxCompute.gt.selector, uint16HandleA, uint16HandleB);
+        Nox.gt(euint16.wrap(uint16HandleA), euint16.wrap(uint16HandleB));
+        // uint256
+        _expectCall(INoxCompute.gt.selector, uint256HandleA, uint256HandleB);
+        Nox.gt(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB));
+        // int16
+        _expectCall(INoxCompute.gt.selector, int16HandleA, int16HandleB);
+        Nox.gt(eint16.wrap(int16HandleA), eint16.wrap(int16HandleB));
+        // int256
+        _expectCall(INoxCompute.gt.selector, int256HandleA, int256HandleB);
+        Nox.gt(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
+    }
+
+    function test_Ge() public {
+        // uint16
+        _expectCall(INoxCompute.ge.selector, uint16HandleA, uint16HandleB);
+        Nox.ge(euint16.wrap(uint16HandleA), euint16.wrap(uint16HandleB));
+        // uint256
+        _expectCall(INoxCompute.ge.selector, uint256HandleA, uint256HandleB);
+        Nox.ge(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB));
+        // int16
+        _expectCall(INoxCompute.ge.selector, int16HandleA, int16HandleB);
+        Nox.ge(eint16.wrap(int16HandleA), eint16.wrap(int16HandleB));
+        // int256
+        _expectCall(INoxCompute.ge.selector, int256HandleA, int256HandleB);
+        Nox.ge(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
+    }
+
     // ============ Advanced functions ============
 
     function test_Transfer() public {
@@ -653,5 +745,9 @@ contract NoxTest is Test {
         aclContract.allowTransient(handle, address(this));
         vm.stopPrank();
         aclContract.allow(handle, address(this));
+    }
+
+    function _expectCall(bytes4 selector, bytes32 arg1, bytes32 arg2) internal {
+        vm.expectCall(noxCompute, abi.encodeWithSelector(selector, arg1, arg2));
     }
 }
