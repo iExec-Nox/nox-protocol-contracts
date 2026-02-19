@@ -175,21 +175,7 @@ interface INoxCompute is IErrors {
     function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
-     * @notice Validates a handle proof for a given owner and type.
-     * @param handle handle to validate
-     * @param owner owner of the provided handle
-     * @param proof proof data
-     * @param teeType expected handle type
-     */
-    function validateProof(
-        bytes32 handle,
-        address owner,
-        bytes calldata proof,
-        TEEType teeType
-    ) external;
-
-    /**
-     * @notice Performs an addition between two encrypted values without overflow check.
+     * @notice Computes TEE Add operation
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -200,7 +186,7 @@ interface INoxCompute is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a subtraction between two encrypted values without underflow check.
+     * @notice Performs a subtraction between two encrypted values without safety checks.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -211,7 +197,15 @@ interface INoxCompute is IErrors {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a multiplication between two encrypted values without overflow check.
+     * @notice Performs a division between two encrypted values
+     * @param numerator Value to be divided
+     * @param denominator Value to divide by
+     * @return result Result handle
+     */
+    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
+
+    /**
+     * @notice Performs a multiplication between two encrypted values
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -220,60 +214,6 @@ interface INoxCompute is IErrors {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
-
-    /**
-     * @notice Performs a division between two encrypted values without safety checks.
-     * In the case of a division by zero, the result will be as follows:
-     *  - For unsigned integers uintN: encrypted MAX_UintN (i.e., 2^N - 1)
-     *  - For signed integers intN: encrypted MAX_IntN (i.e., 2^(N-1) - 1)
-     * @param numerator Value to be divided
-     * @param denominator Value to divide by
-     * @return result Result handle
-     */
-    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
-
-    /**
-     * @notice Performs an addition between two encrypted values with overflow check.
-     * If the operation succeeds, the value of the success handle will be an encrypted
-     * `true` and the result handle's value will be the encrypted sum.
-     * If the operation fails (e.g., due to overflow), the success handle will contain
-     * an encrypted `false` and the result handle will contain an encrypted `0`.
-     * @param leftHandOperand Left-hand side operand handle
-     * @param rightHandOperand Right-hand side operand handle
-     * @return success Whether the operation was successful
-     * @return result Result handle
-     */
-    function safeAdd(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result);
-
-    /**
-     * @notice Performs a subtraction between two encrypted values with underflow check.
-     * If the operation succeeds, the value of the success handle will be an encrypted
-     * `true` and the result handle's value will be the encrypted difference.
-     * If the operation fails (e.g., due to underflow), the success handle will contain
-     * an encrypted `false` and the result handle will contain an encrypted `0`.
-     * @param leftHandOperand Left-hand side operand handle
-     * @param rightHandOperand Right-hand side operand handle
-     * @return success Whether the operation was successful
-     * @return result Result handle
-     */
-    function safeSub(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result);
-
-    // TODO add safeMul and safeDiv
-
-    /**
-     * @notice Selects between two encrypted values based on a condition
-     * @param condition Condition handle
-     * @param ifTrue Value handle if condition is true
-     * @param ifFalse Value handle if condition is false
-     * @return result Selected value handle
-     */
-    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
 
     /**
      * @notice Checks equality between two encrypted values
@@ -341,12 +281,45 @@ interface INoxCompute is IErrors {
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
 
+    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
+    // as result in case of failure.
+    /**
+     * @notice Performs an addition between two encrypted values with safety checks.
+     * The operation fails in the case of overflows.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Performs a subtraction between two encrypted values with safety checks.
+     * The operation fails in the case of underflow.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Selects between two encrypted values based on a condition
+     * @param condition Condition handle
+     * @param ifTrue Value handle if condition is true
+     * @param ifFalse Value handle if condition is false
+     * @return result Selected value handle
+     */
+    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
+
     /**
      * @notice Computes a confidential transfer between two balances.
-     * The transfer will succeed if the sender has sufficient balance and fail otherwise.
-     * If the transfer fails, the success handle will contain an encrypted `false`, the
-     * newBalanceFrom and newBalanceTo handles will contain the same values as the input
-     * balanceFrom and balanceTo handles.
      * @param balanceFrom Sender's current balance handle
      * @param balanceTo Recipient's current balance handle
      * @param amount Amount handle to transfer
@@ -362,9 +335,6 @@ interface INoxCompute is IErrors {
 
     /**
      * @notice Computes a confidential mint operation.
-     * If the minting operation fails (e.g., due to overflow), the success handle will
-     * contain an encrypted `false` and the newBalanceTo and newTotalSupply handles will
-     * contain the same values as the input balanceTo and totalSupply handles.
      * @param balanceTo Recipient's current balance handle
      * @param amount Amount handle to mint
      * @param totalSupply Current total supply handle
@@ -380,9 +350,6 @@ interface INoxCompute is IErrors {
 
     /**
      * @notice Computes a confidential burn operation.
-     * If the burn operation fails (e.g., due to underflow), the success handle will
-     * contain an encrypted `false` and the newBalanceFrom and newTotalSupply handles will
-     * contain the same values as the input balanceFrom and totalSupply handles.
      * @param balanceFrom Sender's current balance handle
      * @param amount Amount handle to burn
      * @param totalSupply Current total supply handle
@@ -395,6 +362,13 @@ interface INoxCompute is IErrors {
         bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
+
+    function validateProof(
+        bytes32 handle,
+        address owner,
+        bytes calldata proof,
+        TEEType teeType
+    ) external;
 
     function domainSeparator() external view returns (bytes32);
     function ACL() external view returns (IACL);
