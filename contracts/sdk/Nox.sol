@@ -20,7 +20,7 @@ library Nox {
      *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
      *      including local forks of each network.
      */
-    function _compute() private view returns (INoxCompute) {
+    function _compute() internal view returns (INoxCompute) {
         // Arbitrum mainnet or its fork
         if (block.chainid == 42161) {
             // TODO: Update after mainnet deployment.
@@ -32,7 +32,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return INoxCompute(0xd2856C55447FBb45c85a4C484796fe690981B069);
+            return INoxCompute(0x463Bdd46031353138713a47D7056F7c85024a4A6);
         }
         revert("Nox: Unsupported chain");
     }
@@ -42,7 +42,7 @@ library Nox {
      *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
      *      including local forks of each network.
      */
-    function _acl() private view returns (IACL) {
+    function _acl() internal view returns (IACL) {
         // Arbitrum mainnet or its fork
         if (block.chainid == 42161) {
             // TODO: Update after mainnet deployment.
@@ -54,7 +54,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return IACL(0xDC91Ec3F965F2F5F143DbBfcC92cC1340857D3d1);
+            return IACL(0x3219A802B61028Fc29848863268FE17d750E5701);
         }
         revert("Nox: Unsupported chain");
     }
