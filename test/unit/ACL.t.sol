@@ -9,7 +9,6 @@ import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Ini
 import {ACL} from "../../contracts/ACL.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {IACL} from "../../contracts/interfaces/IACL.sol";
-import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract ACLTest is Test {
@@ -70,7 +69,7 @@ contract ACLTest is Test {
     }
 
     function test_RevertWhen_SetNoxCompute_ZeroAddress() public {
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(owner);
         acl.setNoxCompute(address(0));
     }
@@ -165,7 +164,7 @@ contract ACLTest is Test {
 
         // Try to grant to zero address
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IErrors.InvalidZeroAddress.selector));
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.InvalidZeroAddress.selector));
         acl.allow(handle, address(0));
     }
 
@@ -220,7 +219,7 @@ contract ACLTest is Test {
 
         // Try to add zero address as viewer
         vm.prank(user1);
-        vm.expectRevert(abi.encodeWithSelector(IErrors.InvalidZeroAddress.selector));
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.InvalidZeroAddress.selector));
         acl.addViewer(handle, address(0));
     }
 

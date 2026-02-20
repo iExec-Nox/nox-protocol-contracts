@@ -1,14 +1,17 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {IErrors} from "./IErrors.sol";
 import {TEEType} from "../shared/TypeUtils.sol";
 
 /**
  * @title INoxCompute
  * @notice Interface for the Nox compute contract powered by TEE.
  */
-interface INoxCompute is IErrors {
+interface INoxCompute {
+    /// Error thrown when account address is zero
+    error InvalidZeroAddress();
+    /// Error thrown when bytes parameter is empty
+    error InvalidEmptyBytes();
     /// Error thrown when sender doesn't have access to the handle
     error UnauthorizedSender(address sender);
     /// Error thrown when an account is not allowed to use a handle
