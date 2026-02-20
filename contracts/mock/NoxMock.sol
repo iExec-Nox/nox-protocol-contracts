@@ -227,6 +227,50 @@ contract NoxMock {
         Nox.ge(eint256.wrap(a), eint256.wrap(b));
     }
 
+    // ============ fromExternal ============
+
+    function fromExternalEbool(
+        externalEbool handle,
+        bytes calldata proof
+    ) external returns (ebool) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternalEaddress(
+        externalEaddress handle,
+        bytes calldata proof
+    ) external returns (eaddress) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternalEuint16(
+        externalEuint16 handle,
+        bytes calldata proof
+    ) external returns (euint16) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternalEuint256(
+        externalEuint256 handle,
+        bytes calldata proof
+    ) external returns (euint256) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternalEint16(
+        externalEint16 handle,
+        bytes calldata proof
+    ) external returns (eint16) {
+        return Nox.fromExternal(handle, proof);
+    }
+
+    function fromExternalEint256(
+        externalEint256 handle,
+        bytes calldata proof
+    ) external returns (eint256) {
+        return Nox.fromExternal(handle, proof);
+    }
+
     // ============ Advanced ============
 
     function transfer(bytes32 balanceFrom, bytes32 balanceTo, bytes32 amount) external {
