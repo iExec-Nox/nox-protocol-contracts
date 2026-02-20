@@ -6,7 +6,6 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {INoxCompute} from "./interfaces/INoxCompute.sol";
-import {IACL} from "./interfaces/IACL.sol";
 import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 
 /**
@@ -623,7 +622,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
      * When `isSafeOperation` is true, generates an additional Bool success handle (outputIndex 1)
      * and the result handle at outputIndex 0, enabling overflow/underflow detection.
      *
-     * @dev Reverts with IACL.NotAllowed if caller lacks permission on any operand
+     * @dev Reverts with NotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The operator to apply
@@ -659,7 +658,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
      * Verifies ACL permissions for both operands, checks type compatibility,
      * generates a Bool result handle, and grants transient access to the caller.
      *
-     * @dev Reverts with IACL.NotAllowed if caller lacks permission on any operand
+     * @dev Reverts with NotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The comparison operator to apply

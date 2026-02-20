@@ -2,7 +2,6 @@
 pragma solidity ^0.8.0;
 
 import {IErrors} from "./IErrors.sol";
-import {IACL} from "./IACL.sol";
 import {TEEType} from "../shared/TypeUtils.sol";
 
 /**

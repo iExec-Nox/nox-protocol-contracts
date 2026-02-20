@@ -1,4 +1,3 @@
-import ACL from "../ignition/modules/ACL.ts";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
 import config from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
@@ -25,19 +24,7 @@ export async function deploy(printLogs = true) {
 
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Chain config:`, chainConfig);
-    // Deploy ACL proxy (initialized with owner).
-    const { proxy: aclProxy } = await connection.ignition.deploy(ACL, {
-        deploymentId: connection.networkName,
-        displayUi: printLogs,
-        strategy: "create2",
-        parameters: {
-            ACL: {
-                initialOwner: chainConfig.initialOwner,
-            },
-        },
-    });
-    _log(`ACL: ${aclProxy.address}`);
-    // Deploy NoxCompute with ACL address as constructor arg.
+    // Deploy NoxCompute.
     // KMS_PUBLIC_KEY env var takes precedence, then falls back to the config value.
     const kmsPublicKey = process.env.KMS_PUBLIC_KEY ?? chainConfig.kmsPublicKey;
     if (!kmsPublicKey) {
@@ -50,21 +37,14 @@ export async function deploy(printLogs = true) {
         parameters: {
             NoxCompute: {
                 initialOwner: chainConfig.initialOwner,
-                acl: aclProxy.address,
                 kmsPublicKey,
             },
         },
     });
     _log(`NoxCompute: ${noxComputeProxy.address}`);
-    // Set NoxCompute address in ACL.
-    const acl = await viem.getContractAt("ACL", aclProxy.address);
-    const setTxHash = await acl.write.setNoxCompute([noxComputeProxy.address]);
-    await publicClient.waitForTransactionReceipt({ hash: setTxHash });
-
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
     return {
-        acl,
         noxCompute,
     };
 }
