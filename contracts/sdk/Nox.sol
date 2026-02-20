@@ -235,70 +235,172 @@ library Nox {
     // ============ Arithmetic primitives ============
 
     function add(euint16 a, euint16 b) internal returns (euint16) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return euint16.wrap(_compute().add(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function add(euint256 a, euint256 b) internal returns (euint256) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return euint256.wrap(_compute().add(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function add(eint16 a, eint16 b) internal returns (eint16) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return eint16.wrap(_compute().add(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function add(eint256 a, eint256 b) internal returns (eint256) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return eint256.wrap(_compute().add(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function sub(euint16 a, euint16 b) internal returns (euint16) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return euint16.wrap(_compute().sub(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function sub(euint256 a, euint256 b) internal returns (euint256) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return euint256.wrap(_compute().sub(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function sub(eint16 a, eint16 b) internal returns (eint16) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return eint16.wrap(_compute().sub(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function sub(eint256 a, eint256 b) internal returns (eint256) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return eint256.wrap(_compute().sub(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function mul(euint16 a, euint16 b) internal returns (euint16) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return euint16.wrap(_compute().mul(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function mul(euint256 a, euint256 b) internal returns (euint256) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return euint256.wrap(_compute().mul(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function mul(eint16 a, eint16 b) internal returns (eint16) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return eint16.wrap(_compute().mul(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function mul(eint256 a, eint256 b) internal returns (eint256) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return eint256.wrap(_compute().mul(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function div(euint16 a, euint16 b) internal returns (euint16) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return euint16.wrap(_compute().div(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function div(euint256 a, euint256 b) internal returns (euint256) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return euint256.wrap(_compute().div(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function div(eint16 a, eint16 b) internal returns (eint16) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return eint16.wrap(_compute().div(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function div(eint256 a, eint256 b) internal returns (eint256) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return eint256.wrap(_compute().div(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function safeAdd(euint16 a, euint16 b) internal returns (ebool, euint16) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeAdd(
             euint16.unwrap(a),
             euint16.unwrap(b)
@@ -307,6 +409,12 @@ library Nox {
     }
 
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeAdd(
             euint256.unwrap(a),
             euint256.unwrap(b)
@@ -315,11 +423,23 @@ library Nox {
     }
 
     function safeAdd(eint16 a, eint16 b) internal returns (ebool, eint16) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeAdd(eint16.unwrap(a), eint16.unwrap(b));
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeAdd(eint256 a, eint256 b) internal returns (ebool, eint256) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeAdd(
             eint256.unwrap(a),
             eint256.unwrap(b)
@@ -328,6 +448,12 @@ library Nox {
     }
 
     function safeSub(euint16 a, euint16 b) internal returns (ebool, euint16) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeSub(
             euint16.unwrap(a),
             euint16.unwrap(b)
@@ -336,6 +462,12 @@ library Nox {
     }
 
     function safeSub(euint256 a, euint256 b) internal returns (ebool, euint256) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeSub(
             euint256.unwrap(a),
             euint256.unwrap(b)
@@ -344,11 +476,23 @@ library Nox {
     }
 
     function safeSub(eint16 a, eint16 b) internal returns (ebool, eint16) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeSub(eint16.unwrap(a), eint16.unwrap(b));
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeSub(eint256 a, eint256 b) internal returns (ebool, eint256) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         (bytes32 success, bytes32 result) = _compute().safeSub(
             eint256.unwrap(a),
             eint256.unwrap(b)
@@ -359,6 +503,15 @@ library Nox {
     // TODO add safeMul and safeDiv.
 
     function select(ebool condition, euint16 ifTrue, euint16 ifFalse) internal returns (euint16) {
+        if (!isInitialized(condition)) {
+            condition = toEbool(false);
+        }
+        if (!isInitialized(ifTrue)) {
+            ifTrue = toEuint16(0);
+        }
+        if (!isInitialized(ifFalse)) {
+            ifFalse = toEuint16(0);
+        }
         return
             euint16.wrap(
                 _compute().select(
@@ -374,6 +527,15 @@ library Nox {
         euint256 ifTrue,
         euint256 ifFalse
     ) internal returns (euint256) {
+        if (!isInitialized(condition)) {
+            condition = toEbool(false);
+        }
+        if (!isInitialized(ifTrue)) {
+            ifTrue = toEuint256(0);
+        }
+        if (!isInitialized(ifFalse)) {
+            ifFalse = toEuint256(0);
+        }
         return
             euint256.wrap(
                 _compute().select(
@@ -385,6 +547,15 @@ library Nox {
     }
 
     function select(ebool condition, eint16 ifTrue, eint16 ifFalse) internal returns (eint16) {
+        if (!isInitialized(condition)) {
+            condition = toEbool(false);
+        }
+        if (!isInitialized(ifTrue)) {
+            ifTrue = toEint16(0);
+        }
+        if (!isInitialized(ifFalse)) {
+            ifFalse = toEint16(0);
+        }
         return
             eint16.wrap(
                 _compute().select(
@@ -396,6 +567,15 @@ library Nox {
     }
 
     function select(ebool condition, eint256 ifTrue, eint256 ifFalse) internal returns (eint256) {
+        if (!isInitialized(condition)) {
+            condition = toEbool(false);
+        }
+        if (!isInitialized(ifTrue)) {
+            ifTrue = toEint256(0);
+        }
+        if (!isInitialized(ifFalse)) {
+            ifFalse = toEint256(0);
+        }
         return
             eint256.wrap(
                 _compute().select(
@@ -407,98 +587,242 @@ library Nox {
     }
 
     function eq(euint16 a, euint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return ebool.wrap(_compute().eq(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function eq(euint256 a, euint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return ebool.wrap(_compute().eq(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function eq(eint16 a, eint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return ebool.wrap(_compute().eq(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function eq(eint256 a, eint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return ebool.wrap(_compute().eq(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function ne(euint16 a, euint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return ebool.wrap(_compute().ne(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function ne(euint256 a, euint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return ebool.wrap(_compute().ne(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function ne(eint16 a, eint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return ebool.wrap(_compute().ne(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function ne(eint256 a, eint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return ebool.wrap(_compute().ne(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function lt(euint16 a, euint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return ebool.wrap(_compute().lt(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function lt(euint256 a, euint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return ebool.wrap(_compute().lt(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function lt(eint16 a, eint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return ebool.wrap(_compute().lt(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function lt(eint256 a, eint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return ebool.wrap(_compute().lt(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function le(euint16 a, euint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return ebool.wrap(_compute().le(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function le(euint256 a, euint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return ebool.wrap(_compute().le(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function le(eint16 a, eint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return ebool.wrap(_compute().le(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function le(eint256 a, eint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return ebool.wrap(_compute().le(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function gt(euint16 a, euint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return ebool.wrap(_compute().gt(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function gt(euint256 a, euint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return ebool.wrap(_compute().gt(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function gt(eint16 a, eint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return ebool.wrap(_compute().gt(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function gt(eint256 a, eint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return ebool.wrap(_compute().gt(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function ge(euint16 a, euint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint16(0);
+        }
         return ebool.wrap(_compute().ge(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function ge(euint256 a, euint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEuint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEuint256(0);
+        }
         return ebool.wrap(_compute().ge(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function ge(eint16 a, eint16 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint16(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint16(0);
+        }
         return ebool.wrap(_compute().ge(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function ge(eint256 a, eint256 b) internal returns (ebool) {
+        if (!isInitialized(a)) {
+            a = toEint256(0);
+        }
+        if (!isInitialized(b)) {
+            b = toEint256(0);
+        }
         return ebool.wrap(_compute().ge(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
@@ -514,6 +838,15 @@ library Nox {
         euint256 balanceTo,
         euint256 amount
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newBalanceTo) {
+        if (!isInitialized(balanceFrom)) {
+            balanceFrom = toEuint256(0);
+        }
+        if (!isInitialized(balanceTo)) {
+            balanceTo = toEuint256(0);
+        }
+        if (!isInitialized(amount)) {
+            amount = toEuint256(0);
+        }
         (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = _compute().transfer(
             euint256.unwrap(balanceFrom),
             euint256.unwrap(balanceTo),
@@ -534,6 +867,15 @@ library Nox {
         euint256 amount,
         euint256 totalSupply
     ) internal returns (ebool success, euint256 newBalanceTo, euint256 newTotalSupply) {
+        if (!isInitialized(balanceTo)) {
+            balanceTo = toEuint256(0);
+        }
+        if (!isInitialized(amount)) {
+            amount = toEuint256(0);
+        }
+        if (!isInitialized(totalSupply)) {
+            totalSupply = toEuint256(0);
+        }
         (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = _compute().mint(
             euint256.unwrap(balanceTo),
             euint256.unwrap(amount),
@@ -554,6 +896,15 @@ library Nox {
         euint256 amount,
         euint256 totalSupply
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newTotalSupply) {
+        if (!isInitialized(balanceFrom)) {
+            balanceFrom = toEuint256(0);
+        }
+        if (!isInitialized(amount)) {
+            amount = toEuint256(0);
+        }
+        if (!isInitialized(totalSupply)) {
+            totalSupply = toEuint256(0);
+        }
         (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = _compute().burn(
             euint256.unwrap(balanceFrom),
             euint256.unwrap(amount),
