@@ -9,6 +9,7 @@ import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
 import {NoxFromExternalMock} from "../../../contracts/mock/NoxFromExternalMock.sol";
+import {NoxMock} from "../../../contracts/mock/NoxMock.sol";
 
 // Note: these tests are here to make sure the library calls the correct
 // functions on the NoxCompute and ACL, and that the `isInitialized`
@@ -41,6 +42,7 @@ contract NoxTest is Test {
     bytes32 uint256HandleB = TestHelper.createHandle(TEEType.Uint256);
     bytes32 uint256HandleC = TestHelper.createHandle(TEEType.Uint256);
     NoxFromExternalMock noxFromExternalMock;
+    NoxMock noxMock;
 
     // Arithmetic type handle pairs (types that support add/sub/mul/div/safe/select)
     bytes32[] arithmeticA;
@@ -57,6 +59,7 @@ contract NoxTest is Test {
         noxCompute = address(noxComputeContract);
 
         noxFromExternalMock = new NoxFromExternalMock();
+        noxMock = new NoxMock();
         // Allow all handles for the test contract
         _allowCaller(boolHandle);
         _allowCaller(addressHandle);
@@ -94,6 +97,7 @@ contract NoxTest is Test {
 
         vm.label(account, "account");
         vm.label(address(noxFromExternalMock), "NoxFromExternalMock");
+        vm.label(address(noxMock), "NoxMock");
     }
 
     // ============ isInitialized ============
@@ -237,18 +241,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_add_UninitializedHandles() public {
+    function test_RevertWhen_add_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxAddTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxAddTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -264,18 +262,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_sub_UninitializedHandles() public {
+    function test_RevertWhen_sub_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSubTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSubTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -291,18 +283,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_mul_UninitializedHandles() public {
+    function test_RevertWhen_mul_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxMulTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxMulTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -318,18 +304,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_div_UninitializedHandles() public {
+    function test_RevertWhen_div_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxDivTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxDivTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -348,18 +328,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_safeAdd_UninitializedHandles() public {
+    function test_RevertWhen_safeAdd_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSafeAddTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSafeAddTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -376,18 +350,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_safeSub_UninitializedHandles() public {
+    function test_RevertWhen_safeSub_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSafeSubTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSafeSubTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -405,26 +373,17 @@ contract NoxTest is Test {
         }
     }
 
-    function test_select_UninitializedHandles() public {
+    function test_RevertWhen_select_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
             // uninitialized condition
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Bool))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSelectTyped(t, bytes32(0), arithmeticA[i], arithmeticB[i]);
             // uninitialized ifTrue
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSelectTyped(t, boolHandle, bytes32(0), arithmeticB[i]);
             // uninitialized ifFalse
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxSelectTyped(t, boolHandle, arithmeticA[i], bytes32(0));
         }
     }
@@ -446,18 +405,12 @@ contract NoxTest is Test {
         Nox.eq(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
     }
 
-    function test_Eq_UninitializedHandles() public {
+    function test_RevertWhen_Eq_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxEqTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxEqTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -477,18 +430,12 @@ contract NoxTest is Test {
         Nox.ne(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
     }
 
-    function test_Ne_UninitializedHandles() public {
+    function test_RevertWhen_Ne_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxNeTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxNeTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -508,18 +455,12 @@ contract NoxTest is Test {
         Nox.lt(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
     }
 
-    function test_Lt_UninitializedHandles() public {
+    function test_RevertWhen_Lt_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxLtTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxLtTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -539,18 +480,12 @@ contract NoxTest is Test {
         Nox.le(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
     }
 
-    function test_Le_UninitializedHandles() public {
+    function test_RevertWhen_Le_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxLeTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxLeTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -570,18 +505,12 @@ contract NoxTest is Test {
         Nox.gt(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
     }
 
-    function test_Gt_UninitializedHandles() public {
+    function test_RevertWhen_Gt_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxGtTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxGtTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -601,18 +530,12 @@ contract NoxTest is Test {
         Nox.ge(eint256.wrap(int256HandleA), eint256.wrap(int256HandleB));
     }
 
-    function test_Ge_UninitializedHandles() public {
+    function test_RevertWhen_Ge_UninitializedHandle() public {
         for (uint256 i = 0; i < arithmeticTypes.length; i++) {
             TEEType t = arithmeticTypes[i];
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxGeTyped(t, bytes32(0), arithmeticB[i]);
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), t))
-            );
+            vm.expectRevert(Nox.UninitializedHandle.selector);
             _noxGeTyped(t, arithmeticA[i], bytes32(0));
         }
     }
@@ -631,37 +554,16 @@ contract NoxTest is Test {
         );
     }
 
-    function test_Transfer_UninitializedHandles() public {
+    function test_RevertWhen_Transfer_UninitializedHandle() public {
         // uninitialized balanceFrom
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.transfer(
-            euint256.wrap(0),
-            euint256.wrap(uint256HandleB),
-            euint256.wrap(uint256HandleC)
-        );
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.transfer(bytes32(0), uint256HandleB, uint256HandleC);
         // uninitialized balanceTo
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.transfer(
-            euint256.wrap(uint256HandleA),
-            euint256.wrap(0),
-            euint256.wrap(uint256HandleC)
-        );
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.transfer(uint256HandleA, bytes32(0), uint256HandleC);
         // uninitialized amount
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.transfer(
-            euint256.wrap(uint256HandleA),
-            euint256.wrap(uint256HandleB),
-            euint256.wrap(0)
-        );
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.transfer(uint256HandleA, uint256HandleB, bytes32(0));
     }
 
     function test_Mint() public {
@@ -676,25 +578,16 @@ contract NoxTest is Test {
         );
     }
 
-    function test_Mint_UninitializedHandles() public {
+    function test_RevertWhen_Mint_UninitializedHandle() public {
         // uninitialized balanceTo
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.mint(euint256.wrap(0), euint256.wrap(uint256HandleB), euint256.wrap(uint256HandleC));
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.mint(bytes32(0), uint256HandleB, uint256HandleC);
         // uninitialized amount
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.mint(euint256.wrap(uint256HandleA), euint256.wrap(0), euint256.wrap(uint256HandleC));
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.mint(uint256HandleA, bytes32(0), uint256HandleC);
         // uninitialized totalSupply
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.mint(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB), euint256.wrap(0));
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.mint(uint256HandleA, uint256HandleB, bytes32(0));
     }
 
     function test_Burn() public {
@@ -709,25 +602,16 @@ contract NoxTest is Test {
         );
     }
 
-    function test_Burn_UninitializedHandles() public {
+    function test_RevertWhen_Burn_UninitializedHandle() public {
         // uninitialized balanceFrom
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.burn(euint256.wrap(0), euint256.wrap(uint256HandleB), euint256.wrap(uint256HandleC));
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.burn(bytes32(0), uint256HandleB, uint256HandleC);
         // uninitialized amount
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.burn(euint256.wrap(uint256HandleA), euint256.wrap(0), euint256.wrap(uint256HandleC));
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.burn(uint256HandleA, bytes32(0), uint256HandleC);
         // uninitialized totalSupply
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(INoxCompute.plaintextToEncrypted, (bytes32(0), TEEType.Uint256))
-        );
-        Nox.burn(euint256.wrap(uint256HandleA), euint256.wrap(uint256HandleB), euint256.wrap(0));
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.burn(uint256HandleA, uint256HandleB, bytes32(0));
     }
 
     // ============ allow ============
@@ -804,78 +688,52 @@ contract NoxTest is Test {
 
     // ============ Typed Dispatch Helpers (for uninitialized handle tests) ============
 
-    function _noxAddTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return euint16.unwrap(Nox.add(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return euint256.unwrap(Nox.add(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return eint16.unwrap(Nox.add(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256)
-            return eint256.unwrap(Nox.add(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxAddTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.addEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.addEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.addEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.addEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxSubTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return euint16.unwrap(Nox.sub(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return euint256.unwrap(Nox.sub(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return eint16.unwrap(Nox.sub(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256)
-            return eint256.unwrap(Nox.sub(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxSubTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.subEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.subEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.subEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.subEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxMulTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return euint16.unwrap(Nox.mul(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return euint256.unwrap(Nox.mul(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return eint16.unwrap(Nox.mul(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256)
-            return eint256.unwrap(Nox.mul(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxMulTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.mulEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.mulEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.mulEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.mulEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxDivTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return euint16.unwrap(Nox.div(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return euint256.unwrap(Nox.div(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return eint16.unwrap(Nox.div(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256)
-            return eint256.unwrap(Nox.div(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxDivTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.divEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.divEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.divEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.divEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxSafeAddTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
-        if (t == TEEType.Uint16) {
-            (ebool s, euint16 r) = Nox.safeAdd(euint16.wrap(a), euint16.wrap(b));
-            return (ebool.unwrap(s), euint16.unwrap(r));
-        } else if (t == TEEType.Uint256) {
-            (ebool s, euint256 r) = Nox.safeAdd(euint256.wrap(a), euint256.wrap(b));
-            return (ebool.unwrap(s), euint256.unwrap(r));
-        } else if (t == TEEType.Int16) {
-            (ebool s, eint16 r) = Nox.safeAdd(eint16.wrap(a), eint16.wrap(b));
-            return (ebool.unwrap(s), eint16.unwrap(r));
-        } else if (t == TEEType.Int256) {
-            (ebool s, eint256 r) = Nox.safeAdd(eint256.wrap(a), eint256.wrap(b));
-            return (ebool.unwrap(s), eint256.unwrap(r));
-        }
-        revert("unsupported type");
+    function _noxSafeAddTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.safeAddEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.safeAddEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.safeAddEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.safeAddEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxSafeSubTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
-        if (t == TEEType.Uint16) {
-            (ebool s, euint16 r) = Nox.safeSub(euint16.wrap(a), euint16.wrap(b));
-            return (ebool.unwrap(s), euint16.unwrap(r));
-        } else if (t == TEEType.Uint256) {
-            (ebool s, euint256 r) = Nox.safeSub(euint256.wrap(a), euint256.wrap(b));
-            return (ebool.unwrap(s), euint256.unwrap(r));
-        } else if (t == TEEType.Int16) {
-            (ebool s, eint16 r) = Nox.safeSub(eint16.wrap(a), eint16.wrap(b));
-            return (ebool.unwrap(s), eint16.unwrap(r));
-        } else if (t == TEEType.Int256) {
-            (ebool s, eint256 r) = Nox.safeSub(eint256.wrap(a), eint256.wrap(b));
-            return (ebool.unwrap(s), eint256.unwrap(r));
-        }
-        revert("unsupported type");
+    function _noxSafeSubTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.safeSubEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.safeSubEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.safeSubEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.safeSubEint256(a, b);
+        else revert("unsupported type");
     }
 
     function _noxSelectTyped(
@@ -883,83 +741,60 @@ contract NoxTest is Test {
         bytes32 condition,
         bytes32 ifTrue,
         bytes32 ifFalse
-    ) internal returns (bytes32) {
-        if (t == TEEType.Uint16) {
-            return
-                euint16.unwrap(
-                    Nox.select(ebool.wrap(condition), euint16.wrap(ifTrue), euint16.wrap(ifFalse))
-                );
-        } else if (t == TEEType.Uint256) {
-            return
-                euint256.unwrap(
-                    Nox.select(ebool.wrap(condition), euint256.wrap(ifTrue), euint256.wrap(ifFalse))
-                );
-        } else if (t == TEEType.Int16) {
-            return
-                eint16.unwrap(
-                    Nox.select(ebool.wrap(condition), eint16.wrap(ifTrue), eint16.wrap(ifFalse))
-                );
-        } else if (t == TEEType.Int256) {
-            return
-                eint256.unwrap(
-                    Nox.select(ebool.wrap(condition), eint256.wrap(ifTrue), eint256.wrap(ifFalse))
-                );
-        }
-        revert("unsupported type");
+    ) internal {
+        if (t == TEEType.Uint16) noxMock.selectEuint16(condition, ifTrue, ifFalse);
+        else if (t == TEEType.Uint256) noxMock.selectEuint256(condition, ifTrue, ifFalse);
+        else if (t == TEEType.Int16) noxMock.selectEint16(condition, ifTrue, ifFalse);
+        else if (t == TEEType.Int256) noxMock.selectEint256(condition, ifTrue, ifFalse);
+        else revert("unsupported type");
     }
 
-    function _noxEqTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return ebool.unwrap(Nox.eq(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return ebool.unwrap(Nox.eq(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return ebool.unwrap(Nox.eq(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256) return ebool.unwrap(Nox.eq(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxEqTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.eqEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.eqEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.eqEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.eqEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxNeTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return ebool.unwrap(Nox.ne(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return ebool.unwrap(Nox.ne(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return ebool.unwrap(Nox.ne(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256) return ebool.unwrap(Nox.ne(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxNeTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.neEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.neEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.neEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.neEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxLtTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return ebool.unwrap(Nox.lt(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return ebool.unwrap(Nox.lt(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return ebool.unwrap(Nox.lt(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256) return ebool.unwrap(Nox.lt(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxLtTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.ltEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.ltEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.ltEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.ltEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxLeTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return ebool.unwrap(Nox.le(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return ebool.unwrap(Nox.le(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return ebool.unwrap(Nox.le(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256) return ebool.unwrap(Nox.le(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxLeTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.leEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.leEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.leEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.leEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxGtTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return ebool.unwrap(Nox.gt(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return ebool.unwrap(Nox.gt(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return ebool.unwrap(Nox.gt(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256) return ebool.unwrap(Nox.gt(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxGtTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.gtEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.gtEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.gtEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.gtEint256(a, b);
+        else revert("unsupported type");
     }
 
-    function _noxGeTyped(TEEType t, bytes32 a, bytes32 b) internal returns (bytes32) {
-        if (t == TEEType.Uint16) return ebool.unwrap(Nox.ge(euint16.wrap(a), euint16.wrap(b)));
-        else if (t == TEEType.Uint256)
-            return ebool.unwrap(Nox.ge(euint256.wrap(a), euint256.wrap(b)));
-        else if (t == TEEType.Int16) return ebool.unwrap(Nox.ge(eint16.wrap(a), eint16.wrap(b)));
-        else if (t == TEEType.Int256) return ebool.unwrap(Nox.ge(eint256.wrap(a), eint256.wrap(b)));
-        revert("unsupported type");
+    function _noxGeTyped(TEEType t, bytes32 a, bytes32 b) internal {
+        if (t == TEEType.Uint16) noxMock.geEuint16(a, b);
+        else if (t == TEEType.Uint256) noxMock.geEuint256(a, b);
+        else if (t == TEEType.Int16) noxMock.geEint16(a, b);
+        else if (t == TEEType.Int256) noxMock.geEint256(a, b);
+        else revert("unsupported type");
     }
 
     // ============ Dispatch Helpers ============
