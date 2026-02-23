@@ -18,7 +18,6 @@ import {
     NonArithmeticType
 } from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
-import {IErrors} from "../../contracts/interfaces/IErrors.sol";
 
 contract NoxComputeTest is Test {
     address owner = makeAddr("owner");
@@ -61,7 +60,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_RevertIf_ConstructorAclIsZeroAddress() public {
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         new NoxCompute(address(0));
     }
 
@@ -92,7 +91,7 @@ contract NoxComputeTest is Test {
     function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
         NoxCompute impl = new NoxCompute(acl);
         NoxCompute proxy = NoxCompute(TestHelper.deployProxy(address(impl)));
-        vm.expectRevert(IErrors.InvalidEmptyBytes.selector);
+        vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
         proxy.initialize(owner, "");
     }
 
@@ -123,7 +122,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_RevertWhen_SetKmsPublicKey_EmptyKey() public {
-        vm.expectRevert(IErrors.InvalidEmptyBytes.selector);
+        vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
         vm.prank(owner);
         noxCompute.setKmsPublicKey("");
     }
@@ -155,7 +154,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_RevertWhen_SetGateway_ZeroAddress() public {
-        vm.expectRevert(IErrors.InvalidZeroAddress.selector);
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(owner);
         noxCompute.setGateway(address(0));
     }

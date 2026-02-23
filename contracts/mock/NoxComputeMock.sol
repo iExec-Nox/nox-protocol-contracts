@@ -8,9 +8,6 @@ import {NoxCompute} from "../../contracts/NoxCompute.sol";
  * @dev Mock NoxCompute contract for testing ACL functionality with helper functions
  */
 contract NoxComputeMock is NoxCompute {
-    /// @custom:oz-upgrades-unsafe-allow constructor
-    constructor(address acl_) NoxCompute(acl_) {}
-
     /**
      * @dev Helper function to grant transient access and then persistent access in the same transaction.
      * This is useful for testing to demonstrate that persistent permissions survive while transient do not.
@@ -23,11 +20,13 @@ contract NoxComputeMock is NoxCompute {
         bytes32 handlePersistent,
         address account
     ) external {
+        // Use `this` to make an external call to allowTransient and allow
+        // because they are external.
         // Grant transient access (will be cleared after transaction)
-        ACL.allowTransient(handleTransient, account);
+        this.allowTransient(handleTransient, account);
         // Grant transient access to THIS CONTRACT so it can call allow()
-        ACL.allowTransient(handlePersistent, address(this));
+        this.allowTransient(handlePersistent, address(this));
         // Convert to persistent access (will survive after transaction)
-        ACL.allow(handlePersistent, account);
+        this.allow(handlePersistent, account);
     }
 }
