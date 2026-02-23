@@ -1,311 +1,202 @@
-// A mock service to simulate the Gateway and the Runner.
-
-import { randomBytes } from "crypto";
+import { spawn } from "child_process";
+import { mkdirSync, writeFileSync, existsSync, rmSync } from "fs";
+import { join } from "path";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
-import { concatHex, parseAbiItem, PrivateKeyAccount, toHex, WatchEventReturnType } from "viem";
-import { TEEType } from "./TEEType.ts";
+import { createWalletClient, http } from "viem";
+import type { Account } from "viem";
+import { createViemHandleClient } from "@iexec-nox/handle";
 
-const MAX_UINT256 = 2n ** 256n - 1n;
-const eventsToWatch = [
-    "event PlaintextToEncrypted(address indexed caller,bytes32 plaintext,uint8 toType,bytes32 result)",
-    "event Add(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
-    "event Sub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
-    "event Div(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
-    "event Mul(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
-    "event SafeAdd(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 success,bytes32 result)",
-    "event SafeSub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 success,bytes32 result)",
-    "event Select(address indexed caller,bytes32 condition,bytes32 ifTrue,bytes32 ifFalse,bytes32 result)",
-];
-const client = await connection.viem.getPublicClient();
-
+/**
+ * Real off-chain services integration using docker-compose.test.yml.
+ *
+ * Uses fixed test keys for the gateway and KMS, registers them in the contract,
+ * and starts the full docker-compose stack.
+ */
 export class OffChainServices {
-    // Can be used for manual debugging.
-    private printLogs = false;
     private noxComputeAddress: `0x${string}`;
-    private gateway: PrivateKeyAccount;
-    private chainId: number;
+    private readonly rpcUrl = "http://localhost:8545";
+    private readonly gatewayUrl = "http://localhost:9203";
+    private readonly projectRoot = new URL("../../", import.meta.url).pathname;
+    private readonly testDataDir = join(this.projectRoot, "test-data");
     private running = false;
-    private handleToValueMap!: Map<`0x${string}`, bigint>;
-    private stopGatewayService!: WatchEventReturnType;
 
-    constructor(noxComputeAddress: `0x${string}`, gateway: PrivateKeyAccount) {
+    constructor(noxComputeAddress: `0x${string}`, _gateway?: unknown) {
         this.noxComputeAddress = noxComputeAddress;
-        this.gateway = gateway;
-        this.chainId = client.chain.id;
     }
 
     /**
-     * Starts all mock off-chain services.
+     * Starts the local off-chain services stack.
+     *
+     * Writes fixed test key files, registers the keys in the contract,
+     * and starts the docker-compose stack.
      */
     async start() {
         if (this.running) {
-            throw new Error("Mock services are already running");
+            throw new Error("OffChainServices are already running");
         }
         this.running = true;
-        this.handleToValueMap = new Map(); // reset the map with every start
-        this.stopGatewayService = await this._startGateway();
-        this._log("Mock services started");
+
+        mkdirSync(join(this.testDataDir, "kms"), { recursive: true });
+        mkdirSync(join(this.testDataDir, "gateway"), { recursive: true });
+
+        // --- Gateway signer key (fixed test key, registered in contract) ---
+        writeFileSync(join(this.testDataDir, "gateway", "gateway_keystore.json"), _TEST_GATEWAY_KEYSTORE);
+        const gatewayAddress = _TEST_GATEWAY_ADDRESS;
+
+        // --- KMS ECIES key pair (fixed test key, registered in contract) ---
+        writeFileSync(join(this.testDataDir, "kms", "kms.key"), _TEST_KMS_EC_KEY_FILE);
+        const kmsPublicKeyHex = _TEST_KMS_EC_PUBLIC_KEY_HEX;
+
+        // --- KMS signer key (fixed test key, address configured in gateway env) ---
+        writeFileSync(join(this.testDataDir, "kms", "keystore_signer.json"), _TEST_KMS_SIGNER_KEYSTORE);
+        const kmsSignerAddress = _TEST_KMS_SIGNER_ADDRESS;
+
+        // --- Update contract ---
+        const noxCompute = await connection.viem.getContractAt("NoxCompute", this.noxComputeAddress);
+        const publicClient = await connection.viem.getPublicClient();
+        const gatewayTxHash = await noxCompute.write.setGateway([gatewayAddress]);
+        await publicClient.waitForTransactionReceipt({ hash: gatewayTxHash });
+        const kmsTxHash = await noxCompute.write.setKmsPublicKey([kmsPublicKeyHex]);
+        await publicClient.waitForTransactionReceipt({ hash: kmsTxHash });
+
+        // Get current block to avoid re-processing old events in the ingestor.
+        const currentBlock = await publicClient.getBlockNumber();
+
+        // --- Start docker-compose ---
+        const networkConfig = connection.networkConfig as { type?: string; url?: string; chainId?: number };
+        const chainId = networkConfig.chainId ?? 31337;
+        const dockerRpcUrl = "http://host.docker.internal:8545";
+
+        await this._dockerComposeUp({
+            NOX_COMPUTE_CONTRACT: this.noxComputeAddress,
+            NOX_CHAIN_ID: String(chainId),
+            NOX_RPC_URL: dockerRpcUrl,
+            NOX_KMS_SIGNER_ADDRESS: kmsSignerAddress,
+            NOX_GATEWAY_ADDRESS: gatewayAddress,
+            NOX_INITIAL_BLOCK: String(currentBlock),
+        });
+
+        // Wait for the gateway HTTP API to be ready.
+        await _waitForHealthy(`${this.gatewayUrl}/health`);
     }
 
     /**
-     * Stops all mock off-chain services.
+     * Stops all off-chain services and cleans up.
      */
     async stop() {
         if (!this.running) {
             return;
         }
         this.running = false;
-        this.handleToValueMap.clear();
-        this.stopGatewayService();
-        this._log("Mock services stopped");
+        await this._dockerComposeDown();
+        if (existsSync(this.testDataDir)) {
+            rmSync(this.testDataDir, { recursive: true, force: true });
+        }
     }
 
     /**
-     * Simulates the Gateway service.
-     * Generates a handle random and its proof and stores the corresponding value
-     * in an internal map.
-     */
-    async generateAndStoreHandle(
-        value: bigint,
-        teeType: TEEType,
-        userAddress: `0x${string}`,
-        appAddress: `0x${string}`,
-    ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
-        const { handle, proof } = await this.generateHandle(teeType, userAddress, appAddress);
-        this._saveHandle(handle, value);
-        return { handle, proof };
-    }
-
-    /**
-     * Generates a random handle and its proof.
-     */
-    async generateHandle(
-        teeType: TEEType,
-        userAddress: `0x${string}`,
-        appAddress: `0x${string}`,
-    ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
-        const preHandle = toHex(randomBytes(26));
-        const chainIdBytes = toHex(this.chainId, { size: 4 });
-        const teeTypeByte = toHex(teeType, { size: 1 });
-        const versionByte = toHex(0, { size: 1 });
-        const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, versionByte]);
-        const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
-        const domain = {
-            name: "NoxCompute",
-            version: "1",
-            chainId: this.chainId,
-            verifyingContract: this.noxComputeAddress,
-        } as const;
-        const types = {
-            HandleProof: [
-                { name: "handle", type: "bytes32" },
-                { name: "owner", type: "address" },
-                { name: "app", type: "address" },
-                { name: "createdAt", type: "uint256" },
-            ],
-        } as const;
-        const message = {
-            handle,
-            owner: userAddress,
-            app: appAddress,
-            createdAt,
-        } as const;
-        const signature = await this.gateway.signTypedData({
-            domain,
-            types,
-            primaryType: "HandleProof",
-            message,
-        });
-        const proof = concatHex([userAddress, appAddress, toHex(createdAt, { size: 32 }), signature]);
-        return { handle, proof };
-    }
-
-    /**
-     * Waits for event processing to be done.
-     * Should be called after each transaction that emits relevant events.
-     * TODO enhance this.
+     * Waits for blockchain events to be processed by the off-chain pipeline.
      */
     async waitForEventProcessing() {
-        await new Promise((resolve) => setTimeout(resolve, 100)); // 0.1 second
+        // Allow time for:
+        //   - Ingestor to poll the chain (200ms poll delay)
+        //   - Runner to process and post results to the gateway
+        await new Promise((resolve) => setTimeout(resolve, 1000));
     }
 
     /**
-     * Simulates decryption.
+     * Creates an SDK client for the given account to interact with the gateway.
+     * Can be used to encrypt inputs and decrypt handles.
+     * Must be called after start().
      */
-    decrypt(handle: `0x${string}`): bigint {
-        const value = this.handleToValueMap.get(handle);
-        if (value === undefined) {
-            throw new Error(`Handle not found: ${handle}`);
-        }
-        return value;
-    }
-
-    private _saveHandle(handle: `0x${string}`, value: bigint) {
-        this.handleToValueMap.set(handle, value);
-        this._log(`Saved handle: ${handle} -> ${value}`);
-    }
-
-    private async _startGateway() {
-        const unwatch = client.watchEvent({
-            address: this.noxComputeAddress,
-            events: eventsToWatch.map((e) => parseAbiItem(e)),
-            // pollingInterval: 10,
-            onLogs: (logs) => this._processEvents(logs),
-            onError(error) {
-                console.error("❌ Event listener error");
-                console.error(error);
-            },
+    async createClient(account: Account) {
+        const walletClient = createWalletClient({
+            account,
+            transport: http(this.rpcUrl),
         });
-        return unwatch;
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        return createViemHandleClient(walletClient as any, {
+            gatewayUrl: this.gatewayUrl,
+            smartContractAddress: this.noxComputeAddress,
+        });
     }
 
     /**
-     * Simulates the off-chain runner.
+     * Decrypts a handle by requesting the plaintext from the gateway.
+     * The signer must be an authorized viewer of the handle in the ACL.
      */
-    private _processEvents(eventLogs: any[]) {
-        this._log(`Gateway processing ${eventLogs.length} event(s): ${eventLogs.map((e) => e.eventName).join(", ")}`);
-        for (const log of eventLogs) {
-            const eventName = log.eventName;
-            this._log(`Processing event: ${eventName}`);
-            if (eventName === "PlaintextToEncrypted") {
-                this._processPlaintextToEncryptedEvent(log);
-            } else if (eventName === "Add") {
-                this._processAddEvent(log);
-            } else if (eventName === "Sub") {
-                this._processSubEvent(log);
-            } else if (eventName === "Div") {
-                this._processDivEvent(log);
-            } else if (eventName === "Mul") {
-                this._processMulEvent(log);
-            } else if (eventName === "SafeAdd") {
-                this._processSafeAddEvent(log);
-            } else if (eventName === "SafeSub") {
-                this._processSafeSubEvent(log);
-            } else if (eventName === "Select") {
-                this._processSelectEvent(log);
-            } else {
-                throw new Error(`Unknown event: ${eventName}`);
-            }
+    async decrypt(handle: `0x${string}`, signer: Account): Promise<bigint> {
+        const client = await this.createClient(signer);
+        const { value } = await client.decrypt(handle);
+        return value as bigint;
+    }
+
+    private _dockerComposeUp(env: Record<string, string>): Promise<void> {
+        return new Promise((resolve, reject) => {
+            const proc = spawn("docker", ["compose", "-f", "docker-compose.test.yml", "up", "-d"], {
+                cwd: this.projectRoot,
+                env: { ...process.env, ...env },
+                stdio: "inherit",
+            });
+            proc.on("close", (code) => {
+                if (code === 0) resolve();
+                else reject(new Error(`docker compose up failed with exit code ${code}`));
+            });
+            proc.on("error", reject);
+        });
+    }
+
+    private _dockerComposeDown(): Promise<void> {
+        return new Promise((resolve) => {
+            const proc = spawn("docker", ["compose", "-f", "docker-compose.test.yml", "down", "-v"], {
+                cwd: this.projectRoot,
+                env: process.env,
+                stdio: "inherit",
+            });
+            proc.on("close", () => resolve());
+            proc.on("error", (err) => {
+                console.error("docker compose down error:", err);
+                resolve();
+            });
+        });
+    }
+}
+
+// ============ Fixed test keys ============
+//
+// All keys use private key 1 (gateway), 2 (KMS signer), and the secp256k1
+// generator point G (KMS EC pair). Keystores are pre-encrypted with empty
+// password, zero salt, and zero IV using scrypt N=8192 — for tests only.
+
+const _TEST_GATEWAY_ADDRESS = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf" as `0x${string}`;
+const _TEST_GATEWAY_KEYSTORE =
+    '{"version":3,"address":"7e5f4552091a69125d5dfcb7b8c2659029395bdf","crypto":{"ciphertext":"79e81056502c919d0db62b27df639fc81e79da44bcaadd300fbcd6375f318b57","cipherparams":{"iv":"00000000000000000000000000000000"},"cipher":"aes-128-ctr","kdf":"scrypt","kdfparams":{"dklen":32,"salt":"0000000000000000000000000000000000000000000000000000000000000000","n":8192,"r":8,"p":1},"mac":"e651f3fe381006f112bb3c826a4dff5ef369ac74732ab80124a693abcf1fa170"}}';
+
+const _TEST_KMS_SIGNER_ADDRESS = "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF" as `0x${string}`;
+const _TEST_KMS_SIGNER_KEYSTORE =
+    '{"version":3,"address":"2b5ad5c4795c026514f8317c7a215e218dccd6cf","crypto":{"ciphertext":"79e81056502c919d0db62b27df639fc81e79da44bcaadd300fbcd6375f318b54","cipherparams":{"iv":"00000000000000000000000000000000"},"cipher":"aes-128-ctr","kdf":"scrypt","kdfparams":{"dklen":32,"salt":"0000000000000000000000000000000000000000000000000000000000000000","n":8192,"r":8,"p":1},"mac":"b2e45d4fa368776e9c63d9a84e14ca20149a2409318cb72ca635c97ae9a45d3d"}}';
+
+// secp256k1 generator point G: private key = 1, compressed public key = 02 + x.
+const _TEST_KMS_EC_PUBLIC_KEY_HEX =
+    "0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798" as `0x${string}`;
+const _TEST_KMS_EC_KEY_FILE = Buffer.concat([
+    Buffer.from("0000000000000000000000000000000000000000000000000000000000000001", "hex"),
+    Buffer.from(_TEST_KMS_EC_PUBLIC_KEY_HEX.slice(2), "hex"),
+]);
+
+/**
+ * Polls a health endpoint until it returns 200, or throws after maxWaitMs.
+ */
+async function _waitForHealthy(url: string, maxWaitMs = 60_000): Promise<void> {
+    const deadline = Date.now() + maxWaitMs;
+    while (Date.now() < deadline) {
+        try {
+            const res = await fetch(url);
+            if (res.ok) return;
+        } catch {
+            // Service not yet up
         }
+        await new Promise((resolve) => setTimeout(resolve, 500));
     }
-
-    private _processPlaintextToEncryptedEvent(log: any) {
-        const { plaintext, result } = log.args as { plaintext: `0x${string}`; result: `0x${string}` };
-        this._log(`(e) PlaintextToEncrypted: ${result} -> ${plaintext}`);
-        this._saveHandle(result, BigInt(plaintext));
-    }
-
-    private _processAddEvent(log: any) {
-        const { leftHandOperand, rightHandOperand, result } = log.args as {
-            leftHandOperand: `0x${string}`;
-            rightHandOperand: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const lhoValue = this.decrypt(leftHandOperand);
-        const rhoValue = this.decrypt(rightHandOperand);
-        const addResult = lhoValue + rhoValue;
-        this._log(`(e) Add: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
-        this._saveHandle(result, addResult);
-    }
-
-    private _processSubEvent(log: any) {
-        const { leftHandOperand, rightHandOperand, result } = log.args as {
-            leftHandOperand: `0x${string}`;
-            rightHandOperand: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const lhoValue = this.decrypt(leftHandOperand);
-        const rhoValue = this.decrypt(rightHandOperand);
-        const subResult = lhoValue - rhoValue;
-        this._log(`(e) Sub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
-        this._saveHandle(result, subResult);
-    }
-
-    private _processDivEvent(log: any) {
-        const { leftHandOperand, rightHandOperand, result } = log.args as {
-            leftHandOperand: `0x${string}`;
-            rightHandOperand: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const lhoValue = this.decrypt(leftHandOperand);
-        const rhoValue = this.decrypt(rightHandOperand);
-        const divResult = lhoValue / rhoValue;
-        this._log(`(e) Div: ${result} -> ${lhoValue} / ${rhoValue} = ${divResult}`);
-        this._saveHandle(result, divResult);
-    }
-
-    private _processMulEvent(log: any) {
-        const { leftHandOperand, rightHandOperand, result } = log.args as {
-            leftHandOperand: `0x${string}`;
-            rightHandOperand: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const lhoValue = this.decrypt(leftHandOperand);
-        const rhoValue = this.decrypt(rightHandOperand);
-        const mulResult = lhoValue * rhoValue;
-        this._log(`(e) Mul: ${result} -> ${lhoValue} * ${rhoValue} = ${mulResult}`);
-        this._saveHandle(result, mulResult);
-    }
-
-    // TODO add integration tests for overflow in SafeAdd and SafeSub.
-    private _processSafeAddEvent(log: any) {
-        const { leftHandOperand, rightHandOperand, success, result } = log.args as {
-            leftHandOperand: `0x${string}`;
-            rightHandOperand: `0x${string}`;
-            success: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const lhoValue = this.decrypt(leftHandOperand);
-        const rhoValue = this.decrypt(rightHandOperand);
-        const addResult = lhoValue + rhoValue;
-        if (addResult <= MAX_UINT256) {
-            this._log(`(e) SafeAdd: ${result} -> ${lhoValue} + ${rhoValue} = ${addResult}`);
-            this._saveHandle(success, 1n); // Save success handle as true.
-            this._saveHandle(result, addResult); // Save result handle.
-        } else {
-            // overflow
-            this._log(`SafeAdd overflow: ${result}`);
-            this._saveHandle(success, 0n); // Save only success handle as false.
-        }
-    }
-
-    private _processSafeSubEvent(log: any) {
-        const { leftHandOperand, rightHandOperand, success, result } = log.args as {
-            leftHandOperand: `0x${string}`;
-            rightHandOperand: `0x${string}`;
-            success: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const lhoValue = this.decrypt(leftHandOperand);
-        const rhoValue = this.decrypt(rightHandOperand);
-        const subResult = lhoValue - rhoValue;
-        if (subResult >= 0n) {
-            this._log(`(e) SafeSub: ${result} -> ${lhoValue} - ${rhoValue} = ${subResult}`);
-            this._saveHandle(success, 1n); // Save success handle as true.
-            this._saveHandle(result, subResult); // Save result handle.
-        } else {
-            // underflow
-            this._log(`SafeSub underflow: ${result}`);
-            this._saveHandle(success, 0n); // Save only success handle as false.
-        }
-    }
-
-    private _processSelectEvent(log: any) {
-        const { condition, ifTrue, ifFalse, result } = log.args as {
-            condition: `0x${string}`;
-            ifTrue: `0x${string}`;
-            ifFalse: `0x${string}`;
-            result: `0x${string}`;
-        };
-        const conditionValue = this.decrypt(condition);
-        const ifTrueValue = this.decrypt(ifTrue);
-        const ifFalseValue = this.decrypt(ifFalse);
-        const selectResult = conditionValue !== 0n ? ifTrueValue : ifFalseValue;
-        this._log(
-            `(e) Select: ${result} -> condition: ${conditionValue} ? ${ifTrueValue} : ${ifFalseValue} = ${selectResult}`,
-        );
-        this._saveHandle(result, selectResult);
-    }
-
-    private _log = this.printLogs ? console.log : () => {};
+    throw new Error(`Service at ${url} did not become healthy within ${maxWaitMs}ms`);
 }
