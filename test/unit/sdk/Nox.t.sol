@@ -3,7 +3,6 @@ pragma solidity ^0.8.0;
 
 import {Test} from "forge-std/Test.sol";
 import "encrypted-types/EncryptedTypes.sol";
-import {IACL} from "../../../contracts/interfaces/IACL.sol";
 import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
 import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
@@ -11,9 +10,9 @@ import {Nox} from "../../../contracts/sdk/Nox.sol";
 import {NoxFromExternalMock} from "../../../contracts/mock/NoxFromExternalMock.sol";
 
 // Note: these tests are here to make sure the library calls the correct
-// functions on the NoxCompute and ACL, and that the `isInitialized`
+// functions on the NoxCompute, and that the `isInitialized`
 // function works as expected. The actual logic of most functions is tested
-// in the NoxCompute and ACL tests, so we can keep these tests
+// in the NoxCompute tests, so we can keep these tests
 // relatively light.
 
 contract NoxTest is Test {
@@ -23,9 +22,7 @@ contract NoxTest is Test {
     address account = makeAddr("account");
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
-    IACL aclContract;
     INoxCompute noxComputeContract;
-    address acl;
     address noxCompute;
 
     // Individual handles
@@ -50,8 +47,7 @@ contract NoxTest is Test {
     bytes32[] allHandles;
 
     function setUp() public {
-        (aclContract, noxComputeContract) = TestHelper.deploy(owner, gateway);
-        acl = address(aclContract);
+        noxComputeContract = TestHelper.deploy(owner, gateway);
         noxCompute = address(noxComputeContract);
 
         noxFromExternalMock = new NoxFromExternalMock();
@@ -436,7 +432,7 @@ contract NoxTest is Test {
 
     function test_allow() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.allow, (allHandles[i], account)));
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.allow, (allHandles[i], account)));
             _noxAllow(allHandles[i], account);
         }
     }
@@ -445,7 +441,10 @@ contract NoxTest is Test {
 
     function test_allowThis() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.allow, (allHandles[i], address(this))));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allow, (allHandles[i], address(this)))
+            );
             _noxAllowThis(allHandles[i]);
         }
     }
@@ -454,7 +453,10 @@ contract NoxTest is Test {
 
     function test_allowTransient() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.allowTransient, (allHandles[i], account)));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allowTransient, (allHandles[i], account))
+            );
             _noxAllowTransient(allHandles[i], account);
         }
     }
@@ -463,7 +465,10 @@ contract NoxTest is Test {
 
     function test_isAllowed() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isAllowed, (allHandles[i], account)));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.isAllowed, (allHandles[i], account))
+            );
             _noxIsAllowed(allHandles[i], account);
         }
     }
@@ -472,7 +477,10 @@ contract NoxTest is Test {
 
     function test_addViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.addViewer, (allHandles[i], account)));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.addViewer, (allHandles[i], account))
+            );
             _noxAddViewer(allHandles[i], account);
         }
     }
@@ -481,7 +489,10 @@ contract NoxTest is Test {
 
     function test_isViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isViewer, (allHandles[i], account)));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.isViewer, (allHandles[i], account))
+            );
             _noxIsViewer(allHandles[i], account);
         }
     }
@@ -490,7 +501,10 @@ contract NoxTest is Test {
 
     function test_allowPublicDecryption() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.allowPublicDecryption, (allHandles[i])));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allowPublicDecryption, (allHandles[i]))
+            );
             _noxAllowPublicDecryption(allHandles[i]);
         }
     }
@@ -499,7 +513,10 @@ contract NoxTest is Test {
 
     function test_isPubliclyDecryptable() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
-            vm.expectCall(acl, abi.encodeCall(IACL.isPubliclyDecryptable, (allHandles[i])));
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.isPubliclyDecryptable, (allHandles[i]))
+            );
             _noxIsPubliclyDecryptable(allHandles[i]);
         }
     }
@@ -742,9 +759,9 @@ contract NoxTest is Test {
      */
     function _allowCaller(bytes32 handle) internal {
         vm.startPrank(noxCompute);
-        aclContract.allowTransient(handle, address(this));
+        noxComputeContract.allowTransient(handle, address(this));
         vm.stopPrank();
-        aclContract.allow(handle, address(this));
+        noxComputeContract.allow(handle, address(this));
     }
 
     function _expectCall(bytes4 selector, bytes32 arg1, bytes32 arg2) internal {
