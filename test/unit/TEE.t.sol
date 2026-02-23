@@ -4,20 +4,18 @@ pragma solidity ^0.8.0;
 import {Test} from "forge-std/Test.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
-import {ACL} from "../../contracts/ACL.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract TEELibTest is Test {
     NoxCompute internal noxCompute;
-    ACL internal acl;
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");
     address internal owner = makeAddr("owner");
     address internal gateway = makeAddr("gateway");
 
     function setUp() public {
-        (acl, noxCompute) = TestHelper.deploy(owner, gateway);
+        noxCompute = TestHelper.deploy(owner, gateway);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
     }
@@ -57,12 +55,12 @@ contract TEELibTest is Test {
 
         // NoxCompute grants transient access first
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         // Now allow for user1
         Nox.allow(value, user1);
 
-        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(noxCompute.isAllowed(handle, user1));
     }
 
     function test_Allow_Eaddress_GrantsPermission() public {
@@ -70,10 +68,10 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user2);
-        assertTrue(acl.isAllowed(handle, user2));
+        assertTrue(noxCompute.isAllowed(handle, user2));
     }
 
     function test_Allow_Euint256_GrantsPermission() public {
@@ -81,10 +79,10 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user2);
-        assertTrue(acl.isAllowed(handle, user2));
+        assertTrue(noxCompute.isAllowed(handle, user2));
     }
 
     function test_Allow_Eint256_GrantsPermission() public {
@@ -92,10 +90,10 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
-        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(noxCompute.isAllowed(handle, user1));
     }
 
     // ============ Permission Management - allowThis ============
@@ -105,10 +103,10 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
-        assertTrue(acl.isAllowed(handle, address(this)));
+        assertTrue(noxCompute.isAllowed(handle, address(this)));
     }
 
     function test_AllowThis_Euint256_GrantsPermissionToThisContract() public {
@@ -116,10 +114,10 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
-        assertTrue(acl.isAllowed(handle, address(this)));
+        assertTrue(noxCompute.isAllowed(handle, address(this)));
     }
 
     function test_AllowThis_Eint256_GrantsPermissionToThisContract() public {
@@ -127,10 +125,10 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
-        assertTrue(acl.isAllowed(handle, address(this)));
+        assertTrue(noxCompute.isAllowed(handle, address(this)));
     }
 
     function test_AllowThis_Eaddress_GrantsPermissionToThisContract() public {
@@ -138,10 +136,10 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowThis(value);
-        assertTrue(acl.isAllowed(handle, address(this)));
+        assertTrue(noxCompute.isAllowed(handle, address(this)));
     }
 
     // ============ Permission Management - allowTransient ============
@@ -151,10 +149,10 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user1);
-        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(noxCompute.isAllowed(handle, user1));
     }
 
     function test_AllowTransient_Eaddress_GrantsTransientPermission() public {
@@ -162,10 +160,10 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user1);
-        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(noxCompute.isAllowed(handle, user1));
     }
 
     function test_AllowTransient_Euint256_GrantsTransientPermission() public {
@@ -173,10 +171,10 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user2);
-        assertTrue(acl.isAllowed(handle, user2));
+        assertTrue(noxCompute.isAllowed(handle, user2));
     }
 
     function test_AllowTransient_Eint256_GrantsTransientPermission() public {
@@ -184,10 +182,10 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowTransient(value, user1);
-        assertTrue(acl.isAllowed(handle, user1));
+        assertTrue(noxCompute.isAllowed(handle, user1));
     }
 
     // ============ Viewer Management - addViewer ============
@@ -197,10 +195,10 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
-        assertTrue(acl.isViewer(handle, user1));
+        assertTrue(noxCompute.isViewer(handle, user1));
     }
 
     function test_AddViewer_Eaddress_AddsViewer() public {
@@ -208,10 +206,10 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
-        assertTrue(acl.isViewer(handle, user1));
+        assertTrue(noxCompute.isViewer(handle, user1));
     }
 
     function test_AddViewer_Euint256_AddsViewer() public {
@@ -219,10 +217,10 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
-        assertTrue(acl.isViewer(handle, user1));
+        assertTrue(noxCompute.isViewer(handle, user1));
     }
 
     function test_AddViewer_Eint256_AddsViewer() public {
@@ -230,10 +228,10 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
-        assertTrue(acl.isViewer(handle, user1));
+        assertTrue(noxCompute.isViewer(handle, user1));
     }
 
     // ============ Public Decryption ============
@@ -243,10 +241,10 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     function test_AllowPublicDecryption_Eaddress_MarksAsPubliclyDecryptable() public {
@@ -254,10 +252,10 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     function test_AllowPublicDecryption_Euint256_MarksAsPubliclyDecryptable() public {
@@ -265,10 +263,10 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     function test_AllowPublicDecryption_Eint256_MarksAsPubliclyDecryptable() public {
@@ -276,10 +274,10 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     // ============ Authorization Queries - isAllowed ============
@@ -289,7 +287,7 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
         assertTrue(Nox.isAllowed(value, user1));
@@ -300,7 +298,7 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
         assertTrue(Nox.isAllowed(value, user1));
@@ -311,7 +309,7 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
         assertTrue(Nox.isAllowed(value, user1));
@@ -322,7 +320,7 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allow(value, user1);
         assertTrue(Nox.isAllowed(value, user1));
@@ -335,10 +333,10 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Eaddress_ReturnsTrueWhenPublic() public {
@@ -346,10 +344,10 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Euint256_ReturnsTrueWhenPublic() public {
@@ -357,10 +355,10 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     function test_IsPubliclyDecryptable_Eint256_ReturnsTrueWhenPublic() public {
@@ -368,10 +366,10 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.allowPublicDecryption(value);
-        assertTrue(acl.isPubliclyDecryptable(handle));
+        assertTrue(noxCompute.isPubliclyDecryptable(handle));
     }
 
     // ============ Authorization Queries - isViewer ============
@@ -381,7 +379,7 @@ contract TEELibTest is Test {
         bytes32 handle = ebool.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
         assertTrue(Nox.isViewer(value, user1));
@@ -392,7 +390,7 @@ contract TEELibTest is Test {
         bytes32 handle = eaddress.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
         assertTrue(Nox.isViewer(value, user1));
@@ -403,7 +401,7 @@ contract TEELibTest is Test {
         bytes32 handle = euint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
         assertTrue(Nox.isViewer(value, user1));
@@ -414,7 +412,7 @@ contract TEELibTest is Test {
         bytes32 handle = eint256.unwrap(value);
 
         vm.prank(address(noxCompute));
-        acl.allowTransient(handle, address(this));
+        noxCompute.allowTransient(handle, address(this));
 
         Nox.addViewer(value, user1);
         assertTrue(Nox.isViewer(value, user1));
