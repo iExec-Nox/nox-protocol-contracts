@@ -52,7 +52,7 @@ services:
       - NOX_KMS_KEYSTORE_PASSWORD=
       - RUST_LOG=${NOX_KMS_RUST_LOG:-info}
     volumes:
-      - ./test-data/kms:/data
+      - ./test/fixtures/keys/kms:/data:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
@@ -76,7 +76,7 @@ services:
       - NOX_HANDLE_GATEWAY_SERVER__BACKEND_URL=postgresql://postgres:postgres@nox-handle-gateway-db-test:5432/nox_gateway_test
       - RUST_LOG=${NOX_HANDLE_GATEWAY_RUST_LOG:-info}
     volumes:
-      - ./test-data/gateway:/data
+      - ./test/fixtures/keys/gateway:/data:ro
     extra_hosts:
       - "host.docker.internal:host-gateway"
     networks:
