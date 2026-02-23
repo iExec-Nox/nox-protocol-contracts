@@ -17,6 +17,12 @@ export class OffChainServices {
     private readonly projectRoot = new URL("../../", import.meta.url).pathname;
     private running = false;
 
+    // Fixed test keys — see test/fixtures/keys/ for the corresponding key files.
+    private static readonly gatewayAddress = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf" as `0x${string}`;
+    private static readonly kmsSigner = "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF" as `0x${string}`;
+    private static readonly kmsEcPublicKey =
+        "0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798" as `0x${string}`;
+
     constructor(noxComputeAddress: `0x${string}`, _gateway?: unknown) {
         this.noxComputeAddress = noxComputeAddress;
     }
@@ -36,9 +42,9 @@ export class OffChainServices {
         // --- Update contract ---
         const noxCompute = await connection.viem.getContractAt("NoxCompute", this.noxComputeAddress);
         const publicClient = await connection.viem.getPublicClient();
-        const gatewayTxHash = await noxCompute.write.setGateway([_TEST_GATEWAY_ADDRESS]);
+        const gatewayTxHash = await noxCompute.write.setGateway([OffChainServices.gatewayAddress]);
         await publicClient.waitForTransactionReceipt({ hash: gatewayTxHash });
-        const kmsTxHash = await noxCompute.write.setKmsPublicKey([_TEST_KMS_EC_PUBLIC_KEY_HEX]);
+        const kmsTxHash = await noxCompute.write.setKmsPublicKey([OffChainServices.kmsEcPublicKey]);
         await publicClient.waitForTransactionReceipt({ hash: kmsTxHash });
 
         // Get current block to avoid re-processing old events in the ingestor.
@@ -53,8 +59,8 @@ export class OffChainServices {
             NOX_COMPUTE_CONTRACT: this.noxComputeAddress,
             NOX_CHAIN_ID: String(chainId),
             NOX_RPC_URL: dockerRpcUrl,
-            NOX_KMS_SIGNER_ADDRESS: _TEST_KMS_SIGNER_ADDRESS,
-            NOX_GATEWAY_ADDRESS: _TEST_GATEWAY_ADDRESS,
+            NOX_KMS_SIGNER_ADDRESS: OffChainServices.kmsSigner,
+            NOX_GATEWAY_ADDRESS: OffChainServices.gatewayAddress,
             NOX_INITIAL_BLOCK: String(currentBlock),
         });
 
@@ -140,20 +146,6 @@ export class OffChainServices {
         });
     }
 }
-
-// ============ Fixed test key addresses ============
-//
-// Key files are pre-committed under test/fixtures/keys/ and mounted read-only
-// by docker-compose. Private keys: 1 (gateway), 2 (KMS signer), secp256k1
-// generator point G (KMS EC pair).
-
-// private key = 1
-const _TEST_GATEWAY_ADDRESS = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf" as `0x${string}`;
-// private key = 2
-const _TEST_KMS_SIGNER_ADDRESS = "0x2B5AD5c4795c026514f8317c7a215E218DcCD6cF" as `0x${string}`;
-// secp256k1 generator point G: private key = 1, compressed public key = 02 + x
-const _TEST_KMS_EC_PUBLIC_KEY_HEX =
-    "0x0279be667ef9dcbbac55a06295ce870b07029bfcdb2dce28d959f2815b16f81798" as `0x${string}`;
 
 /**
  * Polls a health endpoint until it returns 200, or throws after maxWaitMs.
