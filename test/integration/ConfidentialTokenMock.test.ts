@@ -4,7 +4,6 @@ import { zeroHash } from "viem";
 import { loadFixture } from "../utils/fixture.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { OffChainServices } from "../utils/OffChainServicesMock.ts";
-import { TEEType } from "../utils/TEEType.ts";
 
 let noxCompute: Awaited<ReturnType<typeof loadFixture>>["noxCompute"];
 let admin: Awaited<ReturnType<typeof loadFixture>>["admin"];
@@ -38,22 +37,23 @@ describe("[IT] ConfidentialTokenMock", function () {
         const initialTotalSupply = await confidentialTokenMock.read.confidentialTotalSupply();
         const initialAdminBalance = await confidentialTokenMock.read.confidentialBalanceOf([admin.account.address]);
         const initialUserBalance = await confidentialTokenMock.read.confidentialBalanceOf([user.account.address]);
-        assert.equal(offChainServices.decrypt(initialTotalSupply), totalSupply);
-        assert.equal(offChainServices.decrypt(initialAdminBalance), totalSupply);
+        assert.equal(await offChainServices.decrypt(initialTotalSupply, admin.account), totalSupply);
+        assert.equal(await offChainServices.decrypt(initialAdminBalance, admin.account), totalSupply);
         assert.equal(initialUserBalance, zeroHash); // User balance not defined yet.
         //
         // Transfer some tokens from admin to user
         //
         const amount = 1000n;
-        const { handle, proof } = await offChainServices.generateAndStoreHandle(
-            amount,
-            TEEType.Uint256,
-            admin.account.address,
+        const adminClient = await offChainServices.createClient(admin.account);
+        const { handle, handleProof: proof } = await adminClient.encryptInput(
+            amount as any,
+            "uint256",
             confidentialTokenMock.address,
         );
-        await confidentialTokenMock.write.confidentialTransfer([user.account.address, handle, proof], {
-            account: admin.account,
-        });
+        await confidentialTokenMock.write.confidentialTransfer(
+            [user.account.address, handle as `0x${string}`, proof as `0x${string}`],
+            { account: admin.account },
+        );
         await offChainServices.waitForEventProcessing();
         //
         // Check balances after the transfer.
@@ -61,8 +61,8 @@ describe("[IT] ConfidentialTokenMock", function () {
         const finalTotalSupply = await confidentialTokenMock.read.confidentialTotalSupply();
         const finalAdminBalance = await confidentialTokenMock.read.confidentialBalanceOf([admin.account.address]);
         const finalUserBalance = await confidentialTokenMock.read.confidentialBalanceOf([user.account.address]);
-        assert.equal(offChainServices.decrypt(finalTotalSupply), totalSupply);
-        assert.equal(offChainServices.decrypt(finalAdminBalance), totalSupply - amount);
-        assert.equal(offChainServices.decrypt(finalUserBalance), amount);
+        assert.equal(await offChainServices.decrypt(finalTotalSupply, admin.account), totalSupply);
+        assert.equal(await offChainServices.decrypt(finalAdminBalance, admin.account), totalSupply - amount);
+        assert.equal(await offChainServices.decrypt(finalUserBalance, user.account), amount);
     });
 });

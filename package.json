@@ -20,6 +20,10 @@
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
+    "test:unit": "pnpm hardhat test solidity",
+    "test:integration": "dotenv -e .env.test -- pnpm hardhat test 'test/integration/*.test.ts' --network localhost",
+    "services:up": "dotenv -e .env.test -- docker compose -f docker-compose.test.yml up -d",
+    "services:down": "docker compose -f docker-compose.test.yml down -v",
     "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
@@ -40,6 +44,7 @@
     "encrypted-types": "^0.0.4"
   },
   "devDependencies": {
+    "@iexec-nox/handle": "link:../nox-handle-sdk",
     "@nomicfoundation/hardhat-ignition": "^3.0.6",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
     "@types/node": "^22.8.5",

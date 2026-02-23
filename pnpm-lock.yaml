@@ -18,6 +18,9 @@ importers:
         specifier: ^0.0.4
         version: 0.0.4
     devDependencies:
+      '@iexec-nox/handle':
+        specifier: link:../nox-handle-sdk
+        version: link:../nox-handle-sdk
       '@nomicfoundation/hardhat-ignition':
         specifier: ^3.0.6
         version: 3.0.6(@nomicfoundation/hardhat-verify@3.0.8(hardhat@3.1.2))(hardhat@3.1.2)
