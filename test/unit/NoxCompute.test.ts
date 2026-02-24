@@ -41,11 +41,11 @@ async function _allow(account: `0x${string}`, handle: `0x${string}`) {
     // mapping(bytes32 key1 => mapping(key2 => bool)) map;
     // outer = keccak256(abi.encode(key1, position of map));
     // slot = keccak256(abi.encode(key2, outer));
-    const outerMappingSlot = keccak256(
+    const outerKeyStorageLocation = keccak256(
         encodeAbiParameters([{ type: "bytes32" }, { type: "bytes32" }], [handle, adminsMappingStorageLocation]),
     );
-    const slot = keccak256(
-        encodeAbiParameters([{ type: "address" }, { type: "bytes32" }], [account, outerMappingSlot]),
+    const slotLocation = keccak256(
+        encodeAbiParameters([{ type: "address" }, { type: "bytes32" }], [account, outerKeyStorageLocation]),
     );
-    await connection.networkHelpers.setStorageAt(account, slot, padHex("0x01", { size: 32 }));
+    await connection.networkHelpers.setStorageAt(account, slotLocation, padHex("0x01", { size: 32 }));
 }
