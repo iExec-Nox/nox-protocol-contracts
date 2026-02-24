@@ -52,17 +52,17 @@ contract NoxTest is Test {
 
         noxFromExternalMock = new NoxFromExternalMock();
         // Allow all handles for the test contract
-        _allowCaller(boolHandle);
-        _allowCaller(addressHandle);
-        _allowCaller(int16HandleA);
-        _allowCaller(int16HandleB);
-        _allowCaller(int256HandleA);
-        _allowCaller(int256HandleB);
-        _allowCaller(uint16HandleA);
-        _allowCaller(uint16HandleB);
-        _allowCaller(uint256HandleA);
-        _allowCaller(uint256HandleB);
-        _allowCaller(uint256HandleC);
+        TestHelper.forceAllow(boolHandle, address(this));
+        TestHelper.forceAllow(addressHandle, address(this));
+        TestHelper.forceAllow(int16HandleA, address(this));
+        TestHelper.forceAllow(int16HandleB, address(this));
+        TestHelper.forceAllow(int256HandleA, address(this));
+        TestHelper.forceAllow(int256HandleB, address(this));
+        TestHelper.forceAllow(uint16HandleA, address(this));
+        TestHelper.forceAllow(uint16HandleB, address(this));
+        TestHelper.forceAllow(uint256HandleA, address(this));
+        TestHelper.forceAllow(uint256HandleB, address(this));
+        TestHelper.forceAllow(uint256HandleC, address(this));
         // Build arithmetic handle pairs: euint16, euint256, eint16, eint256
         arithmeticA.push(uint16HandleA);
         arithmeticA.push(uint256HandleA);
@@ -753,16 +753,6 @@ contract NoxTest is Test {
     }
 
     // ============ Internal Helpers ============
-
-    /**
-     * Helper function to allow this test contract as a caller of the given handle.
-     */
-    function _allowCaller(bytes32 handle) internal {
-        vm.startPrank(noxCompute);
-        noxComputeContract.allowTransient(handle, address(this));
-        vm.stopPrank();
-        noxComputeContract.allow(handle, address(this));
-    }
 
     function _expectCall(bytes4 selector, bytes32 arg1, bytes32 arg2) internal {
         vm.expectCall(noxCompute, abi.encodeWithSelector(selector, arg1, arg2));
