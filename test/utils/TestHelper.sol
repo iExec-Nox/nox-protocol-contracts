@@ -115,6 +115,10 @@ library TestHelper {
         vm.store(address(Nox._compute()), slotLocation, bytes32(uint256(1)));
     }
 
+    function forceAllowTransient(bytes32 handle, address account) internal {
+        // TODO
+    }
+
     function deployProxy(address implementation) internal returns (address) {
         ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
         return address(proxy);
