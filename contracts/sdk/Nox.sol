@@ -8,8 +8,6 @@ import "encrypted-types/EncryptedTypes.sol";
 /**
  * @title Nox
  * @notice Library providing convenient functions for TEE confidential computations.
- * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
- *      the transaction will revert as it will not be recognized by the ACL.
  */
 library Nox {
     // ============ Internal address resolution ============
