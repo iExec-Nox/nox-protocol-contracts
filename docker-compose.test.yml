@@ -1,24 +1,36 @@
 # Local test stack for nox-protocol-contracts.
 #
-# Prerequisites:
-#   - A running hardhat node on port 8545:
-#       npx hardhat node --port 8545
-#   - The following env vars set (managed by OffChainServices.start()):
-#       NOX_COMPUTE_CONTRACT   deployed NoxCompute proxy address
-#       NOX_CHAIN_ID           chain ID (default: 31337)
-#       NOX_RPC_URL            hardhat node RPC URL accessible by containers
-#       NOX_GATEWAY_ADDRESS    gateway signer address (for contract registration)
-#       NOX_KMS_SIGNER_ADDRESS KMS signer address (for gateway verification)
-#       NOX_KMS_VERSION        nox-kms image version
-#       NOX_HANDLE_GATEWAY_VERSION  nox-handle-gateway image version
-#       NOX_INGESTOR_VERSION   nox-ingestor image version
-#       NOX_RUNNER_VERSION     nox-runner image version
+# Static env vars (NOX_COMPUTE_CONTRACT, NOX_RPC_URL, etc.) are loaded from
+# .env.test. The only dynamic var is NOX_INITIAL_BLOCK, set by OffChainServicesMock.
 
 networks:
   nox-off-chain:
     name: nox-off-chain
 
 services:
+  # ============ Anvil node (managed by scripts/test-serial.sh) ============
+
+  anvil:
+    profiles: ["node"]
+    image: ghcr.io/foundry-rs/foundry:latest
+    container_name: anvil-test
+    entrypoint:
+      - anvil
+      - --host
+      - "0.0.0.0"
+      - --chain-id
+      - "31337"
+      - --optimism
+    ports:
+      - "8545:8545"
+    networks:
+      - nox-off-chain
+    healthcheck:
+      test: ["CMD-SHELL", "cast block-number --rpc-url http://localhost:8545"]
+      interval: 1s
+      timeout: 3s
+      retries: 30
+
   # ============ PostgreSQL (gateway database) ============
 
   nox-handle-gateway-db:
@@ -45,7 +57,7 @@ services:
     container_name: nox-kms-test
     environment:
       - NOX_KMS_CHAIN__CHAIN_ID=${NOX_CHAIN_ID:-31337}
-      - NOX_KMS_CHAIN__RPC_URL=${NOX_RPC_URL:-http://host.docker.internal:8545}
+      - NOX_KMS_CHAIN__RPC_URL=${NOX_RPC_URL:-http://anvil:8545}
       - NOX_KMS_CHAIN__NOX_COMPUTE_CONTRACT=${NOX_COMPUTE_CONTRACT}
       - NOX_KMS_KEY_FILENAME=/data/kms.key
       - NOX_KMS_KEYSTORE_FILENAME=/data/keystore_signer.json
@@ -53,8 +65,6 @@ services:
       - RUST_LOG=${NOX_KMS_RUST_LOG:-info}
     volumes:
       - ./test/fixtures/keys/kms:/data:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - nox-off-chain
     ports:
@@ -67,7 +77,7 @@ services:
     container_name: nox-handle-gateway-test
     environment:
       - NOX_HANDLE_GATEWAY_CHAIN__ID=${NOX_CHAIN_ID:-31337}
-      - NOX_HANDLE_GATEWAY_CHAIN__RPC_URL=${NOX_RPC_URL:-http://host.docker.internal:8545}
+      - NOX_HANDLE_GATEWAY_CHAIN__RPC_URL=${NOX_RPC_URL:-http://anvil:8545}
       - NOX_HANDLE_GATEWAY_CHAIN__NOX_COMPUTE_CONTRACT=${NOX_COMPUTE_CONTRACT}
       - NOX_HANDLE_GATEWAY_KMS__URL=http://nox-kms-test:9000
       - NOX_HANDLE_GATEWAY_KMS__SIGNER_ADDRESS=${NOX_KMS_SIGNER_ADDRESS}
@@ -77,8 +87,6 @@ services:
       - RUST_LOG=${NOX_HANDLE_GATEWAY_RUST_LOG:-info}
     volumes:
       - ./test/fixtures/keys/gateway:/data:ro
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - nox-off-chain
     ports:
@@ -110,15 +118,13 @@ services:
     container_name: nox-ingestor-test
     environment:
       - NOX_INGESTOR_CHAIN__CHAIN_ID=${NOX_CHAIN_ID:-31337}
-      - NOX_INGESTOR_CHAIN__RPC_ENDPOINT=${NOX_RPC_URL:-http://host.docker.internal:8545}
+      - NOX_INGESTOR_CHAIN__RPC_ENDPOINT=${NOX_RPC_URL:-http://anvil:8545}
       - NOX_INGESTOR_CHAIN__CONTRACT_ADDRESS=${NOX_COMPUTE_CONTRACT}
       - NOX_INGESTOR_CHAIN__INITIAL_BLOCK=${NOX_INITIAL_BLOCK:-0}
       - NOX_INGESTOR_CHAIN__POLL_DELAY=200ms
       - NOX_INGESTOR_APP__STATE_PATH=/tmp/nox_ingestor_state.json
       - NOX_INGESTOR_NATS__URL=nats://nats-test:4222
       - RUST_LOG=${NOX_INGESTOR_RUST_LOG:-info}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - nox-off-chain
     depends_on:
@@ -131,14 +137,12 @@ services:
     image: docker-regis.iex.ec/nox-runner:${NOX_RUNNER_VERSION:-latest}
     container_name: nox-runner-test
     environment:
-      - NOX_RUNNER_RPC_URL=${NOX_RPC_URL:-http://host.docker.internal:8545}
+      - NOX_RUNNER_RPC_URL=${NOX_RPC_URL:-http://anvil:8545}
       - NOX_RUNNER_NOX_COMPUTE_CONTRACT_ADDRESS=${NOX_COMPUTE_CONTRACT}
       - NOX_RUNNER_HANDLE_GATEWAY_URL=http://nox-handle-gateway-test:3000
       - NOX_RUNNER_KMS_URL=http://nox-kms-test:9000
       - NOX_RUNNER_NATS_URL=nats://nats-test:4222
       - RUST_LOG=${NOX_RUNNER_RUST_LOG:-info}
-    extra_hosts:
-      - "host.docker.internal:host-gateway"
     networks:
       - nox-off-chain
     depends_on:

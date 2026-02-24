@@ -34,6 +34,11 @@ export default defineConfig({
             type: "edr-simulated",
             chainType: "op",
         },
+        localhost: {
+            type: "http",
+            chainType: "op",
+            url: "http://localhost:8545",
+        },
         arbitrumSepolia: {
             type: "http",
             chainType: "op",

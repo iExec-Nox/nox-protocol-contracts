@@ -28,9 +28,33 @@ pnpm run build
 
 ## Test
 
+Run only Solidity unit tests (no prerequisites):
+
 ```bash
+pnpm run test:unit
+```
+
+Run all tests (unit + integration):
+
+```bash
+# Terminal 1: Start the off-chain stack (Anvil, gateway, KMS, ingestor, runner)
+pnpm run service:up
+
+# Terminal 2: Run tests
 pnpm run test
 ```
+
+For integration tests only:
+
+```bash
+# Terminal 1: Start services
+pnpm run service:up
+
+# Terminal 2: Run integration tests
+pnpm run test:integration
+```
+
+Configure image versions in `.env.test`.
 
 ## Coverage
 

@@ -51,16 +51,7 @@ export class OffChainServices {
         const currentBlock = await publicClient.getBlockNumber();
 
         // --- Start docker-compose ---
-        const networkConfig = connection.networkConfig as { type?: string; url?: string; chainId?: number };
-        const chainId = networkConfig.chainId ?? 31337;
-        const dockerRpcUrl = "http://host.docker.internal:8545";
-
         await this._dockerComposeUp({
-            NOX_COMPUTE_CONTRACT: this.noxComputeAddress,
-            NOX_CHAIN_ID: String(chainId),
-            NOX_RPC_URL: dockerRpcUrl,
-            NOX_KMS_SIGNER_ADDRESS: OffChainServices.kmsSigner,
-            NOX_GATEWAY_ADDRESS: OffChainServices.gatewayAddress,
             NOX_INITIAL_BLOCK: String(currentBlock),
         });
 
@@ -118,7 +109,7 @@ export class OffChainServices {
 
     private _dockerComposeUp(env: Record<string, string>): Promise<void> {
         return new Promise((resolve, reject) => {
-            const proc = spawn("docker", ["compose", "-f", "docker-compose.test.yml", "up", "-d"], {
+            const proc = spawn("docker", ["compose", "-f", "docker-compose.test.yml", "up", "--force-recreate", "-d"], {
                 cwd: this.projectRoot,
                 env: { ...process.env, ...env },
                 stdio: "inherit",
@@ -133,11 +124,15 @@ export class OffChainServices {
 
     private _dockerComposeDown(): Promise<void> {
         return new Promise((resolve) => {
-            const proc = spawn("docker", ["compose", "-f", "docker-compose.test.yml", "down", "-v"], {
-                cwd: this.projectRoot,
-                env: process.env,
-                stdio: "inherit",
-            });
+            const proc = spawn(
+                "docker",
+                ["compose", "-f", "docker-compose.test.yml", "down", "-v", "--remove-orphans"],
+                {
+                    cwd: this.projectRoot,
+                    env: process.env,
+                    stdio: "inherit",
+                },
+            );
             proc.on("close", () => resolve());
             proc.on("error", (err) => {
                 console.error("docker compose down error:", err);
