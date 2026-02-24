@@ -2,6 +2,7 @@ import { deploy } from "./deploy.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { Address } from "viem";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
 // It reads the deployed proxy from ignition deployment artifacts,
@@ -21,7 +22,7 @@ import connection from "./utils/hardhat-connection-singleton.ts";
  * @param printLogs whether to print logs or not
  * @returns The new implementation address
  */
-export async function upgradeNoxCompute(proxyAddress?: `0x${string}`, printLogs = true) {
+export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
@@ -40,7 +41,7 @@ export async function upgradeNoxCompute(proxyAddress?: `0x${string}`, printLogs 
     _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
-    const noxComputeProxyAddress = await _resolveProxyAddress(proxyAddress, _log);
+    const noxComputeProxyAddress: Address = await _resolveProxyAddress(proxyAddress, _log);
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
 
     // Deploy new implementation
@@ -70,9 +71,9 @@ export async function upgradeNoxCompute(proxyAddress?: `0x${string}`, printLogs 
  * On remote or forked networks, reads from ignition deployment artifacts.
  */
 async function _resolveProxyAddress(
-    proxyAddress: `0x${string}` | undefined,
+    proxyAddress: Address | undefined,
     _log: (...args: unknown[]) => void,
-): Promise<`0x${string}`> {
+): Promise<Address> {
     if (proxyAddress) {
         return proxyAddress;
     }
@@ -84,7 +85,7 @@ async function _resolveProxyAddress(
     }
 
     const noxComputeProxyAddress = proxyAddress ?? (await readDeployedAddress("NoxCompute#proxy"));
-    return noxComputeProxyAddress as `0x${string}`;
+    return noxComputeProxyAddress as Address;
 }
 
 // Execute the script only if run directly
