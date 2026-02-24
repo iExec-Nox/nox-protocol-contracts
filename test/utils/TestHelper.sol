@@ -12,6 +12,8 @@ library TestHelper {
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
+        0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
 
     /**
      * Generates a random unique handle with the given type.
@@ -96,6 +98,21 @@ library TestHelper {
         vm.label(noxComputeAddress, "noxCompute");
 
         return noxCompute;
+    }
+
+    /**
+     * Override storage to force allow the given account for the given handle.
+     */
+    function forceAllow(bytes32 handle, address account) internal {
+        Vm vm = getVm();
+        bytes32 adminsMappingStorageLocation = NOX_COMPUTE_STORAGE_LOCATION; // first variable.
+        // mapping(bytes32 key1 => mapping(key2 => bool)) map;
+        // slot = keccak256(abi.encode(key2, keccak256(abi.encode(key1, position of map))));
+        bytes32 outerKeyStorageLocation = keccak256(
+            abi.encode(handle, adminsMappingStorageLocation)
+        );
+        bytes32 slotLocation = keccak256(abi.encode(account, outerKeyStorageLocation));
+        vm.store(address(Nox._compute()), slotLocation, bytes32(uint256(1)));
     }
 
     function deployProxy(address implementation) internal returns (address) {

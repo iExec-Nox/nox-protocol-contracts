@@ -410,8 +410,8 @@ contract NoxComputeTest is Test {
     function test_ArithmeticOperations() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
+        TestHelper.forceAllow(leftHandOperand, caller);
+        TestHelper.forceAllow(rightHandOperand, caller);
 
         bytes4[4] memory ops = [
             INoxCompute.add.selector,
@@ -441,8 +441,8 @@ contract NoxComputeTest is Test {
     function test_ComparisonOperations() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
+        TestHelper.forceAllow(leftHandOperand, caller);
+        TestHelper.forceAllow(rightHandOperand, caller);
 
         bytes4[6] memory ops = [
             INoxCompute.eq.selector,
@@ -478,8 +478,8 @@ contract NoxComputeTest is Test {
     function test_SafeArithmeticOperations() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
+        TestHelper.forceAllow(leftHandOperand, caller);
+        TestHelper.forceAllow(rightHandOperand, caller);
 
         bytes4[2] memory ops = [INoxCompute.safeAdd.selector, INoxCompute.safeSub.selector];
         for (uint256 i = 0; i < ops.length; i++) {
@@ -518,7 +518,7 @@ contract NoxComputeTest is Test {
     function test_RevertWhen_BinaryOperations_LhsNotAllowed() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        _allow(rightHandOperand, caller);
+        TestHelper.forceAllow(rightHandOperand, caller);
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
@@ -532,7 +532,7 @@ contract NoxComputeTest is Test {
     function test_RevertWhen_BinaryOperations_RhsNotAllowed() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        _allow(leftHandOperand, caller);
+        TestHelper.forceAllow(leftHandOperand, caller);
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
@@ -546,8 +546,8 @@ contract NoxComputeTest is Test {
     function test_RevertWhen_BinaryOperations_IncompatibleTypes() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Int256);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
+        TestHelper.forceAllow(leftHandOperand, caller);
+        TestHelper.forceAllow(rightHandOperand, caller);
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
@@ -559,8 +559,8 @@ contract NoxComputeTest is Test {
     function test_RevertWhen_BinaryOperations_NonArithmeticType() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Bool);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Bool);
-        _allow(leftHandOperand, caller);
-        _allow(rightHandOperand, caller);
+        TestHelper.forceAllow(leftHandOperand, caller);
+        TestHelper.forceAllow(rightHandOperand, caller);
 
         for (uint256 i = 0; i < binaryOps.length; i++) {
             vm.prank(caller);
@@ -575,9 +575,9 @@ contract NoxComputeTest is Test {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
-        _allow(condition, caller);
-        _allow(ifTrue, caller);
-        _allow(ifFalse, caller);
+        TestHelper.forceAllow(condition, caller);
+        TestHelper.forceAllow(ifTrue, caller);
+        TestHelper.forceAllow(ifFalse, caller);
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
@@ -591,8 +591,8 @@ contract NoxComputeTest is Test {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
-        _allow(ifTrue, caller);
-        _allow(ifFalse, caller);
+        TestHelper.forceAllow(ifTrue, caller);
+        TestHelper.forceAllow(ifFalse, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, condition, caller));
@@ -603,8 +603,8 @@ contract NoxComputeTest is Test {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
-        _allow(condition, caller);
-        _allow(ifFalse, caller);
+        TestHelper.forceAllow(condition, caller);
+        TestHelper.forceAllow(ifFalse, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, ifTrue, caller));
@@ -615,8 +615,8 @@ contract NoxComputeTest is Test {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
-        _allow(condition, caller);
-        _allow(ifTrue, caller);
+        TestHelper.forceAllow(condition, caller);
+        TestHelper.forceAllow(ifTrue, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, ifFalse, caller));
@@ -627,9 +627,9 @@ contract NoxComputeTest is Test {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Int256);
-        _allow(condition, caller);
-        _allow(ifTrue, caller);
-        _allow(ifFalse, caller);
+        TestHelper.forceAllow(condition, caller);
+        TestHelper.forceAllow(ifTrue, caller);
+        TestHelper.forceAllow(ifFalse, caller);
 
         vm.prank(caller);
         vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
@@ -640,9 +640,9 @@ contract NoxComputeTest is Test {
         bytes32 condition = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
-        _allow(condition, caller);
-        _allow(ifTrue, caller);
-        _allow(ifFalse, caller);
+        TestHelper.forceAllow(condition, caller);
+        TestHelper.forceAllow(ifTrue, caller);
+        TestHelper.forceAllow(ifFalse, caller);
 
         vm.prank(caller);
         vm.expectRevert(UnsupportedType.selector);
@@ -655,9 +655,9 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(balanceTo, caller);
-        _allow(amount, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(amount, caller);
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
@@ -685,8 +685,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceTo, caller);
-        _allow(amount, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(amount, caller);
 
         vm.prank(caller);
         vm.expectRevert(
@@ -699,8 +699,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(amount, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(amount, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, balanceTo, caller));
@@ -711,8 +711,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(balanceTo, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(balanceTo, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, amount, caller));
@@ -723,9 +723,9 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Int256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(balanceTo, caller);
-        _allow(amount, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(amount, caller);
 
         vm.prank(caller);
         vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
@@ -738,9 +738,9 @@ contract NoxComputeTest is Test {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceTo, caller);
-        _allow(amount, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(amount, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
@@ -768,8 +768,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(amount, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(amount, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, balanceTo, caller));
@@ -780,8 +780,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceTo, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, amount, caller));
@@ -792,8 +792,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceTo, caller);
-        _allow(amount, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(amount, caller);
 
         vm.prank(caller);
         vm.expectRevert(
@@ -806,9 +806,9 @@ contract NoxComputeTest is Test {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Int256);
-        _allow(balanceTo, caller);
-        _allow(amount, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(balanceTo, caller);
+        TestHelper.forceAllow(amount, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
@@ -821,9 +821,9 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(amount, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(amount, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectEmit(true, false, false, false);
@@ -851,8 +851,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(amount, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(amount, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectRevert(
@@ -865,8 +865,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, amount, caller));
@@ -877,8 +877,8 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(amount, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(amount, caller);
 
         vm.prank(caller);
         vm.expectRevert(
@@ -891,9 +891,9 @@ contract NoxComputeTest is Test {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Int256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
-        _allow(balanceFrom, caller);
-        _allow(amount, caller);
-        _allow(totalSupply, caller);
+        TestHelper.forceAllow(balanceFrom, caller);
+        TestHelper.forceAllow(amount, caller);
+        TestHelper.forceAllow(totalSupply, caller);
 
         vm.prank(caller);
         vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
@@ -908,7 +908,7 @@ contract NoxComputeTest is Test {
 
         assertFalse(noxCompute.isAllowed(h, account));
 
-        _allow(h, account);
+        TestHelper.forceAllow(h, account);
 
         assertTrue(noxCompute.isAllowed(h, account));
     }
@@ -921,7 +921,7 @@ contract NoxComputeTest is Test {
 
         assertFalse(noxCompute.isViewer(h, viewer));
 
-        _allow(h, caller);
+        TestHelper.forceAllow(h, caller);
         vm.prank(caller);
         noxCompute.addViewer(h, viewer);
 
@@ -935,7 +935,7 @@ contract NoxComputeTest is Test {
 
         assertFalse(noxCompute.isPubliclyDecryptable(h));
 
-        _allow(h, caller);
+        TestHelper.forceAllow(h, caller);
         vm.prank(caller);
         noxCompute.allowPublicDecryption(h);
 
@@ -978,12 +978,6 @@ contract NoxComputeTest is Test {
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
         assertEq(uint8(h[31]), 0, "Invalid version");
         assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
-    }
-
-    function _allow(bytes32 h, address account) internal {
-        vm.prank(address(noxCompute));
-        noxCompute.allowTransient(h, address(this));
-        noxCompute.allow(h, account);
     }
 
     function _callBinaryOperation(
