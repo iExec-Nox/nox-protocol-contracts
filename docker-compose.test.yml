@@ -8,10 +8,9 @@ networks:
     name: nox-off-chain
 
 services:
-  # ============ Anvil node (managed by scripts/test-serial.sh) ============
+  # ============ Anvil node ============
 
   anvil:
-    profiles: ["node"]
     image: ghcr.io/foundry-rs/foundry:latest
     container_name: anvil-test
     entrypoint:

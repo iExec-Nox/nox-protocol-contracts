@@ -1,21 +1,18 @@
-import { spawn } from "child_process";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { createWalletClient, http } from "viem";
 import type { Account } from "viem";
 import { createViemHandleClient } from "@iexec-nox/handle";
 
 /**
- * Real off-chain services integration using docker-compose.test.yml.
+ * Off-chain services integration.
  *
- * Uses fixed test keys for the gateway and KMS, registers them in the contract,
- * and starts the full docker-compose stack.
+ * Assumes docker-compose.test.yml is already running (start with `pnpm services:up`).
+ * This class only handles contract setup and communication with the services.
  */
 export class OffChainServices {
     private noxComputeAddress: `0x${string}`;
     private readonly rpcUrl = "http://localhost:8545";
     private readonly gatewayUrl = "http://localhost:9203";
-    private readonly projectRoot = new URL("../../", import.meta.url).pathname;
-    private running = false;
 
     // Fixed test keys — see test/fixtures/keys/ for the corresponding key files.
     private static readonly gatewayAddress = "0x7E5F4552091A69125d5DfCb7b8C2659029395Bdf" as `0x${string}`;
@@ -28,47 +25,25 @@ export class OffChainServices {
     }
 
     /**
-     * Starts the local off-chain services stack.
-     *
-     * Registers the fixed test keys in the contract and starts the docker-compose stack.
-     * Key files are pre-committed under test/fixtures/keys/ and mounted read-only by docker.
+     * Registers the fixed test keys in the contract and waits for the gateway to be ready.
      */
     async start() {
-        if (this.running) {
-            throw new Error("OffChainServices are already running");
-        }
-        this.running = true;
-
-        // --- Update contract ---
         const noxCompute = await connection.viem.getContractAt("NoxCompute", this.noxComputeAddress);
         const publicClient = await connection.viem.getPublicClient();
+
         const gatewayTxHash = await noxCompute.write.setGateway([OffChainServices.gatewayAddress]);
         await publicClient.waitForTransactionReceipt({ hash: gatewayTxHash });
+
         const kmsTxHash = await noxCompute.write.setKmsPublicKey([OffChainServices.kmsEcPublicKey]);
         await publicClient.waitForTransactionReceipt({ hash: kmsTxHash });
 
-        // Get current block to avoid re-processing old events in the ingestor.
-        const currentBlock = await publicClient.getBlockNumber();
-
-        // --- Start docker-compose ---
-        await this._dockerComposeUp({
-            NOX_INITIAL_BLOCK: String(currentBlock),
-        });
-
-        // Wait for the gateway HTTP API to be ready.
         await _waitForHealthy(`${this.gatewayUrl}/health`);
     }
 
     /**
-     * Stops all off-chain services and cleans up.
+     * No-op — docker-compose lifecycle is managed externally via `pnpm services:up/down`.
      */
-    async stop() {
-        if (!this.running) {
-            return;
-        }
-        this.running = false;
-        await this._dockerComposeDown();
-    }
+    async stop() {}
 
     /**
      * Waits for blockchain events to be processed by the off-chain pipeline.
@@ -105,40 +80,6 @@ export class OffChainServices {
         const client = await this.createClient(signer);
         const { value } = await client.decrypt(handle);
         return value as bigint;
-    }
-
-    private _dockerComposeUp(env: Record<string, string>): Promise<void> {
-        return new Promise((resolve, reject) => {
-            const proc = spawn("docker", ["compose", "-f", "docker-compose.test.yml", "up", "--force-recreate", "-d"], {
-                cwd: this.projectRoot,
-                env: { ...process.env, ...env },
-                stdio: "inherit",
-            });
-            proc.on("close", (code) => {
-                if (code === 0) resolve();
-                else reject(new Error(`docker compose up failed with exit code ${code}`));
-            });
-            proc.on("error", reject);
-        });
-    }
-
-    private _dockerComposeDown(): Promise<void> {
-        return new Promise((resolve) => {
-            const proc = spawn(
-                "docker",
-                ["compose", "-f", "docker-compose.test.yml", "down", "-v", "--remove-orphans"],
-                {
-                    cwd: this.projectRoot,
-                    env: process.env,
-                    stdio: "inherit",
-                },
-            );
-            proc.on("close", () => resolve());
-            proc.on("error", (err) => {
-                console.error("docker compose down error:", err);
-                resolve();
-            });
-        });
     }
 }
 
