@@ -28,7 +28,7 @@ export async function readDeployedAddresses(): Promise<Record<string, string>> {
 
 /**
  * Reads the deployed address for a specific contract key from ignition deployment artifacts.
- * @param key The contract key (e.g., "ACL#proxy", "NoxCompute#proxy")
+ * @param key The contract key (e.g., "NoxCompute#proxy")
  * @returns The deployed address
  */
 export async function readDeployedAddress(key: string): Promise<string> {

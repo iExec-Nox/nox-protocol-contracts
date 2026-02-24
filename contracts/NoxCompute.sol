@@ -24,7 +24,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         mapping(bytes32 handleId => mapping(address => bool)) admins;
         /// Viewers can decrypt the associated data
         //TODO: Make viewer expirable
-        //TODO: Add Delegated Viewers
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         /// Handles that are publicly decryptable
         mapping(bytes32 handle => bool) isPubliclyDecryptable;
@@ -204,10 +203,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     }
 
     /**
-     * Check if an address has persistent access to handle.
+     * Check if an address has transient access to handle.
      * @param handle Handle.
      * @param account Address of the account.
-     * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
+     * @return Returns `true` if the address has transient access to a handle and `false` otherwise.
      */
     function _isAllowedTransient(bytes32 handle, address account) private view returns (bool) {
         bool isAllowedTransient_;
@@ -219,10 +218,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     }
 
     /**
-     * Returns `true` if the address is allowed to use the handle and `false` otherwise.
+     * Check if an address has persistent access to handle.
      * @param handle Handle.
      * @param account Address of the account.
-     * @return Whether the account can access the handle (persistent only).
+     * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
      */
     function _isAllowedPersistent(bytes32 handle, address account) private view returns (bool) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
