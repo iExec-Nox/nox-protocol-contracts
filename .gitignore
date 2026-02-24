@@ -25,6 +25,10 @@ coverage.json
 .env.*
 !.env.test
 
+# Ignition deployment journals for local networks (ephemeral, not meant to be committed)
+/ignition/deployments/localhost
+/ignition/deployments/default
+
 # Mac system files
 .DS_Store
 CLAUDE.md
