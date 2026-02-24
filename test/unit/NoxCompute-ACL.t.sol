@@ -10,8 +10,7 @@ import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
-// TODO move tests to NoxCompute.t.sol.
-contract ACLTest is Test {
+contract NoxComputeACLTest is Test {
     address internal owner = address(this);
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");

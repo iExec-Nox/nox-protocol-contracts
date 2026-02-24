@@ -5,7 +5,7 @@ import { loadFixture } from "../utils/fixture.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 // TODO rename to NoxCompute.test.ts.
-describe("NoxCompute", function () {
+describe("NoxCompute-ACL", function () {
     describe("Transient & Persistent permissions", function () {
         it("Should clear transient permissions after transaction while persistent remain", async function () {
             const { wallet1 } = await loadFixture();
