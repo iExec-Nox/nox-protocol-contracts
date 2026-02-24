@@ -101,14 +101,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     /**
      * @inheritdoc INoxCompute
      * @dev To grant transient access, the caller must already have permission on `handle`.
-     *      The NoxCompute is exempt from this requirement and can always grant
-     *      transient permissions — a privilege not available with persistent `allow()`.
-     *
-     *      The NoxCompute uses this function in two scenarios:
-     *      - For handles generated off-chain by the Handle Gateway, once the proof has been verified
-     *      - For handles resulting from on-chain operations, where the caller naturally
-     *        inherits rights on the output handle
-     *
      *      Transient access only lasts for the current transaction. It is the responsibility
      *      of the application contract to convert this into persistent access via `allow()`
      *      if needed.
@@ -188,6 +180,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     /**
      * Grants transient access to a handle for an account. This function does not do any
      * checks and should be used with caution.
+     * This function is used in two scenarios:
+     *   - For handles generated off-chain by the Handle Gateway, once the proof has been verified
+     *   - For handles resulting from on-chain operations, where the caller naturally inherits
+     *     rights on the output handle
      * @param handle Handle identifier
      * @param account Address of the account
      */
