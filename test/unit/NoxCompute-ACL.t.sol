@@ -33,7 +33,7 @@ contract NoxComputeACLTest is Test {
 
     function test_AllowPublicDecryption_SucceedsWhenCalledByAdmin() public {
         // Setup: grant user1 admin access to handle
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         // Mark handle as publicly decryptable
         vm.prank(user1);
@@ -87,7 +87,7 @@ contract NoxComputeACLTest is Test {
 
     function test_Allow_AdminCanGrantAccessToNewAdmin() public {
         // Setup: grant user1 admin access
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         // Verify user1 has permanent access
         assertTrue(noxCompute.isAllowed(handle, user1));
@@ -122,7 +122,7 @@ contract NoxComputeACLTest is Test {
 
     function test_Allow_RevertWhen_CalledByViewer() public {
         // Setup: user1 is admin and adds viewer
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         vm.prank(user1);
         noxCompute.addViewer(handle, viewer1);
@@ -143,7 +143,7 @@ contract NoxComputeACLTest is Test {
 
     function test_AddViewer_SucceedsWhenCalledByAdmin() public {
         // Setup: grant user1 admin access
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         // Viewer should not be a viewer yet
         assertFalse(noxCompute.isViewer(handle, viewer1));
@@ -176,7 +176,7 @@ contract NoxComputeACLTest is Test {
 
     function test_AddViewer_RevertWhen_CalledByViewer() public {
         // Setup: user1 is admin and adds viewer1
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         vm.prank(user1);
         noxCompute.addViewer(handle, viewer1);
@@ -219,7 +219,7 @@ contract NoxComputeACLTest is Test {
 
     function test_CleanTransientStorage_PreservesPersistentPermissions() public {
         // Grant persistent permission to user1 for handle
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         // Grant multiple transient permissions in a userOp context
         TestHelper.forceAllowTransient(handle2, user2);
@@ -246,7 +246,7 @@ contract NoxComputeACLTest is Test {
         address anyone = makeAddr("anyone");
         assertFalse(noxCompute.isViewer(handle, anyone));
 
-        TestHelper.forceAllow(handle, owner);
+        TestHelper.forceAllowPersistent(handle, owner);
 
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
@@ -256,7 +256,7 @@ contract NoxComputeACLTest is Test {
 
     function test_IsViewer_WhenAllowed() public {
         assertFalse(noxCompute.isViewer(handle, user1));
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
         assertTrue(noxCompute.isViewer(handle, user1));
     }
 
@@ -270,9 +270,9 @@ contract NoxComputeACLTest is Test {
 
     function test_ValidateAllowedForAll() public {
         // Grant access to user1 for multiple handles
-        TestHelper.forceAllow(handle, user1);
-        TestHelper.forceAllow(handle2, user1);
-        TestHelper.forceAllow(handle3, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
+        TestHelper.forceAllowPersistent(handle2, user1);
+        TestHelper.forceAllowPersistent(handle3, user1);
 
         // Should not revert when all handles are allowed
         bytes32[] memory handles = new bytes32[](3);
@@ -289,7 +289,7 @@ contract NoxComputeACLTest is Test {
     }
 
     function test_ValidateAllowedForAll_SingleHandle() public {
-        TestHelper.forceAllow(handle, user1);
+        TestHelper.forceAllowPersistent(handle, user1);
 
         bytes32[] memory handles = new bytes32[](1);
         handles[0] = handle;
@@ -309,8 +309,8 @@ contract NoxComputeACLTest is Test {
 
     function test_RevertWhen_ValidateAllowedForAll_FirstHandleNotAllowed() public {
         // Only grant access to handle2 and handle3, not handle
-        TestHelper.forceAllow(handle2, user1);
-        TestHelper.forceAllow(handle3, user1);
+        TestHelper.forceAllowPersistent(handle2, user1);
+        TestHelper.forceAllowPersistent(handle3, user1);
 
         bytes32[] memory handles = new bytes32[](3);
         handles[0] = handle;

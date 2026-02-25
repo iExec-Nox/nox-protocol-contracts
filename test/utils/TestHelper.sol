@@ -103,20 +103,32 @@ library TestHelper {
     /**
      * Override storage to force allow the given account for the given handle.
      */
-    function forceAllow(bytes32 handle, address account) internal {
-        Vm vm = getVm();
-        bytes32 adminsMappingStorageLocation = NOX_COMPUTE_STORAGE_LOCATION; // first variable.
-        // mapping(bytes32 key1 => mapping(key2 => bool)) map;
-        // slot = keccak256(abi.encode(key2, keccak256(abi.encode(key1, position of map))));
-        bytes32 outerKeyStorageLocation = keccak256(
-            abi.encode(handle, adminsMappingStorageLocation)
-        );
-        bytes32 slotLocation = keccak256(abi.encode(account, outerKeyStorageLocation));
-        vm.store(address(Nox._compute()), slotLocation, bytes32(uint256(1)));
+    function forceAllowPersistent(bytes32 handle, address account) internal {
+        bytes32 slotLocation = _getAllowStorageSlot(handle, account);
+        getVm().store(address(Nox._compute()), slotLocation, bytes32(uint256(1)));
     }
 
+    /**
+     * Override storage to force disallow the given account for the given handle.
+     */
+    function forceDisallowPersistent(bytes32 handle, address account) internal {
+        bytes32 slotLocation = _getAllowStorageSlot(handle, account);
+        getVm().store(address(Nox._compute()), slotLocation, bytes32(uint256(0)));
+    }
+
+    /**
+     * Transient storage cannot be overridden from the outside so we allow the account
+     * persistently, call allowTransient from the account to set the transient state,
+     * then disallow persistently again to clean up.
+     */
     function forceAllowTransient(bytes32 handle, address account) internal {
-        // TODO
+        Vm vm = getVm();
+        forceAllowPersistent(handle, account);
+        vm.startPrank(account);
+        Nox._compute().allowTransient(handle, account);
+        vm.stopPrank();
+        forceDisallowPersistent(handle, account);
+        vm.assertTrue(Nox._compute().isAllowed(handle, account), "Should be allowed transient");
     }
 
     function deployProxy(address implementation) internal returns (address) {
@@ -126,5 +138,15 @@ library TestHelper {
 
     function getVm() internal pure returns (Vm) {
         return Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    }
+
+    function _getAllowStorageSlot(bytes32 handle, address account) private pure returns (bytes32) {
+        bytes32 adminsMappingStorageLocation = NOX_COMPUTE_STORAGE_LOCATION; // first variable.
+        // mapping(bytes32 key1 => mapping(key2 => bool)) map;
+        // slot = keccak256(abi.encode(key2, keccak256(abi.encode(key1, position of map))));
+        bytes32 outerKeyStorageLocation = keccak256(
+            abi.encode(handle, adminsMappingStorageLocation)
+        );
+        return keccak256(abi.encode(account, outerKeyStorageLocation));
     }
 }
