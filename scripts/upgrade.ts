@@ -11,7 +11,7 @@ import { Address } from "viem";
 // When running on a local (edr-simulated) network, a fresh deployment is performed first
 // since each `hardhat run` starts a clean chain.
 //
-// Usage: `hardhat run scripts/upgrade-nox-compute.ts --network <network-name>`
+// Usage: `hardhat run scripts/upgrade.ts --network <network-name>`
 
 // TODO: Use @openzeppelin/hardhat-upgrades plugin for upgrade safety checks
 // (storage layout validation, implementation compatibility) when it becomes compatible with Hardhat 3.
@@ -94,9 +94,5 @@ if (_isHardhatRunCommand()) {
 }
 
 function _isHardhatRunCommand() {
-    return (
-        process.argv.length >= 4 &&
-        process.argv[2] === "run" &&
-        process.argv[3].includes("scripts/upgrade-nox-compute.ts")
-    );
+    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/upgrade.ts");
 }

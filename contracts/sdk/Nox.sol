@@ -8,8 +8,6 @@ import "encrypted-types/EncryptedTypes.sol";
 /**
  * @title Nox
  * @notice Library providing convenient functions for TEE confidential computations.
- * @dev If an invalid or non-existent handle is passed to any function in the Nox protocol,
- *      the transaction will revert as it will not be recognized by the ACL.
  */
 library Nox {
     // ============ Errors ============
@@ -35,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return INoxCompute(0x7D3e5A46d9CB69A420614Ea467639f48C8C432D1);
+            return INoxCompute(0x6a21849eb8b13ED7b7ff15eDfd3F915490e55AbC);
         }
         revert("Nox: Unsupported chain");
     }

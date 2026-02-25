@@ -52,17 +52,17 @@ contract NoxTest is Test {
 
         noxMock = new NoxMock();
         // Allow all handles for the test contract
-        TestHelper.forceAllow(boolHandle, address(this));
-        TestHelper.forceAllow(addressHandle, address(this));
-        TestHelper.forceAllow(int16HandleA, address(this));
-        TestHelper.forceAllow(int16HandleB, address(this));
-        TestHelper.forceAllow(int256HandleA, address(this));
-        TestHelper.forceAllow(int256HandleB, address(this));
-        TestHelper.forceAllow(uint16HandleA, address(this));
-        TestHelper.forceAllow(uint16HandleB, address(this));
-        TestHelper.forceAllow(uint256HandleA, address(this));
-        TestHelper.forceAllow(uint256HandleB, address(this));
-        TestHelper.forceAllow(uint256HandleC, address(this));
+        TestHelper.forceAllowPersistent(boolHandle, address(this));
+        TestHelper.forceAllowPersistent(addressHandle, address(this));
+        TestHelper.forceAllowPersistent(int16HandleA, address(this));
+        TestHelper.forceAllowPersistent(int16HandleB, address(this));
+        TestHelper.forceAllowPersistent(int256HandleA, address(this));
+        TestHelper.forceAllowPersistent(int256HandleB, address(this));
+        TestHelper.forceAllowPersistent(uint16HandleA, address(this));
+        TestHelper.forceAllowPersistent(uint16HandleB, address(this));
+        TestHelper.forceAllowPersistent(uint256HandleA, address(this));
+        TestHelper.forceAllowPersistent(uint256HandleB, address(this));
+        TestHelper.forceAllowPersistent(uint256HandleC, address(this));
         // Build arithmetic handle pairs: euint16, euint256, eint16, eint256
         arithmeticA.push(uint16HandleA);
         arithmeticA.push(uint256HandleA);
