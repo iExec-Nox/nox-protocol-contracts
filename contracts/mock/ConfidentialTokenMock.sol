@@ -52,10 +52,9 @@ contract ConfidentialTokenMock is IERC7984 {
 
     constructor(uint256 totalSupply) {
         _totalSupply = Nox.toEuint256(totalSupply);
-        euint256 msgSenderBalance = Nox.toEuint256(totalSupply);
-        _balances[msg.sender] = msgSenderBalance;
-        Nox.allowThis(msgSenderBalance);
-        Nox.allow(msgSenderBalance, msg.sender);
+        _balances[msg.sender] = _totalSupply;
+        Nox.allowThis(_totalSupply);
+        Nox.allow(_totalSupply, msg.sender);
     }
 
     function confidentialTotalSupply() public view override returns (euint256) {
