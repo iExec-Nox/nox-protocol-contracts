@@ -10,6 +10,10 @@ import "encrypted-types/EncryptedTypes.sol";
  * @notice Library providing convenient functions for TEE confidential computations.
  */
 library Nox {
+    // ============ Errors ============
+
+    error UninitializedHandle();
+
     // ============ Internal address resolution ============
 
     /**
@@ -210,124 +214,106 @@ library Nox {
     // ============ Arithmetic primitives ============
 
     function add(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(_compute().add(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_add(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function add(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(_compute().add(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_add(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function add(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(_compute().add(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_add(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function add(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(_compute().add(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_add(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function sub(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(_compute().sub(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_sub(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function sub(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(_compute().sub(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_sub(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function sub(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(_compute().sub(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_sub(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function sub(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(_compute().sub(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_sub(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function mul(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(_compute().mul(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_mul(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function mul(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(_compute().mul(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_mul(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function mul(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(_compute().mul(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_mul(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function mul(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(_compute().mul(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_mul(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function div(euint16 a, euint16 b) internal returns (euint16) {
-        return euint16.wrap(_compute().div(euint16.unwrap(a), euint16.unwrap(b)));
+        return euint16.wrap(_div(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function div(euint256 a, euint256 b) internal returns (euint256) {
-        return euint256.wrap(_compute().div(euint256.unwrap(a), euint256.unwrap(b)));
+        return euint256.wrap(_div(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function div(eint16 a, eint16 b) internal returns (eint16) {
-        return eint16.wrap(_compute().div(eint16.unwrap(a), eint16.unwrap(b)));
+        return eint16.wrap(_div(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function div(eint256 a, eint256 b) internal returns (eint256) {
-        return eint256.wrap(_compute().div(eint256.unwrap(a), eint256.unwrap(b)));
+        return eint256.wrap(_div(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function safeAdd(euint16 a, euint16 b) internal returns (ebool, euint16) {
-        (bytes32 success, bytes32 result) = _compute().safeAdd(
-            euint16.unwrap(a),
-            euint16.unwrap(b)
-        );
+        (bytes32 success, bytes32 result) = _safeAdd(euint16.unwrap(a), euint16.unwrap(b));
         return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
-        (bytes32 success, bytes32 result) = _compute().safeAdd(
-            euint256.unwrap(a),
-            euint256.unwrap(b)
-        );
+        (bytes32 success, bytes32 result) = _safeAdd(euint256.unwrap(a), euint256.unwrap(b));
         return (ebool.wrap(success), euint256.wrap(result));
     }
 
     function safeAdd(eint16 a, eint16 b) internal returns (ebool, eint16) {
-        (bytes32 success, bytes32 result) = _compute().safeAdd(eint16.unwrap(a), eint16.unwrap(b));
+        (bytes32 success, bytes32 result) = _safeAdd(eint16.unwrap(a), eint16.unwrap(b));
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeAdd(eint256 a, eint256 b) internal returns (ebool, eint256) {
-        (bytes32 success, bytes32 result) = _compute().safeAdd(
-            eint256.unwrap(a),
-            eint256.unwrap(b)
-        );
+        (bytes32 success, bytes32 result) = _safeAdd(eint256.unwrap(a), eint256.unwrap(b));
         return (ebool.wrap(success), eint256.wrap(result));
     }
 
     function safeSub(euint16 a, euint16 b) internal returns (ebool, euint16) {
-        (bytes32 success, bytes32 result) = _compute().safeSub(
-            euint16.unwrap(a),
-            euint16.unwrap(b)
-        );
+        (bytes32 success, bytes32 result) = _safeSub(euint16.unwrap(a), euint16.unwrap(b));
         return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeSub(euint256 a, euint256 b) internal returns (ebool, euint256) {
-        (bytes32 success, bytes32 result) = _compute().safeSub(
-            euint256.unwrap(a),
-            euint256.unwrap(b)
-        );
+        (bytes32 success, bytes32 result) = _safeSub(euint256.unwrap(a), euint256.unwrap(b));
         return (ebool.wrap(success), euint256.wrap(result));
     }
 
     function safeSub(eint16 a, eint16 b) internal returns (ebool, eint16) {
-        (bytes32 success, bytes32 result) = _compute().safeSub(eint16.unwrap(a), eint16.unwrap(b));
+        (bytes32 success, bytes32 result) = _safeSub(eint16.unwrap(a), eint16.unwrap(b));
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeSub(eint256 a, eint256 b) internal returns (ebool, eint256) {
-        (bytes32 success, bytes32 result) = _compute().safeSub(
-            eint256.unwrap(a),
-            eint256.unwrap(b)
-        );
+        (bytes32 success, bytes32 result) = _safeSub(eint256.unwrap(a), eint256.unwrap(b));
         return (ebool.wrap(success), eint256.wrap(result));
     }
 
@@ -336,11 +322,7 @@ library Nox {
     function select(ebool condition, euint16 ifTrue, euint16 ifFalse) internal returns (euint16) {
         return
             euint16.wrap(
-                _compute().select(
-                    ebool.unwrap(condition),
-                    euint16.unwrap(ifTrue),
-                    euint16.unwrap(ifFalse)
-                )
+                _select(ebool.unwrap(condition), euint16.unwrap(ifTrue), euint16.unwrap(ifFalse))
             );
     }
 
@@ -351,130 +333,118 @@ library Nox {
     ) internal returns (euint256) {
         return
             euint256.wrap(
-                _compute().select(
-                    ebool.unwrap(condition),
-                    euint256.unwrap(ifTrue),
-                    euint256.unwrap(ifFalse)
-                )
+                _select(ebool.unwrap(condition), euint256.unwrap(ifTrue), euint256.unwrap(ifFalse))
             );
     }
 
     function select(ebool condition, eint16 ifTrue, eint16 ifFalse) internal returns (eint16) {
         return
             eint16.wrap(
-                _compute().select(
-                    ebool.unwrap(condition),
-                    eint16.unwrap(ifTrue),
-                    eint16.unwrap(ifFalse)
-                )
+                _select(ebool.unwrap(condition), eint16.unwrap(ifTrue), eint16.unwrap(ifFalse))
             );
     }
 
     function select(ebool condition, eint256 ifTrue, eint256 ifFalse) internal returns (eint256) {
         return
             eint256.wrap(
-                _compute().select(
-                    ebool.unwrap(condition),
-                    eint256.unwrap(ifTrue),
-                    eint256.unwrap(ifFalse)
-                )
+                _select(ebool.unwrap(condition), eint256.unwrap(ifTrue), eint256.unwrap(ifFalse))
             );
     }
 
     function eq(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().eq(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_eq(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function eq(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().eq(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_eq(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function eq(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().eq(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_eq(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function eq(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().eq(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_eq(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function ne(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ne(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_ne(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function ne(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ne(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_ne(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function ne(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ne(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_ne(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function ne(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ne(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_ne(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function lt(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().lt(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_lt(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function lt(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().lt(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_lt(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function lt(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().lt(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_lt(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function lt(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().lt(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_lt(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function le(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().le(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_le(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function le(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().le(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_le(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function le(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().le(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_le(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function le(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().le(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_le(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function gt(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().gt(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_gt(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function gt(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().gt(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_gt(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function gt(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().gt(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_gt(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function gt(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().gt(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_gt(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     function ge(euint16 a, euint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ge(euint16.unwrap(a), euint16.unwrap(b)));
+        return ebool.wrap(_ge(euint16.unwrap(a), euint16.unwrap(b)));
     }
 
     function ge(euint256 a, euint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ge(euint256.unwrap(a), euint256.unwrap(b)));
+        return ebool.wrap(_ge(euint256.unwrap(a), euint256.unwrap(b)));
     }
 
     function ge(eint16 a, eint16 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ge(eint16.unwrap(a), eint16.unwrap(b)));
+        return ebool.wrap(_ge(eint16.unwrap(a), eint16.unwrap(b)));
     }
 
     function ge(eint256 a, eint256 b) internal returns (ebool) {
-        return ebool.wrap(_compute().ge(eint256.unwrap(a), eint256.unwrap(b)));
+        return ebool.wrap(_ge(eint256.unwrap(a), eint256.unwrap(b)));
     }
 
     // ============ ADVANCED FUNCTIONS ============
@@ -489,7 +459,7 @@ library Nox {
         euint256 balanceTo,
         euint256 amount
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newBalanceTo) {
-        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = _compute().transfer(
+        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = _transfer(
             euint256.unwrap(balanceFrom),
             euint256.unwrap(balanceTo),
             euint256.unwrap(amount)
@@ -509,7 +479,7 @@ library Nox {
         euint256 amount,
         euint256 totalSupply
     ) internal returns (ebool success, euint256 newBalanceTo, euint256 newTotalSupply) {
-        (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = _compute().mint(
+        (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = _mint(
             euint256.unwrap(balanceTo),
             euint256.unwrap(amount),
             euint256.unwrap(totalSupply)
@@ -529,7 +499,7 @@ library Nox {
         euint256 amount,
         euint256 totalSupply
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newTotalSupply) {
-        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = _compute().burn(
+        (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = _burn(
             euint256.unwrap(balanceFrom),
             euint256.unwrap(amount),
             euint256.unwrap(totalSupply)
@@ -879,5 +849,123 @@ library Nox {
      */
     function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
         return _compute().isPubliclyDecryptable(eint256.unwrap(handle));
+    }
+
+    // ============ Private helpers ============
+
+    function _assertInitialized(bytes32 handle) private pure {
+        require(handle != bytes32(0), UninitializedHandle());
+    }
+
+    function _add(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().add(a, b);
+    }
+
+    function _sub(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().sub(a, b);
+    }
+
+    function _mul(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().mul(a, b);
+    }
+
+    function _div(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().div(a, b);
+    }
+
+    function _safeAdd(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().safeAdd(a, b);
+    }
+
+    function _safeSub(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().safeSub(a, b);
+    }
+
+    function _select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) private returns (bytes32) {
+        _assertInitialized(condition);
+        _assertInitialized(ifTrue);
+        _assertInitialized(ifFalse);
+        return _compute().select(condition, ifTrue, ifFalse);
+    }
+
+    function _eq(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().eq(a, b);
+    }
+
+    function _ne(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().ne(a, b);
+    }
+
+    function _lt(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().lt(a, b);
+    }
+
+    function _le(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().le(a, b);
+    }
+
+    function _gt(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().gt(a, b);
+    }
+
+    function _ge(bytes32 a, bytes32 b) private returns (bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _compute().ge(a, b);
+    }
+
+    function _transfer(
+        bytes32 balanceFrom,
+        bytes32 balanceTo,
+        bytes32 amount
+    ) private returns (bytes32, bytes32, bytes32) {
+        _assertInitialized(balanceFrom);
+        _assertInitialized(balanceTo);
+        _assertInitialized(amount);
+        return _compute().transfer(balanceFrom, balanceTo, amount);
+    }
+
+    function _mint(
+        bytes32 balanceTo,
+        bytes32 amount,
+        bytes32 totalSupply
+    ) private returns (bytes32, bytes32, bytes32) {
+        _assertInitialized(balanceTo);
+        _assertInitialized(amount);
+        _assertInitialized(totalSupply);
+        return _compute().mint(balanceTo, amount, totalSupply);
+    }
+
+    function _burn(
+        bytes32 balanceFrom,
+        bytes32 amount,
+        bytes32 totalSupply
+    ) private returns (bytes32, bytes32, bytes32) {
+        _assertInitialized(balanceFrom);
+        _assertInitialized(amount);
+        _assertInitialized(totalSupply);
+        return _compute().burn(balanceFrom, amount, totalSupply);
     }
 }
