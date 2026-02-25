@@ -3,7 +3,7 @@ import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
 
 const baseProfile = {
-    version: "0.8.33",
+    version: "0.8.34",
     settings: {
         evmVersion: "osaka",
         metadata: {
