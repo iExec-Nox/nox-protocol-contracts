@@ -4,7 +4,6 @@ pragma solidity ^0.8.0;
 import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
-import {ACL} from "../../contracts/ACL.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
@@ -13,6 +12,8 @@ library TestHelper {
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
+    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
+        0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
 
     /**
      * Generates a random unique handle with the given type.
@@ -63,35 +64,16 @@ library TestHelper {
     }
 
     /**
-     * @notice Deploys ACL and NoxCompute at the addresses resolved by Nox for the current chain.
+     * @notice Deploys NoxCompute at the addresses resolved by Nox for the current chain.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
      */
-    function deploy(
-        address owner,
-        address gateway
-    ) internal returns (ACL acl, NoxCompute noxCompute) {
+    function deploy(address owner, address gateway) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
-        address aclAddress = address(Nox._acl());
         address noxComputeAddress = address(Nox._compute());
-
-        // Deploy ACL implementation
-        address aclImplementation = address(new ACL());
-
-        // Deploy a temporary proxy to get its runtime bytecode
-        ERC1967Proxy aclProxyTemp = new ERC1967Proxy(aclImplementation, "");
-
-        // Etch the proxy bytecode at the ACL address resolved by Nox
-        vm.etch(aclAddress, address(aclProxyTemp).code);
-        // Set the implementation slot
-        vm.store(aclAddress, IMPLEMENTATION_SLOT, bytes32(uint256(uint160(aclImplementation))));
-
-        acl = ACL(aclAddress);
-        acl.initialize(owner);
-
-        // Deploy NoxCompute implementation (with ACL address as immutable)
-        address noxComputeImplementation = address(new NoxCompute(aclAddress));
+        // Deploy NoxCompute implementation
+        address noxComputeImplementation = address(new NoxCompute());
 
         // Deploy a temporary proxy to get its runtime bytecode
         ERC1967Proxy noxComputeProxyTemp = new ERC1967Proxy(noxComputeImplementation, "");
@@ -107,20 +89,46 @@ library TestHelper {
 
         noxCompute = NoxCompute(noxComputeAddress);
         noxCompute.initialize(owner, vm.randomBytes(33));
-
-        // Configure contracts
-        vm.prank(owner);
-        acl.setNoxCompute(noxComputeAddress);
         vm.prank(owner);
         noxCompute.setGateway(gateway);
 
         // Set labels
         vm.label(owner, "owner");
         vm.label(gateway, "gateway");
-        vm.label(aclAddress, "acl");
         vm.label(noxComputeAddress, "noxCompute");
 
-        return (acl, noxCompute);
+        return noxCompute;
+    }
+
+    /**
+     * Override storage to force allow the given account for the given handle.
+     */
+    function forceAllowPersistent(bytes32 handle, address account) internal {
+        bytes32 slotLocation = _getAllowStorageSlot(handle, account);
+        getVm().store(address(Nox._compute()), slotLocation, bytes32(uint256(1)));
+    }
+
+    /**
+     * Override storage to force disallow the given account for the given handle.
+     */
+    function forceDisallowPersistent(bytes32 handle, address account) internal {
+        bytes32 slotLocation = _getAllowStorageSlot(handle, account);
+        getVm().store(address(Nox._compute()), slotLocation, bytes32(uint256(0)));
+    }
+
+    /**
+     * Transient storage cannot be overridden from the outside so we allow the account
+     * persistently, call allowTransient from the account to set the transient state,
+     * then disallow persistently again to clean up.
+     */
+    function forceAllowTransient(bytes32 handle, address account) internal {
+        Vm vm = getVm();
+        forceAllowPersistent(handle, account);
+        vm.startPrank(account);
+        Nox._compute().allowTransient(handle, account);
+        vm.stopPrank();
+        forceDisallowPersistent(handle, account);
+        vm.assertTrue(Nox._compute().isAllowed(handle, account), "Should be allowed transient");
     }
 
     function deployProxy(address implementation) internal returns (address) {
@@ -130,5 +138,15 @@ library TestHelper {
 
     function getVm() internal pure returns (Vm) {
         return Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
+    }
+
+    function _getAllowStorageSlot(bytes32 handle, address account) private pure returns (bytes32) {
+        bytes32 adminsMappingStorageLocation = NOX_COMPUTE_STORAGE_LOCATION; // first variable.
+        // mapping(bytes32 key1 => mapping(key2 => bool)) map;
+        // slot = keccak256(abi.encode(key2, keccak256(abi.encode(key1, position of map))));
+        bytes32 outerKeyStorageLocation = keccak256(
+            abi.encode(handle, adminsMappingStorageLocation)
+        );
+        return keccak256(abi.encode(account, outerKeyStorageLocation));
     }
 }
