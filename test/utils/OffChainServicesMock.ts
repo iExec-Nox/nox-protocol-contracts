@@ -61,10 +61,19 @@ export class OffChainServices {
      * Must be called after start().
      */
     async createClient(account: Account) {
-        const walletClient = createWalletClient({
+        const baseClient = createWalletClient({
             account,
             transport: http(this.rpcUrl),
         });
+        // Override getAddresses() to return only this account's address.
+        // The SDK's ViemBlockchainService.getAddress() calls getAddresses()[0], which on a
+        // JSON-RPC transport calls eth_accounts and returns ALL Hardhat accounts — so [0] is
+        // always admin. This ensures the correct account is used as the handle owner.
+        const walletClient = baseClient.extend(() => ({
+            async getAddresses(): Promise<[`0x${string}`, ...`0x${string}`[]]> {
+                return [account.address as `0x${string}`];
+            },
+        }));
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         return createViemHandleClient(walletClient as any, {
             gatewayUrl: this.gatewayUrl,
