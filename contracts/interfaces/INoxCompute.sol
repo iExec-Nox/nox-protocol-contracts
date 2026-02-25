@@ -290,7 +290,10 @@ interface INoxCompute {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a division between two encrypted values
+     * @notice Performs a division between two encrypted values.
+     * In the case of a division by zero, the result will be as follows:
+     *  - For unsigned integers uintN: encrypted MAX_UintN (i.e., 2^N - 1)
+     *  - For signed integers intN: encrypted MAX_IntN (i.e., 2^(N-1) - 1)
      * @param numerator Value to be divided
      * @param denominator Value to divide by
      * @return result Result handle
@@ -374,11 +377,12 @@ interface INoxCompute {
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
 
-    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
-    // as result in case of failure.
     /**
      * @notice Performs an addition between two encrypted values with safety checks.
-     * The operation fails in the case of overflows.
+     * If the operation succeeds, the value of the success handle will be an encrypted
+     * `true` and the result handle's value will be the encrypted sum.
+     * If the operation fails (e.g., due to overflow), the success handle will contain
+     * an encrypted `false` and the result handle will contain an encrypted `0`.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return success Whether the operation was successful
@@ -391,7 +395,10 @@ interface INoxCompute {
 
     /**
      * @notice Performs a subtraction between two encrypted values with safety checks.
-     * The operation fails in the case of underflow.
+     * If the operation succeeds, the value of the success handle will be an encrypted
+     * `true` and the result handle's value will be the encrypted difference.
+     * If the operation fails (e.g., due to underflow), the success handle will contain
+     * an encrypted `false` and the result handle will contain an encrypted `0`.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return success Whether the operation was successful
@@ -413,6 +420,10 @@ interface INoxCompute {
 
     /**
      * @notice Computes a confidential transfer between two balances.
+     * The transfer will succeed if the sender has sufficient balance and fail otherwise.
+     * If the transfer fails, the success handle will contain an encrypted `false`, the
+     * newBalanceFrom and newBalanceTo handles will contain the same values as the input
+     * balanceFrom and balanceTo handles.
      * @param balanceFrom Sender's current balance handle
      * @param balanceTo Recipient's current balance handle
      * @param amount Amount handle to transfer
@@ -428,6 +439,9 @@ interface INoxCompute {
 
     /**
      * @notice Computes a confidential mint operation.
+     * If the minting operation fails (e.g., due to overflow), the success handle will
+     * contain an encrypted `false` and the newBalanceTo and newTotalSupply handles will
+     * contain the same values as the input balanceTo and totalSupply handles.
      * @param balanceTo Recipient's current balance handle
      * @param amount Amount handle to mint
      * @param totalSupply Current total supply handle
@@ -443,6 +457,9 @@ interface INoxCompute {
 
     /**
      * @notice Computes a confidential burn operation.
+     * If the burn operation fails (e.g., due to underflow), the success handle will
+     * contain an encrypted `false` and the newBalanceFrom and newTotalSupply handles will
+     * contain the same values as the input balanceFrom and totalSupply handles.
      * @param balanceFrom Sender's current balance handle
      * @param amount Amount handle to burn
      * @param totalSupply Current total supply handle
