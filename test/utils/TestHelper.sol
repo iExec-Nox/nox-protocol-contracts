@@ -9,6 +9,10 @@ import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
+    bytes32 constant EIP712_DOMAIN_TYPEHASH =
+        keccak256(
+            "EIP712Domain(string name,string version,uint256 chainId,address verifyingContract)"
+        );
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
@@ -58,7 +62,7 @@ library TestHelper {
         bytes32 structHash = keccak256(
             abi.encode(noxCompute.HANDLE_PROOF_TYPEHASH(), handle, owner, app, createdAt)
         );
-        bytes32 digest = MessageHashUtils.toTypedDataHash(noxCompute.domainSeparator(), structHash);
+        bytes32 digest = MessageHashUtils.toTypedDataHash(_eip712DomainSeparator(), structHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         return abi.encodePacked(bytes20(owner), bytes20(app), bytes32(createdAt), r, s, v);
     }
@@ -140,6 +144,28 @@ library TestHelper {
         return Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     }
 
+    function _eip712DomainSeparator() private view returns (bytes32) {
+        NoxCompute noxCompute = NoxCompute(address(Nox._compute()));
+        (
+            , // bytes1 fields
+            string memory name,
+            string memory version,
+            uint256 chainId,
+            address verifyingContract,
+            , // uint256[] memory extensions, // bytes32 salt
+
+        ) = noxCompute.eip712Domain();
+        return
+            keccak256(
+                abi.encode(
+                    EIP712_DOMAIN_TYPEHASH,
+                    keccak256(bytes(name)),
+                    keccak256(bytes(version)),
+                    chainId,
+                    verifyingContract
+                )
+            );
+    }
     function _getAllowStorageSlot(bytes32 handle, address account) private pure returns (bytes32) {
         bytes32 adminsMappingStorageLocation = NOX_COMPUTE_STORAGE_LOCATION; // first variable.
         // mapping(bytes32 key1 => mapping(key2 => bool)) map;
