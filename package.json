@@ -19,6 +19,7 @@
     "prepare": "husky",
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
+    "build:production": "pnpm hardhat build --build-profile production",
     "test": "pnpm hardhat test",
     "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",

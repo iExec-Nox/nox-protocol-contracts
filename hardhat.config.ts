@@ -15,6 +15,9 @@ export default defineConfig({
         profiles: {
             default: {
                 version: "0.8.34",
+            },
+            production: {
+                version: "0.8.34",
                 settings: {
                     evmVersion: "osaka",
                     optimizer: {
