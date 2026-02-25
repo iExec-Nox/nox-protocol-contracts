@@ -29,11 +29,11 @@ library Nox {
         }
         // Arbitrum Sepolia or its fork
         if (block.chainid == 421614) {
-            return INoxCompute(0xd2856C55447FBb45c85a4C484796fe690981B069);
+            return INoxCompute(0x0A7dB4EE43B73D8eC4c4793B68Cd76C3E5B75002);
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return INoxCompute(0x6a21849eb8b13ED7b7ff15eDfd3F915490e55AbC);
+            return INoxCompute(0x66197561302495005DB28D8541a32443e395d386);
         }
         revert("Nox: Unsupported chain");
     }

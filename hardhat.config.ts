@@ -31,10 +31,6 @@ export default defineConfig({
     },
     networks: {
         default: {
-            type: "edr-simulated",
-            chainType: "op",
-        },
-        localhost: {
             type: "http",
             chainType: "op",
             url: "http://localhost:8545",

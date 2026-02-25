@@ -20,7 +20,7 @@ async function deployFixture() {
     if (noxComputeAddress) {
         const code = await publicClient.getCode({ address: noxComputeAddress });
         if (!code || code === "0x") {
-            rmSync("ignition/deployments/localhost", { recursive: true, force: true });
+            rmSync(`ignition/deployments/${connection.networkName}`, { recursive: true, force: true });
         }
     }
     // disable deployment logging for tests (more readable logs)
