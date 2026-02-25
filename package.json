@@ -25,8 +25,7 @@
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
     "set-kms-public-key": "pnpm hardhat run scripts/set-kms-public-key.ts",
-    "upgrade-acl": "pnpm hardhat run scripts/upgrade-acl.ts",
-    "upgrade-nox-compute": "pnpm hardhat run scripts/upgrade-nox-compute.ts",
+    "upgrade": "pnpm hardhat run scripts/upgrade.ts",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check ."
   },

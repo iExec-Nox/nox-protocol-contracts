@@ -1,18 +1,30 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {IErrors} from "./IErrors.sol";
-import {IACL} from "./IACL.sol";
 import {TEEType} from "../shared/TypeUtils.sol";
 
 /**
  * @title INoxCompute
  * @notice Interface for the Nox compute contract powered by TEE.
  */
-interface INoxCompute is IErrors {
+interface INoxCompute {
+    /// Error thrown when account address is zero
+    error InvalidZeroAddress();
+    /// Error thrown when bytes parameter is empty
+    error InvalidEmptyBytes();
+    /// Error thrown when sender doesn't have access to the handle
+    error UnauthorizedSender(address sender);
+    /// Error thrown when an account is not allowed to use a handle
+    error NotAllowed(bytes32 handle, address account);
     error InvalidProof(bytes proof, string reason);
     error IncompatibleTypes();
 
+    /// Emitted when admin role is granted
+    event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
+    /// Emitted when viewer role is granted
+    event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
+    /// Emitted when a handle is marked as publicly decryptable
+    event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
@@ -152,6 +164,85 @@ interface INoxCompute is IErrors {
         Burn
     }
 
+    // ------------- ACL management -------------
+
+    /**
+     * Grant admin role to another address for a specific handle
+     * @dev Caller must have access (transient OR persistent) to the handle
+     * @param handle The handle identifier
+     * @param account The address to grant admin role
+     */
+    function allow(bytes32 handle, address account) external;
+
+    /**
+     * Allows the use of `handle` by address `account` for this transaction.
+     * @param handle Handle.
+     * @param account Address of the account.
+     */
+    function allowTransient(bytes32 handle, address account) external;
+
+    /**
+     * Removes all transient authorizations. This is useful for integration with Account Abstraction
+     * when bundling several UserOps calling the NoxCompute.
+     * @dev Can be called by anyone (typically by AA bundlers between UserOps).
+     */
+    function cleanTransientStorage() external;
+
+    /**
+     * Returns whether the account is allowed to use the `handle`, either due to
+     * allowTransient() or allow().
+     * @param handle Handle.
+     * @param account Address of the account.
+     * @return Whether the account can access the handle (persistent or transient).
+     */
+    function isAllowed(bytes32 handle, address account) external view returns (bool);
+
+    /**
+     * Checks whether the account is allowed to use all provided handles.
+     * Reverts with NotAllowed if any handle is not allowed.
+     * @param account Address of the account.
+     * @param handles Array of handles to check.
+     */
+    function validateAllowedForAll(address account, bytes32[] calldata handles) external view;
+
+    /**
+     * Add a viewer for a specific handle
+     * @dev Only an admin can add a viewer. The viewer address cannot be address(0).
+     * @param handle The handle identifier
+     * @param viewer The address to grant viewer role
+     */
+    function addViewer(bytes32 handle, address viewer) external;
+
+    /**
+     * Returns whether the account can view the handle.
+     * @dev Returns true if any of the following conditions are met:
+     *      - The handle is publicly decryptable
+     *      - The account was added as a viewer via `addViewer`
+     *      - The account has persistent access (is allowed) on the handle
+     * @param handle Handle.
+     * @param viewer Address of the viewer.
+     * @return Whether the account can view the handle.
+     */
+    function isViewer(bytes32 handle, address viewer) external view returns (bool);
+
+    /**
+     * Mark a handle as publicly decryptable.
+     * @dev The caller must be allowed to use the handle.
+     *      If not, the function reverts.
+     * @param handle Handle to mark as publicly decryptable.
+     */
+    function allowPublicDecryption(bytes32 handle) external;
+
+    /**
+     * Checks whether a handle is publicly decryptable.
+     * @param handle Handle.
+     * @return Whether the handle is publicly decryptable.
+     */
+    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
+
+    // ------------- Admin functions -------------
+
+    // TODO move admin functions to the bottom.
     /**
      * @notice Sets the KMS public key used for ECIES encryption
      * @param newKmsPublicKey The compressed SEC1 secp256k1 public key (33 bytes)
@@ -165,6 +256,8 @@ interface INoxCompute is IErrors {
      * @param newDuration The new expiration duration in seconds
      */
     function setProofExpirationDuration(uint256 newDuration) external;
+
+    // ------------- Compute functions -------------
 
     /**
      * @notice Converts a plaintext value into an encrypted value
@@ -371,17 +464,7 @@ interface INoxCompute is IErrors {
     ) external;
 
     function domainSeparator() external view returns (bytes32);
-    function ACL() external view returns (IACL);
     function gateway() external view returns (address);
     function proofExpirationDuration() external view returns (uint256);
     function kmsPublicKey() external view returns (bytes memory);
-
-    /// @dev See {IACL-isAllowed}
-    function isAllowed(bytes32 handle, address account) external view returns (bool);
-
-    /// @dev See {IACL-isViewer}
-    function isViewer(bytes32 handle, address viewer) external view returns (bool);
-
-    /// @dev See {IACL-isPubliclyDecryptable}
-    function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
 }

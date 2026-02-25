@@ -6,7 +6,6 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {INoxCompute} from "./interfaces/INoxCompute.sol";
-import {IACL} from "./interfaces/IACL.sol";
 import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 
 /**
@@ -21,15 +20,19 @@ import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
 contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712Upgradeable {
     /// @custom:storage-location erc7201:nox.storage.NoxCompute
     struct NoxComputeStorage {
+        /// Admins can use a handle as input in computations, and can add other admins and viewers
+        mapping(bytes32 handleId => mapping(address => bool)) admins;
+        /// Viewers can decrypt the associated data
+        //TODO: Make viewer expirable
+        mapping(bytes32 handleId => mapping(address => bool)) viewers;
+        /// Handles that are publicly decryptable
+        mapping(bytes32 handle => bool) isPubliclyDecryptable;
         bytes kmsPublicKey;
         address gateway;
         uint256 proofExpirationDuration;
     }
 
     uint8 private constant HANDLE_VERSION = 0;
-
-    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
-    IACL public immutable ACL;
 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.NoxCompute")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
@@ -38,13 +41,31 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         keccak256("HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)");
 
     /**
-     * @custom:oz-upgrades-unsafe-allow constructor
+     * Ensures the account address is not zero
+     * @param account The address to validate
      */
-    constructor(address acl_) {
-        if (acl_ == address(0)) {
+    modifier notZeroAddress(address account) {
+        if (account == address(0)) {
             revert InvalidZeroAddress();
         }
-        ACL = IACL(acl_);
+        _;
+    }
+
+    /**
+     * Ensures the sender is allowed to access the handle
+     * @param handle The handle to check access for
+     */
+    modifier onlyAllowed(bytes32 handle) {
+        if (!isAllowed(handle, msg.sender)) {
+            revert UnauthorizedSender(msg.sender);
+        }
+        _;
+    }
+
+    /**
+     * @custom:oz-upgrades-unsafe-allow constructor
+     */
+    constructor() {
         _disableInitializers();
     }
 
@@ -64,6 +85,146 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         $.proofExpirationDuration = 1 hours;
         $.kmsPublicKey = kmsPublicKey_;
     }
+
+    // ----------- ACL management -----------
+
+    /// @inheritdoc INoxCompute
+    function allow(
+        bytes32 handle,
+        address account
+    ) external override onlyAllowed(handle) notZeroAddress(account) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.admins[handle][account] = true;
+        emit Allowed(msg.sender, account, handle);
+    }
+
+    /**
+     * @inheritdoc INoxCompute
+     * @dev To grant transient access, the caller must already have permission on `handle`.
+     *      Transient access only lasts for the current transaction. It is the responsibility
+     *      of the application contract to convert this into persistent access via `allow()`
+     *      if needed.
+     */
+    function allowTransient(
+        bytes32 handle,
+        address account
+    ) external override notZeroAddress(account) onlyAllowed(handle) {
+        _allowTransient(handle, account);
+    }
+
+    /// @inheritdoc INoxCompute
+    function cleanTransientStorage() external override {
+        assembly {
+            let length := tload(0)
+            tstore(0, 0)
+            let lengthPlusOne := add(length, 1)
+            for {
+                let i := 1
+            } lt(i, lengthPlusOne) {
+                i := add(i, 1)
+            } {
+                let handle := tload(i)
+                tstore(i, 0)
+                tstore(handle, 0)
+            }
+        }
+    }
+
+    /// @inheritdoc INoxCompute
+    function isAllowed(bytes32 handle, address account) public view override returns (bool) {
+        // Read transient authorization first to save gas (no unnecessary storage reads).
+        return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
+    }
+
+    /// @inheritdoc INoxCompute
+    function validateAllowedForAll(address account, bytes32[] memory handles) public view override {
+        for (uint256 i = 0; i < handles.length; i++) {
+            if (!isAllowed(handles[i], account)) {
+                revert NotAllowed(handles[i], account);
+            }
+        }
+    }
+
+    /// @inheritdoc INoxCompute
+    function addViewer(
+        bytes32 handle,
+        address viewer
+    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.viewers[handle][viewer] = true;
+        emit ViewerAdded(msg.sender, viewer, handle);
+    }
+
+    /// @inheritdoc INoxCompute
+    function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return
+            $.isPubliclyDecryptable[handle] ||
+            $.viewers[handle][viewer] ||
+            $.admins[handle][viewer];
+    }
+
+    /// @inheritdoc INoxCompute
+    function allowPublicDecryption(bytes32 handle) external override onlyAllowed(handle) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.isPubliclyDecryptable[handle] = true;
+        emit MarkedAsPubliclyDecryptable(msg.sender, handle);
+    }
+
+    /// @inheritdoc INoxCompute
+    function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.isPubliclyDecryptable[handle];
+    }
+
+    /**
+     * Grants transient access to a handle for an account. This function does not do any
+     * checks and should be used with caution.
+     * This function is used in two scenarios:
+     *   - For handles generated off-chain by the Handle Gateway, once the proof has been verified
+     *   - For handles resulting from on-chain operations, where the caller naturally inherits
+     *     rights on the output handle
+     * @param handle Handle identifier
+     * @param account Address of the account
+     */
+    function _allowTransient(bytes32 handle, address account) private {
+        bytes32 key = keccak256(abi.encodePacked(handle, account));
+        assembly {
+            tstore(key, 1)
+            let length := tload(0)
+            let lengthPlusOne := add(length, 1)
+            tstore(lengthPlusOne, key)
+            tstore(0, lengthPlusOne)
+        }
+    }
+
+    /**
+     * Check if an address has transient access to handle.
+     * @param handle Handle.
+     * @param account Address of the account.
+     * @return Returns `true` if the address has transient access to a handle and `false` otherwise.
+     */
+    function _isAllowedTransient(bytes32 handle, address account) private view returns (bool) {
+        bool isAllowedTransient_;
+        bytes32 key = keccak256(abi.encodePacked(handle, account));
+        assembly {
+            isAllowedTransient_ := tload(key)
+        }
+        return isAllowedTransient_;
+    }
+
+    /**
+     * Check if an address has persistent access to handle.
+     * @param handle Handle.
+     * @param account Address of the account.
+     * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
+     */
+    function _isAllowedPersistent(bytes32 handle, address account) private view returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.admins[handle][account];
+    }
+
+    // ----------- Admin functions ----------
 
     /**
      * Sets the KMS public key used for ECIES encryption.
@@ -104,6 +265,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         emit ProofExpirationDurationUpdated(newDuration);
     }
 
+    // ----------- Compute functions -----------
+
     /// @inheritdoc INoxCompute
     function plaintextToEncrypted(
         bytes32 value,
@@ -113,7 +276,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
-        ACL.allowTransient(result, msg.sender);
+        _allowTransient(result, msg.sender);
         emit PlaintextToEncrypted(msg.sender, value, teeType, result);
     }
 
@@ -179,7 +342,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
             revert InvalidProof(proof, "Invalid signature");
         }
         // Give caller contract transient access to the handle.
-        ACL.allowTransient(handle, msg.sender);
+        _allowTransient(handle, msg.sender);
     }
 
     /// @inheritdoc INoxCompute
@@ -322,9 +485,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
-        ACL.validateAllowedForAll(msg.sender, operands);
+        validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(Operator.Select, operands, resultType);
-        ACL.allowTransient(result, msg.sender);
+        _allowTransient(result, msg.sender);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
     }
 
@@ -434,21 +597,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         return $.proofExpirationDuration;
     }
 
-    /// @inheritdoc INoxCompute
-    function isAllowed(bytes32 handle, address account) external view returns (bool) {
-        return ACL.isAllowed(handle, account);
-    }
-
-    /// @inheritdoc INoxCompute
-    function isViewer(bytes32 handle, address viewer) external view returns (bool) {
-        return ACL.isViewer(handle, viewer);
-    }
-
-    /// @inheritdoc INoxCompute
-    function isPubliclyDecryptable(bytes32 handle) external view returns (bool) {
-        return ACL.isPubliclyDecryptable(handle);
-    }
-
     /**
      * Authorizes contract upgrades only by the owner.
      */
@@ -469,7 +617,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
      * When `isSafeOperation` is true, generates an additional Bool success handle (outputIndex 1)
      * and the result handle at outputIndex 0, enabling overflow/underflow detection.
      *
-     * @dev Reverts with IACL.NotAllowed if caller lacks permission on any operand
+     * @dev Reverts with NotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The operator to apply
@@ -490,12 +638,12 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
                 revert IncompatibleTypes();
             }
         }
-        ACL.validateAllowedForAll(msg.sender, operands);
+        validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, resultType);
-        ACL.allowTransient(result, msg.sender);
+        _allowTransient(result, msg.sender);
         if (isSafeOperation) {
             success = _generateHandle(operator, operands, TEEType.Bool, 1);
-            ACL.allowTransient(success, msg.sender);
+            _allowTransient(success, msg.sender);
         }
     }
 
@@ -505,7 +653,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
      * Verifies ACL permissions for both operands, checks type compatibility,
      * generates a Bool result handle, and grants transient access to the caller.
      *
-     * @dev Reverts with IACL.NotAllowed if caller lacks permission on any operand
+     * @dev Reverts with NotAllowed if caller lacks permission on any operand
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The comparison operator to apply
@@ -526,9 +674,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftOperand;
         operands[1] = rightOperand;
-        ACL.validateAllowedForAll(msg.sender, operands);
+        validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, TEEType.Bool);
-        ACL.allowTransient(result, msg.sender);
+        _allowTransient(result, msg.sender);
     }
 
     /**
@@ -553,13 +701,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
                 revert IncompatibleTypes();
             }
         }
-        ACL.validateAllowedForAll(msg.sender, operands);
+        validateAllowedForAll(msg.sender, operands);
         success = _generateHandle(operator, operands, TEEType.Bool, 0);
         result1 = _generateHandle(operator, operands, resultType, 1);
         result2 = _generateHandle(operator, operands, resultType, 2);
-        ACL.allowTransient(success, msg.sender);
-        ACL.allowTransient(result1, msg.sender);
-        ACL.allowTransient(result2, msg.sender);
+        _allowTransient(success, msg.sender);
+        _allowTransient(result1, msg.sender);
+        _allowTransient(result2, msg.sender);
     }
 
     /**
