@@ -164,7 +164,7 @@ interface INoxCompute {
         Burn
     }
 
-    // ------------- ACL management -------------
+    // ------------- ACL functions -------------
 
     /**
      * Grant admin role to another address for a specific handle
@@ -239,23 +239,6 @@ interface INoxCompute {
      * @return Whether the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
-
-    // ------------- Admin functions -------------
-
-    // TODO move admin functions to the bottom.
-    /**
-     * @notice Sets the KMS public key used for ECIES encryption
-     * @param newKmsPublicKey The compressed SEC1 secp256k1 public key (33 bytes)
-     */
-    function setKmsPublicKey(bytes calldata newKmsPublicKey) external;
-
-    function setGateway(address gatewayAddress) external;
-
-    /**
-     * @notice Sets the proof expiration duration
-     * @param newDuration The new expiration duration in seconds
-     */
-    function setProofExpirationDuration(uint256 newDuration) external;
 
     // ------------- Compute functions -------------
 
@@ -489,8 +472,27 @@ interface INoxCompute {
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
 
-    function domainSeparator() external view returns (bytes32);
+    // ------------- Admin functions -------------
+
+    /**
+     * @notice Sets the KMS public key used for ECIES encryption.
+     * @param newKmsPublicKey The compressed SEC1 secp256k1 public key (33 bytes)
+     */
+    function setKmsPublicKey(bytes calldata newKmsPublicKey) external;
+
+    /**
+     * @notice Sets the gateway address in the contract's config.
+     * @param gatewayAddress The address of the gateway
+     */
+    function setGateway(address gatewayAddress) external;
+
+    /**
+     * @notice Sets the proof expiration duration.
+     * @param newDuration The new expiration duration in seconds
+     */
+    function setProofExpirationDuration(uint256 newDuration) external;
+
+    function kmsPublicKey() external view returns (bytes memory);
     function gateway() external view returns (address);
     function proofExpirationDuration() external view returns (uint256);
-    function kmsPublicKey() external view returns (bytes memory);
 }

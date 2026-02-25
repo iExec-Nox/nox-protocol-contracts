@@ -224,47 +224,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         return $.admins[handle][account];
     }
 
-    // ----------- Admin functions ----------
-
-    /**
-     * Sets the KMS public key used for ECIES encryption.
-     * Only callable by the owner.
-     * @param newKmsPublicKey Compressed SEC1 secp256k1 public key (33 bytes)
-     */
-    function setKmsPublicKey(bytes calldata newKmsPublicKey) external onlyOwner {
-        if (newKmsPublicKey.length == 0) {
-            revert InvalidEmptyBytes();
-        }
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.kmsPublicKey = newKmsPublicKey;
-        emit KmsPublicKeyUpdated(newKmsPublicKey);
-    }
-
-    /**
-     * Sets Gateway wallet address.
-     * Only callable by the owner.
-     * @param gatewayAddress New Gateway wallet address
-     */
-    function setGateway(address gatewayAddress) external onlyOwner {
-        if (gatewayAddress == address(0)) {
-            revert InvalidZeroAddress();
-        }
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.gateway = gatewayAddress;
-        emit GatewayUpdated(gatewayAddress);
-    }
-
-    /**
-     * Sets the proof expiration duration.
-     * Only callable by the owner.
-     * @param newDuration New expiration duration in seconds
-     */
-    function setProofExpirationDuration(uint256 newDuration) external onlyOwner {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.proofExpirationDuration = newDuration;
-        emit ProofExpirationDurationUpdated(newDuration);
-    }
-
     // ----------- Compute functions -----------
 
     /// @inheritdoc INoxCompute
@@ -567,48 +526,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     }
 
     /**
-     * Returns the EIP-712 domain separator.
-     */
-    function domainSeparator() external view returns (bytes32) {
-        return _domainSeparatorV4();
-    }
-
-    /**
-     * Returns the KMS public key used for ECIES encryption.
-     */
-    function kmsPublicKey() external view returns (bytes memory) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.kmsPublicKey;
-    }
-
-    /**
-     * Returns the Gateway wallet address.
-     */
-    function gateway() external view returns (address) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.gateway;
-    }
-
-    /**
-     * Returns the proof expiration duration in seconds.
-     */
-    function proofExpirationDuration() external view returns (uint256) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.proofExpirationDuration;
-    }
-
-    /**
-     * Authorizes contract upgrades only by the owner.
-     */
-    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
-
-    function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
-        assembly {
-            $.slot := NOX_COMPUTE_STORAGE_LOCATION
-        }
-    }
-
-    /**
      * Executes an arithmetic operation on N encrypted handles.
      * All operands must share the same type as the first operand, which also determines the result type.
      * Verifies ACL permissions for all operands, checks type compatibility,
@@ -770,5 +687,81 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
                 bytes1(uint8(HANDLE_VERSION))
             )
         );
+    }
+
+    // ----------- Admin functions ----------
+
+    /**
+     * Sets the KMS public key used for ECIES encryption.
+     * Only callable by the owner.
+     * @param newKmsPublicKey Compressed SEC1 secp256k1 public key (33 bytes)
+     */
+    function setKmsPublicKey(bytes calldata newKmsPublicKey) external onlyOwner {
+        if (newKmsPublicKey.length == 0) {
+            revert InvalidEmptyBytes();
+        }
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.kmsPublicKey = newKmsPublicKey;
+        emit KmsPublicKeyUpdated(newKmsPublicKey);
+    }
+
+    /**
+     * Sets Gateway wallet address.
+     * Only callable by the owner.
+     * @param gatewayAddress New Gateway wallet address
+     */
+    function setGateway(address gatewayAddress) external onlyOwner {
+        if (gatewayAddress == address(0)) {
+            revert InvalidZeroAddress();
+        }
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.gateway = gatewayAddress;
+        emit GatewayUpdated(gatewayAddress);
+    }
+
+    /**
+     * Sets the proof expiration duration.
+     * Only callable by the owner.
+     * @param newDuration New expiration duration in seconds
+     */
+    function setProofExpirationDuration(uint256 newDuration) external onlyOwner {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.proofExpirationDuration = newDuration;
+        emit ProofExpirationDurationUpdated(newDuration);
+    }
+
+    /**
+     * Returns the KMS public key used for ECIES encryption.
+     */
+    function kmsPublicKey() external view returns (bytes memory) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.kmsPublicKey;
+    }
+
+    /**
+     * Returns the Gateway wallet address.
+     */
+    function gateway() external view returns (address) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.gateway;
+    }
+
+    /**
+     * Returns the proof expiration duration in seconds.
+     */
+    function proofExpirationDuration() external view returns (uint256) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.proofExpirationDuration;
+    }
+
+    /**
+     * Authorizes contract upgrades only by the owner.
+     */
+    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+
+    function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
+        assembly {
+            $.slot := NOX_COMPUTE_STORAGE_LOCATION
+        }
     }
 }
