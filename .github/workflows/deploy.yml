@@ -34,9 +34,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build contracts
-        run: pnpm run build
-
       - name: Deploy contracts on Hardhat (dry-run)
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
@@ -47,7 +44,7 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
-        run: pnpm run deploy --network ${{ inputs.network }}
+        run: pnpm run deploy:production --network ${{ inputs.network }}
 
       # Used in set-gateway job.
       - name: Upload deployment artifacts

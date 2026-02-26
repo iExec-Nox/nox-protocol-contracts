@@ -2,6 +2,16 @@ import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
 
+const baseProfile = {
+    version: "0.8.34",
+    settings: {
+        evmVersion: "osaka",
+        metadata: {
+            bytecodeHash: "none",
+        },
+    },
+} as const;
+
 export default defineConfig({
     plugins: [hardhatToolboxViemPlugin],
     ignition: {
@@ -13,12 +23,11 @@ export default defineConfig({
     },
     solidity: {
         profiles: {
-            default: {
-                version: "0.8.28",
-            },
+            default: baseProfile,
             production: {
-                version: "0.8.28",
+                version: baseProfile.version,
                 settings: {
+                    ...baseProfile.settings,
                     optimizer: {
                         enabled: true,
                         runs: 200,
