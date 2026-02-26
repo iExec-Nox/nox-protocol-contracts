@@ -127,15 +127,6 @@ library TypeUtils {
     }
 
     /**
-     * @notice Validates that a TEE type is within the valid range.
-     * Reverts with UnsupportedType if the type value is out of range.
-     * @param teeType The TEE type to validate
-     */
-    function validateType(TEEType teeType) internal pure {
-        require(uint8(teeType) <= uint8(TEEType.Bytes32), UnsupportedType());
-    }
-
-    /**
      * @notice Validates that a TEE type is supported for arithmetic operations.
      * Only unsigned integers (Uint8-Uint256) and signed integers (Int8-Int256) are supported.
      * Reverts with NonArithmeticType if the type is not arithmetic.

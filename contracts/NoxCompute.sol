@@ -228,7 +228,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 value,
         TEEType teeType
     ) external returns (bytes32 result) {
-        TypeUtils.validateType(teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);

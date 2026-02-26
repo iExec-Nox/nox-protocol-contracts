@@ -214,7 +214,7 @@ contract NoxComputeTest is Test {
             abi.encodeWithSelector(
                 INoxCompute.plaintextToEncrypted.selector,
                 value,
-                uint256(100) // Pass as uint256 to match function signature
+                uint8(type(TEEType).max) + 1 // Pass as uint256 to match function signature
             )
         );
         assertFalse(success);
