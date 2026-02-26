@@ -132,9 +132,7 @@ library TypeUtils {
      * @param teeType The TEE type to validate
      */
     function validateType(TEEType teeType) internal pure {
-        if (uint8(teeType) > uint8(TEEType.Bytes32)) {
-            revert UnsupportedType();
-        }
+        require(uint8(teeType) <= uint8(TEEType.Bytes32), UnsupportedType());
     }
 
     /**
@@ -145,8 +143,6 @@ library TypeUtils {
      */
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
-        if (t < uint8(TEEType.Uint8) || t > uint8(TEEType.Int256)) {
-            revert NonArithmeticType();
-        }
+        require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
     }
 }

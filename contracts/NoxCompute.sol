@@ -49,9 +49,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param account The address to validate
      */
     modifier notZeroAddress(address account) {
-        if (account == address(0)) {
-            revert InvalidZeroAddress();
-        }
+        require(account != address(0), InvalidZeroAddress());
         _;
     }
 
@@ -60,9 +58,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param handle The handle to check access for
      */
     modifier onlyAllowed(bytes32 handle) {
-        if (!isAllowed(handle, msg.sender)) {
-            revert UnauthorizedSender(msg.sender);
-        }
+        require(isAllowed(handle, msg.sender), UnauthorizedSender(msg.sender));
         _;
     }
 
@@ -79,9 +75,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param kmsPublicKey_ KMS public key for ECIES encryption
      */
     function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
-        if (kmsPublicKey_.length == 0) {
-            revert InvalidEmptyBytes();
-        }
+        require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
@@ -272,37 +266,32 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         TEEType teeType
     ) public {
         bytes4 chainIdInHandle = bytes4(handle << (26 * 8));
-        if (chainIdInHandle != bytes4(uint32(block.chainid))) {
-            revert InvalidProof(proof, "Handle chain id mismatch");
-        }
-        if (TypeUtils.typeOf(handle) != teeType) {
-            revert InvalidProof(proof, "Handle type mismatch");
-        }
-        if (proof.length != 137) {
-            revert InvalidProof(proof, "Invalid proof length");
-        }
+        require(
+            chainIdInHandle == bytes4(uint32(block.chainid)),
+            InvalidProof(proof, "Handle chain id mismatch")
+        );
+        require(TypeUtils.typeOf(handle) == teeType, InvalidProof(proof, "Handle type mismatch"));
+        require(proof.length == 137, InvalidProof(proof, "Invalid proof length"));
         address ownerInProof = address(bytes20(proof[0:20]));
         address appInProof = address(bytes20(proof[20:40]));
         uint256 createdAt = uint256(bytes32(proof[40:72]));
         bytes calldata signature = proof[72:137];
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        if (block.timestamp > createdAt + $.proofExpirationDuration) {
-            revert InvalidProof(proof, "Proof expired");
-        }
-        if (appInProof != msg.sender) {
-            revert InvalidProof(proof, "App mismatch");
-        }
-        if (ownerInProof != owner) {
-            revert InvalidProof(proof, "Owner mismatch");
-        }
+        require(
+            block.timestamp <= createdAt + $.proofExpirationDuration,
+            InvalidProof(proof, "Proof expired")
+        );
+        require(appInProof == msg.sender, InvalidProof(proof, "App mismatch"));
+        require(ownerInProof == owner, InvalidProof(proof, "Owner mismatch"));
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(
                 abi.encode(HANDLE_PROOF_TYPEHASH, handle, ownerInProof, appInProof, createdAt)
             )
         );
-        if (ECDSA.recover(eip712MessageHash, signature) != $.gateway) {
-            revert InvalidProof(proof, "Invalid signature");
-        }
+        require(
+            ECDSA.recover(eip712MessageHash, signature) == $.gateway,
+            InvalidProof(proof, "Invalid signature")
+        );
         // Give caller contract transient access to the handle.
         _allowTransient(handle, msg.sender);
     }
@@ -436,13 +425,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
-        if (TypeUtils.typeOf(condition) != TEEType.Bool) {
-            revert UnsupportedType();
-        }
+        require(TypeUtils.typeOf(condition) == TEEType.Bool, UnsupportedType());
         TEEType resultType = TypeUtils.typeOf(ifTrue);
-        if (resultType != TypeUtils.typeOf(ifFalse)) {
-            revert IncompatibleTypes();
-        }
+        require(resultType == TypeUtils.typeOf(ifFalse), IncompatibleTypes());
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = condition;
         operands[1] = ifTrue;
@@ -588,9 +573,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     ) private returns (bytes32 result) {
         TEEType operandType = TypeUtils.typeOf(leftOperand);
         TypeUtils.validateArithmeticType(operandType);
-        if (operandType != TypeUtils.typeOf(rightOperand)) {
-            revert IncompatibleTypes();
-        }
+        require(TypeUtils.typeOf(rightOperand) == operandType, IncompatibleTypes());
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftOperand;
         operands[1] = rightOperand;
@@ -700,9 +683,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param newKmsPublicKey Compressed SEC1 secp256k1 public key (33 bytes)
      */
     function setKmsPublicKey(bytes calldata newKmsPublicKey) external onlyOwner {
-        if (newKmsPublicKey.length == 0) {
-            revert InvalidEmptyBytes();
-        }
+        require(newKmsPublicKey.length != 0, InvalidEmptyBytes());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.kmsPublicKey = newKmsPublicKey;
         emit KmsPublicKeyUpdated(newKmsPublicKey);
@@ -714,9 +695,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param gatewayAddress New Gateway wallet address
      */
     function setGateway(address gatewayAddress) external onlyOwner {
-        if (gatewayAddress == address(0)) {
-            revert InvalidZeroAddress();
-        }
+        require(gatewayAddress != address(0), InvalidZeroAddress());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.gateway = gatewayAddress;
         emit GatewayUpdated(gatewayAddress);
