@@ -28,9 +28,6 @@ jobs:
         run: pnpm run build
       - name: Deployment dry-run
         run: pnpm run deploy
-      # TODO remove this when coverage is fixed to run with all tests.
-      - name: Run tests
-        run: pnpm run test
       - name: Run coverage
         run: pnpm run coverage
       - name: Upload coverage reports to Codecov
