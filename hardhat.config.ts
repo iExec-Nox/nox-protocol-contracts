@@ -25,7 +25,7 @@ export default defineConfig({
         profiles: {
             default: baseProfile,
             production: {
-                ...baseProfile,
+                version: baseProfile.version,
                 settings: {
                     ...baseProfile.settings,
                     optimizer: {
