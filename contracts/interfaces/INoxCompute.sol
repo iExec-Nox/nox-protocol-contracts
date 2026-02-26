@@ -164,7 +164,7 @@ interface INoxCompute {
         Burn
     }
 
-    // ------------- ACL management -------------
+    // ------------- ACL functions -------------
 
     /**
      * Grant admin role to another address for a specific handle
@@ -240,23 +240,6 @@ interface INoxCompute {
      */
     function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
 
-    // ------------- Admin functions -------------
-
-    // TODO move admin functions to the bottom.
-    /**
-     * @notice Sets the KMS public key used for ECIES encryption
-     * @param newKmsPublicKey The compressed SEC1 secp256k1 public key (33 bytes)
-     */
-    function setKmsPublicKey(bytes calldata newKmsPublicKey) external;
-
-    function setGateway(address gatewayAddress) external;
-
-    /**
-     * @notice Sets the proof expiration duration
-     * @param newDuration The new expiration duration in seconds
-     */
-    function setProofExpirationDuration(uint256 newDuration) external;
-
     // ------------- Compute functions -------------
 
     /**
@@ -268,7 +251,21 @@ interface INoxCompute {
     function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
-     * @notice Computes TEE Add operation
+     * @notice Validates a handle proof for a given owner and type.
+     * @param handle handle to validate
+     * @param owner owner of the provided handle
+     * @param proof proof data
+     * @param teeType expected handle type
+     */
+    function validateProof(
+        bytes32 handle,
+        address owner,
+        bytes calldata proof,
+        TEEType teeType
+    ) external;
+
+    /**
+     * @notice Performs an addition between two encrypted values without overflow check.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -279,7 +276,7 @@ interface INoxCompute {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a subtraction between two encrypted values without safety checks.
+     * @notice Performs a subtraction between two encrypted values without underflow check.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -290,15 +287,7 @@ interface INoxCompute {
     ) external returns (bytes32 result);
 
     /**
-     * @notice Performs a division between two encrypted values
-     * @param numerator Value to be divided
-     * @param denominator Value to divide by
-     * @return result Result handle
-     */
-    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
-
-    /**
-     * @notice Performs a multiplication between two encrypted values
+     * @notice Performs a multiplication between two encrypted values without overflow check.
      * @param leftHandOperand Left-hand side operand handle
      * @param rightHandOperand Right-hand side operand handle
      * @return result Result handle
@@ -307,6 +296,60 @@ interface INoxCompute {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
+
+    /**
+     * @notice Performs a division between two encrypted values without safety checks.
+     * In the case of a division by zero, the result will be as follows:
+     *  - For unsigned integers uintN: encrypted MAX_UintN (i.e., 2^N - 1)
+     *  - For signed integers intN: encrypted MAX_IntN (i.e., 2^(N-1) - 1)
+     * @param numerator Value to be divided
+     * @param denominator Value to divide by
+     * @return result Result handle
+     */
+    function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result);
+
+    /**
+     * @notice Performs an addition between two encrypted values with overflow check.
+     * If the operation succeeds, the value of the success handle will be an encrypted
+     * `true` and the result handle's value will be the encrypted sum.
+     * If the operation fails (e.g., due to overflow), the success handle will contain
+     * an encrypted `false` and the result handle will contain an encrypted `0`.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Performs a subtraction between two encrypted values with underflow check.
+     * If the operation succeeds, the value of the success handle will be an encrypted
+     * `true` and the result handle's value will be the encrypted difference.
+     * If the operation fails (e.g., due to underflow), the success handle will contain
+     * an encrypted `false` and the result handle will contain an encrypted `0`.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    // TODO add safeMul and safeDiv
+
+    /**
+     * @notice Selects between two encrypted values based on a condition
+     * @param condition Condition handle
+     * @param ifTrue Value handle if condition is true
+     * @param ifFalse Value handle if condition is false
+     * @return result Selected value handle
+     */
+    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
 
     /**
      * @notice Checks equality between two encrypted values
@@ -374,45 +417,12 @@ interface INoxCompute {
         bytes32 rightHandOperand
     ) external returns (bytes32 result);
 
-    // TODO for all safe operations, determine which cyphertexte linked to the new handle to return
-    // as result in case of failure.
-    /**
-     * @notice Performs an addition between two encrypted values with safety checks.
-     * The operation fails in the case of overflows.
-     * @param leftHandOperand Left-hand side operand handle
-     * @param rightHandOperand Right-hand side operand handle
-     * @return success Whether the operation was successful
-     * @return result Result handle
-     */
-    function safeAdd(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result);
-
-    /**
-     * @notice Performs a subtraction between two encrypted values with safety checks.
-     * The operation fails in the case of underflow.
-     * @param leftHandOperand Left-hand side operand handle
-     * @param rightHandOperand Right-hand side operand handle
-     * @return success Whether the operation was successful
-     * @return result Result handle
-     */
-    function safeSub(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result);
-
-    /**
-     * @notice Selects between two encrypted values based on a condition
-     * @param condition Condition handle
-     * @param ifTrue Value handle if condition is true
-     * @param ifFalse Value handle if condition is false
-     * @return result Selected value handle
-     */
-    function select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external returns (bytes32);
-
     /**
      * @notice Computes a confidential transfer between two balances.
+     * The transfer will succeed if the sender has sufficient balance and fail otherwise.
+     * If the transfer fails, the success handle will contain an encrypted `false`, the
+     * newBalanceFrom and newBalanceTo handles will contain the same values as the input
+     * balanceFrom and balanceTo handles.
      * @param balanceFrom Sender's current balance handle
      * @param balanceTo Recipient's current balance handle
      * @param amount Amount handle to transfer
@@ -428,6 +438,9 @@ interface INoxCompute {
 
     /**
      * @notice Computes a confidential mint operation.
+     * If the minting operation fails (e.g., due to overflow), the success handle will
+     * contain an encrypted `false` and the newBalanceTo and newTotalSupply handles will
+     * contain the same values as the input balanceTo and totalSupply handles.
      * @param balanceTo Recipient's current balance handle
      * @param amount Amount handle to mint
      * @param totalSupply Current total supply handle
@@ -443,6 +456,9 @@ interface INoxCompute {
 
     /**
      * @notice Computes a confidential burn operation.
+     * If the burn operation fails (e.g., due to underflow), the success handle will
+     * contain an encrypted `false` and the newBalanceFrom and newTotalSupply handles will
+     * contain the same values as the input balanceFrom and totalSupply handles.
      * @param balanceFrom Sender's current balance handle
      * @param amount Amount handle to burn
      * @param totalSupply Current total supply handle
@@ -456,15 +472,27 @@ interface INoxCompute {
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
 
-    function validateProof(
-        bytes32 handle,
-        address owner,
-        bytes calldata proof,
-        TEEType teeType
-    ) external;
+    // ------------- Admin functions -------------
 
-    function domainSeparator() external view returns (bytes32);
+    /**
+     * @notice Sets the KMS public key used for ECIES encryption.
+     * @param newKmsPublicKey The compressed SEC1 secp256k1 public key (33 bytes)
+     */
+    function setKmsPublicKey(bytes calldata newKmsPublicKey) external;
+
+    /**
+     * @notice Sets the gateway address in the contract's config.
+     * @param gatewayAddress The address of the gateway
+     */
+    function setGateway(address gatewayAddress) external;
+
+    /**
+     * @notice Sets the proof expiration duration.
+     * @param newDuration The new expiration duration in seconds
+     */
+    function setProofExpirationDuration(uint256 newDuration) external;
+
+    function kmsPublicKey() external view returns (bytes memory);
     function gateway() external view returns (address);
     function proofExpirationDuration() external view returns (uint256);
-    function kmsPublicKey() external view returns (bytes memory);
 }
