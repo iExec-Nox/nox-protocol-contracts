@@ -34,14 +34,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build contracts
-        if: inputs.network == 'hardhat'
-        run: pnpm run build
-
-      - name: Build contracts (production profile)
-        if: inputs.network != 'hardhat'
-        run: pnpm run build:production
-
       - name: Deploy contracts on Hardhat (dry-run)
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
