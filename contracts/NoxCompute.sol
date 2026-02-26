@@ -3,7 +3,7 @@ pragma solidity ^0.8.0;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
-import {EIP712Upgradeable} from "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {INoxCompute} from "./interfaces/INoxCompute.sol";
 import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
@@ -16,8 +16,12 @@ import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
  * - Validating handle proofs issued by a trusted gateway
  * - Facilitating the conversion of plaintext values to encrypted values
  * - Triggering off-chain TEE computations through event emissions
+ *
+ * @dev Using non upgradeable EIP712 is safe here because it has no storage and the config is saved
+ * in immutable variables which should be enough here since we don't use multiple proxies with the
+ * same implementation.
  */
-contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712Upgradeable {
+contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 {
     /// @custom:storage-location erc7201:nox.storage.NoxCompute
     struct NoxComputeStorage {
         /// Admins can use a handle as input in computations, and can add other admins and viewers
@@ -65,7 +69,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
-    constructor() {
+    constructor() EIP712("NoxCompute", "1") {
         _disableInitializers();
     }
 
@@ -80,7 +84,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712U
         }
         __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
-        __EIP712_init("NoxCompute", "1");
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
         $.kmsPublicKey = kmsPublicKey_;
