@@ -138,7 +138,7 @@ library TypeUtils {
     /**
      * @notice Validates that a TEE type is supported for arithmetic operations.
      * Only unsigned integers (Uint8-Uint256) and signed integers (Int8-Int256) are supported.
-     * Reverts with UnsupportedType if the type is not arithmetic.
+     * Reverts with NonArithmeticType if the type is not arithmetic.
      * @param teeType The TEE type to validate
      */
     function validateArithmeticType(TEEType teeType) internal pure {
