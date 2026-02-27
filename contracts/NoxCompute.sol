@@ -657,14 +657,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         result = keccak256(
             abi.encode(operator, operands, address(this), msg.sender, block.timestamp, outputIndex)
         );
-        result = bytes32(
-            abi.encodePacked(
-                bytes26(result),
-                bytes4(uint32(block.chainid)),
-                bytes1(uint8(handleType)),
-                bytes1(uint8(HANDLE_VERSION))
-            )
-        );
+        // Keep only the leftmost 26 bytes of the hash and add handle metadata.
+        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
+        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (26 * 8));
+        result = result | (bytes32(bytes1(uint8(handleType))) >> (30 * 8));
+        result = result | (bytes32(bytes1(uint8(HANDLE_VERSION))) >> (31 * 8));
     }
 
     // ----------- Admin functions ----------
