@@ -24,12 +24,16 @@ import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
 contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 {
     /// @custom:storage-location erc7201:nox.storage.NoxCompute
     struct NoxComputeStorage {
-        /// Admins can use a handle as input in computations, and can add other admins and viewers
+        // An admin of a handle can:
+        //  - use it as a computation input
+        //  - decrypt its associated data off-chain
+        //  - make it publicly decryptable
+        //  - add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
-        /// Viewers can decrypt the associated data
+        // A viewer of a handle can only decrypt its associated data off-chain.
         //TODO: Make viewer expirable
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
-        /// Handles that are publicly decryptable
+        // Handles that are publicly decryptable
         mapping(bytes32 handle => bool) isPubliclyDecryptable;
         bytes kmsPublicKey;
         address gateway;
@@ -655,23 +659,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         uint8 outputIndex
     ) private view returns (bytes32 result) {
         result = keccak256(
-            abi.encodePacked(
-                operator,
-                operands,
-                address(this),
-                msg.sender,
-                block.timestamp,
-                outputIndex
-            )
+            abi.encode(operator, operands, address(this), msg.sender, block.timestamp, outputIndex)
         );
-        result = bytes32(
-            abi.encodePacked(
-                bytes26(result),
-                bytes4(uint32(block.chainid)),
-                bytes1(uint8(handleType)),
-                bytes1(uint8(HANDLE_VERSION))
-            )
-        );
+        // Keep only the leftmost 26 bytes of the hash and add handle metadata.
+        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
+        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (26 * 8));
+        result = result | (bytes32(bytes1(uint8(handleType))) >> (30 * 8));
+        result = result | (bytes32(bytes1(uint8(HANDLE_VERSION))) >> (31 * 8));
     }
 
     // ----------- Admin functions ----------
