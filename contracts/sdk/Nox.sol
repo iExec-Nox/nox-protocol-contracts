@@ -17,7 +17,7 @@ library Nox {
     // ============ Address resolution ============
 
     /**
-     * @dev Returns the NoxgetNoxCompute contract address for the current chain.
+     * @dev Returns the NoxCompute contract address for the current chain.
      *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
      *      including local forks of each network.
      */
