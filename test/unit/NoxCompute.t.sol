@@ -9,12 +9,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {
-    TEEType,
-    TypeUtils,
-    UnsupportedType,
-    NonArithmeticType
-} from "../../contracts/shared/TypeUtils.sol";
+import {TEEType, TypeUtils, NonArithmeticType} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {
@@ -208,13 +203,13 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
         bytes32 value = bytes32(uint256(42));
-        // Use low-level call to pass invalid TEEType value (100) which is > Bytes32 (99)
+        // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
             abi.encodeWithSelector(
                 INoxCompute.plaintextToEncrypted.selector,
                 value,
-                uint8(type(TEEType).max) + 1 // Pass as uint256 to match function signature
+                uint8(type(TEEType).max) + 1
             )
         );
         assertFalse(success);
@@ -645,7 +640,7 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(UnsupportedType.selector);
+        vm.expectRevert(INoxCompute.UnsupportedType.selector);
         noxCompute.select(condition, ifTrue, ifFalse);
     }
 

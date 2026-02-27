@@ -6,7 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {INoxCompute} from "./interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils, UnsupportedType} from "./shared/TypeUtils.sol";
+import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
 
 /**
  * @title NoxCompute

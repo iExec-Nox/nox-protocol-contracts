@@ -17,6 +17,7 @@ interface INoxCompute {
     /// Error thrown when an account is not allowed to use a handle
     error NotAllowed(bytes32 handle, address account);
     error InvalidProof(bytes proof, string reason);
+    error UnsupportedType();
     error IncompatibleTypes();
 
     /// Emitted when admin role is granted

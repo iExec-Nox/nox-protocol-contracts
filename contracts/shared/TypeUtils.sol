@@ -112,7 +112,6 @@ enum TEEType {
     Bytes32 // 99
 }
 
-error UnsupportedType();
 error NonArithmeticType();
 
 library TypeUtils {
