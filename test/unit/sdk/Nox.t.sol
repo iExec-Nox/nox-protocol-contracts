@@ -84,6 +84,29 @@ contract NoxTest is Test {
         vm.label(address(noxMock), "NoxMock");
     }
 
+    // ============ _compute ============
+
+    function test_Compute_ArbitrumSepolia() public {
+        vm.chainId(421614);
+        address arbitrumSepoliaCompute = noxMock.compute();
+        vm.mockCall(
+            arbitrumSepoliaCompute,
+            abi.encodeCall(INoxCompute.isAllowed, (boolHandle, account)),
+            abi.encode(false)
+        );
+        vm.expectCall(
+            arbitrumSepoliaCompute,
+            abi.encodeCall(INoxCompute.isAllowed, (boolHandle, account))
+        );
+        Nox.isAllowed(ebool.wrap(boolHandle), account);
+    }
+
+    function test_RevertWhen_Compute_UnsupportedChain() public {
+        vm.chainId(9999);
+        vm.expectRevert("Nox: Unsupported chain");
+        noxMock.addEuint16(uint16HandleA, uint16HandleB);
+    }
+
     // ============ isInitialized ============
 
     function test_isInitialized_True() public view {
