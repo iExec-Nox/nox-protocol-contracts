@@ -60,10 +60,5 @@
   },
   "bugs": {
     "url": "https://github.com/iExec-Nox/nox-protocol-contracts/issues"
-  },
-  "pnpm": {
-    "onlyBuiltDependencies": [],
-    "minimumReleaseAge": 4320,
-    "blockExoticSubdeps": true
   }
 }
