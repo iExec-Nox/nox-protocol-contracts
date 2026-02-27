@@ -55,6 +55,7 @@ jobs:
           path: ignition/deployments/${{ inputs.network }}/
           retention-days: 1
 
+      # TODO create a PR when main branch
       - name: Save deployment artifacts
         if: inputs.network != 'hardhat' && inputs.network != 'tenderlyArbitrumSepolia'
         uses: stefanzweifel/git-auto-commit-action@v5
