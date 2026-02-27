@@ -21,7 +21,8 @@ jobs:
     needs: pre-deploy
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Required to commit artifacts.
+      pull-requests: write # Required to create pull requests.
     environment: ${{ inputs.network }}
     steps:
       - uses: actions/checkout@v5
