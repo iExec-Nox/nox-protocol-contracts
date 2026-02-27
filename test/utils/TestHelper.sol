@@ -75,7 +75,7 @@ library TestHelper {
      */
     function deploy(address owner, address gateway) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
-        address noxComputeAddress = address(Nox._compute());
+        address noxComputeAddress = address(Nox.getNoxCompute());
         // Deploy NoxCompute implementation
         address noxComputeImplementation = address(new NoxCompute());
 
@@ -109,7 +109,7 @@ library TestHelper {
      */
     function forceAllowPersistent(bytes32 handle, address account) internal {
         bytes32 slotLocation = _getAllowStorageSlot(handle, account);
-        getVm().store(address(Nox._compute()), slotLocation, bytes32(uint256(1)));
+        getVm().store(address(Nox.getNoxCompute()), slotLocation, bytes32(uint256(1)));
     }
 
     /**
@@ -117,7 +117,7 @@ library TestHelper {
      */
     function forceDisallowPersistent(bytes32 handle, address account) internal {
         bytes32 slotLocation = _getAllowStorageSlot(handle, account);
-        getVm().store(address(Nox._compute()), slotLocation, bytes32(uint256(0)));
+        getVm().store(address(Nox.getNoxCompute()), slotLocation, bytes32(uint256(0)));
     }
 
     /**
@@ -129,10 +129,13 @@ library TestHelper {
         Vm vm = getVm();
         forceAllowPersistent(handle, account);
         vm.startPrank(account);
-        Nox._compute().allowTransient(handle, account);
+        Nox.getNoxCompute().allowTransient(handle, account);
         vm.stopPrank();
         forceDisallowPersistent(handle, account);
-        vm.assertTrue(Nox._compute().isAllowed(handle, account), "Should be allowed transient");
+        vm.assertTrue(
+            Nox.getNoxCompute().isAllowed(handle, account),
+            "Should be allowed transient"
+        );
     }
 
     function deployProxy(address implementation) internal returns (address) {
@@ -145,7 +148,7 @@ library TestHelper {
     }
 
     function _eip712DomainSeparator() private view returns (bytes32) {
-        NoxCompute noxCompute = NoxCompute(address(Nox._compute()));
+        NoxCompute noxCompute = NoxCompute(address(Nox.getNoxCompute()));
         (
             , // bytes1 fields
             string memory name,

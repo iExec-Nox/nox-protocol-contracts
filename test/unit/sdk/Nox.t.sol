@@ -84,7 +84,7 @@ contract NoxTest is Test {
         vm.label(address(noxMock), "NoxMock");
     }
 
-    // ============ _compute ============
+    // ============ getNoxCompute ============
 
     function test_Compute_ArbitrumSepolia() public {
         vm.chainId(421614);
