@@ -11,6 +11,7 @@
   "packageManager": "pnpm@10.28.2",
   "type": "module",
   "files": [
+    "/contracts/NoxCompute.sol",
     "/contracts/interfaces/",
     "/contracts/sdk/",
     "/contracts/shared/"
@@ -59,5 +60,10 @@
   },
   "bugs": {
     "url": "https://github.com/iExec-Nox/nox-protocol-contracts/issues"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [],
+    "minimumReleaseAge": 4320,
+    "blockExoticSubdeps": true
   }
 }
