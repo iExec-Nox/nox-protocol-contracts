@@ -655,14 +655,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         uint8 outputIndex
     ) private view returns (bytes32 result) {
         result = keccak256(
-            abi.encodePacked(
-                operator,
-                operands,
-                address(this),
-                msg.sender,
-                block.timestamp,
-                outputIndex
-            )
+            abi.encode(operator, operands, address(this), msg.sender, block.timestamp, outputIndex)
         );
         result = bytes32(
             abi.encodePacked(
