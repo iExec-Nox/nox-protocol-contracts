@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x188D560Fd7F60f50e4c32a4484B1D0DC486714b3;
+            return 0x9cF45FFE48126380cFCC40215a1d6D7fffbffb05;
         }
         revert("Nox: Unsupported chain");
     }
@@ -115,19 +115,6 @@ library Nox {
                 _noxComputeContract().plaintextToEncrypted(
                     bytes32(uint256(value ? 1 : 0)),
                     TEEType.Bool
-                )
-            );
-    }
-
-    /**
-     * @dev Convert a plaintext address to an encrypted address.
-     */
-    function toEaddress(address value) internal returns (eaddress) {
-        return
-            eaddress.wrap(
-                _noxComputeContract().plaintextToEncrypted(
-                    bytes32(uint256(uint160(value))),
-                    TEEType.Address
                 )
             );
     }
@@ -337,7 +324,45 @@ library Nox {
         return (ebool.wrap(success), eint256.wrap(result));
     }
 
-    // TODO add safeMul and safeDiv.
+    function safeMul(euint16 a, euint16 b) internal returns (ebool, euint16) {
+        (bytes32 success, bytes32 result) = _safeMul(euint16.unwrap(a), euint16.unwrap(b));
+        return (ebool.wrap(success), euint16.wrap(result));
+    }
+
+    function safeMul(euint256 a, euint256 b) internal returns (ebool, euint256) {
+        (bytes32 success, bytes32 result) = _safeMul(euint256.unwrap(a), euint256.unwrap(b));
+        return (ebool.wrap(success), euint256.wrap(result));
+    }
+
+    function safeMul(eint16 a, eint16 b) internal returns (ebool, eint16) {
+        (bytes32 success, bytes32 result) = _safeMul(eint16.unwrap(a), eint16.unwrap(b));
+        return (ebool.wrap(success), eint16.wrap(result));
+    }
+
+    function safeMul(eint256 a, eint256 b) internal returns (ebool, eint256) {
+        (bytes32 success, bytes32 result) = _safeMul(eint256.unwrap(a), eint256.unwrap(b));
+        return (ebool.wrap(success), eint256.wrap(result));
+    }
+
+    function safeDiv(euint16 a, euint16 b) internal returns (ebool, euint16) {
+        (bytes32 success, bytes32 result) = _safeDiv(euint16.unwrap(a), euint16.unwrap(b));
+        return (ebool.wrap(success), euint16.wrap(result));
+    }
+
+    function safeDiv(euint256 a, euint256 b) internal returns (ebool, euint256) {
+        (bytes32 success, bytes32 result) = _safeDiv(euint256.unwrap(a), euint256.unwrap(b));
+        return (ebool.wrap(success), euint256.wrap(result));
+    }
+
+    function safeDiv(eint16 a, eint16 b) internal returns (ebool, eint16) {
+        (bytes32 success, bytes32 result) = _safeDiv(eint16.unwrap(a), eint16.unwrap(b));
+        return (ebool.wrap(success), eint16.wrap(result));
+    }
+
+    function safeDiv(eint256 a, eint256 b) internal returns (ebool, eint256) {
+        (bytes32 success, bytes32 result) = _safeDiv(eint256.unwrap(a), eint256.unwrap(b));
+        return (ebool.wrap(success), eint256.wrap(result));
+    }
 
     function select(ebool condition, euint16 ifTrue, euint16 ifFalse) internal returns (euint16) {
         return
@@ -911,6 +936,18 @@ library Nox {
         _assertInitialized(a);
         _assertInitialized(b);
         return _noxComputeContract().safeSub(a, b);
+    }
+
+    function _safeMul(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _noxComputeContract().safeMul(a, b);
+    }
+
+    function _safeDiv(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
+        _assertInitialized(a);
+        _assertInitialized(b);
+        return _noxComputeContract().safeDiv(a, b);
     }
 
     function _select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) private returns (bytes32) {

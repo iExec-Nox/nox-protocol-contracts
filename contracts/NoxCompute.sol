@@ -423,6 +423,30 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /// @inheritdoc INoxCompute
+    function safeMul(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeMul, operands, true);
+        emit SafeMul(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc INoxCompute
+    function safeDiv(
+        bytes32 numerator,
+        bytes32 denominator
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = numerator;
+        operands[1] = denominator;
+        (success, result) = _executeArithmeticOperation(Operator.SafeDiv, operands, true);
+        emit SafeDiv(msg.sender, numerator, denominator, success, result);
+    }
+
+    /// @inheritdoc INoxCompute
     function select(
         bytes32 condition,
         bytes32 ifTrue,
