@@ -14,7 +14,7 @@ contract NoxMock {
     // ============ Address resolution ============
 
     function compute() external view returns (address) {
-        return address(Nox.NoxCompute());
+        return Nox.noxComputeContract();
     }
 
     // ============ Arithmetic ============

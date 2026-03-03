@@ -5,6 +5,7 @@ import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
+import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
@@ -75,7 +76,7 @@ library TestHelper {
      */
     function deploy(address owner, address gateway) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
-        address noxComputeAddress = address(Nox.NoxCompute());
+        address noxComputeAddress = Nox.noxComputeContract();
         // Deploy NoxCompute implementation
         address noxComputeImplementation = address(new NoxCompute());
 
@@ -109,7 +110,7 @@ library TestHelper {
      */
     function forceAllowPersistent(bytes32 handle, address account) internal {
         bytes32 slotLocation = _getAllowStorageSlot(handle, account);
-        getVm().store(address(Nox.NoxCompute()), slotLocation, bytes32(uint256(1)));
+        getVm().store(Nox.noxComputeContract(), slotLocation, bytes32(uint256(1)));
     }
 
     /**
@@ -117,7 +118,7 @@ library TestHelper {
      */
     function forceDisallowPersistent(bytes32 handle, address account) internal {
         bytes32 slotLocation = _getAllowStorageSlot(handle, account);
-        getVm().store(address(Nox.NoxCompute()), slotLocation, bytes32(uint256(0)));
+        getVm().store(Nox.noxComputeContract(), slotLocation, bytes32(uint256(0)));
     }
 
     /**
@@ -129,10 +130,13 @@ library TestHelper {
         Vm vm = getVm();
         forceAllowPersistent(handle, account);
         vm.startPrank(account);
-        Nox.NoxCompute().allowTransient(handle, account);
+        INoxCompute(Nox.noxComputeContract()).allowTransient(handle, account);
         vm.stopPrank();
         forceDisallowPersistent(handle, account);
-        vm.assertTrue(Nox.NoxCompute().isAllowed(handle, account), "Should be allowed transient");
+        vm.assertTrue(
+            INoxCompute(Nox.noxComputeContract()).isAllowed(handle, account),
+            "Should be allowed transient"
+        );
     }
 
     function deployProxy(address implementation) internal returns (address) {
@@ -145,7 +149,7 @@ library TestHelper {
     }
 
     function _eip712DomainSeparator() private view returns (bytes32) {
-        NoxCompute noxCompute = NoxCompute(address(Nox.NoxCompute()));
+        NoxCompute noxCompute = NoxCompute(Nox.noxComputeContract());
         (
             , // bytes1 fields
             string memory name,
