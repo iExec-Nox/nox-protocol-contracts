@@ -112,7 +112,6 @@ enum TEEType {
     Bytes32 // 99
 }
 
-error UnsupportedType();
 error NonArithmeticType();
 
 library TypeUtils {
@@ -127,26 +126,13 @@ library TypeUtils {
     }
 
     /**
-     * @notice Validates that a TEE type is within the valid range.
-     * Reverts with UnsupportedType if the type value is out of range.
-     * @param teeType The TEE type to validate
-     */
-    function validateType(TEEType teeType) internal pure {
-        if (uint8(teeType) > uint8(TEEType.Bytes32)) {
-            revert UnsupportedType();
-        }
-    }
-
-    /**
      * @notice Validates that a TEE type is supported for arithmetic operations.
      * Only unsigned integers (Uint8-Uint256) and signed integers (Int8-Int256) are supported.
-     * Reverts with UnsupportedType if the type is not arithmetic.
+     * Reverts with NonArithmeticType if the type is not arithmetic.
      * @param teeType The TEE type to validate
      */
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
-        if (t < uint8(TEEType.Uint8) || t > uint8(TEEType.Int256)) {
-            revert NonArithmeticType();
-        }
+        require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
     }
 }

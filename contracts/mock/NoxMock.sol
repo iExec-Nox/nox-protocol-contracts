@@ -11,6 +11,12 @@ import {Nox} from "../../contracts/sdk/Nox.sol";
  * the same underlying bytes32 type, making overloads ambiguous externally.
  */
 contract NoxMock {
+    // ============ Address resolution ============
+
+    function compute() external view returns (address) {
+        return Nox.noxComputeContract();
+    }
+
     // ============ Arithmetic ============
 
     function addEuint16(bytes32 a, bytes32 b) external {

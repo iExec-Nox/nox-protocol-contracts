@@ -21,7 +21,8 @@ jobs:
     needs: pre-deploy
     runs-on: ubuntu-latest
     permissions:
-      contents: write
+      contents: write # Required to commit artifacts.
+      pull-requests: write # Required to create pull requests.
     environment: ${{ inputs.network }}
     steps:
       - uses: actions/checkout@v5
@@ -34,9 +35,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      - name: Build contracts
-        run: pnpm run build
-
       - name: Deploy contracts on Hardhat (dry-run)
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
@@ -47,7 +45,7 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
-        run: pnpm run deploy --network ${{ inputs.network }}
+        run: pnpm run deploy:production --network ${{ inputs.network }}
 
       # Used in set-gateway job.
       - name: Upload deployment artifacts
@@ -58,15 +56,35 @@ jobs:
           path: ignition/deployments/${{ inputs.network }}/
           retention-days: 1
 
-      - name: Save deployment artifacts
-        if: inputs.network != 'hardhat' && inputs.network != 'tenderlyArbitrumSepolia'
+      - name: Push artifacts to the current branch
+        if: inputs.network != 'hardhat' && github.ref != 'refs/heads/main'
         uses: stefanzweifel/git-auto-commit-action@v5
         with:
-          commit_message: "chore: save deployment artifacts for ${{ inputs.network }} (GitHub run_id: ${{ github.run_id }})"
           file_pattern: "ignition/deployments/"
+          commit_message: "chore: save deployment artifacts for ${{ inputs.network }} (GitHub run id: ${{ github.run_id }})"
           commit_user_name: "GitHub Actions Bot"
           commit_user_email: "github-actions[bot]@users.noreply.github.com"
           commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+
+      # The `main` branch is protected, create a PR to push artifacts.
+      - name: Push artifacts through a pull request
+        if: inputs.network != 'hardhat' && github.ref == 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: "ignition/deployments/"
+          commit-message: "chore: save deployment artifacts for ${{ inputs.network }} (GitHub run id: ${{ github.run_id }})"
+          committer: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+          author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+          branch: chore/save-deploy-artifacts-${{ inputs.network }}-${{ github.run_id }}
+          title: "chore: save deployment artifacts for ${{ inputs.network }} (GitHub run id: ${{ github.run_id }})"
+          body: |
+            🤖 This is an automated pull request created by `${{ github.workflow }}` GitHub Actions
+            workflow to save deployment artifacts.
+            * Network: `${{ inputs.network }}`
+            * Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            **Note**: Verify deployment before merging this PR.
+          draft: true
 
       # TODO enable verification when scripts supports it
       # - name: Verify contracts

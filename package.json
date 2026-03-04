@@ -1,6 +1,6 @@
 {
   "name": "@iexec-nox/nox-protocol-contracts",
-  "version": "0.1.0-beta.4",
+  "version": "0.1.0-beta.5",
   "description": "Nox protocol smart contracts",
   "keywords": [
     "Nox",
@@ -22,10 +22,10 @@
     "test": "pnpm hardhat test",
     "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
+    "deploy:production": "pnpm hardhat run scripts/deploy.ts --build-profile production",
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
     "set-kms-public-key": "pnpm hardhat run scripts/set-kms-public-key.ts",
-    "upgrade-acl": "pnpm hardhat run scripts/upgrade-acl.ts",
-    "upgrade-nox-compute": "pnpm hardhat run scripts/upgrade-nox-compute.ts",
+    "upgrade": "pnpm hardhat run scripts/upgrade.ts",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check ."
   },
@@ -45,7 +45,7 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.1",
     "@types/node": "^22.8.5",
     "forge-std": "github:foundry-rs/forge-std#v1.9.4",
-    "hardhat": "^3.1.2",
+    "hardhat": "^3.1.10",
     "husky": "^9.1.7",
     "lint-staged": "^16.2.7",
     "prettier": "^3.7.4",
