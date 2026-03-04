@@ -24,7 +24,7 @@ const NOX_COMPUTE = "0xd2856C55447FBb45c85a4C484796fe690981B069" as const;
 // ── ABIs (inline) ─────────────────────────────────────
 
 const PROOF_VALIDATOR_ABI = parseAbi([
-    "function validateAndAllow(bytes32 handle, address owner, bytes calldata proof, uint8 teeType) external",
+    "function validateAndAllowEuint256(bytes32 handle, bytes calldata proof) external",
 ]);
 
 const NOX_COMPUTE_ABI = parseAbi([
@@ -65,31 +65,27 @@ const [{ handle: handle1, handleProof: proof1 }, { handle: handle2, handleProof:
 console.log(`  handle1 : ${handle1}`);
 console.log(`  handle2 : ${handle2}`);
 
-// Byte 30 of the handle (0-indexed) encodes the TEE type code.
-const teeType1 = parseInt(handle1.slice(62, 64), 16);
-const teeType2 = parseInt(handle2.slice(62, 64), 16);
+// ── Step 2: validateAndAllowEuint256 handle1 ─────────────────────────────────
+// ProofValidator calls Nox.fromExternal (validates proof) then Nox.allow (permanent ACL).
 
-// ── Step 2: validateAndAllow handle1 ─────────────────────────────────────────
-// ProofValidator calls NoxCompute.validateProof (transient access) then ACL.allow (permanent).
-
-console.log("\n[2/4] validateAndAllow handle1...");
+console.log("\n[2/4] validateAndAllowEuint256 handle1...");
 const tx1 = await walletClient.writeContract({
     address: PROOF_VALIDATOR,
     abi: PROOF_VALIDATOR_ABI,
-    functionName: "validateAndAllow",
-    args: [handle1, account.address, proof1, teeType1],
+    functionName: "validateAndAllowEuint256",
+    args: [handle1, proof1],
 });
 await publicClient.waitForTransactionReceipt({ hash: tx1 });
 console.log(`  ✓ permanent access granted for handle1 (tx: ${tx1})`);
 
-// ── Step 3: validateAndAllow handle2 ─────────────────────────────────────────
+// ── Step 3: validateAndAllowEuint256 handle2 ─────────────────────────────────
 
-console.log("\n[3/4] validateAndAllow handle2...");
+console.log("\n[3/4] validateAndAllowEuint256 handle2...");
 const tx2 = await walletClient.writeContract({
     address: PROOF_VALIDATOR,
     abi: PROOF_VALIDATOR_ABI,
-    functionName: "validateAndAllow",
-    args: [handle2, account.address, proof2, teeType2],
+    functionName: "validateAndAllowEuint256",
+    args: [handle2, proof2],
 });
 await publicClient.waitForTransactionReceipt({ hash: tx2 });
 console.log(`  ✓ permanent access granted for handle2 (tx: ${tx2})`);

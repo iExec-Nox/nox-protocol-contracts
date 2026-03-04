@@ -2,32 +2,63 @@
 pragma solidity ^0.8.0;
 
 import {Nox} from "./sdk/Nox.sol";
-import {TEEType} from "./shared/TypeUtils.sol";
+import "encrypted-types/EncryptedTypes.sol";
 
 /**
  * @title ProofValidator
- * @notice Aapplication contract that validates a handle proof issued by the gateway
- * and grants permanent ACL access to the handle owner.
+ * @notice Application contract that validates a handle proof issued by the gateway
+ * and grants permanent ACL access to the caller.
  */
 contract ProofValidator {
     // ============ External functions ============
 
     /**
-     * @notice Validates a handle proof and grants permanent ACL access to the owner.
-     * @dev The proof must have been issued by the gateway for this contract as the `app`.
-     *      After validation, the owner receives persistent access to the handle via ACL.allow.
-     * @param handle The encrypted handle to validate.
-     * @param owner The address of the handle owner encoded in the proof.
-     * @param proof The 137-byte EIP-712 proof issued by the gateway.
-     * @param teeType The expected TEE type of the handle.
+     * @notice Validates an ebool handle proof and grants ACL access to the caller.
+     * @param handle The external encrypted boolean handle.
+     * @param proof The EIP-712 proof issued by the gateway.
      */
-    function validateAndAllow(
-        bytes32 handle,
-        address owner,
-        bytes calldata proof,
-        TEEType teeType
-    ) external {
-        Nox._compute().validateProof(handle, owner, proof, teeType);
-        Nox._acl().allow(handle, owner);
+    function validateAndAllowEbool(externalEbool handle, bytes calldata proof) external {
+        ebool h = Nox.fromExternal(handle, proof);
+        Nox.allow(h, msg.sender);
+    }
+
+    /**
+     * @notice Validates an euint16 handle proof and grants ACL access to the caller.
+     * @param handle The external encrypted uint16 handle.
+     * @param proof The EIP-712 proof issued by the gateway.
+     */
+    function validateAndAllowEuint16(externalEuint16 handle, bytes calldata proof) external {
+        euint16 h = Nox.fromExternal(handle, proof);
+        Nox.allow(h, msg.sender);
+    }
+
+    /**
+     * @notice Validates an euint256 handle proof and grants ACL access to the caller.
+     * @param handle The external encrypted uint256 handle.
+     * @param proof The EIP-712 proof issued by the gateway.
+     */
+    function validateAndAllowEuint256(externalEuint256 handle, bytes calldata proof) external {
+        euint256 h = Nox.fromExternal(handle, proof);
+        Nox.allow(h, msg.sender);
+    }
+
+    /**
+     * @notice Validates an eint16 handle proof and grants ACL access to the caller.
+     * @param handle The external encrypted int16 handle.
+     * @param proof The EIP-712 proof issued by the gateway.
+     */
+    function validateAndAllowEint16(externalEint16 handle, bytes calldata proof) external {
+        eint16 h = Nox.fromExternal(handle, proof);
+        Nox.allow(h, msg.sender);
+    }
+
+    /**
+     * @notice Validates an eint256 handle proof and grants ACL access to the caller.
+     * @param handle The external encrypted int256 handle.
+     * @param proof The EIP-712 proof issued by the gateway.
+     */
+    function validateAndAllowEint256(externalEint256 handle, bytes calldata proof) external {
+        eint256 h = Nox.fromExternal(handle, proof);
+        Nox.allow(h, msg.sender);
     }
 }
