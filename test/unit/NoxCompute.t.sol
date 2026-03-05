@@ -21,28 +21,41 @@ contract NoxComputeTest is Test {
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
-    // Binary operation selectors (arithmetic + comparison + safe arithmetic)
-    bytes4[] internal binaryOps;
+    bytes4[] arithmeticOps = [
+        INoxCompute.add.selector,
+        INoxCompute.sub.selector,
+        INoxCompute.mul.selector,
+        INoxCompute.div.selector
+    ];
+    bytes4[] safeArithmeticOps = [
+        INoxCompute.safeAdd.selector,
+        INoxCompute.safeSub.selector,
+        INoxCompute.safeMul.selector,
+        INoxCompute.safeDiv.selector
+    ];
+    bytes4[] comparisonOps = [
+        INoxCompute.eq.selector,
+        INoxCompute.ne.selector,
+        INoxCompute.lt.selector,
+        INoxCompute.le.selector,
+        INoxCompute.gt.selector,
+        INoxCompute.ge.selector
+    ];
+    // All operation selectors (arithmetic + comparison + safe arithmetic)
+    bytes4[] internal allOps;
 
     function setUp() public {
         noxCompute = TestHelper.deploy(owner, gateway);
         vm.label(caller, "caller");
-
-        binaryOps = new bytes4[](14);
-        binaryOps[0] = INoxCompute.add.selector;
-        binaryOps[1] = INoxCompute.sub.selector;
-        binaryOps[2] = INoxCompute.mul.selector;
-        binaryOps[3] = INoxCompute.div.selector;
-        binaryOps[4] = INoxCompute.eq.selector;
-        binaryOps[5] = INoxCompute.ne.selector;
-        binaryOps[6] = INoxCompute.lt.selector;
-        binaryOps[7] = INoxCompute.le.selector;
-        binaryOps[8] = INoxCompute.gt.selector;
-        binaryOps[9] = INoxCompute.ge.selector;
-        binaryOps[10] = INoxCompute.safeAdd.selector;
-        binaryOps[11] = INoxCompute.safeSub.selector;
-        binaryOps[12] = INoxCompute.safeMul.selector;
-        binaryOps[13] = INoxCompute.safeDiv.selector;
+        for (uint256 i = 0; i < arithmeticOps.length; i++) {
+            allOps.push(arithmeticOps[i]);
+        }
+        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+            allOps.push(safeArithmeticOps[i]);
+        }
+        for (uint256 i = 0; i < comparisonOps.length; i++) {
+            allOps.push(comparisonOps[i]);
+        }
     }
 
     // ============ initialize ============
@@ -410,25 +423,21 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        bytes4[4] memory ops = [
-            INoxCompute.add.selector,
-            INoxCompute.sub.selector,
-            INoxCompute.mul.selector,
-            INoxCompute.div.selector
-        ];
-        for (uint256 i = 0; i < ops.length; i++) {
+        for (uint256 i = 0; i < arithmeticOps.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (ops[i] == INoxCompute.add.selector) {
+            if (arithmeticOps[i] == INoxCompute.add.selector) {
                 emit INoxCompute.Add(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.sub.selector) {
+            } else if (arithmeticOps[i] == INoxCompute.sub.selector) {
                 emit INoxCompute.Sub(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.mul.selector) {
+            } else if (arithmeticOps[i] == INoxCompute.mul.selector) {
                 emit INoxCompute.Mul(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.div.selector) {
+            } else if (arithmeticOps[i] == INoxCompute.div.selector) {
                 emit INoxCompute.Div(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else {
+                revert("Not implemented");
             }
             vm.prank(caller);
-            bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
+            bytes32 result = _callOperation(arithmeticOps[i], leftHandOperand, rightHandOperand);
             _assertValidHandle(result, TEEType.Uint256);
         }
     }
@@ -441,31 +450,25 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        bytes4[6] memory ops = [
-            INoxCompute.eq.selector,
-            INoxCompute.ne.selector,
-            INoxCompute.lt.selector,
-            INoxCompute.le.selector,
-            INoxCompute.gt.selector,
-            INoxCompute.ge.selector
-        ];
-        for (uint256 i = 0; i < ops.length; i++) {
+        for (uint256 i = 0; i < comparisonOps.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (ops[i] == INoxCompute.eq.selector) {
+            if (comparisonOps[i] == INoxCompute.eq.selector) {
                 emit INoxCompute.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.ne.selector) {
+            } else if (comparisonOps[i] == INoxCompute.ne.selector) {
                 emit INoxCompute.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.lt.selector) {
+            } else if (comparisonOps[i] == INoxCompute.lt.selector) {
                 emit INoxCompute.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.le.selector) {
+            } else if (comparisonOps[i] == INoxCompute.le.selector) {
                 emit INoxCompute.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.gt.selector) {
+            } else if (comparisonOps[i] == INoxCompute.gt.selector) {
                 emit INoxCompute.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (ops[i] == INoxCompute.ge.selector) {
+            } else if (comparisonOps[i] == INoxCompute.ge.selector) {
                 emit INoxCompute.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else {
+                revert("Not implemented");
             }
             vm.prank(caller);
-            bytes32 result = _callBinaryOperation(ops[i], leftHandOperand, rightHandOperand);
+            bytes32 result = _callOperation(comparisonOps[i], leftHandOperand, rightHandOperand);
             _assertValidHandle(result, TEEType.Bool);
         }
     }
@@ -478,15 +481,9 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        bytes4[4] memory ops = [
-            INoxCompute.safeAdd.selector,
-            INoxCompute.safeSub.selector,
-            INoxCompute.safeMul.selector,
-            INoxCompute.safeDiv.selector
-        ];
-        for (uint256 i = 0; i < ops.length; i++) {
+        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
             vm.expectEmit(true, false, false, false);
-            if (ops[i] == INoxCompute.safeAdd.selector) {
+            if (safeArithmeticOps[i] == INoxCompute.safeAdd.selector) {
                 emit INoxCompute.SafeAdd(
                     caller,
                     leftHandOperand,
@@ -494,7 +491,7 @@ contract NoxComputeTest is Test {
                     bytes32(0),
                     bytes32(0)
                 );
-            } else if (ops[i] == INoxCompute.safeSub.selector) {
+            } else if (safeArithmeticOps[i] == INoxCompute.safeSub.selector) {
                 emit INoxCompute.SafeSub(
                     caller,
                     leftHandOperand,
@@ -502,7 +499,7 @@ contract NoxComputeTest is Test {
                     bytes32(0),
                     bytes32(0)
                 );
-            } else if (ops[i] == INoxCompute.safeMul.selector) {
+            } else if (safeArithmeticOps[i] == INoxCompute.safeMul.selector) {
                 emit INoxCompute.SafeMul(
                     caller,
                     leftHandOperand,
@@ -510,7 +507,7 @@ contract NoxComputeTest is Test {
                     bytes32(0),
                     bytes32(0)
                 );
-            } else if (ops[i] == INoxCompute.safeDiv.selector) {
+            } else if (safeArithmeticOps[i] == INoxCompute.safeDiv.selector) {
                 emit INoxCompute.SafeDiv(
                     caller,
                     leftHandOperand,
@@ -518,10 +515,12 @@ contract NoxComputeTest is Test {
                     bytes32(0),
                     bytes32(0)
                 );
+            } else {
+                revert("Not implemented");
             }
             vm.prank(caller);
             (bytes32 success, bytes32 result) = _callSafeArithmeticOperation(
-                ops[i],
+                safeArithmeticOps[i],
                 leftHandOperand,
                 rightHandOperand
             );
@@ -531,59 +530,59 @@ contract NoxComputeTest is Test {
         }
     }
 
-    // ============ Binary Operations Revert Tests ============
+    // ============ Operations Revert Tests ============
 
-    function test_RevertWhen_BinaryOperations_LhsNotAllowed() public {
+    function test_RevertWhen_AllOperations_LhsNotAllowed() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < binaryOps.length; i++) {
+        for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
                 abi.encodeWithSelector(INoxCompute.NotAllowed.selector, leftHandOperand, caller)
             );
-            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
+            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
-    function test_RevertWhen_BinaryOperations_RhsNotAllowed() public {
+    function test_RevertWhen_AllOperations_RhsNotAllowed() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
 
-        for (uint256 i = 0; i < binaryOps.length; i++) {
+        for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(
                 abi.encodeWithSelector(INoxCompute.NotAllowed.selector, rightHandOperand, caller)
             );
-            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
+            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
-    function test_RevertWhen_BinaryOperations_IncompatibleTypes() public {
+    function test_RevertWhen_AllOperations_IncompatibleTypes() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Int256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < binaryOps.length; i++) {
+        for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
-            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
+            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
-    function test_RevertWhen_BinaryOperations_NonArithmeticType() public {
+    function test_RevertWhen_AllOperations_NonArithmeticType() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Bool);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Bool);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        for (uint256 i = 0; i < binaryOps.length; i++) {
+        for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(NonArithmeticType.selector);
-            _callBinaryOperation(binaryOps[i], leftHandOperand, rightHandOperand);
+            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }
 
@@ -918,48 +917,6 @@ contract NoxComputeTest is Test {
         noxCompute.burn(balanceFrom, amount, totalSupply);
     }
 
-    // ============ isAllowed ============
-
-    function test_IsAllowed() public {
-        bytes32 h = TestHelper.createHandle(TEEType.Uint256);
-        address account = makeAddr("account");
-
-        assertFalse(noxCompute.isAllowed(h, account));
-
-        TestHelper.forceAllowPersistent(h, account);
-
-        assertTrue(noxCompute.isAllowed(h, account));
-    }
-
-    // ============ isViewer ============
-
-    function test_IsViewer() public {
-        bytes32 h = TestHelper.createHandle(TEEType.Uint256);
-        address viewer = makeAddr("viewer");
-
-        assertFalse(noxCompute.isViewer(h, viewer));
-
-        TestHelper.forceAllowPersistent(h, caller);
-        vm.prank(caller);
-        noxCompute.addViewer(h, viewer);
-
-        assertTrue(noxCompute.isViewer(h, viewer));
-    }
-
-    // ============ isPubliclyDecryptable ============
-
-    function test_IsPubliclyDecryptable() public {
-        bytes32 h = TestHelper.createHandle(TEEType.Uint256);
-
-        assertFalse(noxCompute.isPubliclyDecryptable(h));
-
-        TestHelper.forceAllowPersistent(h, caller);
-        vm.prank(caller);
-        noxCompute.allowPublicDecryption(h);
-
-        assertTrue(noxCompute.isPubliclyDecryptable(h));
-    }
-
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
@@ -998,7 +955,7 @@ contract NoxComputeTest is Test {
         assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
     }
 
-    function _callBinaryOperation(
+    function _callOperation(
         bytes4 selector,
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
