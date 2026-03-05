@@ -16,10 +16,10 @@ import { createViemHandleClient } from "../nox-handle-sdk/dist/esm/index.js";
 // ── Config ───────────────────────────────────────────────────────────────────
 
 const PRIVATE_KEY = "0x89caf0dbb1c1b277986beb277bcd44ec6136416b9d0fdca6133746071a49a201" as `0x${string}`;
-const RPC_URL = "https://virtual.arbitrum-sepolia.eu.rpc.tenderly.co/09e4c7a4-80dc-4625-abb8-bb6473818e44";
+const RPC_URL = "https://sepolia-rollup.arbitrum.io/rpc";
 
-const PROOF_VALIDATOR = "0x032a4442cdfbf92f508496077132a087d764d22a" as const;
-const NOX_COMPUTE = "0xd2856C55447FBb45c85a4C484796fe690981B069" as const;
+const PROOF_VALIDATOR = "0x2b248a45ad53bec4ace471188fbcb1a26d293883" as const;
+const NOX_COMPUTE = "0x5633472D35E18464CA24Ab974954fB3b1B122eA6" as const;
 
 // ── ABIs (inline) ─────────────────────────────────────
 
@@ -48,7 +48,9 @@ const publicClient = createPublicClient({
 });
 
 // HandleClient wraps the gateway API + blockchain reads.
-const handleClient = await createViemHandleClient(walletClient);
+const handleClient = await createViemHandleClient(walletClient, {
+    smartContractAddress: NOX_COMPUTE,
+});
 
 console.log(`Network : Arbitrum Sepolia (${arbitrumSepolia.id})`);
 console.log(`Caller  : ${account.address}`);
