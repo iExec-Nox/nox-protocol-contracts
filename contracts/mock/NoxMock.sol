@@ -117,6 +117,38 @@ contract NoxMock {
         Nox.safeSub(eint256.wrap(a), eint256.wrap(b));
     }
 
+    function safeMulEuint16(bytes32 a, bytes32 b) external {
+        Nox.safeMul(euint16.wrap(a), euint16.wrap(b));
+    }
+
+    function safeMulEuint256(bytes32 a, bytes32 b) external {
+        Nox.safeMul(euint256.wrap(a), euint256.wrap(b));
+    }
+
+    function safeMulEint16(bytes32 a, bytes32 b) external {
+        Nox.safeMul(eint16.wrap(a), eint16.wrap(b));
+    }
+
+    function safeMulEint256(bytes32 a, bytes32 b) external {
+        Nox.safeMul(eint256.wrap(a), eint256.wrap(b));
+    }
+
+    function safeDivEuint16(bytes32 a, bytes32 b) external {
+        Nox.safeDiv(euint16.wrap(a), euint16.wrap(b));
+    }
+
+    function safeDivEuint256(bytes32 a, bytes32 b) external {
+        Nox.safeDiv(euint256.wrap(a), euint256.wrap(b));
+    }
+
+    function safeDivEint16(bytes32 a, bytes32 b) external {
+        Nox.safeDiv(eint16.wrap(a), eint16.wrap(b));
+    }
+
+    function safeDivEint256(bytes32 a, bytes32 b) external {
+        Nox.safeDiv(eint256.wrap(a), eint256.wrap(b));
+    }
+
     // ============ Select ============
 
     function selectEuint16(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) external {

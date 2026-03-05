@@ -28,7 +28,7 @@ contract NoxComputeTest is Test {
         noxCompute = TestHelper.deploy(owner, gateway);
         vm.label(caller, "caller");
 
-        binaryOps = new bytes4[](12);
+        binaryOps = new bytes4[](14);
         binaryOps[0] = INoxCompute.add.selector;
         binaryOps[1] = INoxCompute.sub.selector;
         binaryOps[2] = INoxCompute.mul.selector;
@@ -41,6 +41,8 @@ contract NoxComputeTest is Test {
         binaryOps[9] = INoxCompute.ge.selector;
         binaryOps[10] = INoxCompute.safeAdd.selector;
         binaryOps[11] = INoxCompute.safeSub.selector;
+        binaryOps[12] = INoxCompute.safeMul.selector;
+        binaryOps[13] = INoxCompute.safeDiv.selector;
     }
 
     // ============ initialize ============
@@ -476,7 +478,12 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(rightHandOperand, caller);
 
-        bytes4[2] memory ops = [INoxCompute.safeAdd.selector, INoxCompute.safeSub.selector];
+        bytes4[4] memory ops = [
+            INoxCompute.safeAdd.selector,
+            INoxCompute.safeSub.selector,
+            INoxCompute.safeMul.selector,
+            INoxCompute.safeDiv.selector
+        ];
         for (uint256 i = 0; i < ops.length; i++) {
             vm.expectEmit(true, false, false, false);
             if (ops[i] == INoxCompute.safeAdd.selector) {
@@ -489,6 +496,22 @@ contract NoxComputeTest is Test {
                 );
             } else if (ops[i] == INoxCompute.safeSub.selector) {
                 emit INoxCompute.SafeSub(
+                    caller,
+                    leftHandOperand,
+                    rightHandOperand,
+                    bytes32(0),
+                    bytes32(0)
+                );
+            } else if (ops[i] == INoxCompute.safeMul.selector) {
+                emit INoxCompute.SafeMul(
+                    caller,
+                    leftHandOperand,
+                    rightHandOperand,
+                    bytes32(0),
+                    bytes32(0)
+                );
+            } else if (ops[i] == INoxCompute.safeDiv.selector) {
+                emit INoxCompute.SafeDiv(
                     caller,
                     leftHandOperand,
                     rightHandOperand,

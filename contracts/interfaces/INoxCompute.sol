@@ -110,6 +110,20 @@ interface INoxCompute {
         bytes32 success,
         bytes32 result
     );
+    event SafeMul(
+        address indexed caller,
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand,
+        bytes32 success,
+        bytes32 result
+    );
+    event SafeDiv(
+        address indexed caller,
+        bytes32 numerator,
+        bytes32 denominator,
+        bytes32 success,
+        bytes32 result
+    );
     event Select(
         address indexed caller,
         bytes32 condition,
@@ -153,6 +167,8 @@ interface INoxCompute {
         Div,
         SafeAdd,
         SafeSub,
+        SafeMul,
+        SafeDiv,
         Select,
         Eq,
         Ne,
@@ -341,7 +357,37 @@ interface INoxCompute {
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result);
 
-    // TODO add safeMul and safeDiv
+    /**
+     * @notice Performs a multiplication between two encrypted values with overflow check.
+     * If the operation succeeds, the value of the success handle will be an encrypted
+     * `true` and the result handle's value will be the encrypted product.
+     * If the operation fails (e.g., due to overflow), the success handle will contain
+     * an encrypted `false` and the result handle will contain an encrypted `0`.
+     * @param leftHandOperand Left-hand side operand handle
+     * @param rightHandOperand Right-hand side operand handle
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeMul(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result);
+
+    /**
+     * @notice Performs a division between two encrypted values with division-by-zero check.
+     * If the operation succeeds, the value of the success handle will be an encrypted
+     * `true` and the result handle's value will be the encrypted quotient.
+     * If the operation fails (e.g., due to division by zero), the success handle will contain
+     * an encrypted `false` and the result handle will contain an encrypted `0`.
+     * @param numerator Value to be divided
+     * @param denominator Value to divide by
+     * @return success Whether the operation was successful
+     * @return result Result handle
+     */
+    function safeDiv(
+        bytes32 numerator,
+        bytes32 denominator
+    ) external returns (bytes32 success, bytes32 result);
 
     /**
      * @notice Selects between two encrypted values based on a condition

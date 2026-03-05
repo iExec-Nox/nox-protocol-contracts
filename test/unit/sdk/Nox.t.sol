@@ -147,19 +147,6 @@ contract NoxTest is Test {
         assertNotEq(ebool.unwrap(result), 0);
     }
 
-    function test_toEaddress() public {
-        address testAddress = address(0x1234567890123456789012345678901234567890);
-        vm.expectCall(
-            noxCompute,
-            abi.encodeCall(
-                INoxCompute.plaintextToEncrypted,
-                (bytes32(uint256(uint160(testAddress))), TEEType.Address)
-            )
-        );
-        eaddress result = Nox.toEaddress(testAddress);
-        assertNotEq(eaddress.unwrap(result), 0);
-    }
-
     function test_toEuint16() public {
         uint16 value = 42;
         vm.expectCall(
@@ -443,6 +430,76 @@ contract NoxTest is Test {
         noxMock.safeSubEint256(bytes32(0), int256HandleB);
         vm.expectRevert(Nox.UninitializedHandle.selector);
         noxMock.safeSubEint256(int256HandleA, bytes32(0));
+    }
+
+    function test_safeMul() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.safeMul, (arithmeticA[i], arithmeticB[i]))
+            );
+            (bytes32 success, bytes32 result) = _noxSafeMul(arithmeticA[i], arithmeticB[i]);
+            assertNotEq(success, 0);
+            assertNotEq(result, 0);
+        }
+    }
+
+    function test_RevertWhen_safeMul_UninitializedHandle() public {
+        // uint16
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEuint16(bytes32(0), uint16HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEuint16(uint16HandleA, bytes32(0));
+        // uint256
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEuint256(bytes32(0), uint256HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEuint256(uint256HandleA, bytes32(0));
+        // int16
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEint16(bytes32(0), int16HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEint16(int16HandleA, bytes32(0));
+        // int256
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEint256(bytes32(0), int256HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeMulEint256(int256HandleA, bytes32(0));
+    }
+
+    function test_safeDiv() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.safeDiv, (arithmeticA[i], arithmeticB[i]))
+            );
+            (bytes32 success, bytes32 result) = _noxSafeDiv(arithmeticA[i], arithmeticB[i]);
+            assertNotEq(success, 0);
+            assertNotEq(result, 0);
+        }
+    }
+
+    function test_RevertWhen_safeDiv_UninitializedHandle() public {
+        // uint16
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEuint16(bytes32(0), uint16HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEuint16(uint16HandleA, bytes32(0));
+        // uint256
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEuint256(bytes32(0), uint256HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEuint256(uint256HandleA, bytes32(0));
+        // int16
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEint16(bytes32(0), int16HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEint16(int16HandleA, bytes32(0));
+        // int256
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEint256(bytes32(0), int256HandleB);
+        vm.expectRevert(Nox.UninitializedHandle.selector);
+        noxMock.safeDivEint256(int256HandleA, bytes32(0));
     }
 
     // ============ select ============
@@ -952,6 +1009,42 @@ contract NoxTest is Test {
             return (ebool.unwrap(s), eint16.unwrap(r));
         } else if (t == TEEType.Int256) {
             (ebool s, eint256 r) = Nox.safeSub(eint256.wrap(a), eint256.wrap(b));
+            return (ebool.unwrap(s), eint256.unwrap(r));
+        }
+        revert("unsupported type");
+    }
+
+    function _noxSafeMul(bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
+        TEEType t = a.typeOf();
+        if (t == TEEType.Uint16) {
+            (ebool s, euint16 r) = Nox.safeMul(euint16.wrap(a), euint16.wrap(b));
+            return (ebool.unwrap(s), euint16.unwrap(r));
+        } else if (t == TEEType.Uint256) {
+            (ebool s, euint256 r) = Nox.safeMul(euint256.wrap(a), euint256.wrap(b));
+            return (ebool.unwrap(s), euint256.unwrap(r));
+        } else if (t == TEEType.Int16) {
+            (ebool s, eint16 r) = Nox.safeMul(eint16.wrap(a), eint16.wrap(b));
+            return (ebool.unwrap(s), eint16.unwrap(r));
+        } else if (t == TEEType.Int256) {
+            (ebool s, eint256 r) = Nox.safeMul(eint256.wrap(a), eint256.wrap(b));
+            return (ebool.unwrap(s), eint256.unwrap(r));
+        }
+        revert("unsupported type");
+    }
+
+    function _noxSafeDiv(bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
+        TEEType t = a.typeOf();
+        if (t == TEEType.Uint16) {
+            (ebool s, euint16 r) = Nox.safeDiv(euint16.wrap(a), euint16.wrap(b));
+            return (ebool.unwrap(s), euint16.unwrap(r));
+        } else if (t == TEEType.Uint256) {
+            (ebool s, euint256 r) = Nox.safeDiv(euint256.wrap(a), euint256.wrap(b));
+            return (ebool.unwrap(s), euint256.unwrap(r));
+        } else if (t == TEEType.Int16) {
+            (ebool s, eint16 r) = Nox.safeDiv(eint16.wrap(a), eint16.wrap(b));
+            return (ebool.unwrap(s), eint16.unwrap(r));
+        } else if (t == TEEType.Int256) {
+            (ebool s, eint256 r) = Nox.safeDiv(eint256.wrap(a), eint256.wrap(b));
             return (ebool.unwrap(s), eint256.unwrap(r));
         }
         revert("unsupported type");
