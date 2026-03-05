@@ -15,7 +15,7 @@ import { createViemHandleClient } from "../nox-handle-sdk/dist/esm/index.js";
 
 // ── Config ───────────────────────────────────────────────────────────────────
 
-const PRIVATE_KEY = "0x89caf0dbb1c1b277986beb277bcd44ec6136416b9d0fdca6133746071a49a201" as `0x${string}`;
+const PRIVATE_KEY = "YOUR_PRIVATE_KEY" as `0x${string}`;
 const RPC_URL = "https://sepolia-rollup.arbitrum.io/rpc";
 
 const PROOF_VALIDATOR = "0x2b248a45ad53bec4ace471188fbcb1a26d293883" as const;
