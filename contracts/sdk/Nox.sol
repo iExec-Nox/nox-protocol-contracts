@@ -21,7 +21,7 @@ library Nox {
      *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
      *      including local forks of each network.
      */
-    function noxComputeContract() public view returns (address) {
+    function noxComputeContract() internal view returns (address) {
         // Arbitrum mainnet or its fork
         if (block.chainid == 42161) {
             // TODO: Update after mainnet deployment.
@@ -38,7 +38,7 @@ library Nox {
         revert("Nox: Unsupported chain");
     }
 
-    function _noxComputeContract() internal view returns (INoxCompute) {
+    function _noxComputeContract() private view returns (INoxCompute) {
         return INoxCompute(noxComputeContract());
     }
 
