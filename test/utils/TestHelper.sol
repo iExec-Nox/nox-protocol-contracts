@@ -6,7 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEType, HANDLE_ATTR_IS_UNIQ_HANDLE} from "../../contracts/shared/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
@@ -38,9 +38,10 @@ library TestHelper {
         return
             bytes32(
                 abi.encodePacked(
-                    vm.randomBytes(26), // Random pre-handle
+                    vm.randomBytes(25), // Random pre-handle (25 bytes)
                     bytes4(uint32(chainId)),
                     bytes1(uint8(teeType)),
+                    bytes1(HANDLE_ATTR_IS_UNIQ_HANDLE), // Attributes: isUniqHandle=1, isPublicScalar=0
                     bytes1(0x00) // Version 0
                 )
             );

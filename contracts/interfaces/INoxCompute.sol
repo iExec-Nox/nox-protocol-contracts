@@ -19,6 +19,8 @@ interface INoxCompute {
     error InvalidProof(bytes proof, string reason);
     error UnsupportedType();
     error IncompatibleTypes();
+    /// Error thrown when attempting to mutate ACL of a public scalar handle
+    error PublicScalarACLForbidden();
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -30,7 +32,7 @@ interface INoxCompute {
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
 
-    event PlaintextToEncrypted(
+    event WrapPublicScalar(
         address indexed caller,
         bytes32 plaintext,
         TEEType toType,
@@ -160,7 +162,7 @@ interface INoxCompute {
     );
 
     enum Operator {
-        PlaintextToEncrypted,
+        WrapPublicScalar,
         Add,
         Sub,
         Mul,
@@ -260,12 +262,23 @@ interface INoxCompute {
     // ------------- Compute functions -------------
 
     /**
-     * @notice Converts a plaintext value into an encrypted value
-     * @param value The plaintext value to encrypt
-     * @param teeType The type of the encrypted value
-     * @return The encrypted value
+     * @notice Wraps a public plaintext scalar into a handle.
+     * The resulting handle is flagged as a public scalar (isPublicScalar=1, isUniqHandle=0):
+     * it carries no ACL, is accessible by everyone, and is deterministic for a given
+     * (contract, chainId, type, value) tuple.
+     * Any attempt to mutate ACLs on a public scalar handle will revert.
+     * @param value The plaintext scalar value to wrap
+     * @param teeType The type of the handle
+     * @return The public scalar handle
      */
-    function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
+    function wrapPublicScalar(bytes32 value, TEEType teeType) external returns (bytes32);
+
+    /**
+     * @notice Returns true if the handle wraps a public plaintext scalar.
+     * Public scalar handles carry no ACL and are accessible by everyone.
+     * @param handle The handle to inspect
+     */
+    function isPublicScalar(bytes32 handle) external pure returns (bool);
 
     /**
      * @notice Validates a handle proof for a given owner and type.

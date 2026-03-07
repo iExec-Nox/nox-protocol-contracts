@@ -8,6 +8,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
+import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeACLTest is Test {
@@ -16,13 +17,17 @@ contract NoxComputeACLTest is Test {
     address internal user2 = makeAddr("user2");
     address internal viewer1 = makeAddr("viewer1");
     address internal viewer2 = makeAddr("viewer2");
-    bytes32 internal handle = keccak256("handle1");
-    bytes32 internal handle2 = keccak256("handle2");
-    bytes32 internal handle3 = keccak256("handle3");
+    bytes32 internal handle;
+    bytes32 internal handle2;
+    bytes32 internal handle3;
     NoxCompute internal noxCompute;
 
     function setUp() public {
         noxCompute = TestHelper.deploy(owner, makeAddr("gateway"));
+        // Use properly formatted handles (isPublicScalar=0, isUniqHandle=1)
+        handle = TestHelper.createHandle(TEEType.Uint256);
+        handle2 = TestHelper.createHandle(TEEType.Uint256);
+        handle3 = TestHelper.createHandle(TEEType.Uint256);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");

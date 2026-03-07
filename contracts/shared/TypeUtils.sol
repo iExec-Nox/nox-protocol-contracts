@@ -114,15 +114,46 @@ enum TEEType {
 
 error NonArithmeticType();
 
+// Handle attributes byte (byte 25): bit flags describing handle properties
+uint8 constant HANDLE_ATTR_IS_PUBLIC_SCALAR = 0x01; // bit 0: handle wraps a public plaintext scalar
+uint8 constant HANDLE_ATTR_IS_UNIQ_HANDLE   = 0x02; // bit 1: handle is guaranteed unique on this chain
+
 library TypeUtils {
     /**
      * @notice Extracts the TEE type from a handle.
-     * The type is stored at byte position 30 in the handle.
+     * The type is stored at byte position 5 in the handle.
      * @param handle The handle to extract the type from
      * @return The TEEType encoded in the handle
      */
     function typeOf(bytes32 handle) internal pure returns (TEEType) {
-        return TEEType(uint8(handle[30]));
+        return TEEType(uint8(handle[29]));
+    }
+
+    /**
+     * @notice Returns the raw attributes byte of a handle (byte position 30).
+     * @param handle The handle to inspect
+     * @return The attributes byte
+     */
+    function attributesOf(bytes32 handle) internal pure returns (uint8) {
+        return uint8(handle[30]);
+    }
+
+    /**
+     * @notice Returns true if the handle wraps a public plaintext scalar.
+     * Public scalar handles carry no ACL — they are accessible by everyone.
+     * @param handle The handle to inspect
+     */
+    function isPublicScalar(bytes32 handle) internal pure returns (bool) {
+        return uint8(handle[30]) & HANDLE_ATTR_IS_PUBLIC_SCALAR != 0;
+    }
+
+    /**
+     * @notice Returns true if the handle is guaranteed unique on this chain.
+     * All handles except public scalars (wrapPublicScalar) are unique by default.
+     * @param handle The handle to inspect
+     */
+    function isUniqHandle(bytes32 handle) internal pure returns (bool) {
+        return uint8(handle[30]) & HANDLE_ATTR_IS_UNIQ_HANDLE != 0;
     }
 
     /**

@@ -6,7 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {INoxCompute} from "./interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
+import {TEEType, TypeUtils, HANDLE_ATTR_IS_PUBLIC_SCALAR, HANDLE_ATTR_IS_UNIQ_HANDLE} from "./shared/TypeUtils.sol";
 
 /**
  * @title NoxCompute
@@ -67,6 +67,16 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
+     * Ensures the handle is not a public scalar.
+     * ACL mutations are forbidden on public scalar handles.
+     * @param handle The handle to check
+     */
+    modifier notPublicScalar(bytes32 handle) {
+        require(!TypeUtils.isPublicScalar(handle), PublicScalarACLForbidden());
+        _;
+    }
+
+    /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
     constructor() EIP712("NoxCompute", "1") {
@@ -93,7 +103,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function allow(
         bytes32 handle,
         address account
-    ) external override onlyAllowed(handle) notZeroAddress(account) {
+    ) external override notZeroAddress(account) notPublicScalar(handle) onlyAllowed(handle) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
@@ -109,7 +119,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function allowTransient(
         bytes32 handle,
         address account
-    ) external override notZeroAddress(account) onlyAllowed(handle) {
+    ) external override notZeroAddress(account) notPublicScalar(handle) onlyAllowed(handle) {
         _allowTransient(handle, account);
     }
 
@@ -133,8 +143,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     /// @inheritdoc INoxCompute
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
-        // Read transient authorization first to save gas (no unnecessary storage reads).
-        return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
+        // Public scalar handles are accessible by everyone — no ACL required.
+        // Then read transient authorization to save gas on unnecessary storage reads.
+        return TypeUtils.isPublicScalar(handle) || _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
     }
 
     /// @inheritdoc INoxCompute
@@ -150,7 +161,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function addViewer(
         bytes32 handle,
         address viewer
-    ) external override onlyAllowed(handle) notZeroAddress(viewer) {
+    ) external override notZeroAddress(viewer) notPublicScalar(handle) onlyAllowed(handle) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.viewers[handle][viewer] = true;
         emit ViewerAdded(msg.sender, viewer, handle);
@@ -158,6 +169,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     /// @inheritdoc INoxCompute
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
+        // Public scalar handles are viewable by everyone — no ACL required.
+        if (TypeUtils.isPublicScalar(handle)) return true;
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         return
             $.isPubliclyDecryptable[handle] ||
@@ -166,7 +179,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /// @inheritdoc INoxCompute
-    function allowPublicDecryption(bytes32 handle) external override onlyAllowed(handle) {
+    function allowPublicDecryption(bytes32 handle) external override notPublicScalar(handle) onlyAllowed(handle) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.isPubliclyDecryptable[handle] = true;
         emit MarkedAsPubliclyDecryptable(msg.sender, handle);
@@ -228,15 +241,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     // ----------- Compute functions -----------
 
     /// @inheritdoc INoxCompute
-    function plaintextToEncrypted(
+    function wrapPublicScalar(
         bytes32 value,
         TEEType teeType
     ) external returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](1);
-        operands[0] = value;
-        result = _generateHandle(Operator.PlaintextToEncrypted, operands, teeType);
-        _allowTransient(result, msg.sender);
-        emit PlaintextToEncrypted(msg.sender, value, teeType, result);
+        result = _generatePublicScalarHandle(value, teeType);
+        emit WrapPublicScalar(msg.sender, value, teeType, result);
+    }
+
+    /// @inheritdoc INoxCompute
+    function isPublicScalar(bytes32 handle) external pure override returns (bool) {
+        return TypeUtils.isPublicScalar(handle);
     }
 
     /**
@@ -249,9 +264,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * or reverts otherwise.
      *
      * Handle format:
-     *    26 bytes          4 bytes     1 byte  1 byte
-     * [0----------25]    [26-----29]    [30]    [31]
-     *   Pre-handle         ChainId      Type   Version
+     *      25 bytes         4 bytes   1 byte   1 byte   1 byte
+     * [0-----------24]   [25----28]    [29]     [30]     [31]
+     *    Pre-handle        ChainId     Type     Attrs   Version
      *
      * Proof format:
      *  20 bytes       20 bytes        32 bytes            65 bytes
@@ -268,7 +283,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes calldata proof,
         TEEType teeType
     ) public {
-        bytes4 chainIdInHandle = bytes4(handle << (26 * 8));
+        bytes4 chainIdInHandle = bytes4(handle << (25 * 8));
         require(
             chainIdInHandle == bytes4(uint32(block.chainid)),
             InvalidProof(proof, "Handle chain id mismatch")
@@ -652,10 +667,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Generates a complete handle from an operator and its operands.
+     * Generates a complete confidential result handle from an operator and its operands.
+     * Result handles are always unique (isUniqHandle=1) and never public scalars (isPublicScalar=0).
      *
      * Pre-handle format:
-     *   keccak256(abi.encodePacked(
+     *   keccak256(abi.encode(
      *       operator,        // Operator identifier (e.g., Add, Sub, Div)
      *       operands,        // Array of operand handles
      *       address(this),   // NoxCompute contract address
@@ -665,9 +681,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      *   ))
      *
      * Handle format (32 bytes):
-     *   [0-25]  : First 26 bytes of preHandle (truncated hash)
-     *   [26-29] : Chain ID (4 bytes, from uint32)
-     *   [30]    : TEE type
+     *   [0-24]  : First 25 bytes of preHandle (truncated hash)
+     *   [25-28] : Chain ID (4 bytes, from uint32)
+     *   [29]    : TEE type
+     *   [30]    : Attributes byte (bit 0: isPublicScalar, bit 1: isUniqHandle)
      *   [31]    : Handle version
      *
      * @param operator The operator to apply
@@ -685,10 +702,34 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         result = keccak256(
             abi.encode(operator, operands, address(this), msg.sender, block.timestamp, outputIndex)
         );
-        // Keep only the leftmost 26 bytes of the hash and add handle metadata.
-        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffffff000000000000;
-        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (26 * 8));
-        result = result | (bytes32(bytes1(uint8(handleType))) >> (30 * 8));
+        // Keep only the leftmost 25 bytes of the hash and append handle metadata.
+        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000;
+        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (25 * 8));
+        result = result | (bytes32(bytes1(uint8(handleType))) >> (29 * 8));
+        result = result | (bytes32(bytes1(HANDLE_ATTR_IS_UNIQ_HANDLE)) >> (30 * 8));
+        result = result | (bytes32(bytes1(uint8(HANDLE_VERSION))) >> (31 * 8));
+    }
+
+    /**
+     * Generates a deterministic public scalar handle.
+     * The handle is flagged as isPublicScalar=1, isUniqHandle=0.
+     * Salt = (address(this), chainId, handleType, value) — no msg.sender or timestamp.
+     * The same scalar value always produces the same handle for a given contract deployment.
+     *
+     * @param value The plaintext scalar value
+     * @param handleType The TEE type to encode in the handle
+     * @return result The public scalar handle
+     */
+    function _generatePublicScalarHandle(
+        bytes32 value,
+        TEEType handleType
+    ) private view returns (bytes32 result) {
+        result = keccak256(abi.encode(address(this), block.chainid, handleType, value));
+        // Keep only the leftmost 25 bytes of the hash and append handle metadata.
+        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000;
+        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (25 * 8));
+        result = result | (bytes32(bytes1(uint8(handleType))) >> (29 * 8));
+        result = result | (bytes32(bytes1(HANDLE_ATTR_IS_PUBLIC_SCALAR)) >> (30 * 8));
         result = result | (bytes32(bytes1(uint8(HANDLE_VERSION))) >> (31 * 8));
     }
 

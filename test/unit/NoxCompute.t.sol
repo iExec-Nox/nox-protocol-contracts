@@ -9,7 +9,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils, NonArithmeticType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEType, TypeUtils, NonArithmeticType, HANDLE_ATTR_IS_UNIQ_HANDLE} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {
@@ -179,50 +179,110 @@ contract NoxComputeTest is Test {
         noxCompute.setProofExpirationDuration(2 hours);
     }
 
-    // ============ plaintextToEncrypted ============
+    // ============ wrapPublicScalar ============
 
-    function test_PlaintextToEncrypted_Bool() public {
+    function test_WrapPublicScalar_Bool() public {
         bytes32 value = bytes32(uint256(1));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Bool);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Bool);
 
-        _assertValidHandle(result, TEEType.Bool);
+        _assertValidPublicScalarHandle(result, TEEType.Bool);
     }
 
-    function test_PlaintextToEncrypted_Uint256() public {
+    function test_WrapPublicScalar_Uint256() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
 
-        _assertValidHandle(result, TEEType.Uint256);
+        _assertValidPublicScalarHandle(result, TEEType.Uint256);
     }
 
-    function test_PlaintextToEncrypted_Int256() public {
+    function test_WrapPublicScalar_Int256() public {
         bytes32 value = bytes32(uint256(int256(-999)));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Int256);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Int256);
 
-        _assertValidHandle(result, TEEType.Int256);
+        _assertValidPublicScalarHandle(result, TEEType.Int256);
     }
 
-    function test_PlaintextToEncrypted_UniqueHandles() public {
+    function test_WrapPublicScalar_DeterministicHandles() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
-        bytes32 result1 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result1 = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
         vm.warp(block.timestamp + 1);
+        vm.prank(makeAddr("otherCaller"));
+        bytes32 result2 = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+
+        // Same scalar value must always produce the same handle
+        assertEq(result1, result2);
+    }
+
+    function test_WrapPublicScalar_DifferentValuesProduceDifferentHandles() public {
         vm.prank(caller);
-        bytes32 result2 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result1 = noxCompute.wrapPublicScalar(bytes32(uint256(1)), TEEType.Uint256);
+        vm.prank(caller);
+        bytes32 result2 = noxCompute.wrapPublicScalar(bytes32(uint256(2)), TEEType.Uint256);
 
         assertTrue(result1 != result2);
     }
 
-    function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
+    function test_WrapPublicScalar_IsAllowedByAnyone() public {
+        bytes32 value = bytes32(uint256(42));
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+
+        address anyone = makeAddr("anyone");
+        assertTrue(noxCompute.isAllowed(result, anyone));
+        assertTrue(noxCompute.isViewer(result, anyone));
+    }
+
+    function test_RevertWhen_WrapPublicScalar_Allow() public {
+        bytes32 value = bytes32(uint256(42));
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+        noxCompute.allow(result, makeAddr("someone"));
+    }
+
+    function test_RevertWhen_WrapPublicScalar_AllowTransient() public {
+        bytes32 value = bytes32(uint256(42));
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+        noxCompute.allowTransient(result, makeAddr("someone"));
+    }
+
+    function test_RevertWhen_WrapPublicScalar_AddViewer() public {
+        bytes32 value = bytes32(uint256(42));
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+        noxCompute.addViewer(result, makeAddr("viewer"));
+    }
+
+    function test_RevertWhen_WrapPublicScalar_AllowPublicDecryption() public {
+        bytes32 value = bytes32(uint256(42));
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+
+        vm.prank(caller);
+        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+        noxCompute.allowPublicDecryption(result);
+    }
+
+    function test_RevertWhen_WrapPublicScalar_UnsupportedType() public {
         bytes32 value = bytes32(uint256(42));
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
             abi.encodeWithSelector(
-                INoxCompute.plaintextToEncrypted.selector,
+                INoxCompute.wrapPublicScalar.selector,
                 value,
                 uint8(type(TEEType).max) + 1
             )
@@ -949,10 +1009,24 @@ contract NoxComputeTest is Test {
 
     function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
         assertTrue(h != bytes32(0), "Handle should not be zero");
-        assertEq(bytes4(h << (26 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
+        assertEq(bytes4(h << (25 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
         assertEq(uint8(h[31]), 0, "Invalid version");
+        assertEq(uint8(h[30]) & HANDLE_ATTR_IS_UNIQ_HANDLE, HANDLE_ATTR_IS_UNIQ_HANDLE, "isUniqHandle should be set");
+        assertEq(uint8(h[30]) & 0x01, 0, "isPublicScalar should not be set");
         assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
+    }
+
+    function _assertValidPublicScalarHandle(bytes32 h, TEEType expectedType) internal view {
+        assertTrue(h != bytes32(0), "Handle should not be zero");
+        assertEq(bytes4(h << (25 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
+        assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
+        assertEq(uint8(h[31]), 0, "Invalid version");
+        assertEq(uint8(h[30]) & 0x01, 0x01, "isPublicScalar should be set");
+        assertEq(uint8(h[30]) & HANDLE_ATTR_IS_UNIQ_HANDLE, 0, "isUniqHandle should not be set");
+        assertTrue(noxCompute.isPublicScalar(h), "Handle should be flagged as public scalar");
+        // Public scalar handles are accessible by everyone — no explicit ACL grant needed
+        assertTrue(noxCompute.isAllowed(h, makeAddr("anyone")), "Anyone should be allowed for a public scalar handle");
     }
 
     function _callOperation(
