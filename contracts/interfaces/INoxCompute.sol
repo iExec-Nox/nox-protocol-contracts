@@ -281,6 +281,23 @@ interface INoxCompute {
     function isPublicScalar(bytes32 handle) external pure returns (bool);
 
     /**
+     * @notice Wraps a public plaintext scalar into a guaranteed-unique handle.
+     * Unlike wrapPublicScalar, the resulting handle is flagged isPublicScalar=1 AND isUniqHandle=1.
+     * The caller takes full accountability for providing a uniqSeed that avoids collisions
+     * (e.g. derived from msg.sender + relevant context).
+     * Any attempt to mutate ACLs on the resulting handle will revert.
+     * @param value The plaintext scalar value to wrap
+     * @param teeType The type of the handle
+     * @param uniqSeed Caller-supplied uniqueness seed
+     * @return The unique public scalar handle
+     */
+    function generatePublicScalarFromUniqueSeed(
+        bytes32 value,
+        TEEType teeType,
+        uint256 uniqSeed
+    ) external returns (bytes32);
+
+    /**
      * @notice Validates a handle proof for a given owner and type.
      * @param handle handle to validate
      * @param owner owner of the provided handle

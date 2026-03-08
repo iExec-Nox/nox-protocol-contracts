@@ -38,6 +38,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes kmsPublicKey;
         address gateway;
         uint256 proofExpirationDuration;
+        // Incremented when all operands of an operation are non-unique public scalars,
+        // ensuring the result handle remains unique even in that edge case.
+        uint256 uniqSeedCounter;
     }
 
     uint8 private constant HANDLE_VERSION = 0;
@@ -245,7 +248,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 value,
         TEEType teeType
     ) external returns (bytes32 result) {
-        result = _generatePublicScalarHandle(value, teeType);
+        result = _generatePublicScalarHandle(value, teeType, 0);
+        emit WrapPublicScalar(msg.sender, value, teeType, result);
+    }
+
+    /// @inheritdoc INoxCompute
+    function generatePublicScalarFromUniqueSeed(
+        bytes32 value,
+        TEEType teeType,
+        uint256 uniqSeed
+    ) external returns (bytes32 result) {
+        result = _generatePublicScalarHandle(value, teeType, uniqSeed);
         emit WrapPublicScalar(msg.sender, value, teeType, result);
     }
 
@@ -475,7 +488,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[1] = ifTrue;
         operands[2] = ifFalse;
         validateAllowedForAll(msg.sender, operands);
-        result = _generateHandle(Operator.Select, operands, resultType);
+        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        result = _generateHandle(Operator.Select, operands, resultType, uniqSeed, 0);
         _allowTransient(result, msg.sender);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
     }
@@ -586,10 +600,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             }
         }
         validateAllowedForAll(msg.sender, operands);
-        result = _generateHandle(operator, operands, resultType);
+        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        result = _generateHandle(operator, operands, resultType, uniqSeed, 0);
         _allowTransient(result, msg.sender);
         if (isSafeOperation) {
-            success = _generateHandle(operator, operands, TEEType.Bool, 1);
+            success = _generateHandle(operator, operands, TEEType.Bool, uniqSeed, 1);
             _allowTransient(success, msg.sender);
         }
     }
@@ -620,7 +635,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftOperand;
         operands[1] = rightOperand;
         validateAllowedForAll(msg.sender, operands);
-        result = _generateHandle(operator, operands, TEEType.Bool);
+        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        result = _generateHandle(operator, operands, TEEType.Bool, uniqSeed, 0);
         _allowTransient(result, msg.sender);
     }
 
@@ -647,23 +663,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             }
         }
         validateAllowedForAll(msg.sender, operands);
-        success = _generateHandle(operator, operands, TEEType.Bool, 0);
-        result1 = _generateHandle(operator, operands, resultType, 1);
-        result2 = _generateHandle(operator, operands, resultType, 2);
+        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        success = _generateHandle(operator, operands, TEEType.Bool, uniqSeed, 0);
+        result1 = _generateHandle(operator, operands, resultType, uniqSeed, 1);
+        result2 = _generateHandle(operator, operands, resultType, uniqSeed, 2);
         _allowTransient(success, msg.sender);
         _allowTransient(result1, msg.sender);
         _allowTransient(result2, msg.sender);
-    }
-
-    /**
-     * @dev Alias for _generateHandle with outputIndex defaulting to 0.
-     */
-    function _generateHandle(
-        Operator operator,
-        bytes32[] memory operands,
-        TEEType handleType
-    ) private view returns (bytes32 result) {
-        result = _generateHandle(operator, operands, handleType, 0);
     }
 
     /**
@@ -675,9 +681,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      *       operator,        // Operator identifier (e.g., Add, Sub, Div)
      *       operands,        // Array of operand handles
      *       address(this),   // NoxCompute contract address
-     *       msg.sender,      // Caller address
-     *       block.timestamp, // Current block timestamp
-     *       outputIndex      // For operations that return multiple outputs
+     *       uniqSeed,        // Non-zero only when all operands are non-unique public scalars
+     *       outputIndex      // For operations that return multiple outputs, avoiding the gas costs to generate several uniqSeeds
      *   ))
      *
      * Handle format (32 bytes):
@@ -691,16 +696,18 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param operands Array of operand handles
      * @param handleType The TEE type to encode in the handle
      * @param outputIndex Index for operations returning multiple outputs
+     * @param uniqSeed Counter value from _generateHandleUniqueSeed; 0 in the common case
      * @return result The complete handle with metadata appended
      */
     function _generateHandle(
         Operator operator,
         bytes32[] memory operands,
         TEEType handleType,
+        uint256 uniqSeed,
         uint8 outputIndex
     ) private view returns (bytes32 result) {
         result = keccak256(
-            abi.encode(operator, operands, address(this), msg.sender, block.timestamp, outputIndex)
+            abi.encode(operator, operands, address(this), uniqSeed, outputIndex)
         );
         // Keep only the leftmost 25 bytes of the hash and append handle metadata.
         result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000;
@@ -711,25 +718,54 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Generates a deterministic public scalar handle.
-     * The handle is flagged as isPublicScalar=1, isUniqHandle=0.
-     * Salt = (address(this), chainId, handleType, value) — no msg.sender or timestamp.
-     * The same scalar value always produces the same handle for a given contract deployment.
+     * Returns a non-zero seed to use in handle generation when all operands are non-unique
+     * handles like for public scalars (isUniqHandle=0). 
+     * Increments a persistent counter in that case. This is used to ensure that the result handle
+     * is unique even if all operands are public scalars.
+     * 
+     * Returns 0 immediately (no storage access) if any operand has isUniqHandle=1,
+     * since uniqueness is already guaranteed by that operand.
      *
-     * @param value The plaintext scalar value
-     * @param handleType The TEE type to encode in the handle
-     * @return result The public scalar handle
+     * Gas cost:
+     *   - Common case (any unique operand): ~21 gas/operand, no SLOAD/SSTORE
+     *   - Edge case (all public scalars): ~5000 gas for 1 SLOAD + 1 SSTORE
+     *
+     * @param operands The operation input handles
+     * @return seed 0 if any operand is unique, otherwise an incremented counter value
+     */
+    function _generateHandleUniqueSeed(bytes32[] memory operands) private returns (uint256 seed) {
+        unchecked {
+            uint256 len = operands.length;
+            for (uint256 i; i < len; ++i) {
+                if (TypeUtils.isUniqHandle(operands[i])) {
+                    return 0;
+                }
+            }
+            NoxComputeStorage storage $ = _getNoxComputeStorage();
+            return ++$.uniqSeedCounter;
+        }
+    }
+
+    /**
+     * Generates a unique public scalar handle (isPublicScalar=1, isUniqHandle=1).
+     * Used by generatePublicScalarFromUniqueSeed when the caller supplies a uniqSeed.
+     * Salt = (address(this), chainId, handleType, value, uniqSeed).
      */
     function _generatePublicScalarHandle(
         bytes32 value,
-        TEEType handleType
+        TEEType handleType,
+        uint256 uniqSeed
     ) private view returns (bytes32 result) {
-        result = keccak256(abi.encode(address(this), block.chainid, handleType, value));
+        result = keccak256(abi.encode(address(this), block.chainid, handleType, value, uniqSeed));
         // Keep only the leftmost 25 bytes of the hash and append handle metadata.
         result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000;
         result = result | (bytes32(bytes4(uint32(block.chainid))) >> (25 * 8));
         result = result | (bytes32(bytes1(uint8(handleType))) >> (29 * 8));
-        result = result | (bytes32(bytes1(HANDLE_ATTR_IS_PUBLIC_SCALAR)) >> (30 * 8));
+        // isUniqHandle=1 when a uniqSeed was provided, 0 otherwise
+        uint8 attrs = uniqSeed != 0
+            ? HANDLE_ATTR_IS_PUBLIC_SCALAR | HANDLE_ATTR_IS_UNIQ_HANDLE
+            : HANDLE_ATTR_IS_PUBLIC_SCALAR;
+        result = result | (bytes32(bytes1(attrs)) >> (30 * 8));
         result = result | (bytes32(bytes1(uint8(HANDLE_VERSION))) >> (31 * 8));
     }
 
