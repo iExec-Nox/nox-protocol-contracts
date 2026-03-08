@@ -205,6 +205,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param account Address of the account
      */
     function _allowTransient(bytes32 handle, address account) private {
+        // Public scalar handles are accessible by everyone — skip transient write.
+        if (TypeUtils.isPublicScalar(handle)) {
+            return;
+        }
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
             tstore(key, 1)
@@ -222,6 +226,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @return Returns `true` if the address has transient access to a handle and `false` otherwise.
      */
     function _isAllowedTransient(bytes32 handle, address account) private view returns (bool) {
+        // Public scalar handles are accessible by everyone — skip transient read.
+        if (TypeUtils.isPublicScalar(handle)) {
+            return true;
+        }
+
         bool isAllowedTransient_;
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
