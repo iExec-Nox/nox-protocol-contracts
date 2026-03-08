@@ -1017,7 +1017,7 @@ contract NoxComputeTest is Test {
         assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
     }
 
-    function _assertValidPublicScalarHandle(bytes32 h, TEEType expectedType) internal view {
+    function _assertValidPublicScalarHandle(bytes32 h, TEEType expectedType) internal {
         assertTrue(h != bytes32(0), "Handle should not be zero");
         assertEq(bytes4(h << (25 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
