@@ -901,7 +901,84 @@ contract NoxTest is Test {
         }
     }
 
+    // ============ publicDecrypt ============
+
+    function test_publicDecrypt_Ebool() public {
+        _makePubliclyDecryptable(boolHandle);
+        bytes32 value = bytes32(uint256(1));
+        bytes memory proof = TestHelper.buildDecryptionProof(boolHandle, value, gatewayPrivateKey);
+        bool result = noxMock.publicDecryptEbool(boolHandle, proof);
+        assertTrue(result);
+    }
+
+    function test_publicDecrypt_Eaddress() public {
+        _makePubliclyDecryptable(addressHandle);
+        bytes32 value = bytes32(uint256(uint160(account)));
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            addressHandle,
+            value,
+            gatewayPrivateKey
+        );
+        address result = noxMock.publicDecryptEaddress(addressHandle, proof);
+        assertEq(result, account);
+    }
+
+    function test_publicDecrypt_Euint16() public {
+        _makePubliclyDecryptable(uint16HandleA);
+        bytes32 value = bytes32(uint256(42));
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            uint16HandleA,
+            value,
+            gatewayPrivateKey
+        );
+        uint16 result = noxMock.publicDecryptEuint16(uint16HandleA, proof);
+        assertEq(result, 42);
+    }
+
+    function test_publicDecrypt_Euint256() public {
+        _makePubliclyDecryptable(uint256HandleA);
+        bytes32 value = bytes32(uint256(123456));
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            uint256HandleA,
+            value,
+            gatewayPrivateKey
+        );
+        uint256 result = noxMock.publicDecryptEuint256(uint256HandleA, proof);
+        assertEq(result, 123456);
+    }
+
+    function test_publicDecrypt_Eint16() public {
+        _makePubliclyDecryptable(int16HandleA);
+        // ABI encoding sign-extends int16 to 32 bytes
+        bytes32 value = bytes32(uint256(int256(int16(-7))));
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            int16HandleA,
+            value,
+            gatewayPrivateKey
+        );
+        int16 result = noxMock.publicDecryptEint16(int16HandleA, proof);
+        assertEq(result, -7);
+    }
+
+    function test_publicDecrypt_Eint256() public {
+        _makePubliclyDecryptable(int256HandleA);
+        bytes32 value = bytes32(uint256(int256(-999)));
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            int256HandleA,
+            value,
+            gatewayPrivateKey
+        );
+        int256 result = noxMock.publicDecryptEint256(int256HandleA, proof);
+        assertEq(result, -999);
+    }
+
     // ============ Dispatch Helpers ============
+
+    function _makePubliclyDecryptable(bytes32 handle) internal {
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxComputeContract.allowPublicDecryption(handle);
+    }
 
     function _noxFromExternal(bytes32 handle, bytes memory proof) internal {
         TEEType t = handle.typeOf();
