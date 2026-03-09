@@ -47,6 +47,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
     bytes32 public constant HANDLE_PROOF_TYPEHASH =
         keccak256("HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)");
+    bytes32 public constant DECRYPTION_PROOF_TYPEHASH =
+        keccak256("DecryptionProof(bytes32 handle,bytes decryptedResult)");
 
     /**
      * Ensures the account address is not zero
@@ -297,6 +299,43 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         );
         // Give caller contract transient access to the handle.
         _allowTransient(handle, msg.sender);
+    }
+
+    /**
+     * Validates a decryption proof issued by the gateway for a publicly decryptable handle.
+     * The proof must be signed by the configured gateway.
+     *
+     * Proof format (65 + N bytes):
+     *       65 bytes              N bytes
+     * [0--------------64]    [65--------64+N]
+     *  EIP-712 signature      DecryptedResult
+     *
+     * The signature is placed first (fixed 65 bytes) so that the decrypted result
+     * can be variable-length, supporting all current types (ABI-encoded as 32 bytes)
+     * and future types that may exceed 32 bytes (e.g. encrypted strings).
+     *
+     * @param handle Handle to decrypt
+     * @param decryptionProof Serialized decryption proof
+     * @return The decrypted value (variable length)
+     */
+    function validateDecryptionProof(
+        bytes32 handle,
+        bytes calldata decryptionProof
+    ) external returns (bytes memory) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
+        require(decryptionProof.length > 65, InvalidProof(decryptionProof, "Invalid proof length"));
+        bytes calldata signature = decryptionProof[0:65];
+        bytes calldata decryptedResult = decryptionProof[65:];
+        bytes32 eip712MessageHash = _hashTypedDataV4(
+            keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
+        );
+        require(
+            ECDSA.recover(eip712MessageHash, signature) == $.gateway,
+            InvalidProof(decryptionProof, "Invalid signature")
+        );
+        emit PublicDecryption(msg.sender, handle, decryptedResult);
+        return decryptedResult;
     }
 
     /// @inheritdoc INoxCompute

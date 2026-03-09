@@ -415,6 +415,89 @@ contract NoxComputeTest is Test {
         vm.prank(app);
         noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
     }
+    // ============ validateDecryptionProof ============
+
+    function test_ValidateDecryptionProof() public {
+        bytes32 decryptedValue = bytes32(uint256(42));
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result, abi.encodePacked(decryptedValue));
+    }
+
+    function test_ValidateDecryptionProof_EmitsEvent() public {
+        bytes32 decryptedValue = bytes32(uint256(100));
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        vm.expectEmit(true, true, false, true);
+        emit INoxCompute.PublicDecryption(address(this), handle, abi.encodePacked(decryptedValue));
+        noxCompute.validateDecryptionProof(handle, proof);
+    }
+
+    function test_RevertWhen_ValidateDecryptionProof_NotPubliclyDecryptable() public {
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            bytes32(uint256(42)),
+            gatewayPrivateKey
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.NotPubliclyDecryptable.selector, handle)
+        );
+        noxCompute.validateDecryptionProof(handle, proof);
+    }
+
+    function test_RevertWhen_ValidateDecryptionProof_InvalidProofLength() public {
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory emptyProof = new bytes(0);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                emptyProof,
+                "Invalid proof length"
+            )
+        );
+        noxCompute.validateDecryptionProof(handle, emptyProof);
+        bytes memory shortProof = new bytes(65);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                shortProof,
+                "Invalid proof length"
+            )
+        );
+        noxCompute.validateDecryptionProof(handle, shortProof);
+    }
+
+    function test_RevertWhen_ValidateDecryptionProof_InvalidSigner() public {
+        uint256 badSigner = 9999;
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            bytes32(uint256(42)),
+            badSigner
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Invalid signature")
+        );
+        noxCompute.validateDecryptionProof(handle, proof);
+    }
+
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
     function test_ArithmeticOperations() public {

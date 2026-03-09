@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x9cF45FFE48126380cFCC40215a1d6D7fffbffb05;
+            return 0x74f7dfA9Ac8C3ceC4Dd3BCfDD8B70BF49A64026E;
         }
         revert("Nox: Unsupported chain");
     }
@@ -894,6 +894,86 @@ library Nox {
      */
     function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
         return _noxComputeContract().isPubliclyDecryptable(eint256.unwrap(handle));
+    }
+
+    // ============ Public decryption proof verification ============
+
+    /**
+     * @dev Verifies a decryption proof and returns the decrypted boolean value.
+     */
+    function publicDecrypt(ebool handle, bytes calldata decryptionProof) internal returns (bool) {
+        bytes memory result = _noxComputeContract().validateDecryptionProof(
+            ebool.unwrap(handle),
+            decryptionProof
+        );
+        return abi.decode(result, (bool));
+    }
+
+    /**
+     * @dev Verifies a decryption proof and returns the decrypted address value.
+     */
+    function publicDecrypt(
+        eaddress handle,
+        bytes calldata decryptionProof
+    ) internal returns (address) {
+        bytes memory result = _noxComputeContract().validateDecryptionProof(
+            eaddress.unwrap(handle),
+            decryptionProof
+        );
+        return abi.decode(result, (address));
+    }
+
+    /**
+     * @dev Verifies a decryption proof and returns the decrypted uint16 value.
+     */
+    function publicDecrypt(
+        euint16 handle,
+        bytes calldata decryptionProof
+    ) internal returns (uint16) {
+        bytes memory result = _noxComputeContract().validateDecryptionProof(
+            euint16.unwrap(handle),
+            decryptionProof
+        );
+        return abi.decode(result, (uint16));
+    }
+
+    /**
+     * @dev Verifies a decryption proof and returns the decrypted uint256 value.
+     */
+    function publicDecrypt(
+        euint256 handle,
+        bytes calldata decryptionProof
+    ) internal returns (uint256) {
+        bytes memory result = _noxComputeContract().validateDecryptionProof(
+            euint256.unwrap(handle),
+            decryptionProof
+        );
+        return abi.decode(result, (uint256));
+    }
+
+    /**
+     * @dev Verifies a decryption proof and returns the decrypted int16 value.
+     */
+    function publicDecrypt(eint16 handle, bytes calldata decryptionProof) internal returns (int16) {
+        bytes memory result = _noxComputeContract().validateDecryptionProof(
+            eint16.unwrap(handle),
+            decryptionProof
+        );
+        return abi.decode(result, (int16));
+    }
+
+    /**
+     * @dev Verifies a decryption proof and returns the decrypted int256 value.
+     */
+    function publicDecrypt(
+        eint256 handle,
+        bytes calldata decryptionProof
+    ) internal returns (int256) {
+        bytes memory result = _noxComputeContract().validateDecryptionProof(
+            eint256.unwrap(handle),
+            decryptionProof
+        );
+        return abi.decode(result, (int256));
     }
 
     // ============ Private helpers ============

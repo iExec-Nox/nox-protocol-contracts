@@ -19,6 +19,7 @@ interface INoxCompute {
     error InvalidProof(bytes proof, string reason);
     error UnsupportedType();
     error IncompatibleTypes();
+    error NotPubliclyDecryptable(bytes32 handle);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -26,6 +27,8 @@ interface INoxCompute {
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
+    /// Emitted when a decryption proof is verified on-chain
+    event PublicDecryption(address indexed caller, bytes32 indexed handle, bytes decryptedResult);
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
@@ -280,6 +283,17 @@ interface INoxCompute {
         bytes calldata proof,
         TEEType teeType
     ) external;
+
+    /**
+     * @notice Validates a decryption proof issued by the gateway for a publicly decryptable handle.
+     * @param handle Handle to decrypt
+     * @param decryptionProof Serialized decryption proof (signature + decrypted value)
+     * @return The decrypted value (variable length)
+     */
+    function validateDecryptionProof(
+        bytes32 handle,
+        bytes calldata decryptionProof
+    ) external returns (bytes memory);
 
     /**
      * @notice Performs an addition between two encrypted values without overflow check.

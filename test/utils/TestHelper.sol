@@ -69,6 +69,29 @@ library TestHelper {
     }
 
     /**
+     * Builds a valid decryption proof for the given parameters, signed by the given private key.
+     */
+    function buildDecryptionProof(
+        bytes32 handle,
+        bytes32 decryptedResult,
+        uint256 signerPrivateKey
+    ) internal view returns (bytes memory) {
+        Vm vm = getVm();
+        NoxCompute noxCompute = NoxCompute(Nox.noxComputeContract());
+        // DecryptionProof(bytes32 handle,bytes decryptedResult)
+        bytes32 structHash = keccak256(
+            abi.encode(
+                noxCompute.DECRYPTION_PROOF_TYPEHASH(),
+                handle,
+                keccak256(abi.encodePacked(decryptedResult))
+            )
+        );
+        bytes32 digest = MessageHashUtils.toTypedDataHash(_eip712DomainSeparator(), structHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
+        return abi.encodePacked(r, s, v, decryptedResult);
+    }
+
+    /**
      * @notice Deploys NoxCompute at the addresses resolved by Nox for the current chain.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
