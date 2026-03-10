@@ -212,7 +212,10 @@ contract NoxTest is Test {
             );
             vm.expectCall(
                 noxCompute,
-                abi.encodeCall(INoxCompute.validateProof, (allHandles[i], handleOwner, proof, t))
+                abi.encodeCall(
+                    INoxCompute.validateInputProof,
+                    (allHandles[i], handleOwner, proof, t)
+                )
             );
             // Use startPrank/stopPrank instead of prank to avoid coverage instrumentation
             // consuming the single-use prank before the intended external call.
@@ -905,18 +908,20 @@ contract NoxTest is Test {
 
     function test_publicDecrypt_Ebool() public {
         _makePubliclyDecryptable(boolHandle);
-        bytes32 value = bytes32(uint256(1));
-        bytes memory proof = TestHelper.buildDecryptionProof(boolHandle, value, gatewayPrivateKey);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            boolHandle,
+            abi.encode(uint256(1)),
+            gatewayPrivateKey
+        );
         bool result = noxMock.publicDecryptEbool(boolHandle, proof);
         assertTrue(result);
     }
 
     function test_publicDecrypt_Eaddress() public {
         _makePubliclyDecryptable(addressHandle);
-        bytes32 value = bytes32(uint256(uint160(account)));
         bytes memory proof = TestHelper.buildDecryptionProof(
             addressHandle,
-            value,
+            abi.encode(uint256(uint160(account))),
             gatewayPrivateKey
         );
         address result = noxMock.publicDecryptEaddress(addressHandle, proof);
@@ -925,10 +930,9 @@ contract NoxTest is Test {
 
     function test_publicDecrypt_Euint16() public {
         _makePubliclyDecryptable(uint16HandleA);
-        bytes32 value = bytes32(uint256(42));
         bytes memory proof = TestHelper.buildDecryptionProof(
             uint16HandleA,
-            value,
+            abi.encode(uint256(42)),
             gatewayPrivateKey
         );
         uint16 result = noxMock.publicDecryptEuint16(uint16HandleA, proof);
@@ -937,10 +941,9 @@ contract NoxTest is Test {
 
     function test_publicDecrypt_Euint256() public {
         _makePubliclyDecryptable(uint256HandleA);
-        bytes32 value = bytes32(uint256(123456));
         bytes memory proof = TestHelper.buildDecryptionProof(
             uint256HandleA,
-            value,
+            abi.encode(uint256(123456)),
             gatewayPrivateKey
         );
         uint256 result = noxMock.publicDecryptEuint256(uint256HandleA, proof);
@@ -949,11 +952,9 @@ contract NoxTest is Test {
 
     function test_publicDecrypt_Eint16() public {
         _makePubliclyDecryptable(int16HandleA);
-        // ABI encoding sign-extends int16 to 32 bytes
-        bytes32 value = bytes32(uint256(int256(int16(-7))));
         bytes memory proof = TestHelper.buildDecryptionProof(
             int16HandleA,
-            value,
+            abi.encode(int256(int16(-7))),
             gatewayPrivateKey
         );
         int16 result = noxMock.publicDecryptEint16(int16HandleA, proof);
@@ -962,10 +963,9 @@ contract NoxTest is Test {
 
     function test_publicDecrypt_Eint256() public {
         _makePubliclyDecryptable(int256HandleA);
-        bytes32 value = bytes32(uint256(int256(-999)));
         bytes memory proof = TestHelper.buildDecryptionProof(
             int256HandleA,
-            value,
+            abi.encode(int256(-999)),
             gatewayPrivateKey
         );
         int256 result = noxMock.publicDecryptEint256(int256HandleA, proof);

@@ -82,7 +82,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      */
     function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
         require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
-        __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
@@ -264,7 +263,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param owner The address of the handle owner
      * @param proof Proof data
      */
-    function validateProof(
+    function validateInputProof(
         bytes32 handle,
         address owner,
         bytes calldata proof,
@@ -305,17 +304,12 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * Validates a decryption proof issued by the gateway for a publicly decryptable handle.
      * The proof must be signed by the configured gateway.
      *
-     * Proof format (65 + N bytes):
-     *       65 bytes              N bytes
-     * [0--------------64]    [65--------64+N]
-     *  EIP-712 signature      DecryptedResult
-     *
-     * The signature is placed first (fixed 65 bytes) so that the decrypted result
-     * can be variable-length, supporting all current types (ABI-encoded as 32 bytes)
-     * and future types that may exceed 32 bytes (e.g. encrypted strings).
+     * The proof is ABI-encoded as (bytes32 r, bytes32 s, uint8 v, bytes decryptedResult).
+     * The decrypted result can be of variable-length, supporting all current types
+     * (ABI-encoded as 32 bytes) and future types that may exceed 32 bytes (e.g. encrypted strings).
      *
      * @param handle Handle to decrypt
-     * @param decryptionProof Serialized decryption proof
+     * @param decryptionProof ABI-encoded decryption proof
      * @return The decrypted value (variable length)
      */
     function validateDecryptionProof(
@@ -324,14 +318,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     ) external returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
-        require(decryptionProof.length > 65, InvalidProof(decryptionProof, "Invalid proof length"));
-        bytes calldata signature = decryptionProof[0:65];
-        bytes calldata decryptedResult = decryptionProof[65:];
+        (bytes32 r, bytes32 s, uint8 v, bytes memory decryptedResult) = abi.decode(
+            decryptionProof,
+            (bytes32, bytes32, uint8, bytes)
+        );
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
         );
         require(
-            ECDSA.recover(eip712MessageHash, signature) == $.gateway,
+            ECDSA.recover(eip712MessageHash, abi.encodePacked(r, s, v)) == $.gateway,
             InvalidProof(decryptionProof, "Invalid signature")
         );
         emit PublicDecryption(msg.sender, handle, decryptedResult);

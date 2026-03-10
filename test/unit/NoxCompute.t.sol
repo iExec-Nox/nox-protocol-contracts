@@ -230,7 +230,7 @@ contract NoxComputeTest is Test {
         assertFalse(success);
     }
 
-    // ============ validateProof ============
+    // ============ validateInputProof ============
 
     function test_ValidateProof() public {
         address app = makeAddr("app");
@@ -243,7 +243,7 @@ contract NoxComputeTest is Test {
             gatewayPrivateKey
         );
         vm.prank(app);
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(handle, app));
     }
 
@@ -265,7 +265,7 @@ contract NoxComputeTest is Test {
                 "Handle chain id mismatch"
             )
         );
-        noxCompute.validateProof(badHandle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_HandleTypeMismatch() public {
@@ -280,7 +280,7 @@ contract NoxComputeTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Handle type mismatch")
         );
-        noxCompute.validateProof(handle, owner, proof, TEEType.Bool); // Wrong type
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Bool); // Wrong type
     }
 
     function test_RevertWhen_ValidateProof_InvalidProofLength() public {
@@ -292,7 +292,7 @@ contract NoxComputeTest is Test {
                 "Invalid proof length"
             )
         );
-        noxCompute.validateProof(handle, owner, longProof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, longProof, TEEType.Uint256);
         bytes memory shortProof = new bytes(136);
         vm.expectRevert(
             abi.encodeWithSelector(
@@ -301,7 +301,7 @@ contract NoxComputeTest is Test {
                 "Invalid proof length"
             )
         );
-        noxCompute.validateProof(handle, owner, shortProof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, shortProof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidAppInProof() public {
@@ -317,7 +317,7 @@ contract NoxComputeTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "App mismatch")
         );
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidOwnerInProof() public {
@@ -333,7 +333,7 @@ contract NoxComputeTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Owner mismatch")
         );
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_RevertWhen_ValidateProof_InvalidSigner() public {
@@ -349,7 +349,7 @@ contract NoxComputeTest is Test {
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Invalid signature")
         );
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_NotExpiredWhenWithinDuration() public {
@@ -369,7 +369,7 @@ contract NoxComputeTest is Test {
 
         // Should succeed since proof is still within expiration window
         vm.prank(app);
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(handle, app));
     }
 
@@ -390,7 +390,7 @@ contract NoxComputeTest is Test {
 
         // Should succeed since block.timestamp == createdAt + expirationDuration (not >)
         vm.prank(app);
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(handle, app));
     }
 
@@ -413,12 +413,12 @@ contract NoxComputeTest is Test {
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Proof expired")
         );
         vm.prank(app);
-        noxCompute.validateProof(handle, owner, proof, TEEType.Uint256);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
     // ============ validateDecryptionProof ============
 
     function test_ValidateDecryptionProof() public {
-        bytes32 decryptedValue = bytes32(uint256(42));
+        bytes memory decryptedValue = abi.encode(42);
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
@@ -428,11 +428,11 @@ contract NoxComputeTest is Test {
             gatewayPrivateKey
         );
         bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
-        assertEq(result, abi.encodePacked(decryptedValue));
+        assertEq(result, decryptedValue);
     }
 
     function test_ValidateDecryptionProof_EmitsEvent() public {
-        bytes32 decryptedValue = bytes32(uint256(100));
+        bytes memory decryptedValue = abi.encode(100);
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
@@ -442,14 +442,14 @@ contract NoxComputeTest is Test {
             gatewayPrivateKey
         );
         vm.expectEmit(true, true, false, true);
-        emit INoxCompute.PublicDecryption(address(this), handle, abi.encodePacked(decryptedValue));
+        emit INoxCompute.PublicDecryption(address(this), handle, decryptedValue);
         noxCompute.validateDecryptionProof(handle, proof);
     }
 
     function test_RevertWhen_ValidateDecryptionProof_NotPubliclyDecryptable() public {
         bytes memory proof = TestHelper.buildDecryptionProof(
             handle,
-            bytes32(uint256(42)),
+            abi.encode(42),
             gatewayPrivateKey
         );
         vm.expectRevert(
@@ -462,24 +462,10 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
+        // abi.decode will revert on malformed data
         bytes memory emptyProof = new bytes(0);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                INoxCompute.InvalidProof.selector,
-                emptyProof,
-                "Invalid proof length"
-            )
-        );
+        vm.expectRevert();
         noxCompute.validateDecryptionProof(handle, emptyProof);
-        bytes memory shortProof = new bytes(65);
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                INoxCompute.InvalidProof.selector,
-                shortProof,
-                "Invalid proof length"
-            )
-        );
-        noxCompute.validateDecryptionProof(handle, shortProof);
     }
 
     function test_RevertWhen_ValidateDecryptionProof_InvalidSigner() public {
@@ -487,11 +473,7 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
-        bytes memory proof = TestHelper.buildDecryptionProof(
-            handle,
-            bytes32(uint256(42)),
-            badSigner
-        );
+        bytes memory proof = TestHelper.buildDecryptionProof(handle, abi.encode(42), badSigner);
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Invalid signature")
         );

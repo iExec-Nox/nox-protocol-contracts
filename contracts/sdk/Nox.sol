@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x464bC7Cf4387e651d06c07c6E94218391FDe0132;
+            return 0xAF917A81f541C7416512a47f1F3B5EE5e8D76B5a;
         }
         revert("Nox: Unsupported chain");
     }
@@ -169,7 +169,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (ebool) {
         bytes32 handle = externalEbool.unwrap(externalHandle);
-        _noxComputeContract().validateProof(handle, msg.sender, handleProof, TEEType.Bool);
+        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Bool);
         return ebool.wrap(handle);
     }
 
@@ -178,7 +178,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (eaddress) {
         bytes32 handle = externalEaddress.unwrap(externalHandle);
-        _noxComputeContract().validateProof(handle, msg.sender, handleProof, TEEType.Address);
+        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Address);
         return eaddress.wrap(handle);
     }
 
@@ -187,7 +187,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (euint16) {
         bytes32 handle = externalEuint16.unwrap(externalHandle);
-        _noxComputeContract().validateProof(handle, msg.sender, handleProof, TEEType.Uint16);
+        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Uint16);
         return euint16.wrap(handle);
     }
 
@@ -196,7 +196,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (euint256) {
         bytes32 handle = externalEuint256.unwrap(externalHandle);
-        _noxComputeContract().validateProof(handle, msg.sender, handleProof, TEEType.Uint256);
+        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Uint256);
         return euint256.wrap(handle);
     }
 
@@ -205,7 +205,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (eint16) {
         bytes32 handle = externalEint16.unwrap(externalHandle);
-        _noxComputeContract().validateProof(handle, msg.sender, handleProof, TEEType.Int16);
+        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Int16);
         return eint16.wrap(handle);
     }
 
@@ -214,7 +214,7 @@ library Nox {
         bytes calldata handleProof
     ) internal returns (eint256) {
         bytes32 handle = externalEint256.unwrap(externalHandle);
-        _noxComputeContract().validateProof(handle, msg.sender, handleProof, TEEType.Int256);
+        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Int256);
         return eint256.wrap(handle);
     }
 

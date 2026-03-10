@@ -271,13 +271,13 @@ interface INoxCompute {
     function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
-     * @notice Validates a handle proof for a given owner and type.
+     * @notice Validates an input handle proof for a given owner and type.
      * @param handle handle to validate
      * @param owner owner of the provided handle
      * @param proof proof data
      * @param teeType expected handle type
      */
-    function validateProof(
+    function validateInputProof(
         bytes32 handle,
         address owner,
         bytes calldata proof,

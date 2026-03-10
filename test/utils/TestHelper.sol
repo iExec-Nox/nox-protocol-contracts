@@ -73,22 +73,18 @@ library TestHelper {
      */
     function buildDecryptionProof(
         bytes32 handle,
-        bytes32 decryptedResult,
+        bytes memory decryptedResult,
         uint256 signerPrivateKey
     ) internal view returns (bytes memory) {
         Vm vm = getVm();
         NoxCompute noxCompute = NoxCompute(Nox.noxComputeContract());
         // DecryptionProof(bytes32 handle,bytes decryptedResult)
         bytes32 structHash = keccak256(
-            abi.encode(
-                noxCompute.DECRYPTION_PROOF_TYPEHASH(),
-                handle,
-                keccak256(abi.encodePacked(decryptedResult))
-            )
+            abi.encode(noxCompute.DECRYPTION_PROOF_TYPEHASH(), handle, keccak256(decryptedResult))
         );
         bytes32 digest = MessageHashUtils.toTypedDataHash(_eip712DomainSeparator(), structHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
-        return abi.encodePacked(r, s, v, decryptedResult);
+        return abi.encode(r, s, v, decryptedResult);
     }
 
     /**
