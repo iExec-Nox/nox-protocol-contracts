@@ -431,21 +431,6 @@ contract NoxComputeTest is Test {
         assertEq(result, decryptedValue);
     }
 
-    function test_ValidateDecryptionProof_EmitsEvent() public {
-        bytes memory decryptedValue = abi.encode(100);
-        TestHelper.forceAllowPersistent(handle, owner);
-        vm.prank(owner);
-        noxCompute.allowPublicDecryption(handle);
-        bytes memory proof = TestHelper.buildDecryptionProof(
-            handle,
-            decryptedValue,
-            gatewayPrivateKey
-        );
-        vm.expectEmit(true, true, false, true);
-        emit INoxCompute.PublicDecryption(address(this), handle, decryptedValue);
-        noxCompute.validateDecryptionProof(handle, proof);
-    }
-
     function test_RevertWhen_ValidateDecryptionProof_NotPubliclyDecryptable() public {
         bytes memory proof = TestHelper.buildDecryptionProof(
             handle,
@@ -458,7 +443,7 @@ contract NoxComputeTest is Test {
         noxCompute.validateDecryptionProof(handle, proof);
     }
 
-    function test_RevertWhen_ValidateDecryptionProof_InvalidProofLength() public {
+    function test_RevertWhen_ValidateDecryptionProof_InvalidProofBytes() public {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);

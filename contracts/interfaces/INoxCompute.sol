@@ -27,8 +27,6 @@ interface INoxCompute {
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
-    /// Emitted when a decryption proof is verified on-chain
-    event PublicDecryption(address indexed caller, bytes32 indexed handle, bytes decryptedResult);
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);

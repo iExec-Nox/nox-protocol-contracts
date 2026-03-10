@@ -318,6 +318,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     ) external returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
+        // TODO: Optimize gas usage of abi.decode
         (bytes32 r, bytes32 s, uint8 v, bytes memory decryptedResult) = abi.decode(
             decryptionProof,
             (bytes32, bytes32, uint8, bytes)
@@ -329,7 +330,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             ECDSA.recover(eip712MessageHash, abi.encodePacked(r, s, v)) == $.gateway,
             InvalidProof(decryptionProof, "Invalid signature")
         );
-        emit PublicDecryption(msg.sender, handle, decryptedResult);
         return decryptedResult;
     }
 
