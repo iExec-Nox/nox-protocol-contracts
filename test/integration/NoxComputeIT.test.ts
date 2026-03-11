@@ -11,7 +11,7 @@ describe("[IT] NoxCompute", function () {
         const userAddress = user.account.address;
         const appAddress = app.account.address; // The caller (app) is the user in this test
         const { handle, proof } = await offChainServices.generateHandle(TEEType.Uint256, userAddress, appAddress);
-        await noxCompute.write.validateProof([handle, userAddress, proof, TEEType.Uint256], {
+        await noxCompute.write.validateInputProof([handle, userAddress, proof, TEEType.Uint256], {
             account: app.account,
         });
     });

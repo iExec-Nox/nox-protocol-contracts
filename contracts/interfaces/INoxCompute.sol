@@ -19,6 +19,7 @@ interface INoxCompute {
     error InvalidProof(bytes proof, string reason);
     error UnsupportedType();
     error IncompatibleTypes();
+    error NotPubliclyDecryptable(bytes32 handle);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -268,18 +269,29 @@ interface INoxCompute {
     function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
-     * @notice Validates a handle proof for a given owner and type.
+     * @notice Validates an input handle proof for a given owner and type.
      * @param handle handle to validate
      * @param owner owner of the provided handle
      * @param proof proof data
      * @param teeType expected handle type
      */
-    function validateProof(
+    function validateInputProof(
         bytes32 handle,
         address owner,
         bytes calldata proof,
         TEEType teeType
     ) external;
+
+    /**
+     * @notice Validates a decryption proof issued by the gateway for a publicly decryptable handle.
+     * @param handle Handle to decrypt
+     * @param decryptionProof Serialized decryption proof (signature + decrypted value)
+     * @return The decrypted value (variable length)
+     */
+    function validateDecryptionProof(
+        bytes32 handle,
+        bytes calldata decryptionProof
+    ) external returns (bytes memory);
 
     /**
      * @notice Performs an addition between two encrypted values without overflow check.

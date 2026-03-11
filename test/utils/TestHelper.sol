@@ -49,7 +49,7 @@ library TestHelper {
     /**
      * Builds a valid proof for the given parameters, signed by the given private key.
      */
-    function buildProof(
+    function buildInputProof(
         address noxComputeAddress,
         bytes32 handle,
         address owner,
@@ -66,6 +66,25 @@ library TestHelper {
         bytes32 digest = MessageHashUtils.toTypedDataHash(_eip712DomainSeparator(), structHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
         return abi.encodePacked(bytes20(owner), bytes20(app), bytes32(createdAt), r, s, v);
+    }
+
+    /**
+     * Builds a valid decryption proof for the given parameters, signed by the given private key.
+     */
+    function buildDecryptionProof(
+        bytes32 handle,
+        bytes memory decryptedResult,
+        uint256 signerPrivateKey
+    ) internal view returns (bytes memory) {
+        Vm vm = getVm();
+        NoxCompute noxCompute = NoxCompute(Nox.noxComputeContract());
+        // DecryptionProof(bytes32 handle,bytes decryptedResult)
+        bytes32 structHash = keccak256(
+            abi.encode(noxCompute.DECRYPTION_PROOF_TYPEHASH(), handle, keccak256(decryptedResult))
+        );
+        bytes32 digest = MessageHashUtils.toTypedDataHash(_eip712DomainSeparator(), structHash);
+        (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
+        return abi.encode(r, s, v, decryptedResult);
     }
 
     /**
