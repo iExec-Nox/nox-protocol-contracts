@@ -49,7 +49,7 @@ library TestHelper {
     /**
      * Builds a valid proof for the given parameters, signed by the given private key.
      */
-    function buildProof(
+    function buildInputProof(
         address noxComputeAddress,
         bytes32 handle,
         address owner,
