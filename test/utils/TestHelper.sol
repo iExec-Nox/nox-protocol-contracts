@@ -148,8 +148,8 @@ library TestHelper {
         address owner,
         bytes memory kmsPublicKey
     ) internal returns (address) {
-        bytes memory initData = abi.encodeWithSelector(
-            NoxCompute.initialize.selector,
+        bytes memory initData = abi.encodeCall(
+            NoxCompute.initialize,
             owner,
             kmsPublicKey
         );
