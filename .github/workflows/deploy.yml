@@ -39,6 +39,10 @@ jobs:
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
 
+      - name: Clean previous deployment artifacts
+        if: inputs.network != 'hardhat'
+        run: rm -rf ignition/deployments/${{ inputs.network }}
+
       - name: Deploy contracts
         if: inputs.network != 'hardhat'
         env:
