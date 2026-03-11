@@ -148,11 +148,7 @@ library TestHelper {
         address owner,
         bytes memory kmsPublicKey
     ) internal returns (address) {
-        bytes memory initData = abi.encodeCall(
-            NoxCompute.initialize,
-            owner,
-            kmsPublicKey
-        );
+        bytes memory initData = abi.encodeCall(NoxCompute.initialize, (owner, kmsPublicKey));
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
     }
