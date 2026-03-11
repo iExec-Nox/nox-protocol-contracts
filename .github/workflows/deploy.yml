@@ -97,7 +97,7 @@ jobs:
           ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-        run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}
+        run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }} --build-profile production
 
   set-gateway:
     needs: deploy
