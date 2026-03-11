@@ -82,6 +82,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      */
     function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
         require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
+        __UUPSUpgradeable_init();
         __Ownable_init(initialOwner);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
