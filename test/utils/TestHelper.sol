@@ -100,10 +100,14 @@ library TestHelper {
         address noxComputeImplementation = address(new NoxCompute());
 
         // Deploy a temporary proxy to get its runtime bytecode
-        ERC1967Proxy noxComputeProxyTemp = new ERC1967Proxy(noxComputeImplementation, "");
+        address noxComputeProxyTemp = deployProxy(
+            noxComputeImplementation,
+            owner,
+            vm.randomBytes(33)
+        );
 
         // Etch the proxy bytecode at the NoxCompute address resolved by Nox
-        vm.etch(noxComputeAddress, address(noxComputeProxyTemp).code);
+        vm.etch(noxComputeAddress, noxComputeProxyTemp.code);
         // Set the implementation slot
         vm.store(
             noxComputeAddress,
@@ -158,8 +162,13 @@ library TestHelper {
         );
     }
 
-    function deployProxy(address implementation) internal returns (address) {
-        ERC1967Proxy proxy = new ERC1967Proxy(address(implementation), "");
+    function deployProxy(
+        address implementation,
+        address owner,
+        bytes memory kmsPublicKey
+    ) internal returns (address) {
+        bytes memory initData = abi.encodeCall(NoxCompute.initialize, (owner, kmsPublicKey));
+        ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
     }
 
