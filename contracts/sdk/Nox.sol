@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x65c754180329bf1c97AF1D8f1C03866CF35c2950;
+            return 0x941685e6598f5b2f7eFa02A4432af4B1251AB81e;
         }
         revert("Nox: Unsupported chain");
     }
