@@ -1990,7 +1990,7 @@
           "type": "bytes"
         }
       ],
-      "stateMutability": "nonpayable",
+      "stateMutability": "view",
       "type": "function"
     },
     {
@@ -2081,5 +2081,5 @@
     ]
   },
   "inputSourceName": "project/contracts/NoxCompute.sol",
-  "buildInfoId": "solc-0_8_34-9a7b9fd0fdd7118cadf245b3567973a751418ab2"
+  "buildInfoId": "solc-0_8_34-342ec0d759e6642d00e296801dcb576ed9f835fc"
 }
