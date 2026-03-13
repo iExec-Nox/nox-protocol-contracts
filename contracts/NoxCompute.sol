@@ -333,7 +333,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function validateDecryptionProof(
         bytes32 handle,
         bytes calldata decryptionProof
-    ) external returns (bytes memory) {
+    ) external view returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
         // TODO: Optimize gas usage of abi.decode

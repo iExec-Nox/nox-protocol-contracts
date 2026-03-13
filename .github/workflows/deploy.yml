@@ -86,15 +86,14 @@ jobs:
             **Note**: Verify deployment before merging this PR.
           draft: true
 
-      # TODO enable verification when scripts supports it
-      # - name: Verify contracts
-      #   if: inputs.network != 'hardhat' && inputs.network != 'tenderlyArbitrumSepolia'
-      #   continue-on-error: true
-      #   env:
-      #     ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
-      #     RPC_URL: ${{ secrets.RPC_URL }}
-      #   run: |
-      #     make verify-all-${{ inputs.network }}
+      - name: Verify contracts
+        if: inputs.network != 'hardhat' && inputs.network != 'tenderlyArbitrumSepolia'
+        continue-on-error: true
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
+        run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}
 
   set-gateway:
     needs: deploy

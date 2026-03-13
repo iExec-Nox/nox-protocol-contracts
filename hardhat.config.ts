@@ -38,6 +38,11 @@ export default defineConfig({
         },
         npmFilesToBuild: ["@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"],
     },
+    verify: {
+        etherscan: {
+            apiKey: configVariable("ETHERSCAN_API_KEY"),
+        },
+    },
     networks: {
         default: {
             type: "edr-simulated",
