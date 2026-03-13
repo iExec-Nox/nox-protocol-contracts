@@ -7,7 +7,7 @@ import { TEEType } from "./TEEType.ts";
 
 const MAX_UINT256 = 2n ** 256n - 1n;
 const eventsToWatch = [
-    "event PlaintextToEncrypted(address indexed caller,bytes32 plaintext,uint8 toType,bytes32 result)",
+    "event WrapPublicScalar(address indexed caller,bytes32 plaintext,uint8 toType,bytes32 result)",
     "event Add(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Sub(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
     "event Div(address indexed caller,bytes32 leftHandOperand,bytes32 rightHandOperand,bytes32 result)",
@@ -84,11 +84,12 @@ export class OffChainServices {
         userAddress: `0x${string}`,
         appAddress: `0x${string}`,
     ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
-        const preHandle = toHex(randomBytes(26));
+        const preHandle = toHex(randomBytes(25));
         const chainIdBytes = toHex(this.chainId, { size: 4 });
         const teeTypeByte = toHex(teeType, { size: 1 });
+        const attrsByte = toHex(0x01, { size: 1 }); // isUniqHandle=1
         const versionByte = toHex(0, { size: 1 });
-        const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, versionByte]);
+        const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, attrsByte, versionByte]);
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const domain = {
             name: "NoxCompute",
@@ -167,8 +168,8 @@ export class OffChainServices {
         for (const log of eventLogs) {
             const eventName = log.eventName;
             this._log(`Processing event: ${eventName}`);
-            if (eventName === "PlaintextToEncrypted") {
-                this._processPlaintextToEncryptedEvent(log);
+            if (eventName === "WrapPublicScalar") {
+                this._processWrapPublicScalarEvent(log);
             } else if (eventName === "Add") {
                 this._processAddEvent(log);
             } else if (eventName === "Sub") {
@@ -189,9 +190,9 @@ export class OffChainServices {
         }
     }
 
-    private _processPlaintextToEncryptedEvent(log: any) {
+    private _processWrapPublicScalarEvent(log: any) {
         const { plaintext, result } = log.args as { plaintext: `0x${string}`; result: `0x${string}` };
-        this._log(`(e) PlaintextToEncrypted: ${result} -> ${plaintext}`);
+        this._log(`(e) WrapPublicScalar: ${result} -> ${plaintext}`);
         this._saveHandle(result, BigInt(plaintext));
     }
 

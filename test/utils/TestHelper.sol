@@ -30,6 +30,7 @@ library TestHelper {
 
     /**
      * Generates a random unique handle with the given chain id and type.
+     * The handle is created with isUniqHandle=1 (confidential handle with ACL).
      * @param chainId target chainId
      * @param teeType target type
      */
@@ -38,9 +39,28 @@ library TestHelper {
         return
             bytes32(
                 abi.encodePacked(
-                    vm.randomBytes(26), // Random pre-handle
+                    vm.randomBytes(25), // Random pre-handle (25 bytes)
                     bytes4(uint32(chainId)),
                     bytes1(uint8(teeType)),
+                    bytes1(0x01), // Attrs: isUniqHandle=1
+                    bytes1(0x00) // Version 0
+                )
+            );
+    }
+
+    /**
+     * Generates a random public scalar handle (isUniqHandle=0) with the given type.
+     * @param teeType target type
+     */
+    function createPublicScalarHandle(TEEType teeType) internal view returns (bytes32 handle) {
+        Vm vm = getVm();
+        return
+            bytes32(
+                abi.encodePacked(
+                    vm.randomBytes(25), // Random pre-handle (25 bytes)
+                    bytes4(uint32(block.chainid)),
+                    bytes1(uint8(teeType)),
+                    bytes1(0x00), // Attrs: isUniqHandle=0 (public scalar)
                     bytes1(0x00) // Version 0
                 )
             );

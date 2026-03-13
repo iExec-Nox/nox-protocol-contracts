@@ -20,6 +20,8 @@ interface INoxCompute {
     error UnsupportedType();
     error IncompatibleTypes();
     error NotPubliclyDecryptable(bytes32 handle);
+    /// Error thrown when attempting an ACL mutation on a public scalar handle
+    error PublicScalarACLForbidden();
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -31,7 +33,7 @@ interface INoxCompute {
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
 
-    event PlaintextToEncrypted(
+    event WrapPublicScalar(
         address indexed caller,
         bytes32 plaintext,
         TEEType toType,
@@ -161,7 +163,7 @@ interface INoxCompute {
     );
 
     enum Operator {
-        PlaintextToEncrypted,
+        WrapPublicScalar,
         Add,
         Sub,
         Mul,
@@ -261,12 +263,14 @@ interface INoxCompute {
     // ------------- Compute functions -------------
 
     /**
-     * @notice Converts a plaintext value into an encrypted value
-     * @param value The plaintext value to encrypt
-     * @param teeType The type of the encrypted value
-     * @return The encrypted value
+     * @notice Wraps a plaintext scalar into a deterministic public handle.
+     * The resulting handle has isUniqHandle=0, no ACL, and is accessible by everyone.
+     * The same value and type always produce the same handle.
+     * @param value The plaintext scalar value
+     * @param teeType The type of the handle
+     * @return The public scalar handle
      */
-    function plaintextToEncrypted(bytes32 value, TEEType teeType) external returns (bytes32);
+    function wrapPublicScalar(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
      * @notice Validates an input handle proof for a given owner and type.
