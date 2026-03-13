@@ -55,6 +55,14 @@ The default network is a local EDR simulation. For external networks, configure 
 pnpm run deploy
 ```
 
+## Verify
+
+Verify deployed contracts on Etherscan. Requires `ETHERSCAN_API_KEY`
+
+```bash
+pnpm run verify arbitrumSepolia --network arbitrumSepolia
+```
+
 ## Configuration notes
 
 - Create2 salt is defined in [config/config.ts](config/config.ts).
