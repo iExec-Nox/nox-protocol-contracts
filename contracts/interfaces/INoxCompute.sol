@@ -291,7 +291,7 @@ interface INoxCompute {
     function validateDecryptionProof(
         bytes32 handle,
         bytes calldata decryptionProof
-    ) external returns (bytes memory);
+    ) external view returns (bytes memory);
 
     /**
      * @notice Performs an addition between two encrypted values without overflow check.
