@@ -252,7 +252,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function wrapAsPublicHandle(bytes32 value, TEEType teeType) external returns (bytes32 result) {
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
-        // Public handle: uniqSeed=0, attrs=0x00 (no isUniqHandle flag)
+        // Deterministic handle: same (value, type) always produces the same handle
         result = _generateHandle(
             Operator.WrapAsPublicHandle,
             operands,
@@ -520,14 +520,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[2] = ifFalse;
         validateAllowedForAll(msg.sender, operands);
         uint256 uniqSeed = _generateHandleUniqueSeed(operands);
-        result = _generateHandle(
-            Operator.Select,
-            operands,
-            resultType,
-            0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
-        );
+        result = _generateHandle(Operator.Select, operands, resultType, uniqSeed);
         _allowTransient(result, msg.sender);
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
     }
@@ -639,14 +632,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         }
         validateAllowedForAll(msg.sender, operands);
         uint256 uniqSeed = _generateHandleUniqueSeed(operands);
-        result = _generateHandle(
-            operator,
-            operands,
-            resultType,
-            0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
-        );
+        result = _generateHandle(operator, operands, resultType, uniqSeed);
         _allowTransient(result, msg.sender);
         if (isSafeOperation) {
             success = _generateHandle(
@@ -688,14 +674,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[1] = rightOperand;
         validateAllowedForAll(msg.sender, operands);
         uint256 uniqSeed = _generateHandleUniqueSeed(operands);
-        result = _generateHandle(
-            operator,
-            operands,
-            TEEType.Bool,
-            0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
-        );
+        result = _generateHandle(operator, operands, TEEType.Bool, uniqSeed);
         _allowTransient(result, msg.sender);
     }
 
@@ -723,14 +702,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         }
         validateAllowedForAll(msg.sender, operands);
         uint256 uniqSeed = _generateHandleUniqueSeed(operands);
-        success = _generateHandle(
-            operator,
-            operands,
-            TEEType.Bool,
-            0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
-        );
+        success = _generateHandle(operator, operands, TEEType.Bool, uniqSeed);
         result1 = _generateHandle(
             operator,
             operands,
@@ -750,6 +722,25 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         _allowTransient(success, msg.sender);
         _allowTransient(result1, msg.sender);
         _allowTransient(result2, msg.sender);
+    }
+
+    /**
+     * @dev Alias for _generateHandle with outputIndex=0 and attrs=ATTR_IS_UNIQ_HANDLE.
+     */
+    function _generateHandle(
+        Operator operator,
+        bytes32[] memory operands,
+        TEEType handleType,
+        uint256 uniqSeed
+    ) private view returns (bytes32 result) {
+        result = _generateHandle(
+            operator,
+            operands,
+            handleType,
+            0,
+            uniqSeed,
+            TypeUtils.ATTR_IS_UNIQ_HANDLE
+        );
     }
 
     /**
