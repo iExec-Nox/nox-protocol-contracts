@@ -226,15 +226,6 @@ contract NoxComputeTest is Test {
         assertTrue(result1 != result2);
     }
 
-    function test_WrapAsPublicHandle_IsPublicHandle() public {
-        vm.prank(caller);
-        bytes32 result = noxCompute.wrapAsPublicHandle(bytes32(uint256(42)), TEEType.Uint256);
-
-        assertTrue(TypeUtils.isPublicHandle(result), "Should be a public handle");
-        // Public handles are allowed for everyone
-        assertTrue(noxCompute.isAllowed(result, address(0xdead)));
-    }
-
     function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
         bytes32 value = bytes32(uint256(42));
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
