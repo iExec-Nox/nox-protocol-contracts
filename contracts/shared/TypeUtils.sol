@@ -120,12 +120,12 @@ library TypeUtils {
 
     /**
      * @notice Extracts the TEE type from a handle.
-     * The type is stored at byte position 29 in the handle.
+     * The type is stored at byte position 5 in the handle.
      * @param handle The handle to extract the type from
      * @return The TEEType encoded in the handle
      */
     function typeOf(bytes32 handle) internal pure returns (TEEType) {
-        return TEEType(uint8(handle[29]));
+        return TEEType(uint8(handle[5]));
     }
 
     /**
@@ -136,7 +136,7 @@ library TypeUtils {
      * @return True if the handle is a public handle
      */
     function isPublicHandle(bytes32 handle) internal pure returns (bool) {
-        return (handle[30] & ATTR_IS_UNIQ_HANDLE) == 0;
+        return (handle[6] & ATTR_IS_UNIQ_HANDLE) == 0;
     }
 
     /**

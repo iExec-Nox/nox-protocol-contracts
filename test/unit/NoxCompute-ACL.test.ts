@@ -1,8 +1,23 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { encodeAbiParameters, keccak256, padHex, toHex } from "viem";
+import { concatHex, encodeAbiParameters, keccak256, padHex, toHex } from "viem";
 import { loadFixture } from "../utils/fixture.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
+
+/**
+ * Creates a confidential handle (isUniqHandle=1) with the correct byte layout.
+ * [0] Version | [1-4] ChainId | [5] Type | [6] Attrs | [7-31] Pre-handle
+ */
+function createHandle(label: string): `0x${string}` {
+    const preHandle = ("0x" + keccak256(toHex(label)).slice(2, 52)) as `0x${string}`; // 25 bytes
+    return concatHex([
+        toHex(0, { size: 1 }), // Version
+        toHex(31337, { size: 4 }), // ChainId
+        toHex(4, { size: 1 }), // Type (Uint8)
+        toHex(0x01, { size: 1 }), // Attrs (isUniqHandle=1)
+        preHandle,
+    ]);
+}
 
 describe("NoxCompute-ACL", function () {
     describe("Transient & Persistent permissions", function () {
@@ -11,8 +26,8 @@ describe("NoxCompute-ACL", function () {
             const viem = connection.viem;
             // Deploy NoxComputeMock
             const noxComputeMock = await viem.deployContract("NoxComputeMock", []);
-            const handleTransient = keccak256(toHex("handle-transient"));
-            const handlePersistent = keccak256(toHex("handle-persistent"));
+            const handleTransient = createHandle("handle-transient");
+            const handlePersistent = createHandle("handle-persistent");
             // Force-allow the mock contract to manage handles by putting `true` in the admins mapping.
             await _allow(noxComputeMock.address, handleTransient);
             await _allow(noxComputeMock.address, handlePersistent);

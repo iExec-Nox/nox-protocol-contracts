@@ -39,11 +39,11 @@ library TestHelper {
         return
             bytes32(
                 abi.encodePacked(
-                    vm.randomBytes(25), // Random pre-handle (25 bytes)
-                    bytes4(uint32(chainId)),
-                    bytes1(uint8(teeType)),
-                    bytes1(0x01), // Attrs: isUniqHandle=1
-                    bytes1(0x00) // Version 0
+                    bytes1(0x00), // Version
+                    bytes4(uint32(chainId)), // ChainId
+                    bytes1(uint8(teeType)), // Type
+                    bytes1(0x01), // Attrs
+                    vm.randomBytes(25) // Pre-handle
                 )
             );
     }
@@ -57,11 +57,11 @@ library TestHelper {
         return
             bytes32(
                 abi.encodePacked(
-                    vm.randomBytes(25), // Random pre-handle (25 bytes)
-                    bytes4(uint32(block.chainid)),
-                    bytes1(uint8(teeType)),
-                    bytes1(0x00), // Attrs: isUniqHandle=0 (public handle)
-                    bytes1(0x00) // Version 0
+                    bytes1(0x00), // Version
+                    bytes4(uint32(block.chainid)), // ChainId
+                    bytes1(uint8(teeType)), // Type
+                    bytes1(0x00), // Attrs
+                    vm.randomBytes(25) // Pre-handle
                 )
             );
     }

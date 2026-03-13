@@ -84,12 +84,12 @@ export class OffChainServices {
         userAddress: `0x${string}`,
         appAddress: `0x${string}`,
     ): Promise<{ handle: `0x${string}`; proof: `0x${string}` }> {
-        const preHandle = toHex(randomBytes(25));
+        const versionByte = toHex(0, { size: 1 });
         const chainIdBytes = toHex(this.chainId, { size: 4 });
         const teeTypeByte = toHex(teeType, { size: 1 });
         const attrsByte = toHex(0x01, { size: 1 }); // isUniqHandle=1
-        const versionByte = toHex(0, { size: 1 });
-        const handle = concatHex([preHandle, chainIdBytes, teeTypeByte, attrsByte, versionByte]);
+        const preHandle = toHex(randomBytes(25));
+        const handle = concatHex([versionByte, chainIdBytes, teeTypeByte, attrsByte, preHandle]);
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const domain = {
             name: "NoxCompute",

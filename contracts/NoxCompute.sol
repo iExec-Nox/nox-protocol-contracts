@@ -268,9 +268,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * or reverts otherwise.
      *
      * Handle format:
-     *    25 bytes          4 bytes     1 byte  1 byte   1 byte
-     * [0---------24]    [25-----28]    [29]    [30]      [31]
-     *   Pre-handle         ChainId     Type    Attrs    Version
+     *  1 byte    4 bytes      1 byte  1 byte      25 bytes
+     *   [0]     [1------4]     [5]     [6]     [7-----------31]
+     * Version    ChainId       Type    Attrs      Pre-handle
      *
      * Proof format:
      *  20 bytes       20 bytes        32 bytes            65 bytes
@@ -287,7 +287,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes calldata proof,
         TEEType teeType
     ) public {
-        bytes4 chainIdInHandle = bytes4(handle << (25 * 8));
+        bytes4 chainIdInHandle = bytes4(handle << (1 * 8));
         require(
             chainIdInHandle == bytes4(uint32(block.chainid)),
             InvalidProof(proof, "Handle chain id mismatch")
@@ -776,11 +776,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      *   ))
      *
      * Handle format (32 bytes):
-     *   [0-24]  : First 25 bytes of preHandle (truncated hash)
-     *   [25-28] : Chain ID (4 bytes, from uint32)
-     *   [29]    : TEE type
-     *   [30]    : Attributes (bit 0 = isUniqHandle)
-     *   [31]    : Handle version
+     *   [0]    : Handle version
+     *   [1-4]  : Chain ID (4 bytes, uint32)
+     *   [5]    : TEE type
+     *   [6]    : Attributes (bit 0 = isUniqHandle)
+     *   [7-31] : Truncated pre-handle hash (25 bytes)
      *
      * @param operator The operator to apply
      * @param operands Array of operand handles
@@ -799,12 +799,12 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes1 attrs
     ) private view returns (bytes32 result) {
         result = keccak256(abi.encode(operator, operands, address(this), uniqSeed, outputIndex));
-        // Keep only the leftmost 25 bytes of the hash and inject handle metadata.
-        result = result & 0xffffffffffffffffffffffffffffffffffffffffffffffffff00000000000000;
-        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (25 * 8));
-        result = result | (bytes32(bytes1(uint8(handleType))) >> (29 * 8));
-        result = result | (bytes32(attrs) >> (30 * 8));
-        result = result | (bytes32(bytes1(uint8(HANDLE_VERSION))) >> (31 * 8));
+        // Shift hash to bytes 7-31 (truncate to 25 bytes), leaving bytes 0-6 free for metadata.
+        result = result >> (7 * 8);
+        result = result | bytes32(bytes1(uint8(HANDLE_VERSION)));
+        result = result | (bytes32(bytes4(uint32(block.chainid))) >> (1 * 8));
+        result = result | (bytes32(bytes1(uint8(handleType))) >> (5 * 8));
+        result = result | (bytes32(attrs) >> (6 * 8));
     }
 
     /**

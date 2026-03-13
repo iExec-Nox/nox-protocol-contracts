@@ -1065,19 +1065,19 @@ contract NoxComputeTest is Test {
 
     function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
         assertTrue(h != bytes32(0), "Handle should not be zero");
-        assertEq(bytes4(h << (25 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
+        assertEq(uint8(h[0]), 0, "Invalid version");
+        assertEq(bytes4(h << (1 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
-        assertEq(uint8(h[30]) & 0x01, 1, "Should have isUniqHandle=1");
-        assertEq(uint8(h[31]), 0, "Invalid version");
+        assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqHandle=1");
         assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
     }
 
     function _assertValidPublicHandle(bytes32 h, TEEType expectedType) internal view {
         assertTrue(h != bytes32(0), "Handle should not be zero");
-        assertEq(bytes4(h << (25 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
+        assertEq(uint8(h[0]), 0, "Invalid version");
+        assertEq(bytes4(h << (1 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
-        assertEq(uint8(h[30]) & 0x01, 0, "Should have isUniqHandle=0");
-        assertEq(uint8(h[31]), 0, "Invalid version");
+        assertEq(uint8(h[6]) & 0x01, 0, "Should have isUniqHandle=0");
         assertTrue(TypeUtils.isPublicHandle(h), "Should be a public handle");
     }
 
