@@ -336,54 +336,54 @@ contract NoxComputeACLTest is Test {
         noxCompute.validateAllowedForAll(user1, handles);
     }
 
-    // ============ Public scalar ACL tests ============
+    // ============ Public handle ACL tests ============
 
-    function test_PublicScalar_Allow_RevertWhen_PublicScalar() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_Allow_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.allow(publicHandle, user1);
     }
 
-    function test_PublicScalar_AllowTransient_RevertWhen_PublicScalar() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AllowTransient_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.allowTransient(publicHandle, user1);
     }
 
-    function test_PublicScalar_AddViewer_RevertWhen_PublicScalar() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AddViewer_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.addViewer(publicHandle, viewer1);
     }
 
-    function test_PublicScalar_AllowPublicDecryption_RevertWhen_PublicScalar() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AllowPublicDecryption_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    function test_PublicScalar_IsAllowed_ReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_IsAllowed_ReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
     }
 
-    function test_PublicScalar_IsViewer_ReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_IsViewer_ReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
     }
 
-    function test_PublicScalar_IsPubliclyDecryptable_ReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    function test_PublicScalar_ValidateAllowedForAll_PassesForPublicScalars() public view {
-        bytes32 pub1 = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        bytes32 pub2 = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public view {
+        bytes32 pub1 = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32 pub2 = TestHelper.createPublicHandle(TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = pub1;
         handles[1] = pub2;
-        // Should not revert: public scalars are allowed for everyone
+        // Should not revert: public handles are allowed for everyone
         noxCompute.validateAllowedForAll(user1, handles);
     }
 }

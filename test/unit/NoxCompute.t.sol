@@ -179,69 +179,69 @@ contract NoxComputeTest is Test {
         noxCompute.setProofExpirationDuration(2 hours);
     }
 
-    // ============ wrapPublicScalar ============
+    // ============ wrapAsPublicHandle ============
 
-    function test_WrapPublicScalar_Bool() public {
+    function test_WrapAsPublicHandle_Bool() public {
         bytes32 value = bytes32(uint256(1));
         vm.prank(caller);
-        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Bool);
+        bytes32 result = noxCompute.wrapAsPublicHandle(value, TEEType.Bool);
 
         _assertValidPublicHandle(result, TEEType.Bool);
     }
 
-    function test_WrapPublicScalar_Uint256() public {
+    function test_WrapAsPublicHandle_Uint256() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
-        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+        bytes32 result = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
 
         _assertValidPublicHandle(result, TEEType.Uint256);
     }
 
-    function test_WrapPublicScalar_Int256() public {
+    function test_WrapAsPublicHandle_Int256() public {
         bytes32 value = bytes32(uint256(int256(-999)));
         vm.prank(caller);
-        bytes32 result = noxCompute.wrapPublicScalar(value, TEEType.Int256);
+        bytes32 result = noxCompute.wrapAsPublicHandle(value, TEEType.Int256);
 
         _assertValidPublicHandle(result, TEEType.Int256);
     }
 
-    function test_WrapPublicScalar_Deterministic() public {
+    function test_WrapAsPublicHandle_Deterministic() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
-        bytes32 result1 = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+        bytes32 result1 = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
         vm.warp(block.timestamp + 1);
         vm.prank(caller);
-        bytes32 result2 = noxCompute.wrapPublicScalar(value, TEEType.Uint256);
+        bytes32 result2 = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
 
         // Same value + same type = same handle (deterministic, no msg.sender/block.timestamp)
         assertEq(result1, result2);
     }
 
-    function test_WrapPublicScalar_DifferentValues() public {
+    function test_WrapAsPublicHandle_DifferentValues() public {
         vm.prank(caller);
-        bytes32 result1 = noxCompute.wrapPublicScalar(bytes32(uint256(1)), TEEType.Uint256);
+        bytes32 result1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
         vm.prank(caller);
-        bytes32 result2 = noxCompute.wrapPublicScalar(bytes32(uint256(2)), TEEType.Uint256);
+        bytes32 result2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
 
         assertTrue(result1 != result2);
     }
 
-    function test_WrapPublicScalar_IsPublicScalar() public {
+    function test_WrapAsPublicHandle_IsPublicHandle() public {
         vm.prank(caller);
-        bytes32 result = noxCompute.wrapPublicScalar(bytes32(uint256(42)), TEEType.Uint256);
+        bytes32 result = noxCompute.wrapAsPublicHandle(bytes32(uint256(42)), TEEType.Uint256);
 
-        assertTrue(TypeUtils.isPublicScalar(result), "Should be a public scalar");
-        // Public scalars are allowed for everyone
+        assertTrue(TypeUtils.isPublicHandle(result), "Should be a public handle");
+        // Public handles are allowed for everyone
         assertTrue(noxCompute.isAllowed(result, address(0xdead)));
     }
 
-    function test_RevertWhen_WrapPublicScalar_UnsupportedType() public {
+    function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
         bytes32 value = bytes32(uint256(42));
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
             abi.encodeWithSelector(
-                INoxCompute.wrapPublicScalar.selector,
+                INoxCompute.wrapAsPublicHandle.selector,
                 value,
                 uint8(type(TEEType).max) + 1
             )
@@ -249,53 +249,53 @@ contract NoxComputeTest is Test {
         assertFalse(success);
     }
 
-    // ============ Public scalar ACL behavior ============
+    // ============ Public handle ACL behavior ============
 
-    function test_PublicScalar_AllowReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AllowReverts() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.allow(publicHandle, caller);
     }
 
-    function test_PublicScalar_AllowTransientReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AllowTransientReverts() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.allowTransient(publicHandle, caller);
     }
 
-    function test_PublicScalar_AddViewerReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AddViewerReverts() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.addViewer(publicHandle, caller);
     }
 
-    function test_PublicScalar_AllowPublicDecryptionReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicScalarACLForbidden.selector);
+    function test_PublicHandle_AllowPublicDecryptionReverts() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    function test_PublicScalar_IsAllowedReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_IsAllowedReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
     }
 
-    function test_PublicScalar_IsViewerReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_IsViewerReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
     }
 
-    function test_PublicScalar_IsPubliclyDecryptableReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicScalarHandle(TEEType.Uint256);
+    function test_PublicHandle_IsPubliclyDecryptableReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
     // ============ Handle uniqueness seed ============
 
-    function test_UniqueHandles_AllPublicScalarOperands() public {
-        // When all operands are public scalars, the counter ensures unique handles
+    function test_UniqueHandles_AllPublicHandleOperands() public {
+        // When all operands are public handles, the counter ensures unique handles
         vm.prank(caller);
-        bytes32 publicA = noxCompute.wrapPublicScalar(bytes32(uint256(0)), TEEType.Uint256);
+        bytes32 publicA = noxCompute.wrapAsPublicHandle(bytes32(uint256(0)), TEEType.Uint256);
         // add(publicA, publicA) called twice should produce different handles
         vm.prank(caller);
         bytes32 result1 = noxCompute.add(publicA, publicA);
@@ -1087,7 +1087,7 @@ contract NoxComputeTest is Test {
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
         assertEq(uint8(h[30]) & 0x01, 0, "Should have isUniqHandle=0");
         assertEq(uint8(h[31]), 0, "Invalid version");
-        assertTrue(TypeUtils.isPublicScalar(h), "Should be a public scalar");
+        assertTrue(TypeUtils.isPublicHandle(h), "Should be a public handle");
     }
 
     function _callOperation(

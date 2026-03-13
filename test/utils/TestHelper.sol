@@ -49,10 +49,10 @@ library TestHelper {
     }
 
     /**
-     * Generates a random public scalar handle (isUniqHandle=0) with the given type.
+     * Generates a random public handle (isUniqHandle=0) with the given type.
      * @param teeType target type
      */
-    function createPublicScalarHandle(TEEType teeType) internal view returns (bytes32 handle) {
+    function createPublicHandle(TEEType teeType) internal view returns (bytes32 handle) {
         Vm vm = getVm();
         return
             bytes32(
@@ -60,7 +60,7 @@ library TestHelper {
                     vm.randomBytes(25), // Random pre-handle (25 bytes)
                     bytes4(uint32(block.chainid)),
                     bytes1(uint8(teeType)),
-                    bytes1(0x00), // Attrs: isUniqHandle=0 (public scalar)
+                    bytes1(0x00), // Attrs: isUniqHandle=0 (public handle)
                     bytes1(0x00) // Version 0
                 )
             );

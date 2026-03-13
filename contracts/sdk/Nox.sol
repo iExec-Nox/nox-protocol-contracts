@@ -112,7 +112,7 @@ library Nox {
     function toEbool(bool value) internal returns (ebool) {
         return
             ebool.wrap(
-                _noxComputeContract().wrapPublicScalar(
+                _noxComputeContract().wrapAsPublicHandle(
                     bytes32(uint256(value ? 1 : 0)),
                     TEEType.Bool
                 )
@@ -125,7 +125,7 @@ library Nox {
     function toEuint16(uint16 value) internal returns (euint16) {
         return
             euint16.wrap(
-                _noxComputeContract().wrapPublicScalar(bytes32(uint256(value)), TEEType.Uint16)
+                _noxComputeContract().wrapAsPublicHandle(bytes32(uint256(value)), TEEType.Uint16)
             );
     }
 
@@ -134,7 +134,9 @@ library Nox {
      */
     function toEuint256(uint256 value) internal returns (euint256) {
         return
-            euint256.wrap(_noxComputeContract().wrapPublicScalar(bytes32(value), TEEType.Uint256));
+            euint256.wrap(
+                _noxComputeContract().wrapAsPublicHandle(bytes32(value), TEEType.Uint256)
+            );
     }
 
     /**
@@ -143,7 +145,7 @@ library Nox {
     function toEint16(int16 value) internal returns (eint16) {
         return
             eint16.wrap(
-                _noxComputeContract().wrapPublicScalar(
+                _noxComputeContract().wrapAsPublicHandle(
                     bytes32(uint256(uint16(value))),
                     TEEType.Int16
                 )
@@ -156,7 +158,7 @@ library Nox {
     function toEint256(int256 value) internal returns (eint256) {
         return
             eint256.wrap(
-                _noxComputeContract().wrapPublicScalar(bytes32(uint256(value)), TEEType.Int256)
+                _noxComputeContract().wrapAsPublicHandle(bytes32(uint256(value)), TEEType.Int256)
             );
     }
 

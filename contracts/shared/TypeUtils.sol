@@ -129,13 +129,13 @@ library TypeUtils {
     }
 
     /**
-     * @notice Checks if a handle is a public scalar (isUniqHandle=0).
-     * A public scalar handle wraps a plaintext value known on-chain, has no ACL,
+     * @notice Checks if a handle is a public handle (isUniqHandle=0).
+     * A public handle wraps a plaintext value known on-chain, has no ACL,
      * and is accessible by everyone.
      * @param handle The handle to check
-     * @return True if the handle is a public scalar
+     * @return True if the handle is a public handle
      */
-    function isPublicScalar(bytes32 handle) internal pure returns (bool) {
+    function isPublicHandle(bytes32 handle) internal pure returns (bool) {
         return (handle[30] & ATTR_IS_UNIQ_HANDLE) == 0;
     }
 

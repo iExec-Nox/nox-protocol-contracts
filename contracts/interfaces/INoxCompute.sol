@@ -20,8 +20,8 @@ interface INoxCompute {
     error UnsupportedType();
     error IncompatibleTypes();
     error NotPubliclyDecryptable(bytes32 handle);
-    /// Error thrown when attempting an ACL mutation on a public scalar handle
-    error PublicScalarACLForbidden();
+    /// Error thrown when attempting an ACL mutation on a public handle
+    error PublicHandleACLForbidden();
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -33,7 +33,7 @@ interface INoxCompute {
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
 
-    event WrapPublicScalar(
+    event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
         TEEType toType,
@@ -163,7 +163,7 @@ interface INoxCompute {
     );
 
     enum Operator {
-        WrapPublicScalar,
+        WrapAsPublicHandle,
         Add,
         Sub,
         Mul,
@@ -263,14 +263,15 @@ interface INoxCompute {
     // ------------- Compute functions -------------
 
     /**
-     * @notice Wraps a plaintext scalar into a deterministic public handle.
-     * The resulting handle has isUniqHandle=0, no ACL, and is accessible by everyone.
+     * @notice Wraps a plaintext value into a deterministic public handle.
+     * The resulting handle has bit 0 of the attributes byte (byte 30) unset,
+     * meaning it carries no ACL and is accessible by everyone.
      * The same value and type always produce the same handle.
-     * @param value The plaintext scalar value
+     * @param value The plaintext value
      * @param teeType The type of the handle
-     * @return The public scalar handle
+     * @return The public handle
      */
-    function wrapPublicScalar(bytes32 value, TEEType teeType) external returns (bytes32);
+    function wrapAsPublicHandle(bytes32 value, TEEType teeType) external returns (bytes32);
 
     /**
      * @notice Validates an input handle proof for a given owner and type.
