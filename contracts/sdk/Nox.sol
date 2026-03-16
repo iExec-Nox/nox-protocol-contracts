@@ -901,7 +901,10 @@ library Nox {
     /**
      * @dev Verifies a decryption proof and returns the decrypted boolean value.
      */
-    function publicDecrypt(ebool handle, bytes calldata decryptionProof) internal returns (bool) {
+    function publicDecrypt(
+        ebool handle,
+        bytes calldata decryptionProof
+    ) internal view returns (bool plaintextValue) {
         bytes memory result = _noxComputeContract().validateDecryptionProof(
             ebool.unwrap(handle),
             decryptionProof
@@ -915,7 +918,7 @@ library Nox {
     function publicDecrypt(
         eaddress handle,
         bytes calldata decryptionProof
-    ) internal returns (address) {
+    ) internal view returns (address plaintextValue) {
         bytes memory result = _noxComputeContract().validateDecryptionProof(
             eaddress.unwrap(handle),
             decryptionProof
@@ -929,7 +932,7 @@ library Nox {
     function publicDecrypt(
         euint16 handle,
         bytes calldata decryptionProof
-    ) internal returns (uint16) {
+    ) internal view returns (uint16 plaintextValue) {
         bytes memory result = _noxComputeContract().validateDecryptionProof(
             euint16.unwrap(handle),
             decryptionProof
@@ -943,7 +946,7 @@ library Nox {
     function publicDecrypt(
         euint256 handle,
         bytes calldata decryptionProof
-    ) internal returns (uint256) {
+    ) internal view returns (uint256 plaintextValue) {
         bytes memory result = _noxComputeContract().validateDecryptionProof(
             euint256.unwrap(handle),
             decryptionProof
@@ -954,7 +957,10 @@ library Nox {
     /**
      * @dev Verifies a decryption proof and returns the decrypted int16 value.
      */
-    function publicDecrypt(eint16 handle, bytes calldata decryptionProof) internal returns (int16) {
+    function publicDecrypt(
+        eint16 handle,
+        bytes calldata decryptionProof
+    ) internal view returns (int16 plaintextValue) {
         bytes memory result = _noxComputeContract().validateDecryptionProof(
             eint16.unwrap(handle),
             decryptionProof
@@ -968,7 +974,7 @@ library Nox {
     function publicDecrypt(
         eint256 handle,
         bytes calldata decryptionProof
-    ) internal returns (int256) {
+    ) internal view returns (int256 plaintextValue) {
         bytes memory result = _noxComputeContract().validateDecryptionProof(
             eint256.unwrap(handle),
             decryptionProof
