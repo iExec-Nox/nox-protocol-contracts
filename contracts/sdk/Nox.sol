@@ -29,7 +29,7 @@ library Nox {
         }
         // Arbitrum Sepolia or its fork
         if (block.chainid == 421614) {
-            return 0x5633472D35E18464CA24Ab974954fB3b1B122eA6;
+            return 0xE4622fbFCd0bDd482775bBf5b3e72382C0D99208;
         }
         // Local development chain
         if (block.chainid == 31337) {
