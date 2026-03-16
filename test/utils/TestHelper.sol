@@ -84,7 +84,7 @@ library TestHelper {
         );
         bytes32 digest = MessageHashUtils.toTypedDataHash(_eip712DomainSeparator(), structHash);
         (uint8 v, bytes32 r, bytes32 s) = vm.sign(signerPrivateKey, digest);
-        return abi.encode(r, s, v, decryptedResult);
+        return abi.encodePacked(r, s, v, decryptedResult);
     }
 
     /**

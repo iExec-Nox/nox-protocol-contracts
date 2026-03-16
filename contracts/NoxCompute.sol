@@ -304,13 +304,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * Validates a decryption proof issued by the gateway for a publicly decryptable handle.
      * The proof must be signed by the configured gateway.
      *
-     * The proof is ABI-encoded as (bytes32 r, bytes32 s, uint8 v, bytes decryptedResult).
-     * The decrypted result can be of variable-length, supporting all current types
-     * (ABI-encoded as 32 bytes) and future types that may exceed 32 bytes (e.g. encrypted strings).
+     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N bytes)`.
+     * The signature is placed first (fixed size) so that `decryptedResult` can be variable-length,
+     * supporting all current types (ABI-encoded as 32 bytes) and future types that may exceed
+     * 32 bytes (e.g. encrypted strings).
      *
      * @param handle Handle to decrypt
-     * @param decryptionProof ABI-encoded decryption proof
-     * @return The decrypted value (variable length)
+     * @param decryptionProof Compact proof: `r (32) || s (32) || v (1) || decryptedResult (N)`
+     * @return decryptedResult The decrypted value (variable length)
      */
     function validateDecryptionProof(
         bytes32 handle,
@@ -318,11 +319,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     ) external view returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
-        // TODO: Optimize gas usage of abi.decode
-        (bytes32 r, bytes32 s, uint8 v, bytes memory decryptedResult) = abi.decode(
-            decryptionProof,
-            (bytes32, bytes32, uint8, bytes)
-        );
+        require(decryptionProof.length >= 65, InvalidProof(decryptionProof, "Proof too short"));
+        bytes32 r = bytes32(decryptionProof[0:32]);
+        bytes32 s = bytes32(decryptionProof[32:64]);
+        uint8 v = uint8(decryptionProof[64]);
+        bytes calldata decryptedResult = decryptionProof[65:];
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
         );
