@@ -12,6 +12,11 @@ on:
           - arbitrumSepolia
           - tenderlyArbitrumSepolia
         default: "hardhat"
+      reset-artifacts:
+        description: "Reset Ignition deployment artifacts before deploying (required when contract bytecode changes)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   pre-deploy:
@@ -45,6 +50,7 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
+          HARDHAT_IGNITION_CONFIRM_DEPLOYMENT: ${{ inputs.reset-artifacts }}
         run: pnpm run deploy:production --network ${{ inputs.network }}
 
       # Used in set-gateway job.
