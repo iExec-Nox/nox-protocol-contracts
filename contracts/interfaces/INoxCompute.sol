@@ -265,7 +265,7 @@ interface INoxCompute {
     /**
      * @notice Wraps a plaintext value into a deterministic public handle.
      * The resulting handle has bit 0 of the attributes byte (byte 30) unset,
-     * meaning it carries no ACL and is accessible by everyone.
+     * meaning it can be non unique, it carries no ACL and is accessible by everyone.
      * The same value and type always produce the same handle.
      * @param value The plaintext value
      * @param teeType The type of the handle
