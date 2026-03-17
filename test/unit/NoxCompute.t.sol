@@ -431,26 +431,19 @@ contract NoxComputeTest is Test {
         assertEq(result, decryptedValue);
     }
 
-    function test_RevertWhen_ValidateDecryptionProof_NotPubliclyDecryptable() public {
-        bytes memory proof = TestHelper.buildDecryptionProof(
-            handle,
-            abi.encode(42),
-            gatewayPrivateKey
-        );
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.NotPubliclyDecryptable.selector, handle)
-        );
-        noxCompute.validateDecryptionProof(handle, proof);
-    }
-
-    function test_RevertWhen_ValidateDecryptionProof_InvalidProofBytes() public {
+    function test_RevertWhen_ValidateDecryptionProof_ProofTooShort() public {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
-        // abi.decode will revert on malformed data
-        bytes memory emptyProof = new bytes(0);
-        vm.expectRevert();
-        noxCompute.validateDecryptionProof(handle, emptyProof);
+        bytes memory tooShortProof = new bytes(65 + 32 - 1);
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                tooShortProof,
+                "Proof too short"
+            )
+        );
+        noxCompute.validateDecryptionProof(handle, tooShortProof);
     }
 
     function test_RevertWhen_ValidateDecryptionProof_InvalidSigner() public {

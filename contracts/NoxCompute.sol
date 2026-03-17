@@ -318,22 +318,16 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes calldata decryptionProof
     ) external view returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
-        require(decryptionProof.length >= 65, InvalidProof(decryptionProof, "Proof too short"));
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        assembly {
-            r := calldataload(decryptionProof.offset)
-            s := calldataload(add(decryptionProof.offset, 32))
-            v := byte(0, calldataload(add(decryptionProof.offset, 64)))
-        }
+        require(
+            decryptionProof.length >= 65 + 32,
+            InvalidProof(decryptionProof, "Proof too short")
+        );
         bytes calldata decryptedResult = decryptionProof[65:];
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
         );
         require(
-            ECDSA.recover(eip712MessageHash, abi.encodePacked(r, s, v)) == $.gateway,
+            ECDSA.recoverCalldata(eip712MessageHash, decryptionProof[:65]) == $.gateway,
             InvalidProof(decryptionProof, "Invalid signature")
         );
         return decryptedResult;

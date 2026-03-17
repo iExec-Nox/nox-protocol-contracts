@@ -19,7 +19,6 @@ interface INoxCompute {
     error InvalidProof(bytes proof, string reason);
     error UnsupportedType();
     error IncompatibleTypes();
-    error NotPubliclyDecryptable(bytes32 handle);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
