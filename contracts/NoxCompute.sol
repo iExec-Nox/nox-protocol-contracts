@@ -173,9 +173,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     /// @inheritdoc INoxCompute
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
-        if (TypeUtils.isPublicHandle(handle)) return true;
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         return
+            TypeUtils.isPublicHandle(handle) ||
             $.isPubliclyDecryptable[handle] ||
             $.viewers[handle][viewer] ||
             $.admins[handle][viewer];
@@ -192,9 +192,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     /// @inheritdoc INoxCompute
     function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
-        if (TypeUtils.isPublicHandle(handle)) return true;
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.isPubliclyDecryptable[handle];
+        return TypeUtils.isPublicHandle(handle) || $.isPubliclyDecryptable[handle];
     }
 
     /**
