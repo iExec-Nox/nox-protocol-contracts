@@ -127,20 +127,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /// @inheritdoc INoxCompute
-    function cleanTransientStorage() external override {
+    function disallowTransient(
+        bytes32 handle,
+        address account
+    ) external override notZeroAddress(account) notPublicHandle(handle) onlyAllowed(handle) {
+        bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
-            let length := tload(0)
-            tstore(0, 0)
-            let lengthPlusOne := add(length, 1)
-            for {
-                let i := 1
-            } lt(i, lengthPlusOne) {
-                i := add(i, 1)
-            } {
-                let handle := tload(i)
-                tstore(i, 0)
-                tstore(handle, 0)
-            }
+            tstore(key, 0)
         }
     }
 
@@ -214,10 +207,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
             tstore(key, 1)
-            let length := tload(0)
-            let lengthPlusOne := add(length, 1)
-            tstore(lengthPlusOne, key)
-            tstore(0, lengthPlusOne)
         }
     }
 
@@ -295,9 +284,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         );
         require(TypeUtils.typeOf(handle) == teeType, InvalidProof(proof, "Handle type mismatch"));
         require(proof.length == 137, InvalidProof(proof, "Invalid proof length"));
-        address ownerInProof = address(bytes20(proof[0:20]));
-        address appInProof = address(bytes20(proof[20:40]));
-        uint256 createdAt = uint256(bytes32(proof[40:72]));
+        address ownerInProof;
+        address appInProof;
+        uint256 createdAt;
+        assembly {
+            ownerInProof := shr(96, calldataload(proof.offset))
+            appInProof := shr(96, calldataload(add(proof.offset, 20)))
+            createdAt := calldataload(add(proof.offset, 40))
+        }
         bytes calldata signature = proof[72:137];
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require(
