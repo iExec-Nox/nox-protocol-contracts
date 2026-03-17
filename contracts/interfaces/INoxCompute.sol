@@ -202,11 +202,11 @@ interface INoxCompute {
     function allowTransient(bytes32 handle, address account) external;
 
     /**
-     * Removes all transient authorizations. This is useful for integration with Account Abstraction
-     * when bundling several UserOps calling the NoxCompute.
-     * @dev Can be called by anyone (typically by AA bundlers between UserOps).
+     * Revokes transient access to `handle` for address `account` within the current transaction.
+     * @param handle Handle.
+     * @param account Address of the account.
      */
-    function cleanTransientStorage() external;
+    function disallowTransient(bytes32 handle, address account) external;
 
     /**
      * Returns whether the account is allowed to use the `handle`, either due to

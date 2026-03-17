@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x603D2b456fB50297dF5aaD43e317C924CF369fdF;
+            return 0x6cC89dEd8c25E1460fa8408099C8Ab5b902D8b6B;
         }
         revert("Nox: Unsupported chain");
     }
@@ -59,6 +59,16 @@ library Nox {
     function _allowTransientIfNotPublic(bytes32 handle, address account) private {
         if (!TypeUtils.isPublicHandle(handle)) {
             _noxComputeContract().allowTransient(handle, account);
+        }
+    }
+
+    /**
+     * @dev Calls disallowTransient on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need ACL.
+     */
+    function _disallowTransientIfNotPublic(bytes32 handle, address account) private {
+        if (!TypeUtils.isPublicHandle(handle)) {
+            _noxComputeContract().disallowTransient(handle, account);
         }
     }
 
@@ -718,6 +728,54 @@ library Nox {
      */
     function allowTransient(eint256 value, address account) internal {
         _allowTransientIfNotPublic(eint256.unwrap(value), account);
+    }
+
+    /**
+     * @dev Revokes transient access to value for address account within the current transaction.
+     * Silently skips public handles (they are already accessible by everyone).
+     */
+    function disallowTransient(ebool value, address account) internal {
+        _disallowTransientIfNotPublic(ebool.unwrap(value), account);
+    }
+
+    /**
+     * @dev Revokes transient access to value for address account within the current transaction.
+     * Silently skips public handles (they are already accessible by everyone).
+     */
+    function disallowTransient(eaddress value, address account) internal {
+        _disallowTransientIfNotPublic(eaddress.unwrap(value), account);
+    }
+
+    /**
+     * @dev Revokes transient access to value for address account within the current transaction.
+     * Silently skips public handles (they are already accessible by everyone).
+     */
+    function disallowTransient(euint16 value, address account) internal {
+        _disallowTransientIfNotPublic(euint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Revokes transient access to value for address account within the current transaction.
+     * Silently skips public handles (they are already accessible by everyone).
+     */
+    function disallowTransient(euint256 value, address account) internal {
+        _disallowTransientIfNotPublic(euint256.unwrap(value), account);
+    }
+
+    /**
+     * @dev Revokes transient access to value for address account within the current transaction.
+     * Silently skips public handles (they are already accessible by everyone).
+     */
+    function disallowTransient(eint16 value, address account) internal {
+        _disallowTransientIfNotPublic(eint16.unwrap(value), account);
+    }
+
+    /**
+     * @dev Revokes transient access to value for address account within the current transaction.
+     * Silently skips public handles (they are already accessible by everyone).
+     */
+    function disallowTransient(eint256 value, address account) internal {
+        _disallowTransientIfNotPublic(eint256.unwrap(value), account);
     }
 
     /**

@@ -203,42 +203,48 @@ contract NoxComputeACLTest is Test {
         noxCompute.allowTransient(handle, user2);
     }
 
-    // ============ cleanTransientStorage ============
+    // ============ disallowTransient ============
 
-    function test_CleanTransientStorage_ClearsMultipleTransientPermissions() public {
-        // Simulate a userOp context where NoxCompute grants multiple transient permissions
-        TestHelper.forceAllowTransient(handle, user1);
-        TestHelper.forceAllowTransient(handle2, user2);
+    function test_DisallowTransient() public {
+        // Grant transient + persistent access so user1 can call disallowTransient
+        TestHelper.forceAllowPersistent(handle, user1);
+        TestHelper.forceAllowTransient(handle, user2);
+        assertTrue(noxCompute.isAllowed(handle, user2));
 
-        // Verify all transient permissions are active
-        assertTrue(noxCompute.isAllowed(handle, user1));
-        assertTrue(noxCompute.isAllowed(handle2, user2));
-
-        // Clean transient storage (simulating end of userOp)
-        noxCompute.cleanTransientStorage();
-
-        // Verify all transient permissions are cleared
-        assertFalse(noxCompute.isAllowed(handle, user1));
-        assertFalse(noxCompute.isAllowed(handle2, user2));
+        // Revoke transient access for user2
+        vm.prank(user1);
+        noxCompute.disallowTransient(handle, user2);
+        assertFalse(noxCompute.isAllowed(handle, user2));
     }
 
-    function test_CleanTransientStorage_PreservesPersistentPermissions() public {
-        // Grant persistent permission to user1 for handle
+    function test_DisallowTransient_PreservesPersistentAccess() public {
+        // forceAllowTransient clears persistent, so re-grant it after
+        TestHelper.forceAllowTransient(handle, user1);
         TestHelper.forceAllowPersistent(handle, user1);
 
-        // Grant multiple transient permissions in a userOp context
-        TestHelper.forceAllowTransient(handle2, user2);
+        // Revoke transient access; persistent should remain
+        vm.prank(user1);
+        noxCompute.disallowTransient(handle, user1);
+        assertTrue(noxCompute.isAllowed(handle, user1));
+    }
 
-        // Verify all permissions are active
-        assertTrue(noxCompute.isAllowed(handle, user1)); // persistent
-        assertTrue(noxCompute.isAllowed(handle2, user2)); // transient
+    function test_RevertWhen_DisallowTransient_UnauthorizedSender() public {
+        vm.prank(user1);
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, user1));
+        noxCompute.disallowTransient(handle, user2);
+    }
 
-        // Clean transient storage (simulating end of userOp)
-        noxCompute.cleanTransientStorage();
+    function test_RevertWhen_DisallowTransient_ZeroAddress() public {
+        TestHelper.forceAllowPersistent(handle, user1);
+        vm.prank(user1);
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        noxCompute.disallowTransient(handle, address(0));
+    }
 
-        // Verify persistent permission remains while transient are cleared
-        assertTrue(noxCompute.isAllowed(handle, user1)); // persistent - still there
-        assertFalse(noxCompute.isAllowed(handle2, user2)); // transient - cleared
+    function test_RevertWhen_DisallowTransient_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.disallowTransient(publicHandle, user1);
     }
 
     // ============ isViewer ============
