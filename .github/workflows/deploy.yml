@@ -44,6 +44,10 @@ jobs:
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
 
+      - name: Reset Ignition deployment artifacts
+        if: inputs.network != 'hardhat' && inputs.reset-artifacts
+        run: rm -rf ignition/deployments/${{ inputs.network }}
+
       - name: Deploy contracts
         if: inputs.network != 'hardhat'
         env:
