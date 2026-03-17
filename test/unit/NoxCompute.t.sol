@@ -179,55 +179,79 @@ contract NoxComputeTest is Test {
         noxCompute.setProofExpirationDuration(2 hours);
     }
 
-    // ============ plaintextToEncrypted ============
+    // ============ wrapAsPublicHandle ============
 
-    function test_PlaintextToEncrypted_Bool() public {
+    function test_WrapAsPublicHandle_Bool() public {
         bytes32 value = bytes32(uint256(1));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Bool);
+        bytes32 result = noxCompute.wrapAsPublicHandle(value, TEEType.Bool);
 
-        _assertValidHandle(result, TEEType.Bool);
+        _assertValidPublicHandle(result, TEEType.Bool);
     }
 
-    function test_PlaintextToEncrypted_Uint256() public {
+    function test_WrapAsPublicHandle_Uint256() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
 
-        _assertValidHandle(result, TEEType.Uint256);
+        _assertValidPublicHandle(result, TEEType.Uint256);
     }
 
-    function test_PlaintextToEncrypted_Int256() public {
+    function test_WrapAsPublicHandle_Int256() public {
         bytes32 value = bytes32(uint256(int256(-999)));
         vm.prank(caller);
-        bytes32 result = noxCompute.plaintextToEncrypted(value, TEEType.Int256);
+        bytes32 result = noxCompute.wrapAsPublicHandle(value, TEEType.Int256);
 
-        _assertValidHandle(result, TEEType.Int256);
+        _assertValidPublicHandle(result, TEEType.Int256);
     }
 
-    function test_PlaintextToEncrypted_UniqueHandles() public {
+    function test_WrapAsPublicHandle_Deterministic() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
-        bytes32 result1 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result1 = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
         vm.warp(block.timestamp + 1);
         vm.prank(caller);
-        bytes32 result2 = noxCompute.plaintextToEncrypted(value, TEEType.Uint256);
+        bytes32 result2 = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
+
+        // Same value + same type = same handle (deterministic, no msg.sender/block.timestamp)
+        assertEq(result1, result2);
+    }
+
+    function test_WrapAsPublicHandle_DifferentValues() public {
+        vm.prank(caller);
+        bytes32 result1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        vm.prank(caller);
+        bytes32 result2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
 
         assertTrue(result1 != result2);
     }
 
-    function test_RevertWhen_PlaintextToEncrypted_UnsupportedType() public {
+    function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
         bytes32 value = bytes32(uint256(42));
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
             abi.encodeWithSelector(
-                INoxCompute.plaintextToEncrypted.selector,
+                INoxCompute.wrapAsPublicHandle.selector,
                 value,
                 uint8(type(TEEType).max) + 1
             )
         );
         assertFalse(success);
+    }
+
+    // ============ Handle uniqueness seed ============
+
+    function test_UniqueHandles_AllPublicHandleOperands() public {
+        // When all operands are public handles, the counter ensures unique handles
+        vm.prank(caller);
+        bytes32 publicA = noxCompute.wrapAsPublicHandle(bytes32(uint256(0)), TEEType.Uint256);
+        // add(publicA, publicA) called twice should produce different handles
+        vm.prank(caller);
+        bytes32 result1 = noxCompute.add(publicA, publicA);
+        vm.prank(caller);
+        bytes32 result2 = noxCompute.add(publicA, publicA);
+        assertTrue(result1 != result2, "Should be unique handles due to uniqueSeedCounter");
     }
 
     // ============ validateInputProof ============
@@ -992,11 +1016,24 @@ contract NoxComputeTest is Test {
      */
 
     function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
+        _assertValidHandle(h, expectedType, false);
+    }
+
+    function _assertValidPublicHandle(bytes32 h, TEEType expectedType) internal view {
+        _assertValidHandle(h, expectedType, true);
+    }
+
+    function _assertValidHandle(bytes32 h, TEEType expectedType, bool isPublic) internal view {
         assertTrue(h != bytes32(0), "Handle should not be zero");
-        assertEq(bytes4(h << (26 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
+        assertEq(uint8(h[0]), 0, "Invalid version");
+        assertEq(bytes4(h << (1 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
-        assertEq(uint8(h[31]), 0, "Invalid version");
-        assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
+        if (isPublic) {
+            assertTrue(TypeUtils.isPublicHandle(h), "Should be a public handle");
+        } else {
+            assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqHandle=1");
+            assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
+        }
     }
 
     function _callOperation(

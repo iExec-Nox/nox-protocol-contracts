@@ -8,6 +8,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
+import {TEEType} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeACLTest is Test {
@@ -16,13 +17,17 @@ contract NoxComputeACLTest is Test {
     address internal user2 = makeAddr("user2");
     address internal viewer1 = makeAddr("viewer1");
     address internal viewer2 = makeAddr("viewer2");
-    bytes32 internal handle = keccak256("handle1");
-    bytes32 internal handle2 = keccak256("handle2");
-    bytes32 internal handle3 = keccak256("handle3");
+    bytes32 internal handle;
+    bytes32 internal handle2;
+    bytes32 internal handle3;
     NoxCompute internal noxCompute;
 
     function setUp() public {
         noxCompute = TestHelper.deploy(owner, makeAddr("gateway"));
+        // Create handles with isUniqHandle=1 so ACL operations work
+        handle = TestHelper.createHandle(TEEType.Uint256);
+        handle2 = TestHelper.createHandle(TEEType.Uint256);
+        handle3 = TestHelper.createHandle(TEEType.Uint256);
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
@@ -328,6 +333,57 @@ contract NoxComputeACLTest is Test {
 
         // Should revert on the first handle
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, handle, user1));
+        noxCompute.validateAllowedForAll(user1, handles);
+    }
+
+    // ============ Public handle ACL tests ============
+
+    function test_PublicHandle_Allow_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.allow(publicHandle, user1);
+    }
+
+    function test_PublicHandle_AllowTransient_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.allowTransient(publicHandle, user1);
+    }
+
+    function test_PublicHandle_AddViewer_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.addViewer(publicHandle, viewer1);
+    }
+
+    function test_PublicHandle_AllowPublicDecryption_RevertWhen_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.allowPublicDecryption(publicHandle);
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
+    }
+
+    function test_PublicHandle_IsViewer_ReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
+    }
+
+    function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public view {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
+    }
+
+    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public view {
+        bytes32 pub1 = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32 pub2 = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32[] memory handles = new bytes32[](2);
+        handles[0] = pub1;
+        handles[1] = pub2;
+        // Should not revert: public handles are allowed for everyone
         noxCompute.validateAllowedForAll(user1, handles);
     }
 }

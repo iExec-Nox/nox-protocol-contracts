@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: Apache-2.0
 pragma solidity ^0.8.0;
 
-import {TEEType} from "../shared/TypeUtils.sol";
+import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
@@ -33,13 +33,33 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0xAe1DadcdbD6f8988945805245534409E61994bFE;
+            return 0xa06CBb25C94777bB97904567AB32a41Da91cce39;
         }
         revert("Nox: Unsupported chain");
     }
 
     function _noxComputeContract() private view returns (INoxCompute) {
         return INoxCompute(noxComputeContract());
+    }
+
+    /**
+     * @dev Calls allow on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need ACL.
+     */
+    function _allowIfNotPublic(bytes32 handle, address account) private {
+        if (!TypeUtils.isPublicHandle(handle)) {
+            _noxComputeContract().allow(handle, account);
+        }
+    }
+
+    /**
+     * @dev Calls allowTransient on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need ACL.
+     */
+    function _allowTransientIfNotPublic(bytes32 handle, address account) private {
+        if (!TypeUtils.isPublicHandle(handle)) {
+            _noxComputeContract().allowTransient(handle, account);
+        }
     }
 
     // =========== Handle initialization checks ============
@@ -112,7 +132,7 @@ library Nox {
     function toEbool(bool value) internal returns (ebool) {
         return
             ebool.wrap(
-                _noxComputeContract().plaintextToEncrypted(
+                _noxComputeContract().wrapAsPublicHandle(
                     bytes32(uint256(value ? 1 : 0)),
                     TEEType.Bool
                 )
@@ -125,7 +145,7 @@ library Nox {
     function toEuint16(uint16 value) internal returns (euint16) {
         return
             euint16.wrap(
-                _noxComputeContract().plaintextToEncrypted(bytes32(uint256(value)), TEEType.Uint16)
+                _noxComputeContract().wrapAsPublicHandle(bytes32(uint256(value)), TEEType.Uint16)
             );
     }
 
@@ -135,7 +155,7 @@ library Nox {
     function toEuint256(uint256 value) internal returns (euint256) {
         return
             euint256.wrap(
-                _noxComputeContract().plaintextToEncrypted(bytes32(value), TEEType.Uint256)
+                _noxComputeContract().wrapAsPublicHandle(bytes32(value), TEEType.Uint256)
             );
     }
 
@@ -145,7 +165,7 @@ library Nox {
     function toEint16(int16 value) internal returns (eint16) {
         return
             eint16.wrap(
-                _noxComputeContract().plaintextToEncrypted(
+                _noxComputeContract().wrapAsPublicHandle(
                     bytes32(uint256(uint16(value))),
                     TEEType.Int16
                 )
@@ -158,7 +178,7 @@ library Nox {
     function toEint256(int256 value) internal returns (eint256) {
         return
             eint256.wrap(
-                _noxComputeContract().plaintextToEncrypted(bytes32(uint256(value)), TEEType.Int256)
+                _noxComputeContract().wrapAsPublicHandle(bytes32(uint256(value)), TEEType.Int256)
             );
     }
 
@@ -558,128 +578,146 @@ library Nox {
 
     /**
      * @dev Allows the use of value for the address account.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allow(ebool value, address account) internal {
-        _noxComputeContract().allow(ebool.unwrap(value), account);
+        _allowIfNotPublic(ebool.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allow(eaddress value, address account) internal {
-        _noxComputeContract().allow(eaddress.unwrap(value), account);
+        _allowIfNotPublic(eaddress.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allow(euint16 value, address account) internal {
-        _noxComputeContract().allow(euint16.unwrap(value), account);
+        _allowIfNotPublic(euint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allow(euint256 value, address account) internal {
-        _noxComputeContract().allow(euint256.unwrap(value), account);
+        _allowIfNotPublic(euint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allow(eint16 value, address account) internal {
-        _noxComputeContract().allow(eint16.unwrap(value), account);
+        _allowIfNotPublic(eint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for the address account.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allow(eint256 value, address account) internal {
-        _noxComputeContract().allow(eint256.unwrap(value), account);
+        _allowIfNotPublic(eint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowThis(ebool value) internal {
-        _noxComputeContract().allow(ebool.unwrap(value), address(this));
+        _allowIfNotPublic(ebool.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowThis(eaddress value) internal {
-        _noxComputeContract().allow(eaddress.unwrap(value), address(this));
+        _allowIfNotPublic(eaddress.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowThis(euint16 value) internal {
-        _noxComputeContract().allow(euint16.unwrap(value), address(this));
+        _allowIfNotPublic(euint16.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowThis(euint256 value) internal {
-        _noxComputeContract().allow(euint256.unwrap(value), address(this));
+        _allowIfNotPublic(euint256.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowThis(eint16 value) internal {
-        _noxComputeContract().allow(eint16.unwrap(value), address(this));
+        _allowIfNotPublic(eint16.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value for this address (address(this)).
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowThis(eint256 value) internal {
-        _noxComputeContract().allow(eint256.unwrap(value), address(this));
+        _allowIfNotPublic(eint256.unwrap(value), address(this));
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowTransient(ebool value, address account) internal {
-        _noxComputeContract().allowTransient(ebool.unwrap(value), account);
+        _allowTransientIfNotPublic(ebool.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowTransient(eaddress value, address account) internal {
-        _noxComputeContract().allowTransient(eaddress.unwrap(value), account);
+        _allowTransientIfNotPublic(eaddress.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowTransient(euint16 value, address account) internal {
-        _noxComputeContract().allowTransient(euint16.unwrap(value), account);
+        _allowTransientIfNotPublic(euint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowTransient(euint256 value, address account) internal {
-        _noxComputeContract().allowTransient(euint256.unwrap(value), account);
+        _allowTransientIfNotPublic(euint256.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowTransient(eint16 value, address account) internal {
-        _noxComputeContract().allowTransient(eint16.unwrap(value), account);
+        _allowTransientIfNotPublic(eint16.unwrap(value), account);
     }
 
     /**
      * @dev Allows the use of value by address account for this transaction.
+     * Silently skips public handles (they are already accessible by everyone).
      */
     function allowTransient(eint256 value, address account) internal {
-        _noxComputeContract().allowTransient(eint256.unwrap(value), account);
+        _allowTransientIfNotPublic(eint256.unwrap(value), account);
     }
 
     /**

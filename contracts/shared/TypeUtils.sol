@@ -115,14 +115,28 @@ enum TEEType {
 error NonArithmeticType();
 
 library TypeUtils {
+    /// @dev Bit 0 of the attrs byte. When set, the handle is guaranteed unique on-chain.
+    bytes1 internal constant ATTR_IS_UNIQ_HANDLE = 0x01;
+
     /**
      * @notice Extracts the TEE type from a handle.
-     * The type is stored at byte position 30 in the handle.
+     * The type is stored at byte position 5 in the handle.
      * @param handle The handle to extract the type from
      * @return The TEEType encoded in the handle
      */
     function typeOf(bytes32 handle) internal pure returns (TEEType) {
-        return TEEType(uint8(handle[30]));
+        return TEEType(uint8(handle[5]));
+    }
+
+    /**
+     * @notice Checks if a handle is a public handle (isUniqHandle bit == 0).
+     * A public handle wraps a plaintext value known on-chain, has no ACL,
+     * and is accessible by everyone.
+     * @param handle The handle to check
+     * @return True if the handle is a public handle
+     */
+    function isPublicHandle(bytes32 handle) internal pure returns (bool) {
+        return (handle[6] & ATTR_IS_UNIQ_HANDLE) == 0;
     }
 
     /**
