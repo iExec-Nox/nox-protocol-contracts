@@ -129,7 +129,7 @@ library TypeUtils {
     }
 
     /**
-     * @notice Checks if a handle is a public handle (isUniqHandle=0).
+     * @notice Checks if a handle is a public handle (isUniqHandle bit == 0).
      * A public handle wraps a plaintext value known on-chain, has no ACL,
      * and is accessible by everyone.
      * @param handle The handle to check
