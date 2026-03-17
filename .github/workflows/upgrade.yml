@@ -10,7 +10,7 @@ on:
         options:
           - arbitrumSepolia
           - tenderlyArbitrumSepolia
-        default: "arbitrumSepolia"
+        default: "tenderlyArbitrumSepolia"
 
 jobs:
   pre-upgrade:
