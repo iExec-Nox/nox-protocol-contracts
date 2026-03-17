@@ -292,7 +292,7 @@ contract NoxComputeTest is Test {
         bytes32 result1 = noxCompute.add(publicA, publicA);
         vm.prank(caller);
         bytes32 result2 = noxCompute.add(publicA, publicA);
-        assertTrue(result1 != result2, "Should be unique handles due to uniqSeedCounter");
+        assertTrue(result1 != result2, "Should be unique handles due to uniqueSeedCounter");
     }
 
     // ============ validateInputProof ============

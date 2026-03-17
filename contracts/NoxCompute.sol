@@ -39,7 +39,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         address gateway;
         uint256 proofExpirationDuration;
         // Counter used to guarantee handle uniqueness when all operands are public handles
-        uint256 uniqSeedCounter;
+        uint256 uniqueSeedCounter;
     }
 
     uint8 private constant HANDLE_VERSION = 0;
@@ -209,7 +209,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      */
     function _allowTransient(bytes32 handle, address account) private {
         // Public handles don't need ACL; skip silently to save gas.
-        if (TypeUtils.isPublicHandle(handle)) return;
+        if (TypeUtils.isPublicHandle(handle)) {
+            return;
+        }
         bytes32 key = keccak256(abi.encodePacked(handle, account));
         assembly {
             tstore(key, 1)
@@ -822,7 +824,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         }
         // All operands are public handles: need storage counter for uniqueness
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return ++$.uniqSeedCounter;
+        return ++$.uniqueSeedCounter;
     }
 
     // ----------- Admin functions ----------
