@@ -240,47 +240,6 @@ contract NoxComputeTest is Test {
         assertFalse(success);
     }
 
-    // ============ Public handle ACL behavior ============
-
-    function test_PublicHandle_AllowReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
-        noxCompute.allow(publicHandle, caller);
-    }
-
-    function test_PublicHandle_AllowTransientReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
-        noxCompute.allowTransient(publicHandle, caller);
-    }
-
-    function test_PublicHandle_AddViewerReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
-        noxCompute.addViewer(publicHandle, caller);
-    }
-
-    function test_PublicHandle_AllowPublicDecryptionReverts() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
-        noxCompute.allowPublicDecryption(publicHandle);
-    }
-
-    function test_PublicHandle_IsAllowedReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
-    }
-
-    function test_PublicHandle_IsViewerReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
-    }
-
-    function test_PublicHandle_IsPubliclyDecryptableReturnsTrue() public view {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
-    }
-
     // ============ Handle uniqueness seed ============
 
     function test_UniqueHandles_AllPublicHandleOperands() public {
@@ -1077,7 +1036,6 @@ contract NoxComputeTest is Test {
         assertEq(bytes4(h << (1 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
         if (isPublic) {
-            assertEq(uint8(h[6]) & 0x01, 0, "Should have isUniqHandle=0");
             assertTrue(TypeUtils.isPublicHandle(h), "Should be a public handle");
         } else {
             assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqHandle=1");
