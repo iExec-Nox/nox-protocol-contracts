@@ -12,6 +12,11 @@ on:
           - arbitrumSepolia
           - tenderlyArbitrumSepolia
         default: "hardhat"
+      reset-artifacts:
+        description: "Reset Ignition deployment artifacts before deploying (required when contract bytecode changes)"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   pre-deploy:
@@ -38,6 +43,10 @@ jobs:
       - name: Deploy contracts on Hardhat (dry-run)
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
+
+      - name: Reset Ignition deployment artifacts
+        if: inputs.network != 'hardhat' && inputs.reset-artifacts
+        run: rm -rf ignition/deployments/${{ inputs.network }}
 
       - name: Deploy contracts
         if: inputs.network != 'hardhat'
