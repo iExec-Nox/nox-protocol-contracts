@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x3A99dE4967B4351A3c8D31d4e02d26D4479ca13b;
+            return 0x72D3016bB47C0cD60D4cfEb8591F8D3cCA5Bb31b;
         }
         revert("Nox: Unsupported chain");
     }
@@ -1081,6 +1081,9 @@ library Nox {
     // ============ Private helpers ============
 
     function _assertInitialized(bytes32 handle) private pure {
+        // TODO remove this function and all related asserts and use
+        // default zero values offchain in runner (0, address(0), ...)
+        // when the handle is uninitialized (0x00...00).
         require(handle != bytes32(0), UninitializedHandle());
     }
 

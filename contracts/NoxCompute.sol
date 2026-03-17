@@ -248,29 +248,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 
-    /**
-     * Validates that a handle provided by a user is:
-     *   - of expected type
-     *   - not expired
-     *   - issued for the correct app (caller)
-     *   - issued for the correct owner
-     *   - issued by the configured gateway (signed by the gateway wallet)
-     * or reverts otherwise.
-     *
-     * Handle format:
-     *  1 byte    4 bytes      1 byte  1 byte      25 bytes
-     *   [0]     [1------4]     [5]     [6]     [7-----------31]
-     * Version    ChainId       Type    Attrs      Pre-handle
-     *
-     * Proof format:
-     *  20 bytes       20 bytes        32 bytes            65 bytes
-     * [0-----19]    [20-----39]    [40--------71]    [72------------136]
-     *   Owner           App           CreatedAt       EIP-712 signature
-     *
-     * @param handle handle id
-     * @param owner The address of the handle owner
-     * @param proof Proof data
-     */
+    /// @inheritdoc INoxCompute
     function validateInputProof(
         bytes32 handle,
         address owner,
@@ -313,40 +291,22 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         _allowTransient(handle, msg.sender);
     }
 
-    /**
-     * Validates a decryption proof issued by the gateway for a publicly decryptable handle.
-     * The proof must be signed by the configured gateway.
-     *
-     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N bytes)`.
-     * The signature is placed first (fixed size) so that `decryptedResult` can be variable-length,
-     * supporting all current types (ABI-encoded as 32 bytes) and future types that may exceed
-     * 32 bytes (e.g. encrypted strings).
-     *
-     * @param handle Handle to decrypt
-     * @param decryptionProof Compact proof: `r (32) || s (32) || v (1) || decryptedResult (N)`
-     * @return decryptedResult The decrypted value (variable length)
-     */
+    /// @inheritdoc INoxCompute
     function validateDecryptionProof(
         bytes32 handle,
         bytes calldata decryptionProof
     ) external view returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        require($.isPubliclyDecryptable[handle], NotPubliclyDecryptable(handle));
-        require(decryptionProof.length >= 65, InvalidProof(decryptionProof, "Proof too short"));
-        bytes32 r;
-        bytes32 s;
-        uint8 v;
-        assembly {
-            r := calldataload(decryptionProof.offset)
-            s := calldataload(add(decryptionProof.offset, 32))
-            v := byte(0, calldataload(add(decryptionProof.offset, 64)))
-        }
+        require(
+            decryptionProof.length >= 65 + 32,
+            InvalidProof(decryptionProof, "Proof too short")
+        );
         bytes calldata decryptedResult = decryptionProof[65:];
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
         );
         require(
-            ECDSA.recover(eip712MessageHash, abi.encodePacked(r, s, v)) == $.gateway,
+            ECDSA.recoverCalldata(eip712MessageHash, decryptionProof[:65]) == $.gateway,
             InvalidProof(decryptionProof, "Invalid signature")
         );
         return decryptedResult;
