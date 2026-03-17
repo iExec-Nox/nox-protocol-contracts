@@ -259,29 +259,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 
-    /**
-     * Validates that a handle provided by a user is:
-     *   - of expected type
-     *   - not expired
-     *   - issued for the correct app (caller)
-     *   - issued for the correct owner
-     *   - issued by the configured gateway (signed by the gateway wallet)
-     * or reverts otherwise.
-     *
-     * Handle format:
-     *  1 byte    4 bytes      1 byte  1 byte      25 bytes
-     *   [0]     [1------4]     [5]     [6]     [7-----------31]
-     * Version    ChainId       Type    Attrs      Pre-handle
-     *
-     * Proof format:
-     *  20 bytes       20 bytes        32 bytes            65 bytes
-     * [0-----19]    [20-----39]    [40--------71]    [72------------136]
-     *   Owner           App           CreatedAt       EIP-712 signature
-     *
-     * @param handle handle id
-     * @param owner The address of the handle owner
-     * @param proof Proof data
-     */
+    /// @inheritdoc INoxCompute
     function validateInputProof(
         bytes32 handle,
         address owner,
@@ -319,19 +297,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         _allowTransient(handle, msg.sender);
     }
 
-    /**
-     * Validates the decryption proof issued by the gateway for a given handle.
-     * The proof must be signed by the configured gateway.
-     *
-     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N >= 32 bytes)`.
-     * The signature is placed first (fixed size) so that `decryptedResult` can be variable-length,
-     * supporting all current types (ABI-encoded as 32 bytes) and future types that may exceed
-     * 32 bytes (e.g. encrypted strings).
-     *
-     * @param handle Handle to decrypt
-     * @param decryptionProof Compact proof: `signature (65 bytes) || decryptedResult (N >= 32 bytes)`
-     * @return decryptedResult The decrypted value (variable length)
-     */
+    /// @inheritdoc INoxCompute
     function validateDecryptionProof(
         bytes32 handle,
         bytes calldata decryptionProof
