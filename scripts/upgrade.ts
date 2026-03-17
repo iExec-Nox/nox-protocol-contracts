@@ -20,9 +20,10 @@ import { Address } from "viem";
  * Upgrades the NoxCompute proxy to a new implementation.
  * @param proxyAddress the NoxCompute proxy address to upgrade, resolved automatically if not provided
  * @param printLogs whether to print logs or not
+ * @param contractName the contract to deploy as new implementation (defaults to "NoxCompute")
  * @returns The new implementation address
  */
-export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true) {
+export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true, contractName = "NoxCompute") {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const publicClient = await viem.getPublicClient();
@@ -32,9 +33,6 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     if (!ownerClient) {
         throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
     }
-
-    // TODO: Replace with the actual new NoxCompute contract name
-    const contractName = "NoxComputeV2Mock";
 
     _log(`Upgrading NoxCompute proxy`);
     _log(`New implementation contract: ${contractName}`);

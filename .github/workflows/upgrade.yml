@@ -1,0 +1,50 @@
+name: Upgrade contracts
+
+on:
+  workflow_dispatch:
+    inputs:
+      network:
+        description: "Network"
+        required: true
+        type: choice
+        options:
+          - arbitrumSepolia
+          - tenderlyArbitrumSepolia
+        default: "tenderlyArbitrumSepolia"
+
+jobs:
+  pre-upgrade:
+    uses: ./.github/workflows/main.yml
+
+  upgrade:
+    needs: pre-upgrade
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    environment: ${{ inputs.network }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Upgrade contracts
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
+        run: pnpm run upgrade:production --network ${{ inputs.network }}
+
+      - name: Verify new implementation
+        if: inputs.network != 'tenderlyArbitrumSepolia'
+        continue-on-error: true
+        env:
+          ETHERSCAN_API_KEY: ${{ secrets.ETHERSCAN_API_KEY }}
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
+        run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}

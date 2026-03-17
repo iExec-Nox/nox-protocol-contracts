@@ -11,7 +11,7 @@ describe("[IT] Upgrade", function () {
             const viem = connection.viem;
 
             // Upgrade using the upgrade script
-            await upgradeNoxCompute(noxCompute.address, false);
+            await upgradeNoxCompute(noxCompute.address, false, "NoxComputeV2Mock");
             // Verify upgrade: version() should return 2
             const noxComputeV2 = await viem.getContractAt("NoxComputeV2Mock", noxCompute.address);
             const version = await noxComputeV2.read.version();

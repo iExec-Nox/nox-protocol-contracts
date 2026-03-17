@@ -1,6 +1,6 @@
 {
   "name": "@iexec-nox/nox-protocol-contracts",
-  "version": "0.1.0-beta.6",
+  "version": "0.1.0-beta.7",
   "description": "Nox protocol smart contracts",
   "keywords": [
     "Nox",
@@ -26,6 +26,7 @@
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
     "set-kms-public-key": "pnpm hardhat run scripts/set-kms-public-key.ts",
     "upgrade": "pnpm hardhat run scripts/upgrade.ts",
+    "upgrade:production": "pnpm hardhat run scripts/upgrade.ts --build-profile production",
     "verify": "pnpm hardhat ignition verify",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check ."
