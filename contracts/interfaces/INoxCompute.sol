@@ -288,7 +288,7 @@ interface INoxCompute {
     ) external;
 
     /**
-     * @notice Validates a decryption proof issued by the gateway for a publicly decryptable handle.
+     * @notice Validates the decryption proof issued by the gateway for a given handle.
      * @param handle Handle to decrypt
      * @param decryptionProof Serialized decryption proof (signature + decrypted value)
      * @return The decrypted value (variable length)

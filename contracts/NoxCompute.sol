@@ -320,16 +320,16 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Validates a decryption proof issued by the gateway for a publicly decryptable handle.
+     * Validates the decryption proof issued by the gateway for a given handle.
      * The proof must be signed by the configured gateway.
      *
-     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N bytes)`.
+     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N >= 32 bytes)`.
      * The signature is placed first (fixed size) so that `decryptedResult` can be variable-length,
      * supporting all current types (ABI-encoded as 32 bytes) and future types that may exceed
      * 32 bytes (e.g. encrypted strings).
      *
      * @param handle Handle to decrypt
-     * @param decryptionProof Compact proof: `r (32) || s (32) || v (1) || decryptedResult (N)`
+     * @param decryptionProof Compact proof: `signature (65 bytes) || decryptedResult (N >= 32 bytes)`
      * @return decryptedResult The decrypted value (variable length)
      */
     function validateDecryptionProof(
