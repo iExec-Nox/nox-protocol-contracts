@@ -585,14 +585,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         }
         validateAllowedForAll(msg.sender, operands);
         // Outputs differ by outputIndex and type, so they can safely share the same seed
-        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
         result = _generateHandle(
             operator,
             operands,
             resultType,
             0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
+            uniqueSeed,
+            TypeUtils.ATTR_IS_UNIQUE_HANDLE
         );
         _allowTransient(result, msg.sender);
         if (isSafeOperation) {
@@ -601,8 +601,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
                 operands,
                 TEEType.Bool,
                 1,
-                uniqSeed,
-                TypeUtils.ATTR_IS_UNIQ_HANDLE
+                uniqueSeed,
+                TypeUtils.ATTR_IS_UNIQUE_HANDLE
             );
             _allowTransient(success, msg.sender);
         }
@@ -662,30 +662,30 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         }
         validateAllowedForAll(msg.sender, operands);
         // Outputs differ by outputIndex and type, so they can safely share the same seed
-        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
         success = _generateHandle(
             operator,
             operands,
             TEEType.Bool,
             0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
+            uniqueSeed,
+            TypeUtils.ATTR_IS_UNIQUE_HANDLE
         );
         result1 = _generateHandle(
             operator,
             operands,
             resultType,
             1,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
+            uniqueSeed,
+            TypeUtils.ATTR_IS_UNIQUE_HANDLE
         );
         result2 = _generateHandle(
             operator,
             operands,
             resultType,
             2,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
+            uniqueSeed,
+            TypeUtils.ATTR_IS_UNIQUE_HANDLE
         );
         _allowTransient(success, msg.sender);
         _allowTransient(result1, msg.sender);
@@ -693,7 +693,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * @dev Alias for _generateHandle producing a public handle (outputIndex=0, uniqSeed=0, attrs=0x00).
+     * @dev Alias for _generateHandle producing a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00).
      */
     function _generatePublicHandle(
         Operator operator,
@@ -704,7 +704,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * @dev Alias for single-output confidential operations (outputIndex=0, attrs=ATTR_IS_UNIQ_HANDLE).
+     * @dev Alias for single-output confidential operations (outputIndex=0, attrs=ATTR_IS_UNIQUE_HANDLE).
      * Computes the uniqueness seed internally.
      * Must NOT be called multiple times for multi-output operations (the seed counter would diverge).
      */
@@ -713,14 +713,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands,
         TEEType handleType
     ) private returns (bytes32 result) {
-        uint256 uniqSeed = _generateHandleUniqueSeed(operands);
+        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
         result = _generateHandle(
             operator,
             operands,
             handleType,
             0,
-            uniqSeed,
-            TypeUtils.ATTR_IS_UNIQ_HANDLE
+            uniqueSeed,
+            TypeUtils.ATTR_IS_UNIQUE_HANDLE
         );
     }
 
@@ -732,7 +732,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      *       operator,        // Operator identifier (e.g., Add, Sub, WrapAsPublicHandle)
      *       operands,        // Array of operand handles (or plaintext value)
      *       address(this),   // NoxCompute contract address
-     *       uniqSeed,        // Uniqueness seed (0 or counter value)
+     *       uniqueSeed,        // Uniqueness seed (0 or counter value)
      *       outputIndex      // For operations that return multiple outputs
      *   ))
      *
@@ -740,14 +740,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      *   [0]    : Handle version
      *   [1-4]  : Chain ID (4 bytes, uint32)
      *   [5]    : TEE type
-     *   [6]    : Attributes (bit 0 = isUniqHandle)
+     *   [6]    : Attributes (bit 0 = isUniqueHandle)
      *   [7-31] : Truncated pre-handle hash (25 bytes)
      *
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param handleType The TEE type to encode in the handle
      * @param outputIndex Index for operations returning multiple outputs
-     * @param uniqSeed Uniqueness seed (0 for wrapAsPublicHandle and unique operands)
+     * @param uniqueSeed Uniqueness seed (0 for wrapAsPublicHandle and unique operands)
      * @param attrs Attributes byte (0x00 for public handle, 0x01 for confidential)
      * @return result The complete handle with metadata appended
      */
@@ -756,10 +756,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands,
         TEEType handleType,
         uint8 outputIndex,
-        uint256 uniqSeed,
+        uint256 uniqueSeed,
         bytes1 attrs
     ) private view returns (bytes32 result) {
-        result = keccak256(abi.encode(operator, operands, address(this), uniqSeed, outputIndex));
+        result = keccak256(abi.encode(operator, operands, address(this), uniqueSeed, outputIndex));
         // Shift hash to bytes 7-31 (truncate to 25 bytes), leaving bytes 0-6 free for metadata.
         result = result >> (7 * 8);
         result = result | bytes32(bytes1(uint8(HANDLE_VERSION)));
@@ -770,7 +770,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     /**
      * Determines the uniqueness seed for a confidential operation.
-     * If at least one operand has isUniqHandle=1, returns 0 (no storage access needed).
+     * If at least one operand has isUniqueHandle=1, returns 0 (no storage access needed).
      * If all operands are public handles, increments a storage counter to guarantee uniqueness.
      * @param operands Array of operand handles
      * @return The uniqueness seed
