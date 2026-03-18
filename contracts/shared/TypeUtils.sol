@@ -116,7 +116,7 @@ error NonArithmeticType();
 
 library TypeUtils {
     /// @dev Bit 0 of the attrs byte. When set, the handle is guaranteed unique on-chain.
-    bytes1 internal constant ATTR_IS_UNIQ_HANDLE = 0x01;
+    bytes1 internal constant ATTR_IS_UNIQUE_HANDLE = 0x01;
 
     /**
      * @notice Extracts the TEE type from a handle.
@@ -129,14 +129,14 @@ library TypeUtils {
     }
 
     /**
-     * @notice Checks if a handle is a public handle (isUniqHandle bit == 0).
+     * @notice Checks if a handle is a public handle (isUniqueHandle bit == 0).
      * A public handle wraps a plaintext value known on-chain, has no ACL,
      * and is accessible by everyone.
      * @param handle The handle to check
      * @return True if the handle is a public handle
      */
     function isPublicHandle(bytes32 handle) internal pure returns (bool) {
-        return (handle[6] & ATTR_IS_UNIQ_HANDLE) == 0;
+        return (handle[6] & ATTR_IS_UNIQUE_HANDLE) == 0;
     }
 
     /**

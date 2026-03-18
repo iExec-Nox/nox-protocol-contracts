@@ -1031,7 +1031,7 @@ contract NoxComputeTest is Test {
         if (isPublic) {
             assertTrue(TypeUtils.isPublicHandle(h), "Should be a public handle");
         } else {
-            assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqHandle=1");
+            assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqueHandle=1");
             assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
         }
     }
