@@ -43,11 +43,11 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
     });
-    const implAddress = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
-    _log(`New implementation deployed at: ${implAddress}`);
+    const newImplementation = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
+    _log(`New implementation deployed at: ${newImplementation}`);
     _log("NoxCompute proxy upgraded successfully");
 
-    return implAddress as Address;
+    return newImplementation as Address;
 }
 
 /**
@@ -71,8 +71,8 @@ async function _resolveProxyAddress(
         return noxCompute.address;
     }
 
-    const resolved = await readDeployedAddress("NoxCompute#proxy");
-    return resolved as Address;
+    const noxComputeProxy = await readDeployedAddress("NoxCompute#proxy");
+    return noxComputeProxy as Address;
 }
 
 // Execute the script only if run directly
