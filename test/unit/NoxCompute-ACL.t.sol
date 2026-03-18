@@ -24,7 +24,7 @@ contract NoxComputeACLTest is Test {
 
     function setUp() public {
         noxCompute = TestHelper.deploy(owner, makeAddr("gateway"));
-        // Create handles with isUniqHandle=1 so ACL operations work
+        // Create handles with isUniqueHandle=1 so ACL operations work
         handle = TestHelper.createHandle(TEEType.Uint256);
         handle2 = TestHelper.createHandle(TEEType.Uint256);
         handle3 = TestHelper.createHandle(TEEType.Uint256);

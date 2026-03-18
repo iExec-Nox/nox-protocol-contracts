@@ -30,7 +30,7 @@ library TestHelper {
 
     /**
      * Generates a random unique handle with the given chain id and type.
-     * The handle is created with isUniqHandle=1 (confidential handle with ACL).
+     * The handle is created with isUniqueHandle=1 (confidential handle with ACL).
      * @param chainId target chainId
      * @param teeType target type
      */
@@ -49,7 +49,7 @@ library TestHelper {
     }
 
     /**
-     * Generates a random public handle (isUniqHandle=0) with the given type.
+     * Generates a random public handle (isUniqueHandle=0) with the given type.
      * @param teeType target type
      */
     function createPublicHandle(TEEType teeType) internal view returns (bytes32 handle) {
