@@ -1,3 +1,5 @@
+import { upgrades } from "@openzeppelin/hardhat-upgrades";
+import hre from "hardhat";
 import { deploy } from "./deploy.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
@@ -5,16 +7,16 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 import { Address } from "viem";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
-// It reads the deployed proxy from ignition deployment artifacts,
-// deploys the new implementation, and calls upgradeToAndCall on the proxy.
+// Uses @openzeppelin/hardhat-upgrades for upgrade safety checks
+// (storage layout validation, implementation compatibility).
+//
+// The proxy is deployed via Ignition (CREATE2), so we use forceImport to register it
+// with the OpenZeppelin Upgrades manifest before the first upgrade.
 //
 // When running on a local (edr-simulated) network, a fresh deployment is performed first
 // since each `hardhat run` starts a clean chain.
 //
 // Usage: `hardhat run scripts/upgrade.ts --network <network-name>`
-
-// TODO: Use @openzeppelin/hardhat-upgrades plugin for upgrade safety checks
-// (storage layout validation, implementation compatibility) when it becomes compatible with Hardhat 3.
 
 /**
  * Upgrades the NoxCompute proxy to a new implementation.
@@ -25,40 +27,36 @@ import { Address } from "viem";
  */
 export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true, contractName = "NoxCompute") {
     const _log = printLogs ? console.log : () => {};
-    const { viem } = connection;
-    const publicClient = await viem.getPublicClient();
-    const walletClients = await viem.getWalletClients();
-
-    const ownerClient = walletClients[0];
-    if (!ownerClient) {
-        throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
-    }
+    const { ethers } = connection;
 
     _log(`Upgrading NoxCompute proxy`);
     _log(`New implementation contract: ${contractName}`);
-    _log(`Using owner address: ${ownerClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
     const noxComputeProxyAddress: Address = await _resolveProxyAddress(proxyAddress, _log);
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
 
-    // Deploy new implementation
-    const newImplementation = await viem.deployContract(contractName, [], {
-        client: { wallet: ownerClient },
-    });
-    _log(`New implementation deployed at: ${newImplementation.address}`);
+    const api = await upgrades(hre, connection);
+    const NoxComputeFactory = await ethers.getContractFactory("NoxCompute");
+    const NewImplFactory = await ethers.getContractFactory(contractName);
 
-    // Upgrade the proxy via UUPS upgradeToAndCall
-    const proxy = await viem.getContractAt(contractName, noxComputeProxyAddress, {
-        client: { wallet: ownerClient },
+    // Register the Ignition-deployed proxy with the OZ manifest (idempotent).
+    // This is required because the proxy was deployed via Ignition, not via the OZ plugin.
+    await api.forceImport(noxComputeProxyAddress, NoxComputeFactory, {
+        kind: "uups",
     });
-    const txHash = await proxy.write.upgradeToAndCall([newImplementation.address, "0x"]);
-    _log(`Upgrade transaction hash: ${txHash}`);
 
-    await publicClient.waitForTransactionReceipt({ hash: txHash });
+    // Upgrade the proxy using the OpenZeppelin Upgrades plugin.
+    // This handles: storage layout validation, new implementation deployment,
+    // and calling upgradeToAndCall on the UUPS proxy.
+    await api.upgradeProxy(noxComputeProxyAddress, NewImplFactory, {
+        unsafeAllow: ["constructor"],
+    });
+    const implAddress = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
+    _log(`New implementation deployed at: ${implAddress}`);
     _log("NoxCompute proxy upgraded successfully");
 
-    return newImplementation.address;
+    return implAddress as Address;
 }
 
 /**
@@ -82,8 +80,8 @@ async function _resolveProxyAddress(
         return noxCompute.address;
     }
 
-    const noxComputeProxyAddress = proxyAddress ?? (await readDeployedAddress("NoxCompute#proxy"));
-    return noxComputeProxyAddress as Address;
+    const resolved = await readDeployedAddress("NoxCompute#proxy");
+    return resolved as Address;
 }
 
 // Execute the script only if run directly

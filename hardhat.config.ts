@@ -1,4 +1,6 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import openzeppelinUpgradesPlugin from "@openzeppelin/hardhat-upgrades";
+import { proxyFilesToBuild } from "@openzeppelin/hardhat-upgrades";
 import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
 
@@ -13,7 +15,7 @@ const baseProfile = {
 } as const;
 
 export default defineConfig({
-    plugins: [hardhatToolboxViemPlugin],
+    plugins: [hardhatToolboxViemPlugin, openzeppelinUpgradesPlugin],
     ignition: {
         strategyConfig: {
             create2: {
@@ -36,7 +38,7 @@ export default defineConfig({
                 },
             },
         },
-        npmFilesToBuild: ["@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol"],
+        npmFilesToBuild: proxyFilesToBuild(),
     },
     verify: {
         etherscan: {
