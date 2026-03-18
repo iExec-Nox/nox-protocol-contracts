@@ -38,8 +38,6 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
 
     // Upgrade the proxy using the OpenZeppelin Upgrades plugin.
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
-    // This handles: storage layout validation, new implementation deployment,
-    // and calling upgradeToAndCall on the UUPS proxy.
     await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
     });
@@ -71,8 +69,8 @@ async function _resolveProxyAddress(
         return noxCompute.address;
     }
 
-    const noxComputeProxy = await readDeployedAddress("NoxCompute#proxy");
-    return noxComputeProxy as Address;
+    const noxComputeProxyAddress = await readDeployedAddress("NoxCompute#proxy");
+    return noxComputeProxyAddress as Address;
 }
 
 // Execute the script only if run directly
