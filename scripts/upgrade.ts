@@ -10,9 +10,6 @@ import { Address } from "viem";
 // Uses @openzeppelin/hardhat-upgrades for upgrade safety checks
 // (storage layout validation, implementation compatibility).
 //
-// The proxy is deployed via Ignition (CREATE2), so we use forceImport to register it
-// with the OpenZeppelin Upgrades manifest before the first upgrade.
-//
 // When running on a local (edr-simulated) network, a fresh deployment is performed first
 // since each `hardhat run` starts a clean chain.
 //
@@ -37,24 +34,20 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
 
     const api = await upgrades(hre, connection);
-    const NoxComputeFactory = await ethers.getContractFactory("NoxCompute");
-    const NewImplFactory = await ethers.getContractFactory(contractName);
-
-    // Register the Ignition-deployed proxy with the OZ manifest (idempotent).
-    // This is required because the proxy was deployed via Ignition, not via the OZ plugin.
-    await api.forceImport(noxComputeProxyAddress, NoxComputeFactory, {
-        kind: "uups",
-    });
+    const newImplFactory = await ethers.getContractFactory(contractName);
 
     // Upgrade the proxy using the OpenZeppelin Upgrades plugin.
-    await api.upgradeProxy(noxComputeProxyAddress, NewImplFactory, {
+    // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
+    // This handles: storage layout validation, new implementation deployment,
+    // and calling upgradeToAndCall on the UUPS proxy.
+    await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
     });
-    const newImplementation = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
-    _log(`New implementation deployed at: ${newImplementation}`);
+    const implAddress = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
+    _log(`New implementation deployed at: ${implAddress}`);
     _log("NoxCompute proxy upgraded successfully");
 
-    return newImplementation as Address;
+    return implAddress as Address;
 }
 
 /**
@@ -78,8 +71,8 @@ async function _resolveProxyAddress(
         return noxCompute.address;
     }
 
-    const noxComputeProxyAddress = await readDeployedAddress("NoxCompute#proxy");
-    return noxComputeProxyAddress as Address;
+    const resolved = await readDeployedAddress("NoxCompute#proxy");
+    return resolved as Address;
 }
 
 // Execute the script only if run directly
