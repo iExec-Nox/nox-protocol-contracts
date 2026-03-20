@@ -79,4 +79,4 @@ The full text of the MIT License is provided in the LICENSE-MIT file.
 
 However, some files are dual licensed under `MIT`:
 
-- All files in `contracts/interfaces/`, `contracts/shared/`, `contracts/sdk/` may also be licensed under `MIT` (as indicated in their SPDX headers)
+- All files in `contracts/interfaces/`, `contracts/shared/`, `contracts/sdk/` may also be licensed under `MIT` (as indicated in their SPDX headers).
