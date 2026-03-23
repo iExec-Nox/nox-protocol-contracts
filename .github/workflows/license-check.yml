@@ -25,4 +25,4 @@ jobs:
       - run: pnpm install --frozen-lockfile
 
       - name: Check licenses
-        run: npx license-checker@25.0.1 --onlyAllow 'MIT;Apache-2.0;'
+        run: pnpm license-checker --onlyAllow 'MIT;Apache-2.0;' --excludePackages 'license-checker@25.0.1'
