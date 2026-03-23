@@ -19,10 +19,10 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v6
         with:
-          node-version: "20"
+          node-version-file: ".nvmrc"
 
-      - name: Install dependencies
-        run: corepack enable && pnpm install --frozen-lockfile
+      - run: corepack enable # Use package manager defined in package.json
+      - run: pnpm install --frozen-lockfile
 
       - name: Check licenses
         run: npx license-checker@25.0.1 --onlyAllow 'MIT;Apache-2.0;'
