@@ -10,10 +10,6 @@ import "encrypted-types/EncryptedTypes.sol";
  * @notice Library providing convenient functions for TEE confidential computations.
  */
 library Nox {
-    // ============ Errors ============
-
-    error UninitializedHandle();
-
     // ============ Address resolution ============
 
     /**
@@ -33,7 +29,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x6cC89dEd8c25E1460fa8408099C8Ab5b902D8b6B;
+            return 0x19EC071928B67fA0b46095c8B3EabA36aa4F280b;
         }
         revert("Nox: Unsupported chain");
     }
@@ -1080,101 +1076,63 @@ library Nox {
 
     // ============ Private helpers ============
 
-    function _assertInitialized(bytes32 handle) private pure {
-        // TODO remove this function and all related asserts and use
-        // default zero values offchain in runner (0, address(0), ...)
-        // when the handle is uninitialized (0x00...00).
-        require(handle != bytes32(0), UninitializedHandle());
-    }
-
     function _add(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().add(a, b);
     }
 
     function _sub(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().sub(a, b);
     }
 
     function _mul(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().mul(a, b);
     }
 
     function _div(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().div(a, b);
     }
 
     function _safeAdd(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().safeAdd(a, b);
     }
 
     function _safeSub(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().safeSub(a, b);
     }
 
     function _safeMul(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().safeMul(a, b);
     }
 
     function _safeDiv(bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().safeDiv(a, b);
     }
 
     function _select(bytes32 condition, bytes32 ifTrue, bytes32 ifFalse) private returns (bytes32) {
-        _assertInitialized(condition);
-        _assertInitialized(ifTrue);
-        _assertInitialized(ifFalse);
         return _noxComputeContract().select(condition, ifTrue, ifFalse);
     }
 
     function _eq(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().eq(a, b);
     }
 
     function _ne(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().ne(a, b);
     }
 
     function _lt(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().lt(a, b);
     }
 
     function _le(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().le(a, b);
     }
 
     function _gt(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().gt(a, b);
     }
 
     function _ge(bytes32 a, bytes32 b) private returns (bytes32) {
-        _assertInitialized(a);
-        _assertInitialized(b);
         return _noxComputeContract().ge(a, b);
     }
 
@@ -1183,9 +1141,6 @@ library Nox {
         bytes32 balanceTo,
         bytes32 amount
     ) private returns (bytes32, bytes32, bytes32) {
-        _assertInitialized(balanceFrom);
-        _assertInitialized(balanceTo);
-        _assertInitialized(amount);
         return _noxComputeContract().transfer(balanceFrom, balanceTo, amount);
     }
 
@@ -1194,9 +1149,6 @@ library Nox {
         bytes32 amount,
         bytes32 totalSupply
     ) private returns (bytes32, bytes32, bytes32) {
-        _assertInitialized(balanceTo);
-        _assertInitialized(amount);
-        _assertInitialized(totalSupply);
         return _noxComputeContract().mint(balanceTo, amount, totalSupply);
     }
 
@@ -1205,9 +1157,6 @@ library Nox {
         bytes32 amount,
         bytes32 totalSupply
     ) private returns (bytes32, bytes32, bytes32) {
-        _assertInitialized(balanceFrom);
-        _assertInitialized(amount);
-        _assertInitialized(totalSupply);
         return _noxComputeContract().burn(balanceFrom, amount, totalSupply);
     }
 }

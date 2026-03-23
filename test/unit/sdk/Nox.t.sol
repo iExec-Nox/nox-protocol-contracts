@@ -10,8 +10,7 @@ import {Nox} from "../../../contracts/sdk/Nox.sol";
 import {NoxMock} from "../../../contracts/mock/NoxMock.sol";
 
 // Note: these tests are here to make sure the library calls the correct
-// functions on the NoxCompute, and that the `isInitialized`
-// function works as expected. The actual logic of most functions is tested
+// functions on the NoxCompute. The actual logic of most functions is tested
 // in the NoxCompute tests, so we can keep these tests
 // relatively light.
 
@@ -105,26 +104,6 @@ contract NoxTest is Test {
         vm.chainId(9999);
         vm.expectRevert("Nox: Unsupported chain");
         noxMock.addEuint16(uint16HandleA, uint16HandleB);
-    }
-
-    // ============ isInitialized ============
-
-    function test_isInitialized_True() public view {
-        assertTrue(Nox.isInitialized(ebool.wrap(boolHandle)));
-        assertTrue(Nox.isInitialized(eaddress.wrap(addressHandle)));
-        assertTrue(Nox.isInitialized(euint16.wrap(uint16HandleA)));
-        assertTrue(Nox.isInitialized(euint256.wrap(uint256HandleA)));
-        assertTrue(Nox.isInitialized(eint16.wrap(int16HandleA)));
-        assertTrue(Nox.isInitialized(eint256.wrap(int256HandleA)));
-    }
-
-    function test_isInitialized_False() public pure {
-        assertFalse(Nox.isInitialized(ebool.wrap(0)));
-        assertFalse(Nox.isInitialized(eaddress.wrap(0)));
-        assertFalse(Nox.isInitialized(euint16.wrap(0)));
-        assertFalse(Nox.isInitialized(euint256.wrap(0)));
-        assertFalse(Nox.isInitialized(eint16.wrap(0)));
-        assertFalse(Nox.isInitialized(eint256.wrap(0)));
     }
 
     // ============ to<Type> ============
@@ -238,29 +217,6 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_add_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.addEint256(int256HandleA, bytes32(0));
-    }
-
     function test_sub() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -270,29 +226,6 @@ contract NoxTest is Test {
             bytes32 result = _noxSub(arithmeticA[i], arithmeticB[i]);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_sub_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.subEint256(int256HandleA, bytes32(0));
     }
 
     function test_mul() public {
@@ -306,29 +239,6 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_mul_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mulEint256(int256HandleA, bytes32(0));
-    }
-
     function test_div() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -338,29 +248,6 @@ contract NoxTest is Test {
             bytes32 result = _noxDiv(arithmeticA[i], arithmeticB[i]);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_div_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.divEint256(int256HandleA, bytes32(0));
     }
 
     // ============ Safe arithmetic primitives ============
@@ -377,29 +264,6 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_safeAdd_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeAddEint256(int256HandleA, bytes32(0));
-    }
-
     function test_safeSub() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -410,29 +274,6 @@ contract NoxTest is Test {
             assertNotEq(success, 0);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_safeSub_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeSubEint256(int256HandleA, bytes32(0));
     }
 
     function test_safeMul() public {
@@ -447,29 +288,6 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_safeMul_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeMulEint256(int256HandleA, bytes32(0));
-    }
-
     function test_safeDiv() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -480,29 +298,6 @@ contract NoxTest is Test {
             assertNotEq(success, 0);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_safeDiv_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.safeDivEint256(int256HandleA, bytes32(0));
     }
 
     // ============ select ============
@@ -518,37 +313,6 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_select_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEuint16(bytes32(0), uint16HandleA, uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEuint16(boolHandle, bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEuint16(boolHandle, uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEuint256(bytes32(0), uint256HandleA, uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEuint256(boolHandle, bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEuint256(boolHandle, uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEint16(bytes32(0), int16HandleA, int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEint16(boolHandle, bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEint16(boolHandle, int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEint256(bytes32(0), int256HandleA, int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEint256(boolHandle, bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.selectEint256(boolHandle, int256HandleA, bytes32(0));
-    }
-
     // ============ Comparison functions ============
 
     function test_Eq() public {
@@ -559,58 +323,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_Eq_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.eqEint256(int256HandleA, bytes32(0));
-    }
-
     function test_Ne() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             _expectCall(INoxCompute.ne.selector, arithmeticA[i], arithmeticB[i]);
             bytes32 result = _noxNe(arithmeticA[i], arithmeticB[i]);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_Ne_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.neEint256(int256HandleA, bytes32(0));
     }
 
     function test_Lt() public {
@@ -621,58 +339,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_Lt_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.ltEint256(int256HandleA, bytes32(0));
-    }
-
     function test_Le() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             _expectCall(INoxCompute.le.selector, arithmeticA[i], arithmeticB[i]);
             bytes32 result = _noxLe(arithmeticA[i], arithmeticB[i]);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_Le_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.leEint256(int256HandleA, bytes32(0));
     }
 
     function test_Gt() public {
@@ -683,58 +355,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_RevertWhen_Gt_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.gtEint256(int256HandleA, bytes32(0));
-    }
-
     function test_Ge() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             _expectCall(INoxCompute.ge.selector, arithmeticA[i], arithmeticB[i]);
             bytes32 result = _noxGe(arithmeticA[i], arithmeticB[i]);
             assertNotEq(result, 0);
         }
-    }
-
-    function test_RevertWhen_Ge_UninitializedHandle() public {
-        // uint16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEuint16(bytes32(0), uint16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEuint16(uint16HandleA, bytes32(0));
-        // uint256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEuint256(bytes32(0), uint256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEuint256(uint256HandleA, bytes32(0));
-        // int16
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEint16(bytes32(0), int16HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEint16(int16HandleA, bytes32(0));
-        // int256
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEint256(bytes32(0), int256HandleB);
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.geEint256(int256HandleA, bytes32(0));
     }
 
     // ============ Advanced functions ============
@@ -751,18 +377,6 @@ contract NoxTest is Test {
         );
     }
 
-    function test_RevertWhen_Transfer_UninitializedHandle() public {
-        // uninitialized balanceFrom
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.transfer(bytes32(0), uint256HandleB, uint256HandleC);
-        // uninitialized balanceTo
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.transfer(uint256HandleA, bytes32(0), uint256HandleC);
-        // uninitialized amount
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.transfer(uint256HandleA, uint256HandleB, bytes32(0));
-    }
-
     function test_Mint() public {
         vm.expectCall(
             noxCompute,
@@ -775,18 +389,6 @@ contract NoxTest is Test {
         );
     }
 
-    function test_RevertWhen_Mint_UninitializedHandle() public {
-        // uninitialized balanceTo
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mint(bytes32(0), uint256HandleB, uint256HandleC);
-        // uninitialized amount
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mint(uint256HandleA, bytes32(0), uint256HandleC);
-        // uninitialized totalSupply
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.mint(uint256HandleA, uint256HandleB, bytes32(0));
-    }
-
     function test_Burn() public {
         vm.expectCall(
             noxCompute,
@@ -797,18 +399,6 @@ contract NoxTest is Test {
             euint256.wrap(uint256HandleB),
             euint256.wrap(uint256HandleC)
         );
-    }
-
-    function test_RevertWhen_Burn_UninitializedHandle() public {
-        // uninitialized balanceFrom
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.burn(bytes32(0), uint256HandleB, uint256HandleC);
-        // uninitialized amount
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.burn(uint256HandleA, bytes32(0), uint256HandleC);
-        // uninitialized totalSupply
-        vm.expectRevert(Nox.UninitializedHandle.selector);
-        noxMock.burn(uint256HandleA, uint256HandleB, bytes32(0));
     }
 
     // ============ allow ============

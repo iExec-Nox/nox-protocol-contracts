@@ -107,9 +107,7 @@ contract ConfidentialTokenMock is IERC7984 {
             Nox.allowThis(ptr);
             _totalSupply = ptr;
         } else {
-            euint256 fromBalance = _balances[from];
-            require(Nox.isInitialized(fromBalance), ERC7984ZeroBalance(from));
-            (success, ptr) = Nox.safeSub(fromBalance, amount);
+            (success, ptr) = Nox.safeSub(_balances[from], amount);
             Nox.allowThis(ptr);
             Nox.allow(ptr, from);
             _balances[from] = ptr;
@@ -122,13 +120,7 @@ contract ConfidentialTokenMock is IERC7984 {
             Nox.allowThis(ptr);
             _totalSupply = ptr;
         } else {
-            euint256 toBalance = _balances[to];
-            if (!Nox.isInitialized(toBalance)) {
-                // If the recipient has no balance, we need to initialize it.
-                toBalance = Nox.toEuint256(0);
-                Nox.allowThis(toBalance);
-            }
-            ptr = Nox.add(toBalance, transferred);
+            ptr = Nox.add(_balances[to], transferred);
             Nox.allowThis(ptr);
             Nox.allow(ptr, to);
             _balances[to] = ptr;

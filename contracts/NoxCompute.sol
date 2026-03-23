@@ -321,7 +321,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, result) = _executeArithmeticOperation(Operator.Add, operands, false);
-        emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
+        emit Add(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -333,7 +333,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, result) = _executeArithmeticOperation(Operator.Sub, operands, false);
-        emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
+        emit Sub(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -342,7 +342,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = numerator;
         operands[1] = denominator;
         (, result) = _executeArithmeticOperation(Operator.Div, operands, false);
-        emit Div(msg.sender, numerator, denominator, result);
+        emit Div(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -354,7 +354,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, result) = _executeArithmeticOperation(Operator.Mul, operands, false);
-        emit Mul(msg.sender, leftHandOperand, rightHandOperand, result);
+        emit Mul(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -362,8 +362,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Eq, leftHandOperand, rightHandOperand);
-        emit Eq(msg.sender, leftHandOperand, rightHandOperand, result);
+        bytes32[] memory operands;
+        (operands, result) = _executeComparisonOperation(
+            Operator.Eq,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit Eq(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -371,8 +376,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Ne, leftHandOperand, rightHandOperand);
-        emit Ne(msg.sender, leftHandOperand, rightHandOperand, result);
+        bytes32[] memory operands;
+        (operands, result) = _executeComparisonOperation(
+            Operator.Ne,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit Ne(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -380,8 +390,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Lt, leftHandOperand, rightHandOperand);
-        emit Lt(msg.sender, leftHandOperand, rightHandOperand, result);
+        bytes32[] memory operands;
+        (operands, result) = _executeComparisonOperation(
+            Operator.Lt,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit Lt(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -389,8 +404,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Le, leftHandOperand, rightHandOperand);
-        emit Le(msg.sender, leftHandOperand, rightHandOperand, result);
+        bytes32[] memory operands;
+        (operands, result) = _executeComparisonOperation(
+            Operator.Le,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit Le(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -398,8 +418,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Gt, leftHandOperand, rightHandOperand);
-        emit Gt(msg.sender, leftHandOperand, rightHandOperand, result);
+        bytes32[] memory operands;
+        (operands, result) = _executeComparisonOperation(
+            Operator.Gt,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit Gt(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -407,8 +432,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Ge, leftHandOperand, rightHandOperand);
-        emit Ge(msg.sender, leftHandOperand, rightHandOperand, result);
+        bytes32[] memory operands;
+        (operands, result) = _executeComparisonOperation(
+            Operator.Ge,
+            leftHandOperand,
+            rightHandOperand
+        );
+        emit Ge(msg.sender, operands[0], operands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -420,7 +450,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
-        emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
+        emit SafeAdd(msg.sender, operands[0], operands[1], success, result);
     }
 
     /// @inheritdoc INoxCompute
@@ -432,7 +462,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
-        emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
+        emit SafeSub(msg.sender, operands[0], operands[1], success, result);
     }
 
     /// @inheritdoc INoxCompute
@@ -444,7 +474,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (success, result) = _executeArithmeticOperation(Operator.SafeMul, operands, true);
-        emit SafeMul(msg.sender, leftHandOperand, rightHandOperand, success, result);
+        emit SafeMul(msg.sender, operands[0], operands[1], success, result);
     }
 
     /// @inheritdoc INoxCompute
@@ -456,7 +486,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = numerator;
         operands[1] = denominator;
         (success, result) = _executeArithmeticOperation(Operator.SafeDiv, operands, true);
-        emit SafeDiv(msg.sender, numerator, denominator, success, result);
+        emit SafeDiv(msg.sender, operands[0], operands[1], success, result);
     }
 
     /// @inheritdoc INoxCompute
@@ -465,17 +495,26 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
+        // Resolve null condition separately (its type is always Bool)
+        if (condition == bytes32(0)) {
+            condition = TypeUtils.nullHandle(TEEType.Bool);
+        }
         require(TypeUtils.typeOf(condition) == TEEType.Bool, UnsupportedType());
-        TEEType resultType = TypeUtils.typeOf(ifTrue);
-        require(resultType == TypeUtils.typeOf(ifFalse), IncompatibleTypes());
+        // Resolve null ifTrue/ifFalse via operands array
+        bytes32[] memory valueOperands = new bytes32[](2);
+        valueOperands[0] = ifTrue;
+        valueOperands[1] = ifFalse;
+        TypeUtils.resolveNullOperands(valueOperands);
+        TEEType resultType = TypeUtils.typeOf(valueOperands[0]);
+        require(resultType == TypeUtils.typeOf(valueOperands[1]), IncompatibleTypes());
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = condition;
-        operands[1] = ifTrue;
-        operands[2] = ifFalse;
+        operands[1] = valueOperands[0];
+        operands[2] = valueOperands[1];
         validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(Operator.Select, operands, resultType);
         _allowTransient(result, msg.sender);
-        emit Select(msg.sender, condition, ifTrue, ifFalse, result);
+        emit Select(msg.sender, condition, valueOperands[0], valueOperands[1], result);
     }
 
     /// @inheritdoc INoxCompute
@@ -494,9 +533,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         );
         emit Transfer(
             msg.sender,
-            balanceFrom,
-            balanceTo,
-            amount,
+            operands[0],
+            operands[1],
+            operands[2],
             success,
             newBalanceFrom,
             newBalanceTo
@@ -519,9 +558,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         );
         emit Mint(
             msg.sender,
-            balanceTo,
-            amount,
-            totalSupply,
+            operands[0],
+            operands[1],
+            operands[2],
             success,
             newBalanceTo,
             newTotalSupply
@@ -544,9 +583,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         );
         emit Burn(
             msg.sender,
-            balanceFrom,
-            amount,
-            totalSupply,
+            operands[0],
+            operands[1],
+            operands[2],
             success,
             newBalanceFrom,
             newTotalSupply
@@ -576,6 +615,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands,
         bool isSafeOperation
     ) private returns (bytes32 success, bytes32 result) {
+        TypeUtils.resolveNullOperands(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
@@ -620,19 +660,21 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param operator The comparison operator to apply
      * @param leftOperand Left-hand side operand handle
      * @param rightOperand Right-hand side operand handle
+     * @return operands The resolved operand handles
      * @return result The resulting Bool handle
      */
     function _executeComparisonOperation(
         Operator operator,
         bytes32 leftOperand,
         bytes32 rightOperand
-    ) private returns (bytes32 result) {
-        TEEType operandType = TypeUtils.typeOf(leftOperand);
-        TypeUtils.validateArithmeticType(operandType);
-        require(TypeUtils.typeOf(rightOperand) == operandType, IncompatibleTypes());
-        bytes32[] memory operands = new bytes32[](2);
+    ) private returns (bytes32[] memory operands, bytes32 result) {
+        operands = new bytes32[](2);
         operands[0] = leftOperand;
         operands[1] = rightOperand;
+        TypeUtils.resolveNullOperands(operands);
+        TEEType operandType = TypeUtils.typeOf(operands[0]);
+        TypeUtils.validateArithmeticType(operandType);
+        require(TypeUtils.typeOf(operands[1]) == operandType, IncompatibleTypes());
         validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, TEEType.Bool);
         _allowTransient(result, msg.sender);
@@ -653,6 +695,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         Operator operator,
         bytes32[] memory operands
     ) private returns (bytes32 success, bytes32 result1, bytes32 result2) {
+        TypeUtils.resolveNullOperands(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {

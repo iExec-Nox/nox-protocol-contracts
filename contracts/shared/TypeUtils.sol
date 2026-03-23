@@ -113,6 +113,7 @@ enum TEEType {
 }
 
 error NonArithmeticType();
+error NullOperandsUnsupported();
 
 library TypeUtils {
     /// @dev Bit 0 of the attrs byte. When set, the handle is guaranteed unique on-chain.
@@ -148,5 +149,47 @@ library TypeUtils {
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
         require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
+    }
+
+    /**
+     * @notice Returns the null handle for the given TEE type on the current chain.
+     * The null handle represents the default zero value for a given type.
+     * It follows the standard handle format but with a zeroed pre-handle:
+     *   [0]=version(0x00)   [1-4]=chainId  [5]=teeType  [6]=attrs(0x00)  [7-31]=preHandle(0x00..00)
+     * @param teeType The TEE type to encode
+     * @return The typed null handle
+     */
+    function nullHandle(TEEType teeType) internal view returns (bytes32) {
+        return
+            (bytes32(bytes4(uint32(block.chainid))) >> (1 * 8)) |
+            (bytes32(bytes1(uint8(teeType))) >> (5 * 8));
+    }
+
+    /**
+     * @notice Replaces any `bytes32(0)` entries in `operands` with a typed null handle.
+     * The type is inferred from the first non-null operand.
+     * @param operands Array of operand handles (modified in-place)
+     */
+    function resolveNullOperands(bytes32[] memory operands) internal view {
+        bool hasNull = false;
+        TEEType resolvedType;
+        bool foundType = false;
+        for (uint256 i = 0; i < operands.length; i++) {
+            if (operands[i] == bytes32(0)) {
+                hasNull = true;
+            } else if (!foundType) {
+                resolvedType = typeOf(operands[i]);
+                foundType = true;
+            }
+        }
+        if (hasNull) {
+            require(foundType, NullOperandsUnsupported());
+            bytes32 nullH = nullHandle(resolvedType);
+            for (uint256 i = 0; i < operands.length; i++) {
+                if (operands[i] == bytes32(0)) {
+                    operands[i] = nullH;
+                }
+            }
+        }
     }
 }

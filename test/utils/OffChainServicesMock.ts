@@ -132,13 +132,26 @@ export class OffChainServices {
 
     /**
      * Simulates decryption.
+     * Typed null handles (bytes 7-31 all zeros) are treated as zero values.
      */
     decrypt(handle: `0x${string}`): bigint {
+        if (this._isNullHandle(handle)) {
+            return 0n;
+        }
         const value = this.handleToValueMap.get(handle);
         if (value === undefined) {
             throw new Error(`Handle not found: ${handle}`);
         }
         return value;
+    }
+
+    /**
+     * Checks if a handle is a typed null handle (pre-handle bytes 7-31 are all zeros).
+     */
+    private _isNullHandle(handle: `0x${string}`): boolean {
+        // Handle: [0]=version [1-4]=chainId [5]=type [6]=attrs [7-31]=preHandle
+        const preHandle = BigInt(`0x${handle.slice(16)}`);
+        return preHandle === 0n;
     }
 
     private _saveHandle(handle: `0x${string}`, value: bigint) {
