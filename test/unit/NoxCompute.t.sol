@@ -660,7 +660,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_RevertWhen_AllOperations_UnsupportedArithmeticType() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint8);
         bytes32 unsupportedTypeOperand = TestHelper.createHandle(TEEType.Uint8);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
         TestHelper.forceAllowPersistent(unsupportedTypeOperand, caller);
