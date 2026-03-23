@@ -9,7 +9,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils, NonArithmeticType} from "../../contracts/shared/TypeUtils.sol";
+import {
+    TEEType,
+    TypeUtils,
+    NonArithmeticType,
+    NullOperandsUnsupported
+} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {
@@ -984,6 +989,300 @@ contract NoxComputeTest is Test {
         noxCompute.burn(balanceFrom, amount, totalSupply);
     }
 
+    // ============ Null Handle Resolution ============
+
+    function _assertNullHandle(bytes32 h, TEEType expectedType) internal view {
+        assertEq(uint8(h[0]), 0, "Null handle: invalid version");
+        assertEq(
+            bytes4(h << (1 * 8)),
+            bytes4(uint32(block.chainid)),
+            "Null handle: invalid chainId"
+        );
+        assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Null handle: invalid type");
+        assertTrue(TypeUtils.isPublicHandle(h), "Null handle: should be public");
+        // Pre-handle (bytes 7-31) should be all zeros
+        assertEq(uint200(uint256(h)), 0, "Null handle: pre-handle should be zero");
+    }
+
+    function test_NullHandle_Format() public view {
+        bytes32 nullUint256 = TypeUtils.nullHandle(TEEType.Uint256);
+        _assertNullHandle(nullUint256, TEEType.Uint256);
+
+        bytes32 nullBool = TypeUtils.nullHandle(TEEType.Bool);
+        _assertNullHandle(nullBool, TEEType.Bool);
+
+        bytes32 nullInt16 = TypeUtils.nullHandle(TEEType.Int16);
+        _assertNullHandle(nullInt16, TEEType.Int16);
+    }
+
+    function test_NullHandle_ArithmeticOperations() public {
+        bytes32 validHandle = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(validHandle, caller);
+        bytes32 nullH = TypeUtils.nullHandle(TEEType.Uint256);
+
+        for (uint256 i = 0; i < arithmeticOps.length; i++) {
+            // Left operand is null
+            vm.expectEmit(true, false, false, false);
+            _emitArithmeticEvent(arithmeticOps[i], nullH, validHandle);
+            vm.prank(caller);
+            bytes32 result = _callOperation(arithmeticOps[i], bytes32(0), validHandle);
+            _assertValidHandle(result, TEEType.Uint256);
+
+            // Right operand is null
+            vm.expectEmit(true, false, false, false);
+            _emitArithmeticEvent(arithmeticOps[i], validHandle, nullH);
+            vm.prank(caller);
+            result = _callOperation(arithmeticOps[i], validHandle, bytes32(0));
+            _assertValidHandle(result, TEEType.Uint256);
+        }
+    }
+
+    function test_NullHandle_ComparisonOperations() public {
+        bytes32 validHandle = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(validHandle, caller);
+        bytes32 nullH = TypeUtils.nullHandle(TEEType.Uint256);
+
+        for (uint256 i = 0; i < comparisonOps.length; i++) {
+            // Left operand is null
+            vm.expectEmit(true, false, false, false);
+            _emitComparisonEvent(comparisonOps[i], nullH, validHandle);
+            vm.prank(caller);
+            bytes32 result = _callOperation(comparisonOps[i], bytes32(0), validHandle);
+            _assertValidHandle(result, TEEType.Bool);
+
+            // Right operand is null
+            vm.expectEmit(true, false, false, false);
+            _emitComparisonEvent(comparisonOps[i], validHandle, nullH);
+            vm.prank(caller);
+            result = _callOperation(comparisonOps[i], validHandle, bytes32(0));
+            _assertValidHandle(result, TEEType.Bool);
+        }
+    }
+
+    function test_NullHandle_SafeArithmeticOperations() public {
+        bytes32 validHandle = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(validHandle, caller);
+        bytes32 nullH = TypeUtils.nullHandle(TEEType.Uint256);
+
+        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+            // Left operand is null
+            vm.expectEmit(true, false, false, false);
+            _emitSafeArithmeticEvent(safeArithmeticOps[i], nullH, validHandle);
+            vm.prank(caller);
+            (bytes32 success, bytes32 result) = _callSafeArithmeticOperation(
+                safeArithmeticOps[i],
+                bytes32(0),
+                validHandle
+            );
+            _assertValidHandle(success, TEEType.Bool);
+            _assertValidHandle(result, TEEType.Uint256);
+
+            // Right operand is null
+            vm.expectEmit(true, false, false, false);
+            _emitSafeArithmeticEvent(safeArithmeticOps[i], validHandle, nullH);
+            vm.prank(caller);
+            (success, result) = _callSafeArithmeticOperation(
+                safeArithmeticOps[i],
+                validHandle,
+                bytes32(0)
+            );
+            _assertValidHandle(success, TEEType.Bool);
+            _assertValidHandle(result, TEEType.Uint256);
+        }
+    }
+
+    function test_NullHandle_Select() public {
+        bytes32 condition = TestHelper.createHandle(TEEType.Bool);
+        bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(condition, caller);
+        TestHelper.forceAllowPersistent(ifTrue, caller);
+        TestHelper.forceAllowPersistent(ifFalse, caller);
+        bytes32 nullBool = TypeUtils.nullHandle(TEEType.Bool);
+        bytes32 nullUint256 = TypeUtils.nullHandle(TEEType.Uint256);
+
+        // Null condition
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Select(caller, nullBool, ifTrue, ifFalse, bytes32(0));
+        vm.prank(caller);
+        bytes32 result = noxCompute.select(bytes32(0), ifTrue, ifFalse);
+        _assertValidHandle(result, TEEType.Uint256);
+
+        // Null ifTrue
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Select(caller, condition, nullUint256, ifFalse, bytes32(0));
+        vm.prank(caller);
+        result = noxCompute.select(condition, bytes32(0), ifFalse);
+        _assertValidHandle(result, TEEType.Uint256);
+
+        // Null ifFalse
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Select(caller, condition, ifTrue, nullUint256, bytes32(0));
+        vm.prank(caller);
+        result = noxCompute.select(condition, ifTrue, bytes32(0));
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    function test_NullHandle_Transfer() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(balanceFrom, caller);
+        TestHelper.forceAllowPersistent(balanceTo, caller);
+        TestHelper.forceAllowPersistent(amount, caller);
+        bytes32 nullH = TypeUtils.nullHandle(TEEType.Uint256);
+
+        // Null balanceFrom
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Transfer(
+            caller,
+            nullH,
+            balanceTo,
+            amount,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        vm.prank(caller);
+        (bytes32 s, bytes32 r1, bytes32 r2) = noxCompute.transfer(bytes32(0), balanceTo, amount);
+        _assertValidHandle(s, TEEType.Bool);
+        _assertValidHandle(r1, TEEType.Uint256);
+        _assertValidHandle(r2, TEEType.Uint256);
+
+        // Null balanceTo
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Transfer(
+            caller,
+            balanceFrom,
+            nullH,
+            amount,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        vm.prank(caller);
+        (s, r1, r2) = noxCompute.transfer(balanceFrom, bytes32(0), amount);
+        _assertValidHandle(s, TEEType.Bool);
+        _assertValidHandle(r1, TEEType.Uint256);
+        _assertValidHandle(r2, TEEType.Uint256);
+    }
+
+    function test_NullHandle_Mint() public {
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(balanceTo, caller);
+        TestHelper.forceAllowPersistent(amount, caller);
+        TestHelper.forceAllowPersistent(totalSupply, caller);
+        bytes32 nullH = TypeUtils.nullHandle(TEEType.Uint256);
+
+        // Null balanceTo
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Mint(
+            caller,
+            nullH,
+            amount,
+            totalSupply,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        vm.prank(caller);
+        (bytes32 s, bytes32 r1, bytes32 r2) = noxCompute.mint(bytes32(0), amount, totalSupply);
+        _assertValidHandle(s, TEEType.Bool);
+        _assertValidHandle(r1, TEEType.Uint256);
+        _assertValidHandle(r2, TEEType.Uint256);
+
+        // Null totalSupply
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Mint(caller, balanceTo, amount, nullH, bytes32(0), bytes32(0), bytes32(0));
+        vm.prank(caller);
+        (s, r1, r2) = noxCompute.mint(balanceTo, amount, bytes32(0));
+        _assertValidHandle(s, TEEType.Bool);
+        _assertValidHandle(r1, TEEType.Uint256);
+        _assertValidHandle(r2, TEEType.Uint256);
+    }
+
+    function test_NullHandle_Burn() public {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(balanceFrom, caller);
+        TestHelper.forceAllowPersistent(amount, caller);
+        TestHelper.forceAllowPersistent(totalSupply, caller);
+        bytes32 nullH = TypeUtils.nullHandle(TEEType.Uint256);
+
+        // Null balanceFrom
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Burn(
+            caller,
+            nullH,
+            amount,
+            totalSupply,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        vm.prank(caller);
+        (bytes32 s, bytes32 r1, bytes32 r2) = noxCompute.burn(bytes32(0), amount, totalSupply);
+        _assertValidHandle(s, TEEType.Bool);
+        _assertValidHandle(r1, TEEType.Uint256);
+        _assertValidHandle(r2, TEEType.Uint256);
+
+        // Null totalSupply
+        vm.expectEmit(true, false, false, false);
+        emit INoxCompute.Burn(
+            caller,
+            balanceFrom,
+            amount,
+            nullH,
+            bytes32(0),
+            bytes32(0),
+            bytes32(0)
+        );
+        vm.prank(caller);
+        (s, r1, r2) = noxCompute.burn(balanceFrom, amount, bytes32(0));
+        _assertValidHandle(s, TEEType.Bool);
+        _assertValidHandle(r1, TEEType.Uint256);
+        _assertValidHandle(r2, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_AllOperandsNull_Arithmetic() public {
+        for (uint256 i = 0; i < arithmeticOps.length; i++) {
+            vm.prank(caller);
+            vm.expectRevert(NullOperandsUnsupported.selector);
+            _callOperation(arithmeticOps[i], bytes32(0), bytes32(0));
+        }
+    }
+
+    function test_RevertWhen_AllOperandsNull_Comparison() public {
+        for (uint256 i = 0; i < comparisonOps.length; i++) {
+            vm.prank(caller);
+            vm.expectRevert(NullOperandsUnsupported.selector);
+            _callOperation(comparisonOps[i], bytes32(0), bytes32(0));
+        }
+    }
+
+    function test_RevertWhen_AllOperandsNull_SafeArithmetic() public {
+        for (uint256 i = 0; i < safeArithmeticOps.length; i++) {
+            vm.prank(caller);
+            vm.expectRevert(NullOperandsUnsupported.selector);
+            _callSafeArithmeticOperation(safeArithmeticOps[i], bytes32(0), bytes32(0));
+        }
+    }
+
+    function test_RevertWhen_AllOperandsNull_Composite() public {
+        vm.prank(caller);
+        vm.expectRevert(NullOperandsUnsupported.selector);
+        noxCompute.transfer(bytes32(0), bytes32(0), bytes32(0));
+        vm.prank(caller);
+        vm.expectRevert(NullOperandsUnsupported.selector);
+        noxCompute.mint(bytes32(0), bytes32(0), bytes32(0));
+        vm.prank(caller);
+        vm.expectRevert(NullOperandsUnsupported.selector);
+        noxCompute.burn(bytes32(0), bytes32(0), bytes32(0));
+    }
+
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
@@ -1033,6 +1332,52 @@ contract NoxComputeTest is Test {
         } else {
             assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqueHandle=1");
             assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
+        }
+    }
+
+    function _emitArithmeticEvent(bytes4 selector, bytes32 lhs, bytes32 rhs) internal {
+        if (selector == INoxCompute.add.selector) {
+            emit INoxCompute.Add(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.sub.selector) {
+            emit INoxCompute.Sub(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.mul.selector) {
+            emit INoxCompute.Mul(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.div.selector) {
+            emit INoxCompute.Div(caller, lhs, rhs, bytes32(0));
+        } else {
+            revert("Not implemented");
+        }
+    }
+
+    function _emitComparisonEvent(bytes4 selector, bytes32 lhs, bytes32 rhs) internal {
+        if (selector == INoxCompute.eq.selector) {
+            emit INoxCompute.Eq(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.ne.selector) {
+            emit INoxCompute.Ne(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.lt.selector) {
+            emit INoxCompute.Lt(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.le.selector) {
+            emit INoxCompute.Le(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.gt.selector) {
+            emit INoxCompute.Gt(caller, lhs, rhs, bytes32(0));
+        } else if (selector == INoxCompute.ge.selector) {
+            emit INoxCompute.Ge(caller, lhs, rhs, bytes32(0));
+        } else {
+            revert("Not implemented");
+        }
+    }
+
+    function _emitSafeArithmeticEvent(bytes4 selector, bytes32 lhs, bytes32 rhs) internal {
+        if (selector == INoxCompute.safeAdd.selector) {
+            emit INoxCompute.SafeAdd(caller, lhs, rhs, bytes32(0), bytes32(0));
+        } else if (selector == INoxCompute.safeSub.selector) {
+            emit INoxCompute.SafeSub(caller, lhs, rhs, bytes32(0), bytes32(0));
+        } else if (selector == INoxCompute.safeMul.selector) {
+            emit INoxCompute.SafeMul(caller, lhs, rhs, bytes32(0), bytes32(0));
+        } else if (selector == INoxCompute.safeDiv.selector) {
+            emit INoxCompute.SafeDiv(caller, lhs, rhs, bytes32(0), bytes32(0));
+        } else {
+            revert("Not implemented");
         }
     }
 
