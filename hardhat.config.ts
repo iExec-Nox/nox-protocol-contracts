@@ -3,9 +3,10 @@ import openzeppelinUpgradesPlugin from "@openzeppelin/hardhat-upgrades";
 import { proxyFilesToBuild } from "@openzeppelin/hardhat-upgrades";
 import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
+import solc from "./.solc.json";
 
 const baseProfile = {
-    version: "0.8.34",
+    version: solc.version,
     settings: {
         evmVersion: "osaka",
         metadata: {

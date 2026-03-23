@@ -51,11 +51,15 @@ jobs:
           token: ${{ secrets.CODECOV_TOKEN }}
           slug: ${{ github.repository }}
 
+      - name: Get Solc version
+        id: get-solc-version
+        run: echo "version=$(cat .solc.json | jq -r .version)" >> $GITHUB_OUTPUT
+
       - name: Run static analysis with Slither
         uses: crytic/slither-action@v0.4.1
         with:
           target: "contracts/"
-          solc-version: "0.8.28"
+          solc-version: ${{ steps.get-solc-version.outputs.version }}
           slither-args: >
             --checklist
             --markdown-root ${{ github.server_url }}/${{ github.repository }}/blob/${{ github.sha }}/
