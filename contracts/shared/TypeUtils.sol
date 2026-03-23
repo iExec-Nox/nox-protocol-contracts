@@ -113,6 +113,7 @@ enum TEEType {
 }
 
 error NonArithmeticType();
+error UnsupportedArithmeticType();
 
 library TypeUtils {
     /// @dev Bit 0 of the attrs byte. When set, the handle is guaranteed unique on-chain.
@@ -141,12 +142,22 @@ library TypeUtils {
 
     /**
      * @notice Validates that a TEE type is supported for arithmetic operations.
-     * Only unsigned integers (Uint8-Uint256) and signed integers (Int8-Int256) are supported.
-     * Reverts with NonArithmeticType if the type is not arithmetic.
+     * Only the following arithmetic types are supported:
+     *  - uint16
+     *  - uint256
+     *  - int16
+     *  - int256
      * @param teeType The TEE type to validate
+     * @dev Reverts with NonArithmeticType when the type is not an arithmetic type.
+     * @dev Reverts with UnsupportedArithmeticType when the type is not supported.
      */
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
         require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
+        bool supportedType = teeType == TEEType.Uint16 ||
+            teeType == TEEType.Uint256 ||
+            teeType == TEEType.Int16 ||
+            teeType == TEEType.Int256;
+        require(supportedType, UnsupportedArithmeticType());
     }
 }

@@ -9,7 +9,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils, NonArithmeticType} from "../../contracts/shared/TypeUtils.sol";
+import {
+    TEEType,
+    TypeUtils,
+    NonArithmeticType,
+    UnsupportedArithmeticType
+} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {
@@ -439,6 +444,7 @@ contract NoxComputeTest is Test {
         vm.prank(app);
         noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
+
     // ============ validateDecryptionProof ============
 
     function test_ValidateDecryptionProof() public {
@@ -650,6 +656,19 @@ contract NoxComputeTest is Test {
             vm.prank(caller);
             vm.expectRevert(NonArithmeticType.selector);
             _callOperation(allOps[i], leftHandOperand, rightHandOperand);
+        }
+    }
+
+    function test_RevertWhen_AllOperations_UnsupportedArithmeticType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 unsupportedTypeOperand = TestHelper.createHandle(TEEType.Uint8);
+        TestHelper.forceAllowPersistent(leftHandOperand, caller);
+        TestHelper.forceAllowPersistent(unsupportedTypeOperand, caller);
+
+        for (uint256 i = 0; i < allOps.length; i++) {
+            vm.prank(caller);
+            vm.expectRevert(UnsupportedArithmeticType.selector);
+            _callOperation(allOps[i], leftHandOperand, unsupportedTypeOperand);
         }
     }
 
