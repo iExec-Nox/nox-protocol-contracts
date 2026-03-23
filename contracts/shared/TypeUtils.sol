@@ -171,24 +171,24 @@ library TypeUtils {
      * @param operands Array of operand handles (modified in-place)
      */
     function resolveNullOperands(bytes32[] memory operands) internal view {
-        bool hasNull = false;
+        // Find the type from the first non-null operand
         TEEType resolvedType;
         bool foundType = false;
         for (uint256 i = 0; i < operands.length; i++) {
-            if (operands[i] == bytes32(0)) {
-                hasNull = true;
-            } else if (!foundType) {
+            if (operands[i] != bytes32(0)) {
                 resolvedType = typeOf(operands[i]);
                 foundType = true;
+                break;
             }
         }
-        if (hasNull) {
-            require(foundType, NullOperandsUnsupported());
-            bytes32 nullH = nullHandle(resolvedType);
-            for (uint256 i = 0; i < operands.length; i++) {
-                if (operands[i] == bytes32(0)) {
-                    operands[i] = nullH;
-                }
+        if (!foundType) {
+            revert NullOperandsUnsupported();
+        }
+        // Replace null operands with the typed null handle
+        bytes32 nullH = nullHandle(resolvedType);
+        for (uint256 i = 0; i < operands.length; i++) {
+            if (operands[i] == bytes32(0)) {
+                operands[i] = nullH;
             }
         }
     }

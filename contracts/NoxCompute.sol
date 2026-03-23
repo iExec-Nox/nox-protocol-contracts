@@ -320,6 +320,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
         (, result) = _executeArithmeticOperation(Operator.Add, operands, false);
         emit Add(msg.sender, operands[0], operands[1], result);
     }
@@ -332,6 +333,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
         (, result) = _executeArithmeticOperation(Operator.Sub, operands, false);
         emit Sub(msg.sender, operands[0], operands[1], result);
     }
@@ -341,6 +343,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
+        TypeUtils.resolveNullOperands(operands);
         (, result) = _executeArithmeticOperation(Operator.Div, operands, false);
         emit Div(msg.sender, operands[0], operands[1], result);
     }
@@ -353,6 +356,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
         (, result) = _executeArithmeticOperation(Operator.Mul, operands, false);
         emit Mul(msg.sender, operands[0], operands[1], result);
     }
@@ -362,12 +366,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands;
-        (operands, result) = _executeComparisonOperation(
-            Operator.Eq,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
+        result = _executeComparisonOperation(Operator.Eq, operands);
         emit Eq(msg.sender, operands[0], operands[1], result);
     }
 
@@ -376,12 +379,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands;
-        (operands, result) = _executeComparisonOperation(
-            Operator.Ne,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
+        result = _executeComparisonOperation(Operator.Ne, operands);
         emit Ne(msg.sender, operands[0], operands[1], result);
     }
 
@@ -390,12 +392,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands;
-        (operands, result) = _executeComparisonOperation(
-            Operator.Lt,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
+        result = _executeComparisonOperation(Operator.Lt, operands);
         emit Lt(msg.sender, operands[0], operands[1], result);
     }
 
@@ -404,12 +405,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands;
-        (operands, result) = _executeComparisonOperation(
-            Operator.Le,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
+        result = _executeComparisonOperation(Operator.Le, operands);
         emit Le(msg.sender, operands[0], operands[1], result);
     }
 
@@ -418,12 +418,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands;
-        (operands, result) = _executeComparisonOperation(
-            Operator.Gt,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
+        result = _executeComparisonOperation(Operator.Gt, operands);
         emit Gt(msg.sender, operands[0], operands[1], result);
     }
 
@@ -432,12 +431,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        bytes32[] memory operands;
-        (operands, result) = _executeComparisonOperation(
-            Operator.Ge,
-            leftHandOperand,
-            rightHandOperand
-        );
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
+        result = _executeComparisonOperation(Operator.Ge, operands);
         emit Ge(msg.sender, operands[0], operands[1], result);
     }
 
@@ -449,6 +447,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
         (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
         emit SafeAdd(msg.sender, operands[0], operands[1], success, result);
     }
@@ -461,6 +460,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
         (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
         emit SafeSub(msg.sender, operands[0], operands[1], success, result);
     }
@@ -473,6 +473,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
+        TypeUtils.resolveNullOperands(operands);
         (success, result) = _executeArithmeticOperation(Operator.SafeMul, operands, true);
         emit SafeMul(msg.sender, operands[0], operands[1], success, result);
     }
@@ -485,6 +486,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
+        TypeUtils.resolveNullOperands(operands);
         (success, result) = _executeArithmeticOperation(Operator.SafeDiv, operands, true);
         emit SafeDiv(msg.sender, operands[0], operands[1], success, result);
     }
@@ -495,12 +497,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
-        // Resolve null condition separately (its type is always Bool)
         if (condition == bytes32(0)) {
             condition = TypeUtils.nullHandle(TEEType.Bool);
         }
         require(TypeUtils.typeOf(condition) == TEEType.Bool, UnsupportedType());
-        // Resolve null ifTrue/ifFalse via operands array
         bytes32[] memory valueOperands = new bytes32[](2);
         valueOperands[0] = ifTrue;
         valueOperands[1] = ifFalse;
@@ -527,6 +527,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = balanceFrom;
         operands[1] = balanceTo;
         operands[2] = amount;
+        TypeUtils.resolveNullOperands(operands);
         (success, newBalanceFrom, newBalanceTo) = _executeCompositeOperation(
             Operator.Transfer,
             operands
@@ -552,6 +553,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = balanceTo;
         operands[1] = amount;
         operands[2] = totalSupply;
+        TypeUtils.resolveNullOperands(operands);
         (success, newBalanceTo, newTotalSupply) = _executeCompositeOperation(
             Operator.Mint,
             operands
@@ -577,6 +579,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = balanceFrom;
         operands[1] = amount;
         operands[2] = totalSupply;
+        TypeUtils.resolveNullOperands(operands);
         (success, newBalanceFrom, newTotalSupply) = _executeCompositeOperation(
             Operator.Burn,
             operands
@@ -615,7 +618,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands,
         bool isSafeOperation
     ) private returns (bytes32 success, bytes32 result) {
-        TypeUtils.resolveNullOperands(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
@@ -658,20 +660,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @dev Reverts with IncompatibleTypes if operand types don't match
      *
      * @param operator The comparison operator to apply
-     * @param leftOperand Left-hand side operand handle
-     * @param rightOperand Right-hand side operand handle
-     * @return operands The resolved operand handles
+     * @param operands Array of 2 operand handles (already resolved)
      * @return result The resulting Bool handle
      */
     function _executeComparisonOperation(
         Operator operator,
-        bytes32 leftOperand,
-        bytes32 rightOperand
-    ) private returns (bytes32[] memory operands, bytes32 result) {
-        operands = new bytes32[](2);
-        operands[0] = leftOperand;
-        operands[1] = rightOperand;
-        TypeUtils.resolveNullOperands(operands);
+        bytes32[] memory operands
+    ) private returns (bytes32 result) {
         TEEType operandType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(operandType);
         require(TypeUtils.typeOf(operands[1]) == operandType, IncompatibleTypes());
@@ -695,7 +690,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         Operator operator,
         bytes32[] memory operands
     ) private returns (bytes32 success, bytes32 result1, bytes32 result2) {
-        TypeUtils.resolveNullOperands(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
