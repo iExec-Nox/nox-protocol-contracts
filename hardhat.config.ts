@@ -3,7 +3,7 @@ import openzeppelinUpgradesPlugin from "@openzeppelin/hardhat-upgrades";
 import { proxyFilesToBuild } from "@openzeppelin/hardhat-upgrades";
 import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
-import solc from "./.solc.json";
+import solc from "./.solc.json" with { type: "json" };
 
 const baseProfile = {
     version: solc.version,
