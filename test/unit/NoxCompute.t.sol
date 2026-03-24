@@ -78,7 +78,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        noxCompute.initialize(owner, vm.randomBytes(33));
+        noxCompute.initialize(owner, abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key")));
     }
 
     function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
@@ -92,7 +92,7 @@ contract NoxComputeTest is Test {
 
     function test_SetKmsPublicKey() public {
         // 33-byte compressed SEC1 secp256k1 public key
-        bytes memory newKey = vm.randomBytes(33);
+        bytes memory newKey = abi.encodePacked(bytes1(0x02), keccak256("new-kms-key"));
         vm.prank(owner);
         vm.expectEmit();
         emit INoxCompute.KmsPublicKeyUpdated(newKey);
@@ -102,7 +102,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_SetKmsPublicKey_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        bytes memory newKey = vm.randomBytes(33);
+        bytes memory newKey = abi.encodePacked(bytes1(0x02), keccak256("unauthorized-kms-key"));
         vm.expectRevert(
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,

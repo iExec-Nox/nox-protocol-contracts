@@ -368,22 +368,22 @@ contract NoxComputeACLTest is Test {
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    function test_PublicHandle_IsAllowed_ReturnsTrue() public view {
+    function test_PublicHandle_IsAllowed_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
     }
 
-    function test_PublicHandle_IsViewer_ReturnsTrue() public view {
+    function test_PublicHandle_IsViewer_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
     }
 
-    function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public view {
+    function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public view {
+    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public {
         bytes32 pub1 = TestHelper.createPublicHandle(TEEType.Uint256);
         bytes32 pub2 = TestHelper.createPublicHandle(TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](2);
