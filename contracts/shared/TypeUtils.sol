@@ -149,4 +149,18 @@ library TypeUtils {
         uint8 t = uint8(teeType);
         require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
     }
+
+    /**
+     * @notice Returns the null handle for the given TEE type on the current chain.
+     * The null handle represents the default zero value for a given type.
+     * It follows the standard handle format but with a zeroed pre-handle:
+     *   [0]=version(0x00)  [1-4]=chainId  [5]=teeType  [6]=attrs(0x00)  [7-31]=0x00..00
+     * @param teeType The TEE type to encode
+     * @return The typed null handle
+     */
+    function nullHandle(TEEType teeType) internal view returns (bytes32) {
+        return
+            (bytes32(bytes4(uint32(block.chainid))) >> (1 * 8)) |
+            (bytes32(bytes1(uint8(teeType))) >> (5 * 8));
+    }
 }

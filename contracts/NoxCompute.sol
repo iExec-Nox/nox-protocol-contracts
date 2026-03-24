@@ -465,6 +465,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
+        require(
+            condition != bytes32(0) && ifTrue != bytes32(0) && ifFalse != bytes32(0),
+            UndefinedHandle()
+        );
         require(TypeUtils.typeOf(condition) == TEEType.Bool, UnsupportedType());
         TEEType resultType = TypeUtils.typeOf(ifTrue);
         require(resultType == TypeUtils.typeOf(ifFalse), IncompatibleTypes());
@@ -571,11 +575,21 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
      * @return result The resulting encrypted handle
      */
+    /**
+     * Reverts if any operand is bytes32(0) (undefined handle).
+     */
+    function _requireDefined(bytes32[] memory operands) private pure {
+        for (uint256 i = 0; i < operands.length; i++) {
+            require(operands[i] != bytes32(0), UndefinedHandle());
+        }
+    }
+
     function _executeArithmeticOperation(
         Operator operator,
         bytes32[] memory operands,
         bool isSafeOperation
     ) private returns (bytes32 success, bytes32 result) {
+        _requireDefined(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
@@ -627,6 +641,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftOperand,
         bytes32 rightOperand
     ) private returns (bytes32 result) {
+        require(leftOperand != bytes32(0) && rightOperand != bytes32(0), UndefinedHandle());
         TEEType operandType = TypeUtils.typeOf(leftOperand);
         TypeUtils.validateArithmeticType(operandType);
         require(TypeUtils.typeOf(rightOperand) == operandType, IncompatibleTypes());
@@ -653,6 +668,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         Operator operator,
         bytes32[] memory operands
     ) private returns (bytes32 success, bytes32 result1, bytes32 result2) {
+        _requireDefined(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
         for (uint256 i = 1; i < operands.length; i++) {
