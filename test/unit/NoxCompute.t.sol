@@ -257,6 +257,9 @@ contract NoxComputeTest is Test {
     // ============ validateInputProof ============
 
     function test_ValidateProof() public {
+        this._test_ValidateProof();
+    }
+    function _test_ValidateProof() external {
         address app = makeAddr("app");
         bytes memory proof = TestHelper.buildInputProof(
             address(noxCompute),
@@ -377,6 +380,9 @@ contract NoxComputeTest is Test {
     }
 
     function test_ValidateProof_NotExpiredWhenWithinDuration() public {
+        this._test_ValidateProof_NotExpiredWhenWithinDuration();
+    }
+    function _test_ValidateProof_NotExpiredWhenWithinDuration() external {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
@@ -398,6 +404,9 @@ contract NoxComputeTest is Test {
     }
 
     function test_ValidateProof_NotExpiredAtExactBoundary() public {
+        this._test_ValidateProof_NotExpiredAtExactBoundary();
+    }
+    function _test_ValidateProof_NotExpiredAtExactBoundary() external {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
@@ -485,6 +494,9 @@ contract NoxComputeTest is Test {
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
     function test_ArithmeticOperations() public {
+        this._test_ArithmeticOperations();
+    }
+    function _test_ArithmeticOperations() external {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
@@ -512,6 +524,9 @@ contract NoxComputeTest is Test {
     // ============ Comparison Operations (eq, ne, lt, le, gt, ge) ============
 
     function test_ComparisonOperations() public {
+        this._test_ComparisonOperations();
+    }
+    function _test_ComparisonOperations() external {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
@@ -543,6 +558,9 @@ contract NoxComputeTest is Test {
     // ============ Safe Arithmetic Operations (safeAdd, safeSub) ============
 
     function test_SafeArithmeticOperations() public {
+        this._test_SafeArithmeticOperations();
+    }
+    function _test_SafeArithmeticOperations() external {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
@@ -656,6 +674,9 @@ contract NoxComputeTest is Test {
     // ============ select ============
 
     function test_Select() public {
+        this._test_Select();
+    }
+    function _test_Select() external {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
@@ -736,6 +757,9 @@ contract NoxComputeTest is Test {
     // ============ Transfer Tests ============
 
     function test_Transfer() public {
+        this._test_Transfer();
+    }
+    function _test_Transfer() external {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
@@ -819,6 +843,9 @@ contract NoxComputeTest is Test {
     // ============ Mint Tests ============
 
     function test_Mint() public {
+        this._test_Mint();
+    }
+    function _test_Mint() external {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
@@ -902,6 +929,9 @@ contract NoxComputeTest is Test {
     // ============ Burn Tests ============
 
     function test_Burn() public {
+        this._test_Burn();
+    }
+    function _test_Burn() external {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);

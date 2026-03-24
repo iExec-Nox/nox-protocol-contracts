@@ -51,6 +51,9 @@ contract NoxComputeACLTest is Test {
     }
 
     function test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() public {
+        this._test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess();
+    }
+    function _test_AllowPublicDecryption_SucceedsWhenUserHasTransientAccess() external {
         // Setup: grant user1 transient access to handle
         TestHelper.forceAllowTransient(handle, user1);
 
@@ -79,6 +82,9 @@ contract NoxComputeACLTest is Test {
     // ============ allow ============
 
     function test_Allow_SucceedsAfterTransientAccess() public {
+        this._test_Allow_SucceedsAfterTransientAccess();
+    }
+    function _test_Allow_SucceedsAfterTransientAccess() external {
         // NoxCompute grants transient access to user1
         TestHelper.forceAllowTransient(handle, user1);
 
@@ -116,6 +122,9 @@ contract NoxComputeACLTest is Test {
     }
 
     function test_Allow_RevertWhen_InvalidZeroAddress() public {
+        this._test_Allow_RevertWhen_InvalidZeroAddress();
+    }
+    function _test_Allow_RevertWhen_InvalidZeroAddress() external {
         // First grant access to user1
         TestHelper.forceAllowTransient(handle, user1);
 
@@ -170,6 +179,9 @@ contract NoxComputeACLTest is Test {
     }
 
     function test_AddViewer_RevertWhen_InvalidZeroAddress() public {
+        this._test_AddViewer_RevertWhen_InvalidZeroAddress();
+    }
+    function _test_AddViewer_RevertWhen_InvalidZeroAddress() external {
         // First grant access to user1
         TestHelper.forceAllowTransient(handle, user1);
 
@@ -206,6 +218,9 @@ contract NoxComputeACLTest is Test {
     // ============ disallowTransient ============
 
     function test_DisallowTransient() public {
+        this._test_DisallowTransient();
+    }
+    function _test_DisallowTransient() external {
         // Grant transient + persistent access so user1 can call disallowTransient
         TestHelper.forceAllowPersistent(handle, user1);
         TestHelper.forceAllowTransient(handle, user2);
@@ -218,6 +233,9 @@ contract NoxComputeACLTest is Test {
     }
 
     function test_DisallowTransient_PreservesPersistentAccess() public {
+        this._test_DisallowTransient_PreservesPersistentAccess();
+    }
+    function _test_DisallowTransient_PreservesPersistentAccess() external {
         // forceAllowTransient clears persistent, so re-grant it after
         TestHelper.forceAllowTransient(handle, user1);
         TestHelper.forceAllowPersistent(handle, user1);
@@ -308,6 +326,9 @@ contract NoxComputeACLTest is Test {
     }
 
     function test_ValidateAllowedForAll_WithTransientAccess() public {
+        this._test_ValidateAllowedForAll_WithTransientAccess();
+    }
+    function _test_ValidateAllowedForAll_WithTransientAccess() external {
         // Grant transient access
         TestHelper.forceAllowTransient(handle, user1);
         TestHelper.forceAllowTransient(handle2, user1);

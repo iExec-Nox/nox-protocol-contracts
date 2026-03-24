@@ -20,7 +20,7 @@
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
-    "test:gas": "pnpm hardhat --gas-stats test",
+    "test:gas": "pnpm hardhat --gas-stats test solidity",
     "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "deploy:production": "pnpm hardhat run scripts/deploy.ts --build-profile production",
