@@ -1,11 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.27;
 
 import "encrypted-types/EncryptedTypes.sol";
 import {Nox} from "../sdk/Nox.sol";
-
-// TODO remove this interface and use @openzeppelin/contracts when the rest
-// of the functions are implemented.
 
 /**
  * Partial definition of the ERC7984 interface.

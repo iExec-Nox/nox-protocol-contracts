@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
