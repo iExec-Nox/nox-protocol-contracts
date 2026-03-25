@@ -19,8 +19,6 @@ library TestHelper {
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
     bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
         0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
-    /// @dev Storage slot for the nonce counter (avoids impure vm.randomBytes cheatcode).
-    bytes32 private constant NONCE_SLOT = keccak256("TestHelper.nonce");
 
     /**
      * Generates a deterministic unique handle with the given type.
@@ -38,7 +36,6 @@ library TestHelper {
      * @param teeType target type
      */
     function createHandle(uint256 chainId, TEEType teeType) internal returns (bytes32 handle) {
-        bytes32 seed = keccak256(abi.encode("createHandle", _nextNonce()));
         return
             bytes32(
                 abi.encodePacked(
@@ -46,7 +43,7 @@ library TestHelper {
                     bytes4(uint32(chainId)), // ChainId
                     bytes1(uint8(teeType)), // Type
                     bytes1(0x01), // Attrs
-                    bytes25(seed) // Pre-handle
+                    bytes25(_nextNonce()) // Pre-handle
                 )
             );
     }
@@ -56,7 +53,6 @@ library TestHelper {
      * @param teeType target type
      */
     function createPublicHandle(TEEType teeType) internal returns (bytes32 handle) {
-        bytes32 seed = keccak256(abi.encode("createPublicHandle", _nextNonce()));
         return
             bytes32(
                 abi.encodePacked(
@@ -64,7 +60,7 @@ library TestHelper {
                     bytes4(uint32(block.chainid)), // ChainId
                     bytes1(uint8(teeType)), // Type
                     bytes1(0x00), // Attrs
-                    bytes25(seed) // Pre-handle
+                    bytes25(_nextNonce()) // Pre-handle
                 )
             );
     }
@@ -206,7 +202,7 @@ library TestHelper {
             address verifyingContract,
             ,
 
-        ) = noxCompute.eip712Domain(); // uint256[] memory extensions, // bytes32 salt
+        ) = noxCompute.eip712Domain();
         return
             keccak256(
                 abi.encode(
@@ -220,16 +216,20 @@ library TestHelper {
     }
 
     /**
-     * @dev Returns an incrementing nonce for deterministic pseudo-random generation.
-     * Uses assembly sload/sstore in the calling contract's storage (since this is
-     * an internal library function). Avoids vm.randomBytes which breaks --gas-stats replay.
+     * @dev Replaces `vm.randomBytes` which breaks --gas-stats replay.
+     * Returns a nonce for deterministic pseudo-random generation. The nonce is constructed
+     * as a hash of the contract address and a counter, which is incremented on each call.
+     * This ensures that the nonce is unique by contract.
      */
-    function _nextNonce() private returns (uint256 nonce) {
-        bytes32 slot = NONCE_SLOT;
+    function _nextNonce() private returns (bytes32 nonce) {
+        // keccak256("TestHelper.nonce");
+        bytes32 slot = 0xbefe5b44130896a9b1467a27eab7dc5adf3c7fc9d513b1a12dc949e60d2a0139;
+        uint256 counter;
         assembly {
-            nonce := sload(slot)
-            sstore(slot, add(nonce, 1))
+            counter := sload(slot)
+            sstore(slot, add(counter, 1))
         }
+        nonce = keccak256(abi.encode(address(this), counter));
     }
 
     function _getAllowStorageSlot(bytes32 handle, address account) private pure returns (bytes32) {
