@@ -38,12 +38,13 @@ jobs:
       - name: Deployment dry-run
         run: pnpm run deploy
 
-      # TODO remove this when coverage is fixed to run with all tests.
-      - name: Run tests
-        run: pnpm run test
+      # TODO remove this when coverage is fixed to run with all tests (solidity + NodeJS).
+      - name: Run NodeJS tests
+        run: pnpm run test nodejs
 
       - name: Run coverage
-        run: pnpm run coverage
+        # TODO remove "solidity" from coverage command to run all tests.
+        run: pnpm run coverage --gas-stats
 
       - name: Upload coverage reports to Codecov
         uses: codecov/codecov-action@v5
