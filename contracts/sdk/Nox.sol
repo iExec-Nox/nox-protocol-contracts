@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.27;
 
 import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x6cC89dEd8c25E1460fa8408099C8Ab5b902D8b6B;
+            return 0xf343078c2F9b1dCc1751a283789722672Dce1e24;
         }
         revert("Nox: Unsupported chain");
     }
