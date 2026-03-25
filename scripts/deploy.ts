@@ -49,8 +49,8 @@ export async function deploy(printLogs = true) {
     // This is required because the proxy was deployed via Ignition, not via the OZ plugin.
     // Doing it here (right after deploy) ensures the manifest references the correct implementation.
     const api = await upgrades(hre, connection);
-    const NoxComputeFactory = await connection.ethers.getContractFactory("NoxCompute");
-    await api.forceImport(noxComputeProxy.address, NoxComputeFactory, { kind: "uups" });
+    const noxComputeFactory = await connection.ethers.getContractFactory("NoxCompute");
+    await api.forceImport(noxComputeProxy.address, noxComputeFactory, { kind: "uups" });
 
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
