@@ -13,6 +13,7 @@ library Nox {
     // ============ Errors ============
 
     error UninitializedHandle();
+    error MalformedDecryptedData(bytes data);
 
     // ============ Address resolution ============
 
@@ -1005,7 +1006,8 @@ library Nox {
             ebool.unwrap(handle),
             decryptionProof
         );
-        assert(result.length == 1);
+        require(result.length == 1, MalformedDecryptedData(result));
+        require(result[0] == 0x00 || result[0] == 0x01, MalformedDecryptedData(result));
         return result[0] != 0x00;
     }
 
@@ -1020,7 +1022,7 @@ library Nox {
             eaddress.unwrap(handle),
             decryptionProof
         );
-        assert(result.length == 20);
+        require(result.length == 20, MalformedDecryptedData(result));
         return address(bytes20(result));
     }
 
@@ -1035,7 +1037,7 @@ library Nox {
             euint16.unwrap(handle),
             decryptionProof
         );
-        assert(result.length == 2);
+        require(result.length == 2, MalformedDecryptedData(result));
         return uint16(bytes2(result));
     }
 
@@ -1050,7 +1052,7 @@ library Nox {
             euint256.unwrap(handle),
             decryptionProof
         );
-        assert(result.length == 32);
+        require(result.length == 32, MalformedDecryptedData(result));
         return uint256(bytes32(result));
     }
 
@@ -1065,7 +1067,7 @@ library Nox {
             eint16.unwrap(handle),
             decryptionProof
         );
-        assert(result.length == 2);
+        require(result.length == 2, MalformedDecryptedData(result));
         return int16(uint16(bytes2(result)));
     }
 
@@ -1080,7 +1082,7 @@ library Nox {
             eint256.unwrap(handle),
             decryptionProof
         );
-        assert(result.length == 32);
+        require(result.length == 32, MalformedDecryptedData(result));
         return int256(uint256(bytes32(result)));
     }
 
