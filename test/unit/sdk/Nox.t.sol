@@ -999,7 +999,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(uint256HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
             uint256HandleA,
-            abi.encodePacked(uint256(123456)),
+            abi.encode(123456),
             gatewayPrivateKey
         );
         uint256 result = noxMock.publicDecryptEuint256(uint256HandleA, proof);
@@ -1054,7 +1054,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(int256HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
             int256HandleA,
-            abi.encodePacked(int256(-999)),
+            abi.encode(-999),
             gatewayPrivateKey
         );
         int256 result = noxMock.publicDecryptEint256(int256HandleA, proof);

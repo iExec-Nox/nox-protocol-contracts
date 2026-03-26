@@ -446,7 +446,7 @@ contract NoxComputeTest is Test {
 
     // ============ validateDecryptionProof ============
 
-    function test_ValidateDecryptionProof() public {
+    function test_ValidateDecryptionProof_With32Bytes() public {
         bytes memory decryptedValue = abi.encode(42);
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
@@ -462,7 +462,7 @@ contract NoxComputeTest is Test {
         assertEq(uint8(bytes1(result[31])), 42);
     }
 
-    function test_ValidateDecryptionProof_WithEncodingBiggerThan32Bytes() public {
+    function test_ValidateDecryptionProof_WithEncodingLargerThan32Bytes() public {
         bytes memory decryptedValue = abi.encodePacked(uint8(11), uint256(22));
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
