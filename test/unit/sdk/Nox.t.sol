@@ -2,6 +2,7 @@
 pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
+import {stdError} from "forge-std/StdError.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
 import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
@@ -917,6 +918,17 @@ contract NoxTest is Test {
         assertTrue(result);
     }
 
+    function test_RevertWhen_PublicDecrypt_Ebool_DataSizeTooLarge() public {
+        _makePubliclyDecryptable(boolHandle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            boolHandle,
+            abi.encodePacked(uint16(1)), // > 1 byte
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEbool(boolHandle, proof);
+    }
+
     function test_publicDecrypt_Eaddress() public {
         _makePubliclyDecryptable(addressHandle);
         bytes memory proof = TestHelper.buildDecryptionProof(
@@ -926,6 +938,28 @@ contract NoxTest is Test {
         );
         address result = noxMock.publicDecryptEaddress(addressHandle, proof);
         assertEq(result, account);
+    }
+
+    function test_RevertWhen_PublicDecrypt_Eaddress_DataSizeTooSmall() public {
+        _makePubliclyDecryptable(addressHandle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            addressHandle,
+            abi.encodePacked(uint152(uint160(account))), // < 20 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEaddress(addressHandle, proof);
+    }
+
+    function test_RevertWhen_PublicDecrypt_Eaddress_DataSizeTooLarge() public {
+        _makePubliclyDecryptable(addressHandle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            addressHandle,
+            abi.encodePacked(uint168(uint160(account))), // > 20 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEaddress(addressHandle, proof);
     }
 
     function test_publicDecrypt_Euint16() public {
@@ -939,6 +973,28 @@ contract NoxTest is Test {
         assertEq(result, 42);
     }
 
+    function test_RevertWhen_PublicDecrypt_Euint16_DataSizeTooSmall() public {
+        _makePubliclyDecryptable(uint16HandleA);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            uint16HandleA,
+            abi.encodePacked(uint8(42)), // < 2 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEuint16(uint16HandleA, proof);
+    }
+
+    function test_RevertWhen_PublicDecrypt_Euint16_DataSizeTooLarge() public {
+        _makePubliclyDecryptable(uint16HandleA);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            uint16HandleA,
+            abi.encodePacked(uint24(42)), // > 2 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEuint16(uint16HandleA, proof);
+    }
+
     function test_publicDecrypt_Euint256() public {
         _makePubliclyDecryptable(uint256HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
@@ -948,6 +1004,17 @@ contract NoxTest is Test {
         );
         uint256 result = noxMock.publicDecryptEuint256(uint256HandleA, proof);
         assertEq(result, 123456);
+    }
+
+    function test_RevertWhen_PublicDecrypt_Euint256_DataSizeTooSmall() public {
+        _makePubliclyDecryptable(uint256HandleA);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            uint256HandleA,
+            abi.encodePacked(uint248(123456)), // < 32 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEuint256(uint256HandleA, proof);
     }
 
     function test_publicDecrypt_Eint16() public {
@@ -961,6 +1028,28 @@ contract NoxTest is Test {
         assertEq(result, -7);
     }
 
+    function test_RevertWhen_PublicDecrypt_Eint16_DataSizeTooSmall() public {
+        _makePubliclyDecryptable(int16HandleA);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            int16HandleA,
+            abi.encodePacked(int8(-7)), // < 2 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEint16(int16HandleA, proof);
+    }
+
+    function test_RevertWhen_PublicDecrypt_Eint16_DataSizeTooLarge() public {
+        _makePubliclyDecryptable(int16HandleA);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            int16HandleA,
+            abi.encodePacked(int24(-7)), // > 2 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEint16(int16HandleA, proof);
+    }
+
     function test_publicDecrypt_Eint256() public {
         _makePubliclyDecryptable(int256HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
@@ -970,6 +1059,17 @@ contract NoxTest is Test {
         );
         int256 result = noxMock.publicDecryptEint256(int256HandleA, proof);
         assertEq(result, -999);
+    }
+
+    function test_RevertWhen_PublicDecrypt_Eint256_DataSizeTooSmall() public {
+        _makePubliclyDecryptable(int256HandleA);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            int256HandleA,
+            abi.encodePacked(int248(-999)), // < 32 bytes
+            gatewayPrivateKey
+        );
+        vm.expectRevert(stdError.assertionError);
+        noxMock.publicDecryptEint256(int256HandleA, proof);
     }
 
     // ============ Dispatch Helpers ============
