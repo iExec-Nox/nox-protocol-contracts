@@ -8,7 +8,7 @@
     "cDeFi"
   ],
   "license": "MIT",
-  "packageManager": "pnpm@10.28.2",
+  "packageManager": "pnpm@10.33.0",
   "type": "module",
   "files": [
     "/contracts/interfaces/",
@@ -20,6 +20,7 @@
     "clean": "pnpm hardhat clean",
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
+    "test:gas": "pnpm hardhat test solidity --gas-stats",
     "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "deploy:production": "pnpm hardhat run scripts/deploy.ts --build-profile production",
@@ -48,7 +49,7 @@
     "@openzeppelin/hardhat-upgrades": "4.0.0-alpha.0",
     "@types/node": "^22.19.13",
     "ethers": "^6.16.0",
-    "forge-std": "github:foundry-rs/forge-std#v1.9.4",
+    "forge-std": "github:foundry-rs/forge-std#v1.15.0",
     "hardhat": "^3.1.11",
     "husky": "^9.1.7",
     "lint-staged": "^16.3.1",

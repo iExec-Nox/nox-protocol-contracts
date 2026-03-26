@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.0;
+pragma solidity ^0.8.27;
 
 import "encrypted-types/EncryptedTypes.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
@@ -311,33 +311,42 @@ contract NoxMock {
 
     // ============ Public decrypt ============
 
-    function publicDecryptEbool(bytes32 handle, bytes calldata proof) external returns (bool) {
+    function publicDecryptEbool(bytes32 handle, bytes calldata proof) external view returns (bool) {
         return Nox.publicDecrypt(ebool.wrap(handle), proof);
     }
 
     function publicDecryptEaddress(
         bytes32 handle,
         bytes calldata proof
-    ) external returns (address) {
+    ) external view returns (address) {
         return Nox.publicDecrypt(eaddress.wrap(handle), proof);
     }
 
-    function publicDecryptEuint16(bytes32 handle, bytes calldata proof) external returns (uint16) {
+    function publicDecryptEuint16(
+        bytes32 handle,
+        bytes calldata proof
+    ) external view returns (uint16) {
         return Nox.publicDecrypt(euint16.wrap(handle), proof);
     }
 
     function publicDecryptEuint256(
         bytes32 handle,
         bytes calldata proof
-    ) external returns (uint256) {
+    ) external view returns (uint256) {
         return Nox.publicDecrypt(euint256.wrap(handle), proof);
     }
 
-    function publicDecryptEint16(bytes32 handle, bytes calldata proof) external returns (int16) {
+    function publicDecryptEint16(
+        bytes32 handle,
+        bytes calldata proof
+    ) external view returns (int16) {
         return Nox.publicDecrypt(eint16.wrap(handle), proof);
     }
 
-    function publicDecryptEint256(bytes32 handle, bytes calldata proof) external returns (int256) {
+    function publicDecryptEint256(
+        bytes32 handle,
+        bytes calldata proof
+    ) external view returns (int256) {
         return Nox.publicDecrypt(eint256.wrap(handle), proof);
     }
 

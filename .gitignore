@@ -24,9 +24,6 @@ coverage.json
 .env
 .env.*
 
-# OpenZeppelin Upgrades (local network manifests)
-.openzeppelin/unknown-*.json
-
 # Mac system files
 .DS_Store
 CLAUDE.md

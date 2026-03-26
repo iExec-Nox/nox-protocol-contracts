@@ -49,4 +49,3 @@ jobs:
       lint-command: "pnpm run --if-present lint"
       type-check-command: "pnpm run --if-present check-types"
       format-check-command: pnpm run format:check
-      provenance: false # TODO enable this when GitHub repo is public.
