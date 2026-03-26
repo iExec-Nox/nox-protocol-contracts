@@ -18,7 +18,6 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 export async function deploy(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
-    const publicClient = await viem.getPublicClient();
     const chainConfig = config[connection.networkName];
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
@@ -32,13 +31,18 @@ export async function deploy(printLogs = true) {
     if (!kmsPublicKey) {
         throw new Error("KMS_PUBLIC_KEY environment variable is required");
     }
+    // INITIAL_OWNER env var takes precedence, then falls back to the config value.
+    const initialOwner = process.env.INITIAL_OWNER ?? chainConfig.initialOwner;
+    if (!initialOwner) {
+        throw new Error("INITIAL_OWNER environment variable is required");
+    }
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
         strategy: "create2",
         parameters: {
             NoxCompute: {
-                initialOwner: chainConfig.initialOwner,
+                initialOwner,
                 kmsPublicKey,
             },
         },
