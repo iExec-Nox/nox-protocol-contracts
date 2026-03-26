@@ -910,7 +910,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(boolHandle);
         bytes memory proof = TestHelper.buildDecryptionProof(
             boolHandle,
-            abi.encode(uint256(1)),
+            abi.encodePacked(uint8(1)),
             gatewayPrivateKey
         );
         bool result = noxMock.publicDecryptEbool(boolHandle, proof);
@@ -921,7 +921,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(addressHandle);
         bytes memory proof = TestHelper.buildDecryptionProof(
             addressHandle,
-            abi.encode(uint256(uint160(account))),
+            abi.encodePacked(uint160(account)),
             gatewayPrivateKey
         );
         address result = noxMock.publicDecryptEaddress(addressHandle, proof);
@@ -932,7 +932,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(uint16HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
             uint16HandleA,
-            abi.encode(uint256(42)),
+            abi.encodePacked(uint16(42)),
             gatewayPrivateKey
         );
         uint16 result = noxMock.publicDecryptEuint16(uint16HandleA, proof);
@@ -943,7 +943,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(uint256HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
             uint256HandleA,
-            abi.encode(uint256(123456)),
+            abi.encodePacked(uint256(123456)),
             gatewayPrivateKey
         );
         uint256 result = noxMock.publicDecryptEuint256(uint256HandleA, proof);
@@ -954,7 +954,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(int16HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
             int16HandleA,
-            abi.encode(int256(int16(-7))),
+            abi.encodePacked(int16(-7)),
             gatewayPrivateKey
         );
         int16 result = noxMock.publicDecryptEint16(int16HandleA, proof);
@@ -965,7 +965,7 @@ contract NoxTest is Test {
         _makePubliclyDecryptable(int256HandleA);
         bytes memory proof = TestHelper.buildDecryptionProof(
             int256HandleA,
-            abi.encode(int256(-999)),
+            abi.encodePacked(int256(-999)),
             gatewayPrivateKey
         );
         int256 result = noxMock.publicDecryptEint256(int256HandleA, proof);

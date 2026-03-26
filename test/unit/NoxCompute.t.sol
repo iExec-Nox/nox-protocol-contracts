@@ -457,6 +457,56 @@ contract NoxComputeTest is Test {
             gatewayPrivateKey
         );
         bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 32);
+        assertEq(result, decryptedValue);
+        assertEq(uint8(bytes1(result[31])), 42);
+    }
+
+    function test_ValidateDecryptionProof_WithEncodingBiggerThan32Bytes() public {
+        bytes memory decryptedValue = abi.encodePacked(uint8(11), uint256(22));
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 33);
+        assertEq(result, decryptedValue);
+        assertEq(uint8(bytes1(result[0])), 11);
+        assertEq(uint8(bytes1(result[32])), 22);
+    }
+
+    function test_ValidateDecryptionProof_WithEncodingSmallerThan32Bytes() public {
+        bytes memory decryptedValue = abi.encodePacked(uint8(42));
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 1);
+        assertEq(result, decryptedValue);
+        assertEq(uint8(bytes1(result)), 42);
+    }
+
+    function test_ValidateDecryptionProof_WithEmptyBytesValue() public {
+        bytes memory decryptedValue = new bytes(0);
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 0);
         assertEq(result, decryptedValue);
     }
 
@@ -464,7 +514,7 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
-        bytes memory tooShortProof = new bytes(65 + 32 - 1);
+        bytes memory tooShortProof = new bytes(65 - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 INoxCompute.InvalidProof.selector,

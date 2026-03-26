@@ -297,10 +297,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes calldata decryptionProof
     ) external view returns (bytes memory) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        require(
-            decryptionProof.length >= 65 + 32,
-            InvalidProof(decryptionProof, "Proof too short")
-        );
+        require(decryptionProof.length >= 65, InvalidProof(decryptionProof, "Proof too short"));
         bytes calldata decryptedResult = decryptionProof[65:];
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
