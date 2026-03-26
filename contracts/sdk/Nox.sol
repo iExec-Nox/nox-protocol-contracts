@@ -33,7 +33,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x2D344653086A9dDA3d212E784648467f89932e5f;
+            return 0x39847AeBa923Cc7367d4684194091D022B3F8548;
         }
         revert("Nox: Unsupported chain");
     }
@@ -254,8 +254,8 @@ library Nox {
         return
             euint16.wrap(
                 _noxComputeContract().add(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -264,8 +264,8 @@ library Nox {
         return
             euint256.wrap(
                 _noxComputeContract().add(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -274,8 +274,8 @@ library Nox {
         return
             eint16.wrap(
                 _noxComputeContract().add(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -284,8 +284,8 @@ library Nox {
         return
             eint256.wrap(
                 _noxComputeContract().add(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -294,8 +294,8 @@ library Nox {
         return
             euint16.wrap(
                 _noxComputeContract().sub(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -304,8 +304,8 @@ library Nox {
         return
             euint256.wrap(
                 _noxComputeContract().sub(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -314,8 +314,8 @@ library Nox {
         return
             eint16.wrap(
                 _noxComputeContract().sub(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -324,8 +324,8 @@ library Nox {
         return
             eint256.wrap(
                 _noxComputeContract().sub(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -334,8 +334,8 @@ library Nox {
         return
             euint16.wrap(
                 _noxComputeContract().mul(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -344,8 +344,8 @@ library Nox {
         return
             euint256.wrap(
                 _noxComputeContract().mul(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -354,8 +354,8 @@ library Nox {
         return
             eint16.wrap(
                 _noxComputeContract().mul(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -364,8 +364,8 @@ library Nox {
         return
             eint256.wrap(
                 _noxComputeContract().mul(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -374,8 +374,8 @@ library Nox {
         return
             euint16.wrap(
                 _noxComputeContract().div(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -384,8 +384,8 @@ library Nox {
         return
             euint256.wrap(
                 _noxComputeContract().div(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -394,8 +394,8 @@ library Nox {
         return
             eint16.wrap(
                 _noxComputeContract().div(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -404,136 +404,136 @@ library Nox {
         return
             eint256.wrap(
                 _noxComputeContract().div(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
 
     function safeAdd(euint16 a, euint16 b) internal returns (ebool, euint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeAdd(
-            _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-            _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+            _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+            _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
         );
         return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeAdd(euint256 a, euint256 b) internal returns (ebool, euint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeAdd(
-            _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-            _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+            _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+            _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
         );
         return (ebool.wrap(success), euint256.wrap(result));
     }
 
     function safeAdd(eint16 a, eint16 b) internal returns (ebool, eint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeAdd(
-            _resolveNull(eint16.unwrap(a), TEEType.Int16),
-            _resolveNull(eint16.unwrap(b), TEEType.Int16)
+            _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+            _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
         );
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeAdd(eint256 a, eint256 b) internal returns (ebool, eint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeAdd(
-            _resolveNull(eint256.unwrap(a), TEEType.Int256),
-            _resolveNull(eint256.unwrap(b), TEEType.Int256)
+            _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+            _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
         );
         return (ebool.wrap(success), eint256.wrap(result));
     }
 
     function safeSub(euint16 a, euint16 b) internal returns (ebool, euint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeSub(
-            _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-            _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+            _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+            _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
         );
         return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeSub(euint256 a, euint256 b) internal returns (ebool, euint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeSub(
-            _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-            _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+            _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+            _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
         );
         return (ebool.wrap(success), euint256.wrap(result));
     }
 
     function safeSub(eint16 a, eint16 b) internal returns (ebool, eint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeSub(
-            _resolveNull(eint16.unwrap(a), TEEType.Int16),
-            _resolveNull(eint16.unwrap(b), TEEType.Int16)
+            _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+            _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
         );
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeSub(eint256 a, eint256 b) internal returns (ebool, eint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeSub(
-            _resolveNull(eint256.unwrap(a), TEEType.Int256),
-            _resolveNull(eint256.unwrap(b), TEEType.Int256)
+            _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+            _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
         );
         return (ebool.wrap(success), eint256.wrap(result));
     }
 
     function safeMul(euint16 a, euint16 b) internal returns (ebool, euint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeMul(
-            _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-            _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+            _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+            _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
         );
         return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeMul(euint256 a, euint256 b) internal returns (ebool, euint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeMul(
-            _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-            _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+            _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+            _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
         );
         return (ebool.wrap(success), euint256.wrap(result));
     }
 
     function safeMul(eint16 a, eint16 b) internal returns (ebool, eint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeMul(
-            _resolveNull(eint16.unwrap(a), TEEType.Int16),
-            _resolveNull(eint16.unwrap(b), TEEType.Int16)
+            _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+            _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
         );
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeMul(eint256 a, eint256 b) internal returns (ebool, eint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeMul(
-            _resolveNull(eint256.unwrap(a), TEEType.Int256),
-            _resolveNull(eint256.unwrap(b), TEEType.Int256)
+            _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+            _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
         );
         return (ebool.wrap(success), eint256.wrap(result));
     }
 
     function safeDiv(euint16 a, euint16 b) internal returns (ebool, euint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeDiv(
-            _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-            _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+            _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+            _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
         );
         return (ebool.wrap(success), euint16.wrap(result));
     }
 
     function safeDiv(euint256 a, euint256 b) internal returns (ebool, euint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeDiv(
-            _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-            _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+            _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+            _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
         );
         return (ebool.wrap(success), euint256.wrap(result));
     }
 
     function safeDiv(eint16 a, eint16 b) internal returns (ebool, eint16) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeDiv(
-            _resolveNull(eint16.unwrap(a), TEEType.Int16),
-            _resolveNull(eint16.unwrap(b), TEEType.Int16)
+            _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+            _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
         );
         return (ebool.wrap(success), eint16.wrap(result));
     }
 
     function safeDiv(eint256 a, eint256 b) internal returns (ebool, eint256) {
         (bytes32 success, bytes32 result) = _noxComputeContract().safeDiv(
-            _resolveNull(eint256.unwrap(a), TEEType.Int256),
-            _resolveNull(eint256.unwrap(b), TEEType.Int256)
+            _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+            _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
         );
         return (ebool.wrap(success), eint256.wrap(result));
     }
@@ -542,9 +542,9 @@ library Nox {
         return
             euint16.wrap(
                 _noxComputeContract().select(
-                    _resolveNull(ebool.unwrap(condition), TEEType.Bool),
-                    _resolveNull(euint16.unwrap(ifTrue), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(ifFalse), TEEType.Uint16)
+                    _resolveUndefinedHandle(ebool.unwrap(condition), TEEType.Bool),
+                    _resolveUndefinedHandle(euint16.unwrap(ifTrue), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(ifFalse), TEEType.Uint16)
                 )
             );
     }
@@ -557,9 +557,9 @@ library Nox {
         return
             euint256.wrap(
                 _noxComputeContract().select(
-                    _resolveNull(ebool.unwrap(condition), TEEType.Bool),
-                    _resolveNull(euint256.unwrap(ifTrue), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(ifFalse), TEEType.Uint256)
+                    _resolveUndefinedHandle(ebool.unwrap(condition), TEEType.Bool),
+                    _resolveUndefinedHandle(euint256.unwrap(ifTrue), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(ifFalse), TEEType.Uint256)
                 )
             );
     }
@@ -568,9 +568,9 @@ library Nox {
         return
             eint16.wrap(
                 _noxComputeContract().select(
-                    _resolveNull(ebool.unwrap(condition), TEEType.Bool),
-                    _resolveNull(eint16.unwrap(ifTrue), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(ifFalse), TEEType.Int16)
+                    _resolveUndefinedHandle(ebool.unwrap(condition), TEEType.Bool),
+                    _resolveUndefinedHandle(eint16.unwrap(ifTrue), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(ifFalse), TEEType.Int16)
                 )
             );
     }
@@ -579,9 +579,9 @@ library Nox {
         return
             eint256.wrap(
                 _noxComputeContract().select(
-                    _resolveNull(ebool.unwrap(condition), TEEType.Bool),
-                    _resolveNull(eint256.unwrap(ifTrue), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(ifFalse), TEEType.Int256)
+                    _resolveUndefinedHandle(ebool.unwrap(condition), TEEType.Bool),
+                    _resolveUndefinedHandle(eint256.unwrap(ifTrue), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(ifFalse), TEEType.Int256)
                 )
             );
     }
@@ -590,8 +590,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().eq(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -600,8 +600,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().eq(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -610,8 +610,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().eq(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -620,8 +620,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().eq(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -630,8 +630,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ne(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -640,8 +640,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ne(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -650,8 +650,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ne(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -660,8 +660,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ne(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -670,8 +670,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().lt(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -680,8 +680,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().lt(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -690,8 +690,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().lt(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -700,8 +700,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().lt(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -710,8 +710,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().le(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -720,8 +720,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().le(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -730,8 +730,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().le(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -740,8 +740,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().le(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -750,8 +750,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().gt(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -760,8 +760,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().gt(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -770,8 +770,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().gt(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -780,8 +780,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().gt(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -790,8 +790,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ge(
-                    _resolveNull(euint16.unwrap(a), TEEType.Uint16),
-                    _resolveNull(euint16.unwrap(b), TEEType.Uint16)
+                    _resolveUndefinedHandle(euint16.unwrap(a), TEEType.Uint16),
+                    _resolveUndefinedHandle(euint16.unwrap(b), TEEType.Uint16)
                 )
             );
     }
@@ -800,8 +800,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ge(
-                    _resolveNull(euint256.unwrap(a), TEEType.Uint256),
-                    _resolveNull(euint256.unwrap(b), TEEType.Uint256)
+                    _resolveUndefinedHandle(euint256.unwrap(a), TEEType.Uint256),
+                    _resolveUndefinedHandle(euint256.unwrap(b), TEEType.Uint256)
                 )
             );
     }
@@ -810,8 +810,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ge(
-                    _resolveNull(eint16.unwrap(a), TEEType.Int16),
-                    _resolveNull(eint16.unwrap(b), TEEType.Int16)
+                    _resolveUndefinedHandle(eint16.unwrap(a), TEEType.Int16),
+                    _resolveUndefinedHandle(eint16.unwrap(b), TEEType.Int16)
                 )
             );
     }
@@ -820,8 +820,8 @@ library Nox {
         return
             ebool.wrap(
                 _noxComputeContract().ge(
-                    _resolveNull(eint256.unwrap(a), TEEType.Int256),
-                    _resolveNull(eint256.unwrap(b), TEEType.Int256)
+                    _resolveUndefinedHandle(eint256.unwrap(a), TEEType.Int256),
+                    _resolveUndefinedHandle(eint256.unwrap(b), TEEType.Int256)
                 )
             );
     }
@@ -840,9 +840,9 @@ library Nox {
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newBalanceTo) {
         (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newBalanceTo) = _noxComputeContract()
             .transfer(
-                _resolveNull(euint256.unwrap(balanceFrom), TEEType.Uint256),
-                _resolveNull(euint256.unwrap(balanceTo), TEEType.Uint256),
-                _resolveNull(euint256.unwrap(amount), TEEType.Uint256)
+                _resolveUndefinedHandle(euint256.unwrap(balanceFrom), TEEType.Uint256),
+                _resolveUndefinedHandle(euint256.unwrap(balanceTo), TEEType.Uint256),
+                _resolveUndefinedHandle(euint256.unwrap(amount), TEEType.Uint256)
             );
         success = ebool.wrap(_success);
         newBalanceFrom = euint256.wrap(_newBalanceFrom);
@@ -861,9 +861,9 @@ library Nox {
     ) internal returns (ebool success, euint256 newBalanceTo, euint256 newTotalSupply) {
         (bytes32 _success, bytes32 _newBalanceTo, bytes32 _newTotalSupply) = _noxComputeContract()
             .mint(
-                _resolveNull(euint256.unwrap(balanceTo), TEEType.Uint256),
-                _resolveNull(euint256.unwrap(amount), TEEType.Uint256),
-                _resolveNull(euint256.unwrap(totalSupply), TEEType.Uint256)
+                _resolveUndefinedHandle(euint256.unwrap(balanceTo), TEEType.Uint256),
+                _resolveUndefinedHandle(euint256.unwrap(amount), TEEType.Uint256),
+                _resolveUndefinedHandle(euint256.unwrap(totalSupply), TEEType.Uint256)
             );
         success = ebool.wrap(_success);
         newBalanceTo = euint256.wrap(_newBalanceTo);
@@ -882,9 +882,9 @@ library Nox {
     ) internal returns (ebool success, euint256 newBalanceFrom, euint256 newTotalSupply) {
         (bytes32 _success, bytes32 _newBalanceFrom, bytes32 _newTotalSupply) = _noxComputeContract()
             .burn(
-                _resolveNull(euint256.unwrap(balanceFrom), TEEType.Uint256),
-                _resolveNull(euint256.unwrap(amount), TEEType.Uint256),
-                _resolveNull(euint256.unwrap(totalSupply), TEEType.Uint256)
+                _resolveUndefinedHandle(euint256.unwrap(balanceFrom), TEEType.Uint256),
+                _resolveUndefinedHandle(euint256.unwrap(amount), TEEType.Uint256),
+                _resolveUndefinedHandle(euint256.unwrap(totalSupply), TEEType.Uint256)
             );
         success = ebool.wrap(_success);
         newBalanceFrom = euint256.wrap(_newBalanceFrom);
@@ -1395,14 +1395,13 @@ library Nox {
     // ============ Private helpers ============
 
     /**
-     * @dev Resolves a null (bytes32(0)) handle to the typed null handle for the given type.
+     * @dev Resolves an undefined (bytes32(0)) handle to the typed zero handle for the given type.
      * If the handle is already non-zero, returns it unchanged.
      */
-    /**
-     * @dev Resolves a null (bytes32(0)) handle to the typed null handle for the given type.
-     * If the handle is already non-zero, returns it unchanged.
-     */
-    function _resolveNull(bytes32 handle, TEEType teeType) private view returns (bytes32) {
-        return handle == bytes32(0) ? TypeUtils.nullHandle(teeType) : handle;
+    function _resolveUndefinedHandle(
+        bytes32 handle,
+        TEEType teeType
+    ) private view returns (bytes32) {
+        return handle == bytes32(0) ? TypeUtils.zeroHandle(teeType) : handle;
     }
 }
