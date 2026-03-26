@@ -1,3 +1,5 @@
+import { upgrades } from "@openzeppelin/hardhat-upgrades";
+import hre from "hardhat";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
 import config from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
@@ -16,7 +18,6 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 export async function deploy(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
-    const publicClient = await viem.getPublicClient();
     const chainConfig = config[connection.networkName];
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${connection.networkName}`);
@@ -30,18 +31,31 @@ export async function deploy(printLogs = true) {
     if (!kmsPublicKey) {
         throw new Error("KMS_PUBLIC_KEY environment variable is required");
     }
+    // INITIAL_OWNER env var takes precedence, then falls back to the config value.
+    const initialOwner = process.env.INITIAL_OWNER ?? chainConfig.initialOwner;
+    if (!initialOwner) {
+        throw new Error("INITIAL_OWNER environment variable is required");
+    }
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
         strategy: "create2",
         parameters: {
             NoxCompute: {
-                initialOwner: chainConfig.initialOwner,
+                initialOwner,
                 kmsPublicKey,
             },
         },
     });
     _log(`NoxCompute: ${noxComputeProxy.address}`);
+
+    // Register the Ignition-deployed proxy with the OZ Upgrades manifest (idempotent).
+    // This is required because the proxy was deployed via Ignition, not via the OZ plugin.
+    // Doing it here (right after deploy) ensures the manifest references the correct implementation.
+    const api = await upgrades(hre, connection);
+    const noxComputeFactory = await connection.ethers.getContractFactory("NoxCompute");
+    await api.forceImport(noxComputeProxy.address, noxComputeFactory, { kind: "uups" });
+
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
     return {

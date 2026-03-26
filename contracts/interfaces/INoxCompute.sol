@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: Apache-2.0
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.27;
 
 import {TEEType} from "../shared/TypeUtils.sol";
 
@@ -22,6 +22,8 @@ interface INoxCompute {
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();
+    /// Error thrown when an operand is bytes32(0), indicating an undefined handle
+    error UndefinedHandle();
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -307,14 +309,14 @@ interface INoxCompute {
      * Validates the decryption proof issued by the gateway for a given handle.
      * The proof must be signed by the configured gateway.
      *
-     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N >= 32 bytes)`.
+     * The proof uses a compact serialization: `signature (65 bytes) || decryptedResult (N bytes)`.
      * The signature is placed first (fixed size) so that `decryptedResult` can be variable-length,
-     * supporting all current types (ABI-encoded as 32 bytes) and future types that may exceed
-     * 32 bytes (e.g. encrypted strings).
+     * supporting all current and future types that may exceed 32 bytes (e.g. encrypted strings).
      *
      * @param handle Handle to decrypt
-     * @param decryptionProof Compact proof: `signature (65 bytes) || decryptedResult (N >= 32 bytes)`
-     * @return decryptedResult The decrypted value (variable length)
+     * @param decryptionProof Compact proof: `signature (65 bytes) || decryptedResult (N bytes)`
+     * @return decryptedResult The decrypted value extracted from the proof if the proof is valid,
+     * or reverts otherwise
      */
     function validateDecryptionProof(
         bytes32 handle,

@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.27;
 
 import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -21,21 +21,21 @@ library TestHelper {
         0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
 
     /**
-     * Generates a random unique handle with the given type.
+     * Generates a deterministic unique handle with the given type.
      * @param teeType target type
      */
-    function createHandle(TEEType teeType) internal view returns (bytes32 handle) {
+    function createHandle(TEEType teeType) internal returns (bytes32 handle) {
         return createHandle(block.chainid, teeType);
     }
 
     /**
-     * Generates a random unique handle with the given chain id and type.
+     * Generates a deterministic unique handle with the given chain id and type.
      * The handle is created with isUniqueHandle=1 (confidential handle with ACL).
+     * Uses a nonce-based counter instead of vm.randomBytes to remain gas-stats compatible.
      * @param chainId target chainId
      * @param teeType target type
      */
-    function createHandle(uint256 chainId, TEEType teeType) internal view returns (bytes32 handle) {
-        Vm vm = getVm();
+    function createHandle(uint256 chainId, TEEType teeType) internal returns (bytes32 handle) {
         return
             bytes32(
                 abi.encodePacked(
@@ -43,17 +43,16 @@ library TestHelper {
                     bytes4(uint32(chainId)), // ChainId
                     bytes1(uint8(teeType)), // Type
                     bytes1(0x01), // Attrs
-                    vm.randomBytes(25) // Pre-handle
+                    bytes25(_nextNonce()) // Pre-handle
                 )
             );
     }
 
     /**
-     * Generates a random public handle (isUniqueHandle=0) with the given type.
+     * Generates a deterministic public handle (isUniqueHandle=0) with the given type.
      * @param teeType target type
      */
-    function createPublicHandle(TEEType teeType) internal view returns (bytes32 handle) {
-        Vm vm = getVm();
+    function createPublicHandle(TEEType teeType) internal returns (bytes32 handle) {
         return
             bytes32(
                 abi.encodePacked(
@@ -61,7 +60,7 @@ library TestHelper {
                     bytes4(uint32(block.chainid)), // ChainId
                     bytes1(uint8(teeType)), // Type
                     bytes1(0x00), // Attrs
-                    vm.randomBytes(25) // Pre-handle
+                    bytes25(_nextNonce()) // Pre-handle
                 )
             );
     }
@@ -120,11 +119,8 @@ library TestHelper {
         address noxComputeImplementation = address(new NoxCompute());
 
         // Deploy a temporary proxy to get its runtime bytecode
-        address noxComputeProxyTemp = deployProxy(
-            noxComputeImplementation,
-            owner,
-            vm.randomBytes(33)
-        );
+        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
+        address noxComputeProxyTemp = deployProxy(noxComputeImplementation, owner, kmsKey);
 
         // Etch the proxy bytecode at the NoxCompute address resolved by Nox
         vm.etch(noxComputeAddress, noxComputeProxyTemp.code);
@@ -136,7 +132,7 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(noxComputeAddress);
-        noxCompute.initialize(owner, vm.randomBytes(33));
+        noxCompute.initialize(owner, kmsKey);
         vm.prank(owner);
         noxCompute.setGateway(gateway);
 
@@ -204,7 +200,7 @@ library TestHelper {
             string memory version,
             uint256 chainId,
             address verifyingContract,
-            , // uint256[] memory extensions, // bytes32 salt
+            ,
 
         ) = noxCompute.eip712Domain();
         return
@@ -218,6 +214,24 @@ library TestHelper {
                 )
             );
     }
+
+    /**
+     * @dev Replaces `vm.randomBytes` which breaks --gas-stats replay.
+     * Returns a nonce for deterministic pseudo-random generation. The nonce is constructed
+     * as a hash of the contract address and a counter, which is incremented on each call.
+     * This ensures that the nonce is unique by contract.
+     */
+    function _nextNonce() private returns (bytes32 nonce) {
+        // keccak256("TestHelper.nonce");
+        bytes32 slot = 0xbefe5b44130896a9b1467a27eab7dc5adf3c7fc9d513b1a12dc949e60d2a0139;
+        uint256 counter;
+        assembly {
+            counter := sload(slot)
+            sstore(slot, add(counter, 1))
+        }
+        nonce = keccak256(abi.encode(address(this), counter));
+    }
+
     function _getAllowStorageSlot(bytes32 handle, address account) private pure returns (bytes32) {
         bytes32 adminsMappingStorageLocation = NOX_COMPUTE_STORAGE_LOCATION; // first variable.
         // mapping(bytes32 key1 => mapping(key2 => bool)) map;

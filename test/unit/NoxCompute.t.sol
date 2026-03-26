@@ -1,5 +1,5 @@
-// SPDX-License-Identifier: UNLICENSED
-pragma solidity ^0.8.0;
+// SPDX-License-Identifier: BUSL-1.1
+pragma solidity ^0.8.27;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
@@ -9,7 +9,12 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils, NonArithmeticType} from "../../contracts/shared/TypeUtils.sol";
+import {
+    TEEType,
+    TypeUtils,
+    NonArithmeticType,
+    UnsupportedArithmeticType
+} from "../../contracts/shared/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {
@@ -78,21 +83,20 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        noxCompute.initialize(owner, vm.randomBytes(33));
+        noxCompute.initialize(owner, abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key")));
     }
 
     function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
         NoxCompute impl = new NoxCompute();
-        address owner = makeAddr("random-owner");
         vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
-        NoxCompute proxy = NoxCompute(TestHelper.deployProxy(address(impl), owner, new bytes(0)));
+        NoxCompute(TestHelper.deployProxy(address(impl), owner, new bytes(0)));
     }
 
     // ============ setKmsPublicKey ============
 
     function test_SetKmsPublicKey() public {
         // 33-byte compressed SEC1 secp256k1 public key
-        bytes memory newKey = vm.randomBytes(33);
+        bytes memory newKey = abi.encodePacked(bytes1(0x02), keccak256("new-kms-key"));
         vm.prank(owner);
         vm.expectEmit();
         emit INoxCompute.KmsPublicKeyUpdated(newKey);
@@ -102,7 +106,7 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_SetKmsPublicKey_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        bytes memory newKey = vm.randomBytes(33);
+        bytes memory newKey = abi.encodePacked(bytes1(0x02), keccak256("unauthorized-kms-key"));
         vm.expectRevert(
             abi.encodeWithSelector(
                 OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
@@ -257,6 +261,9 @@ contract NoxComputeTest is Test {
     // ============ validateInputProof ============
 
     function test_ValidateProof() public {
+        this._test_ValidateProof();
+    }
+    function _test_ValidateProof() external {
         address app = makeAddr("app");
         bytes memory proof = TestHelper.buildInputProof(
             address(noxCompute),
@@ -377,6 +384,9 @@ contract NoxComputeTest is Test {
     }
 
     function test_ValidateProof_NotExpiredWhenWithinDuration() public {
+        this._test_ValidateProof_NotExpiredWhenWithinDuration();
+    }
+    function _test_ValidateProof_NotExpiredWhenWithinDuration() external {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
@@ -398,6 +408,9 @@ contract NoxComputeTest is Test {
     }
 
     function test_ValidateProof_NotExpiredAtExactBoundary() public {
+        this._test_ValidateProof_NotExpiredAtExactBoundary();
+    }
+    function _test_ValidateProof_NotExpiredAtExactBoundary() external {
         // Warp to a realistic timestamp
         vm.warp(1700000000);
 
@@ -439,9 +452,10 @@ contract NoxComputeTest is Test {
         vm.prank(app);
         noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
+
     // ============ validateDecryptionProof ============
 
-    function test_ValidateDecryptionProof() public {
+    function test_ValidateDecryptionProof_With32Bytes() public {
         bytes memory decryptedValue = abi.encode(42);
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
@@ -452,6 +466,56 @@ contract NoxComputeTest is Test {
             gatewayPrivateKey
         );
         bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 32);
+        assertEq(result, decryptedValue);
+        assertEq(uint8(bytes1(result[31])), 42);
+    }
+
+    function test_ValidateDecryptionProof_WithEncodingLargerThan32Bytes() public {
+        bytes memory decryptedValue = abi.encodePacked(uint8(11), uint256(22));
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 33);
+        assertEq(result, decryptedValue);
+        assertEq(uint8(bytes1(result[0])), 11);
+        assertEq(uint8(bytes1(result[32])), 22);
+    }
+
+    function test_ValidateDecryptionProof_WithEncodingSmallerThan32Bytes() public {
+        bytes memory decryptedValue = abi.encodePacked(uint8(42));
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 1);
+        assertEq(result, decryptedValue);
+        assertEq(uint8(bytes1(result)), 42);
+    }
+
+    function test_ValidateDecryptionProof_WithEmptyBytesValue() public {
+        bytes memory decryptedValue = new bytes(0);
+        TestHelper.forceAllowPersistent(handle, owner);
+        vm.prank(owner);
+        noxCompute.allowPublicDecryption(handle);
+        bytes memory proof = TestHelper.buildDecryptionProof(
+            handle,
+            decryptedValue,
+            gatewayPrivateKey
+        );
+        bytes memory result = noxCompute.validateDecryptionProof(handle, proof);
+        assertEq(result.length, 0);
         assertEq(result, decryptedValue);
     }
 
@@ -459,7 +523,7 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxCompute.allowPublicDecryption(handle);
-        bytes memory tooShortProof = new bytes(65 + 32 - 1);
+        bytes memory tooShortProof = new bytes(65 - 1);
         vm.expectRevert(
             abi.encodeWithSelector(
                 INoxCompute.InvalidProof.selector,
@@ -485,6 +549,9 @@ contract NoxComputeTest is Test {
     // ============ Arithmetic Operations (add, sub, mul, div) ============
 
     function test_ArithmeticOperations() public {
+        this._test_ArithmeticOperations();
+    }
+    function _test_ArithmeticOperations() external {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
@@ -512,6 +579,9 @@ contract NoxComputeTest is Test {
     // ============ Comparison Operations (eq, ne, lt, le, gt, ge) ============
 
     function test_ComparisonOperations() public {
+        this._test_ComparisonOperations();
+    }
+    function _test_ComparisonOperations() external {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
@@ -543,6 +613,9 @@ contract NoxComputeTest is Test {
     // ============ Safe Arithmetic Operations (safeAdd, safeSub) ============
 
     function test_SafeArithmeticOperations() public {
+        this._test_SafeArithmeticOperations();
+    }
+    function _test_SafeArithmeticOperations() external {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
         bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(leftHandOperand, caller);
@@ -653,9 +726,25 @@ contract NoxComputeTest is Test {
         }
     }
 
+    function test_RevertWhen_AllOperations_UnsupportedArithmeticType() public {
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint8);
+        bytes32 unsupportedTypeOperand = TestHelper.createHandle(TEEType.Uint8);
+        TestHelper.forceAllowPersistent(leftHandOperand, caller);
+        TestHelper.forceAllowPersistent(unsupportedTypeOperand, caller);
+
+        for (uint256 i = 0; i < allOps.length; i++) {
+            vm.prank(caller);
+            vm.expectRevert(UnsupportedArithmeticType.selector);
+            _callOperation(allOps[i], leftHandOperand, unsupportedTypeOperand);
+        }
+    }
+
     // ============ select ============
 
     function test_Select() public {
+        this._test_Select();
+    }
+    function _test_Select() external {
         bytes32 condition = TestHelper.createHandle(TEEType.Bool);
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
@@ -736,6 +825,9 @@ contract NoxComputeTest is Test {
     // ============ Transfer Tests ============
 
     function test_Transfer() public {
+        this._test_Transfer();
+    }
+    function _test_Transfer() external {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
@@ -819,6 +911,9 @@ contract NoxComputeTest is Test {
     // ============ Mint Tests ============
 
     function test_Mint() public {
+        this._test_Mint();
+    }
+    function _test_Mint() external {
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
@@ -902,6 +997,9 @@ contract NoxComputeTest is Test {
     // ============ Burn Tests ============
 
     function test_Burn() public {
+        this._test_Burn();
+    }
+    function _test_Burn() external {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
         bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
