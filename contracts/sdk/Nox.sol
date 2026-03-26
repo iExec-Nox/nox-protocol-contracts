@@ -13,6 +13,7 @@ library Nox {
     // ============ Errors ============
 
     error UninitializedHandle();
+    error MalformedDecryptedData(bytes data);
 
     // ============ Address resolution ============
 
@@ -33,7 +34,7 @@ library Nox {
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0xf343078c2F9b1dCc1751a283789722672Dce1e24;
+            return 0x5eda9d423adFFf3F67CB7DadEdAF2c56D83fEb5C;
         }
         revert("Nox: Unsupported chain");
     }
@@ -1005,7 +1006,9 @@ library Nox {
             ebool.unwrap(handle),
             decryptionProof
         );
-        return abi.decode(result, (bool));
+        require(result.length == 1, MalformedDecryptedData(result));
+        require(result[0] == 0x00 || result[0] == 0x01, MalformedDecryptedData(result));
+        return result[0] != 0x00;
     }
 
     /**
@@ -1019,7 +1022,8 @@ library Nox {
             eaddress.unwrap(handle),
             decryptionProof
         );
-        return abi.decode(result, (address));
+        require(result.length == 20, MalformedDecryptedData(result));
+        return address(bytes20(result));
     }
 
     /**
@@ -1033,7 +1037,8 @@ library Nox {
             euint16.unwrap(handle),
             decryptionProof
         );
-        return abi.decode(result, (uint16));
+        require(result.length == 2, MalformedDecryptedData(result));
+        return uint16(bytes2(result));
     }
 
     /**
@@ -1047,7 +1052,8 @@ library Nox {
             euint256.unwrap(handle),
             decryptionProof
         );
-        return abi.decode(result, (uint256));
+        require(result.length == 32, MalformedDecryptedData(result));
+        return uint256(bytes32(result));
     }
 
     /**
@@ -1061,7 +1067,8 @@ library Nox {
             eint16.unwrap(handle),
             decryptionProof
         );
-        return abi.decode(result, (int16));
+        require(result.length == 2, MalformedDecryptedData(result));
+        return int16(uint16(bytes2(result)));
     }
 
     /**
@@ -1075,7 +1082,8 @@ library Nox {
             eint256.unwrap(handle),
             decryptionProof
         );
-        return abi.decode(result, (int256));
+        require(result.length == 32, MalformedDecryptedData(result));
+        return int256(uint256(bytes32(result)));
     }
 
     // ============ Private helpers ============
