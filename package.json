@@ -8,7 +8,7 @@
     "cDeFi"
   ],
   "license": "MIT",
-  "packageManager": "pnpm@10.30.3",
+  "packageManager": "pnpm@10.33.0",
   "type": "module",
   "files": [
     "/contracts/interfaces/",
