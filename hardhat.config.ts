@@ -5,6 +5,8 @@ import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
 import solc from "./.solc.json" with { type: "json" };
 
+setOpenzeppelingUpgradesConfig();
+
 const baseProfile = {
     version: solc.version,
     settings: {
@@ -56,15 +58,27 @@ export default defineConfig({
             type: "http",
             chainType: "op",
             chainId: 421614,
-            url: configVariable("RPC_URL"),
-            accounts: [configVariable("PRIVATE_KEY")],
+            url: "http://localhost:8545",
+            accounts: [],
         },
         tenderlyArbitrumSepolia: {
             type: "http",
             chainType: "op",
             chainId: 421614,
-            url: configVariable("RPC_URL"),
-            accounts: [configVariable("PRIVATE_KEY")],
+            url: "http://localhost:8545",
+            accounts: [],
         },
     },
 });
+
+/**
+ * Set manifest file path for OZ upgrades plugin.
+ * This is a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
+ * its forks (tenderlyArbitrumSepolia) as its chainId is not recognized by the plugin.
+ */
+function setOpenzeppelingUpgradesConfig() {
+    const networkArgIndex = process.argv.indexOf("--network");
+    if (networkArgIndex !== -1) {
+        process.env.MANIFEST_DEFAULT_DIR ??= `.openzeppelin/${process.argv[networkArgIndex + 1]}`;
+    }
+}
