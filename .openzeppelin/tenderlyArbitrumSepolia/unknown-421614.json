@@ -1,0 +1,238 @@
+{
+  "manifestVersion": "3.2",
+  "proxies": [],
+  "impls": {
+    "c133d355da38ba620de38ef3541835c28c0c877e40f61fc53d7643f4eaaf6d37": {
+      "address": "0x8D88B61356Fa291505d3E3D3a77e19fad0958fe3",
+      "layout": {
+        "solcVersion": "0.8.34",
+        "storage": [
+          {
+            "label": "_nameFallback",
+            "offset": 0,
+            "slot": "0",
+            "type": "t_string_storage",
+            "contract": "EIP712",
+            "src": "npm/@openzeppelin/contracts@5.6.1/utils/cryptography/EIP712.sol:52"
+          },
+          {
+            "label": "_versionFallback",
+            "offset": 0,
+            "slot": "1",
+            "type": "t_string_storage",
+            "contract": "EIP712",
+            "src": "npm/@openzeppelin/contracts@5.6.1/utils/cryptography/EIP712.sol:54"
+          }
+        ],
+        "types": {
+          "t_address": {
+            "label": "address",
+            "numberOfBytes": "20"
+          },
+          "t_bool": {
+            "label": "bool",
+            "numberOfBytes": "1"
+          },
+          "t_bytes32": {
+            "label": "bytes32",
+            "numberOfBytes": "32"
+          },
+          "t_bytes_storage": {
+            "label": "bytes",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_address,t_bool)": {
+            "label": "mapping(address => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_bool)": {
+            "label": "mapping(bytes32 => bool)",
+            "numberOfBytes": "32"
+          },
+          "t_mapping(t_bytes32,t_mapping(t_address,t_bool))": {
+            "label": "mapping(bytes32 => mapping(address => bool))",
+            "numberOfBytes": "32"
+          },
+          "t_struct(InitializableStorage)281_storage": {
+            "label": "struct Initializable.InitializableStorage",
+            "members": [
+              {
+                "label": "_initialized",
+                "type": "t_uint64",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "_initializing",
+                "type": "t_bool",
+                "offset": 8,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_struct(NoxComputeStorage)3426_storage": {
+            "label": "struct NoxCompute.NoxComputeStorage",
+            "members": [
+              {
+                "label": "admins",
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_bool))",
+                "offset": 0,
+                "slot": "0"
+              },
+              {
+                "label": "viewers",
+                "type": "t_mapping(t_bytes32,t_mapping(t_address,t_bool))",
+                "offset": 0,
+                "slot": "1"
+              },
+              {
+                "label": "isPubliclyDecryptable",
+                "type": "t_mapping(t_bytes32,t_bool)",
+                "offset": 0,
+                "slot": "2"
+              },
+              {
+                "label": "kmsPublicKey",
+                "type": "t_bytes_storage",
+                "offset": 0,
+                "slot": "3"
+              },
+              {
+                "label": "gateway",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "4"
+              },
+              {
+                "label": "proofExpirationDuration",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "5"
+              },
+              {
+                "label": "uniqueSeedCounter",
+                "type": "t_uint256",
+                "offset": 0,
+                "slot": "6"
+              }
+            ],
+            "numberOfBytes": "224"
+          },
+          "t_struct(OwnableStorage)14_storage": {
+            "label": "struct OwnableUpgradeable.OwnableStorage",
+            "members": [
+              {
+                "label": "_owner",
+                "type": "t_address",
+                "offset": 0,
+                "slot": "0"
+              }
+            ],
+            "numberOfBytes": "32"
+          },
+          "t_uint256": {
+            "label": "uint256",
+            "numberOfBytes": "32"
+          },
+          "t_uint64": {
+            "label": "uint64",
+            "numberOfBytes": "8"
+          },
+          "t_string_storage": {
+            "label": "string",
+            "numberOfBytes": "32"
+          }
+        },
+        "namespaces": {
+          "erc7201:nox.storage.NoxCompute": [
+            {
+              "contract": "NoxCompute",
+              "label": "admins",
+              "type": "t_mapping(t_bytes32,t_mapping(t_address,t_bool))",
+              "src": "project/contracts/NoxCompute.sol:32",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "NoxCompute",
+              "label": "viewers",
+              "type": "t_mapping(t_bytes32,t_mapping(t_address,t_bool))",
+              "src": "project/contracts/NoxCompute.sol:35",
+              "offset": 0,
+              "slot": "1"
+            },
+            {
+              "contract": "NoxCompute",
+              "label": "isPubliclyDecryptable",
+              "type": "t_mapping(t_bytes32,t_bool)",
+              "src": "project/contracts/NoxCompute.sol:37",
+              "offset": 0,
+              "slot": "2"
+            },
+            {
+              "contract": "NoxCompute",
+              "label": "kmsPublicKey",
+              "type": "t_bytes_storage",
+              "src": "project/contracts/NoxCompute.sol:38",
+              "offset": 0,
+              "slot": "3"
+            },
+            {
+              "contract": "NoxCompute",
+              "label": "gateway",
+              "type": "t_address",
+              "src": "project/contracts/NoxCompute.sol:39",
+              "offset": 0,
+              "slot": "4"
+            },
+            {
+              "contract": "NoxCompute",
+              "label": "proofExpirationDuration",
+              "type": "t_uint256",
+              "src": "project/contracts/NoxCompute.sol:40",
+              "offset": 0,
+              "slot": "5"
+            },
+            {
+              "contract": "NoxCompute",
+              "label": "uniqueSeedCounter",
+              "type": "t_uint256",
+              "src": "project/contracts/NoxCompute.sol:42",
+              "offset": 0,
+              "slot": "6"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Ownable": [
+            {
+              "contract": "OwnableUpgradeable",
+              "label": "_owner",
+              "type": "t_address",
+              "src": "npm/@openzeppelin/contracts-upgradeable@5.6.1/access/OwnableUpgradeable.sol:24",
+              "offset": 0,
+              "slot": "0"
+            }
+          ],
+          "erc7201:openzeppelin.storage.Initializable": [
+            {
+              "contract": "Initializable",
+              "label": "_initialized",
+              "type": "t_uint64",
+              "src": "npm/@openzeppelin/contracts@5.6.1/proxy/utils/Initializable.sol:69",
+              "offset": 0,
+              "slot": "0"
+            },
+            {
+              "contract": "Initializable",
+              "label": "_initializing",
+              "type": "t_bool",
+              "src": "npm/@openzeppelin/contracts@5.6.1/proxy/utils/Initializable.sol:73",
+              "offset": 8,
+              "slot": "0"
+            }
+          ]
+        }
+      }
+    }
+  }
+}
