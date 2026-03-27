@@ -154,10 +154,11 @@ library TypeUtils {
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
         require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
-        bool supportedType = teeType == TEEType.Uint16 ||
-            teeType == TEEType.Uint256 ||
-            teeType == TEEType.Int16 ||
-            teeType == TEEType.Int256;
+        bool supportedType =
+            teeType == TEEType.Uint16 ||
+                teeType == TEEType.Uint256 ||
+                teeType == TEEType.Int16 ||
+                teeType == TEEType.Int256;
         require(supportedType, UnsupportedArithmeticType());
     }
 
