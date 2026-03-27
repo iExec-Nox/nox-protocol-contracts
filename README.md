@@ -6,21 +6,24 @@
 [![Ship](https://img.shields.io/github/v/tag/iExec-Nox/nox-protocol-contracts?label=ship)](https://github.com/iExec-Nox/nox-protocol-contracts/releases)
 [![npm](https://img.shields.io/npm/v/@iexec-nox/nox-protocol-contracts?label=npm)](https://www.npmjs.com/package/@iexec-nox/nox-protocol-contracts)
 
-> On-chain smart contracts for the Nox protocol: access control for encrypted handles and a compute gateway for confidential TEE operations.
+> Solidity contracts for the Nox protocol: manage encrypted handles, validate proofs, and trigger confidential computations.
 
 ## Table of Contents
 
-- [Overview](#overview)
-- [Prerequisites](#prerequisites)
-- [Getting Started](#getting-started)
-- [Environment Variables](#environment-variables)
-- [Testing](#testing)
-- [Deployment](#deployment)
-- [Verify](#verify)
-- [Configuration notes](#configuration-notes)
-- [Related Repositories](#related-repositories)
-- [Contributing](#contributing)
-- [License](#license)
+- [Nox · nox-protocol-contracts](#nox--nox-protocol-contracts)
+    - [Table of Contents](#table-of-contents)
+    - [Overview](#overview)
+    - [Prerequisites](#prerequisites)
+    - [Getting Started](#getting-started)
+    - [Environment Variables](#environment-variables)
+    - [Testing](#testing)
+    - [Deployment](#deployment)
+    - [Verify](#verify)
+    - [Configuration notes](#configuration-notes)
+    - [Related Repositories](#related-repositories)
+    - [Contributing](#contributing)
+        - [Code style](#code-style)
+    - [License](#license)
 
 ## Overview
 
@@ -29,8 +32,6 @@
 - **NoxCompute**: the main UUPS-upgradeable contract that manages the Access Control List (ACL) for encrypted handles, validates handle proofs issued by a trusted gateway, facilitates plaintext-to-encrypted conversions, and triggers off-chain TEE computations through event emissions.
 - **INoxCompute**: the public interface consumed by application contracts and off-chain services.
 - **Nox SDK library** (`contracts/sdk/Nox.sol`): a convenience wrapper that resolves the NoxCompute proxy address per chain and exposes helper functions for application contracts.
-
-The contracts are built with Hardhat v3 and Foundry (via `hardhat-foundry`), use OpenZeppelin upgradeable contracts, and target Arbitrum Sepolia (421614) as the primary testnet.
 
 ## Prerequisites
 
@@ -56,12 +57,11 @@ pnpm run build
 
 ## Environment Variables
 
-| Variable              | Description                                    | Required          | Default |
-| --------------------- | ---------------------------------------------- | ----------------- | ------- |
-| `RPC_URL`             | JSON-RPC endpoint for the target network       | For remote deploy | -       |
-| `PRIVATE_KEY`         | Deployer private key                           | For remote deploy | -       |
-| `ETHERSCAN_API_KEY`   | API key for contract verification on Etherscan | For verify        | -       |
-| `NOX_COMPUTE_ADDRESS` | Override proxy address resolution              | No                | -       |
+| Variable            | Description                                    | Required          | Default |
+| ------------------- | ---------------------------------------------- | ----------------- | ------- |
+| `RPC_URL`           | JSON-RPC endpoint for the target network       | For remote deploy | -       |
+| `PRIVATE_KEY`       | Deployer private key                           | For remote deploy | -       |
+| `ETHERSCAN_API_KEY` | API key for contract verification on Etherscan | For verify        | -       |
 
 ## Testing
 
@@ -75,8 +75,6 @@ pnpm run test:gas
 # Run coverage
 pnpm run coverage
 ```
-
-Unit tests use the Hardhat EDR-simulated network. Integration tests require a running Hardhat/Anvil node at `localhost:8545` and the off-chain services (docker-compose).
 
 ## Deployment
 
