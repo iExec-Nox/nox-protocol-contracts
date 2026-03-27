@@ -18,7 +18,7 @@
     - [Environment Variables](#environment-variables)
     - [Testing](#testing)
     - [Deployment](#deployment)
-    - [Verify](#verify)
+    - [Verification](#verification)
     - [Configuration notes](#configuration-notes)
     - [Related Repositories](#related-repositories)
     - [Contributing](#contributing)
@@ -31,13 +31,13 @@
 
 - **NoxCompute**: the main UUPS-upgradeable contract that manages the Access Control List (ACL) for encrypted handles, validates handle proofs issued by a trusted gateway, facilitates plaintext-to-encrypted conversions, and triggers off-chain TEE computations through event emissions.
 - **INoxCompute**: the public interface consumed by application contracts and off-chain services.
-- **Nox SDK library** (`contracts/sdk/Nox.sol`): a convenience wrapper that resolves the NoxCompute proxy address per chain and exposes helper functions for application contracts.
+- **Nox SDK library** (`contracts/sdk/Nox.sol`): a convenience wrapper that resolves the NoxCompute proxy address per chain and exposes typed helper functions for application contracts.
 
 ## Prerequisites
 
 - Node.js >= 24 (see `.nvmrc`)
 - pnpm >= 10 (see `packageManager` in `package.json`)
-- Foundry (`forge`) for Solidity tests
+- Hardhat >= 3
 
 ## Getting Started
 
@@ -61,7 +61,7 @@ pnpm run build
 | ------------------- | ---------------------------------------------- | ----------------- | ------- |
 | `RPC_URL`           | JSON-RPC endpoint for the target network       | For remote deploy | -       |
 | `PRIVATE_KEY`       | Deployer private key                           | For remote deploy | -       |
-| `ETHERSCAN_API_KEY` | API key for contract verification on Etherscan | For verify        | -       |
+| `ETHERSCAN_API_KEY` | API key for contract verification on Etherscan | For verification  | -       |
 
 ## Testing
 
@@ -91,7 +91,7 @@ pnpm run deploy:production
 pnpm run upgrade
 ```
 
-## Verify
+## Verification
 
 Verify deployed contracts on Etherscan. Requires `ETHERSCAN_API_KEY`:
 
@@ -112,7 +112,6 @@ pnpm run verify arbitrumSepolia --network arbitrumSepolia
 | ------------------------------------------------------------------------------- | --------------------------------------------------- |
 | [nox-handle-sdk](https://github.com/iExec-Nox/nox-handle-sdk)                   | TypeScript SDK for handle encryption/decryption     |
 | [nox-offchain-deployment](https://github.com/iExec-Nox/nox-offchain-deployment) | Off-chain services (gateway, KMS, runner, ingestor) |
-| [encrypted-types](https://github.com/iExec-Nox/encrypted-types)                 | Solidity types for encrypted values                 |
 
 ## Contributing
 
