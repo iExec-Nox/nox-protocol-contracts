@@ -47,10 +47,12 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     // keccak256(abi.encode(uint256(keccak256("nox.storage.NoxCompute")) - 1)) & ~bytes32(uint256(0xff))
     bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
         0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
-    bytes32 public constant HANDLE_PROOF_TYPEHASH =
-        keccak256("HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)");
-    bytes32 public constant DECRYPTION_PROOF_TYPEHASH =
-        keccak256("DecryptionProof(bytes32 handle,bytes decryptedResult)");
+    bytes32 public constant HANDLE_PROOF_TYPEHASH = keccak256(
+        "HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)"
+    );
+    bytes32 public constant DECRYPTION_PROOF_TYPEHASH = keccak256(
+        "DecryptionProof(bytes32 handle,bytes decryptedResult)"
+    );
 
     /**
      * Ensures the account address is not zero
