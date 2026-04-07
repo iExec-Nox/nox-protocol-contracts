@@ -24,7 +24,7 @@ import { Address } from "viem";
  */
 export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true, contractName = "NoxCompute") {
     const _log = printLogs ? console.log : () => {};
-    const { ethers } = connection;
+    const ethers = (connection as typeof connection & { ethers: any }).ethers;
 
     _log(`Upgrading NoxCompute proxy`);
     _log(`New implementation contract: ${contractName}`);
