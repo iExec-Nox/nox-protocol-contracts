@@ -1,4 +1,5 @@
 import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
+import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers"; // used by OpenZeppelin Upgrades plugin.
 import openzeppelinUpgradesPlugin from "@openzeppelin/hardhat-upgrades";
 import { proxyFilesToBuild } from "@openzeppelin/hardhat-upgrades";
 import { configVariable, defineConfig } from "hardhat/config";
@@ -16,7 +17,7 @@ const baseProfile = {
 } as const;
 
 export default defineConfig({
-    plugins: [hardhatToolboxViemPlugin, openzeppelinUpgradesPlugin],
+    plugins: [hardhatToolboxViemPlugin, hardhatEthersPlugin, openzeppelinUpgradesPlugin],
     ignition: {
         strategyConfig: {
             create2: {
