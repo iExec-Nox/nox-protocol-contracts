@@ -5,8 +5,6 @@ import { configVariable, defineConfig } from "hardhat/config";
 import { CREATE2_SALT } from "./config/config.ts";
 import solc from "./.solc.json" with { type: "json" };
 
-setOpenzeppelingUpgradesConfig();
-
 const baseProfile = {
     version: solc.version,
     settings: {
@@ -70,15 +68,3 @@ export default defineConfig({
         },
     },
 });
-
-/**
- * Set manifest file path for OZ upgrades plugin.
- * This is a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
- * its forks (tenderlyArbitrumSepolia) as its chainId is not recognized by the plugin.
- */
-function setOpenzeppelingUpgradesConfig() {
-    const networkArgIndex = process.argv.indexOf("--network");
-    if (networkArgIndex !== -1) {
-        process.env.MANIFEST_DEFAULT_DIR ??= `.openzeppelin/${process.argv[networkArgIndex + 1]}`;
-    }
-}
