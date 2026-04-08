@@ -397,9 +397,55 @@ contract NoxTest is Test {
             _assertHandleType(result, TEEType.Bool);
         }
     }
+
+    function test_Transfer() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.transfer, (uint256HandleA, uint256HandleB, uint256HandleC))
+        );
+        (ebool success, euint256 newBalanceFrom, euint256 newBalanceTo) = Nox.transfer(
+            euint256.wrap(uint256HandleA),
+            euint256.wrap(uint256HandleB),
+            euint256.wrap(uint256HandleC)
+        );
+        _assertHandleType(ebool.unwrap(success), TEEType.Bool);
+        _assertHandleType(euint256.unwrap(newBalanceFrom), TEEType.Uint256);
+        _assertHandleType(euint256.unwrap(newBalanceTo), TEEType.Uint256);
+    }
+
+    function test_Mint() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.mint, (uint256HandleA, uint256HandleB, uint256HandleC))
+        );
+        (ebool success, euint256 newBalanceTo, euint256 newTotalSupply) = Nox.mint(
+            euint256.wrap(uint256HandleA),
+            euint256.wrap(uint256HandleB),
+            euint256.wrap(uint256HandleC)
+        );
+        _assertHandleType(ebool.unwrap(success), TEEType.Bool);
+        _assertHandleType(euint256.unwrap(newBalanceTo), TEEType.Uint256);
+        _assertHandleType(euint256.unwrap(newTotalSupply), TEEType.Uint256);
+    }
+
+    function test_Burn() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.burn, (uint256HandleA, uint256HandleB, uint256HandleC))
+        );
+        (ebool success, euint256 newBalanceFrom, euint256 newTotalSupply) = Nox.burn(
+            euint256.wrap(uint256HandleA),
+            euint256.wrap(uint256HandleB),
+            euint256.wrap(uint256HandleC)
+        );
+        _assertHandleType(ebool.unwrap(success), TEEType.Bool);
+        _assertHandleType(euint256.unwrap(newBalanceFrom), TEEType.Uint256);
+        _assertHandleType(euint256.unwrap(newTotalSupply), TEEType.Uint256);
+    }
+
     // TODO: Add null handle resolution tests (verify SDK resolves bytes32(0) to typed null handles)
 
-    // ============ allow ============
+    // ============ ACL functions ============
 
     function test_allow() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
@@ -407,8 +453,6 @@ contract NoxTest is Test {
             _noxAllow(allHandles[i], account);
         }
     }
-
-    // ============ allowThis ============
 
     function test_allowThis() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
@@ -420,8 +464,6 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ allowTransient ============
-
     function test_allowTransient() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(
@@ -432,7 +474,15 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ isAllowed ============
+    function test_disallowTransient() public {
+        for (uint256 i = 0; i < allHandles.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.disallowTransient, (allHandles[i], account))
+            );
+            _noxDisallowTransient(allHandles[i], account);
+        }
+    }
 
     function test_isAllowed() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
@@ -444,8 +494,6 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ addViewer ============
-
     function test_addViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(
@@ -455,8 +503,6 @@ contract NoxTest is Test {
             _noxAddViewer(allHandles[i], account);
         }
     }
-
-    // ============ isViewer ============
 
     function test_isViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
@@ -468,8 +514,6 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ allowPublicDecryption ============
-
     function test_allowPublicDecryption() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(
@@ -479,8 +523,6 @@ contract NoxTest is Test {
             _noxAllowPublicDecryption(allHandles[i]);
         }
     }
-
-    // ============ isPubliclyDecryptable ============
 
     function test_isPubliclyDecryptable() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
@@ -1026,6 +1068,25 @@ contract NoxTest is Test {
             Nox.allowTransient(eint16.wrap(handle), acc);
         } else if (t == TEEType.Int256) {
             Nox.allowTransient(eint256.wrap(handle), acc);
+        } else {
+            revert("unsupported type");
+        }
+    }
+
+    function _noxDisallowTransient(bytes32 handle, address acc) internal {
+        TEEType t = handle.typeOf();
+        if (t == TEEType.Bool) {
+            Nox.disallowTransient(ebool.wrap(handle), acc);
+        } else if (t == TEEType.Address) {
+            Nox.disallowTransient(eaddress.wrap(handle), acc);
+        } else if (t == TEEType.Uint16) {
+            Nox.disallowTransient(euint16.wrap(handle), acc);
+        } else if (t == TEEType.Uint256) {
+            Nox.disallowTransient(euint256.wrap(handle), acc);
+        } else if (t == TEEType.Int16) {
+            Nox.disallowTransient(eint16.wrap(handle), acc);
+        } else if (t == TEEType.Int256) {
+            Nox.disallowTransient(eint256.wrap(handle), acc);
         } else {
             revert("unsupported type");
         }
