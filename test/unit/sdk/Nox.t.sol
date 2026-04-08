@@ -279,7 +279,7 @@ contract NoxTest is Test {
                 noxCompute,
                 abi.encodeCall(INoxCompute.safeAdd, (arithmeticA[i], arithmeticB[i]))
             );
-            (bytes32 result, bytes32 success) = _noxSafeAdd(arithmeticA[i], arithmeticB[i]);
+            (bytes32 success, bytes32 result) = _noxSafeAdd(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
             _assertHandleType(success, TEEType.Bool);
         }
@@ -291,7 +291,7 @@ contract NoxTest is Test {
                 noxCompute,
                 abi.encodeCall(INoxCompute.safeSub, (arithmeticA[i], arithmeticB[i]))
             );
-            (bytes32 result, bytes32 success) = _noxSafeSub(arithmeticA[i], arithmeticB[i]);
+            (bytes32 success, bytes32 result) = _noxSafeSub(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
             _assertHandleType(success, TEEType.Bool);
         }
@@ -303,7 +303,7 @@ contract NoxTest is Test {
                 noxCompute,
                 abi.encodeCall(INoxCompute.safeMul, (arithmeticA[i], arithmeticB[i]))
             );
-            (bytes32 result, bytes32 success) = _noxSafeMul(arithmeticA[i], arithmeticB[i]);
+            (bytes32 success, bytes32 result) = _noxSafeMul(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
             _assertHandleType(success, TEEType.Bool);
         }
@@ -315,7 +315,7 @@ contract NoxTest is Test {
                 noxCompute,
                 abi.encodeCall(INoxCompute.safeDiv, (arithmeticA[i], arithmeticB[i]))
             );
-            (bytes32 result, bytes32 success) = _noxSafeDiv(arithmeticA[i], arithmeticB[i]);
+            (bytes32 success, bytes32 result) = _noxSafeDiv(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
             _assertHandleType(success, TEEType.Bool);
         }
@@ -339,7 +339,7 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.eq, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxEq(arithmeticA[i], arithmeticB[i]);
-            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(result, TEEType.Bool);
         }
     }
 
@@ -350,7 +350,7 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.ne, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxNe(arithmeticA[i], arithmeticB[i]);
-            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(result, TEEType.Bool);
         }
     }
 
@@ -361,7 +361,7 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.lt, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxLt(arithmeticA[i], arithmeticB[i]);
-            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(result, TEEType.Bool);
         }
     }
 
@@ -372,7 +372,7 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.le, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxLe(arithmeticA[i], arithmeticB[i]);
-            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(result, TEEType.Bool);
         }
     }
 
@@ -383,7 +383,7 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.gt, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxGt(arithmeticA[i], arithmeticB[i]);
-            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(result, TEEType.Bool);
         }
     }
 
@@ -394,7 +394,7 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.ge, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxGe(arithmeticA[i], arithmeticB[i]);
-            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(result, TEEType.Bool);
         }
     }
     // TODO: Add null handle resolution tests (verify SDK resolves bytes32(0) to typed null handles)
