@@ -504,34 +504,43 @@ contract NoxTest is Test {
         noxComputeContract.allowPublicDecryption(handle);
     }
 
-    function _noxFromExternal(bytes32 handle, bytes memory proof) internal {
+    function _noxFromExternal(bytes32 handle, bytes memory proof) internal returns (bytes32) {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
-            noxMock.fromExternalEbool(externalEbool.wrap(handle), proof);
-        } else if (t == TEEType.Address) {
-            noxMock.fromExternalEaddress(externalEaddress.wrap(handle), proof);
-        } else if (t == TEEType.Uint16) {
-            noxMock.fromExternalEuint16(externalEuint16.wrap(handle), proof);
-        } else if (t == TEEType.Uint256) {
-            noxMock.fromExternalEuint256(externalEuint256.wrap(handle), proof);
-        } else if (t == TEEType.Int16) {
-            noxMock.fromExternalEint16(externalEint16.wrap(handle), proof);
-        } else if (t == TEEType.Int256) {
-            noxMock.fromExternalEint256(externalEint256.wrap(handle), proof);
-        } else {
-            revert("unsupported type");
+            return ebool.unwrap(noxMock.fromExternalEbool(externalEbool.wrap(handle), proof));
         }
+        if (t == TEEType.Address) {
+            return
+                eaddress.unwrap(noxMock.fromExternalEaddress(externalEaddress.wrap(handle), proof));
+        }
+        if (t == TEEType.Uint16) {
+            return euint16.unwrap(noxMock.fromExternalEuint16(externalEuint16.wrap(handle), proof));
+        }
+        if (t == TEEType.Uint256) {
+            return
+                euint256.unwrap(noxMock.fromExternalEuint256(externalEuint256.wrap(handle), proof));
+        }
+        if (t == TEEType.Int16) {
+            return eint16.unwrap(noxMock.fromExternalEint16(externalEint16.wrap(handle), proof));
+        }
+        if (t == TEEType.Int256) {
+            return eint256.unwrap(noxMock.fromExternalEint256(externalEint256.wrap(handle), proof));
+        }
+        revert("unsupported type");
     }
 
     function _noxAdd(bytes32 a, bytes32 b) internal returns (bytes32) {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.add(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.add(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return eint16.unwrap(Nox.add(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return eint256.unwrap(Nox.add(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -541,11 +550,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.sub(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.sub(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return eint16.unwrap(Nox.sub(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return eint256.unwrap(Nox.sub(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -555,11 +567,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.mul(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.mul(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return eint16.unwrap(Nox.mul(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return eint256.unwrap(Nox.mul(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -569,11 +584,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.div(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return euint256.unwrap(Nox.div(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return eint16.unwrap(Nox.div(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return eint256.unwrap(Nox.div(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -584,13 +602,16 @@ contract NoxTest is Test {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeAdd(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             (ebool s, euint256 r) = Nox.safeAdd(euint256.wrap(a), euint256.wrap(b));
             return (ebool.unwrap(s), euint256.unwrap(r));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             (ebool s, eint16 r) = Nox.safeAdd(eint16.wrap(a), eint16.wrap(b));
             return (ebool.unwrap(s), eint16.unwrap(r));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             (ebool s, eint256 r) = Nox.safeAdd(eint256.wrap(a), eint256.wrap(b));
             return (ebool.unwrap(s), eint256.unwrap(r));
         }
@@ -602,13 +623,16 @@ contract NoxTest is Test {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeSub(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             (ebool s, euint256 r) = Nox.safeSub(euint256.wrap(a), euint256.wrap(b));
             return (ebool.unwrap(s), euint256.unwrap(r));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             (ebool s, eint16 r) = Nox.safeSub(eint16.wrap(a), eint16.wrap(b));
             return (ebool.unwrap(s), eint16.unwrap(r));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             (ebool s, eint256 r) = Nox.safeSub(eint256.wrap(a), eint256.wrap(b));
             return (ebool.unwrap(s), eint256.unwrap(r));
         }
@@ -620,13 +644,16 @@ contract NoxTest is Test {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeMul(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             (ebool s, euint256 r) = Nox.safeMul(euint256.wrap(a), euint256.wrap(b));
             return (ebool.unwrap(s), euint256.unwrap(r));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             (ebool s, eint16 r) = Nox.safeMul(eint16.wrap(a), eint16.wrap(b));
             return (ebool.unwrap(s), eint16.unwrap(r));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             (ebool s, eint256 r) = Nox.safeMul(eint256.wrap(a), eint256.wrap(b));
             return (ebool.unwrap(s), eint256.unwrap(r));
         }
@@ -638,13 +665,16 @@ contract NoxTest is Test {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeDiv(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             (ebool s, euint256 r) = Nox.safeDiv(euint256.wrap(a), euint256.wrap(b));
             return (ebool.unwrap(s), euint256.unwrap(r));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             (ebool s, eint16 r) = Nox.safeDiv(eint16.wrap(a), eint16.wrap(b));
             return (ebool.unwrap(s), eint16.unwrap(r));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             (ebool s, eint256 r) = Nox.safeDiv(eint256.wrap(a), eint256.wrap(b));
             return (ebool.unwrap(s), eint256.unwrap(r));
         }
@@ -662,17 +692,20 @@ contract NoxTest is Test {
                 euint16.unwrap(
                     Nox.select(ebool.wrap(condition), euint16.wrap(ifTrue), euint16.wrap(ifFalse))
                 );
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return
                 euint256.unwrap(
                     Nox.select(ebool.wrap(condition), euint256.wrap(ifTrue), euint256.wrap(ifFalse))
                 );
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return
                 eint16.unwrap(
                     Nox.select(ebool.wrap(condition), eint16.wrap(ifTrue), eint16.wrap(ifFalse))
                 );
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return
                 eint256.unwrap(
                     Nox.select(ebool.wrap(condition), eint256.wrap(ifTrue), eint256.wrap(ifFalse))
@@ -685,11 +718,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.eq(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return ebool.unwrap(Nox.eq(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return ebool.unwrap(Nox.eq(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return ebool.unwrap(Nox.eq(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -699,11 +735,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.ne(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return ebool.unwrap(Nox.ne(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return ebool.unwrap(Nox.ne(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return ebool.unwrap(Nox.ne(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -713,11 +752,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.lt(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return ebool.unwrap(Nox.lt(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return ebool.unwrap(Nox.lt(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return ebool.unwrap(Nox.lt(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -727,11 +769,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.le(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return ebool.unwrap(Nox.le(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return ebool.unwrap(Nox.le(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return ebool.unwrap(Nox.le(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -741,11 +786,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.gt(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return ebool.unwrap(Nox.gt(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return ebool.unwrap(Nox.gt(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return ebool.unwrap(Nox.gt(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -755,11 +803,14 @@ contract NoxTest is Test {
         TEEType t = a.typeOf();
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.ge(euint16.wrap(a), euint16.wrap(b)));
-        } else if (t == TEEType.Uint256) {
+        }
+        if (t == TEEType.Uint256) {
             return ebool.unwrap(Nox.ge(euint256.wrap(a), euint256.wrap(b)));
-        } else if (t == TEEType.Int16) {
+        }
+        if (t == TEEType.Int16) {
             return ebool.unwrap(Nox.ge(eint16.wrap(a), eint16.wrap(b)));
-        } else if (t == TEEType.Int256) {
+        }
+        if (t == TEEType.Int256) {
             return ebool.unwrap(Nox.ge(eint256.wrap(a), eint256.wrap(b)));
         }
         revert("unsupported type");
@@ -767,90 +818,154 @@ contract NoxTest is Test {
 
     function _noxAllow(bytes32 handle, address acc) internal {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.allow(ebool.wrap(handle), acc);
-        else if (t == TEEType.Address) Nox.allow(eaddress.wrap(handle), acc);
-        else if (t == TEEType.Uint16) Nox.allow(euint16.wrap(handle), acc);
-        else if (t == TEEType.Uint256) Nox.allow(euint256.wrap(handle), acc);
-        else if (t == TEEType.Int16) Nox.allow(eint16.wrap(handle), acc);
-        else if (t == TEEType.Int256) Nox.allow(eint256.wrap(handle), acc);
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.allow(ebool.wrap(handle), acc);
+        } else if (t == TEEType.Address) {
+            Nox.allow(eaddress.wrap(handle), acc);
+        } else if (t == TEEType.Uint16) {
+            Nox.allow(euint16.wrap(handle), acc);
+        } else if (t == TEEType.Uint256) {
+            Nox.allow(euint256.wrap(handle), acc);
+        } else if (t == TEEType.Int16) {
+            Nox.allow(eint16.wrap(handle), acc);
+        } else if (t == TEEType.Int256) {
+            Nox.allow(eint256.wrap(handle), acc);
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxAllowThis(bytes32 handle) internal {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.allowThis(ebool.wrap(handle));
-        else if (t == TEEType.Address) Nox.allowThis(eaddress.wrap(handle));
-        else if (t == TEEType.Uint16) Nox.allowThis(euint16.wrap(handle));
-        else if (t == TEEType.Uint256) Nox.allowThis(euint256.wrap(handle));
-        else if (t == TEEType.Int16) Nox.allowThis(eint16.wrap(handle));
-        else if (t == TEEType.Int256) Nox.allowThis(eint256.wrap(handle));
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.allowThis(ebool.wrap(handle));
+        } else if (t == TEEType.Address) {
+            Nox.allowThis(eaddress.wrap(handle));
+        } else if (t == TEEType.Uint16) {
+            Nox.allowThis(euint16.wrap(handle));
+        } else if (t == TEEType.Uint256) {
+            Nox.allowThis(euint256.wrap(handle));
+        } else if (t == TEEType.Int16) {
+            Nox.allowThis(eint16.wrap(handle));
+        } else if (t == TEEType.Int256) {
+            Nox.allowThis(eint256.wrap(handle));
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxAllowTransient(bytes32 handle, address acc) internal {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.allowTransient(ebool.wrap(handle), acc);
-        else if (t == TEEType.Address) Nox.allowTransient(eaddress.wrap(handle), acc);
-        else if (t == TEEType.Uint16) Nox.allowTransient(euint16.wrap(handle), acc);
-        else if (t == TEEType.Uint256) Nox.allowTransient(euint256.wrap(handle), acc);
-        else if (t == TEEType.Int16) Nox.allowTransient(eint16.wrap(handle), acc);
-        else if (t == TEEType.Int256) Nox.allowTransient(eint256.wrap(handle), acc);
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.allowTransient(ebool.wrap(handle), acc);
+        } else if (t == TEEType.Address) {
+            Nox.allowTransient(eaddress.wrap(handle), acc);
+        } else if (t == TEEType.Uint16) {
+            Nox.allowTransient(euint16.wrap(handle), acc);
+        } else if (t == TEEType.Uint256) {
+            Nox.allowTransient(euint256.wrap(handle), acc);
+        } else if (t == TEEType.Int16) {
+            Nox.allowTransient(eint16.wrap(handle), acc);
+        } else if (t == TEEType.Int256) {
+            Nox.allowTransient(eint256.wrap(handle), acc);
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxIsAllowed(bytes32 handle, address acc) internal view {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.isAllowed(ebool.wrap(handle), acc);
-        else if (t == TEEType.Address) Nox.isAllowed(eaddress.wrap(handle), acc);
-        else if (t == TEEType.Uint16) Nox.isAllowed(euint16.wrap(handle), acc);
-        else if (t == TEEType.Uint256) Nox.isAllowed(euint256.wrap(handle), acc);
-        else if (t == TEEType.Int16) Nox.isAllowed(eint16.wrap(handle), acc);
-        else if (t == TEEType.Int256) Nox.isAllowed(eint256.wrap(handle), acc);
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.isAllowed(ebool.wrap(handle), acc);
+        } else if (t == TEEType.Address) {
+            Nox.isAllowed(eaddress.wrap(handle), acc);
+        } else if (t == TEEType.Uint16) {
+            Nox.isAllowed(euint16.wrap(handle), acc);
+        } else if (t == TEEType.Uint256) {
+            Nox.isAllowed(euint256.wrap(handle), acc);
+        } else if (t == TEEType.Int16) {
+            Nox.isAllowed(eint16.wrap(handle), acc);
+        } else if (t == TEEType.Int256) {
+            Nox.isAllowed(eint256.wrap(handle), acc);
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxAddViewer(bytes32 handle, address viewer) internal {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.addViewer(ebool.wrap(handle), viewer);
-        else if (t == TEEType.Address) Nox.addViewer(eaddress.wrap(handle), viewer);
-        else if (t == TEEType.Uint16) Nox.addViewer(euint16.wrap(handle), viewer);
-        else if (t == TEEType.Uint256) Nox.addViewer(euint256.wrap(handle), viewer);
-        else if (t == TEEType.Int16) Nox.addViewer(eint16.wrap(handle), viewer);
-        else if (t == TEEType.Int256) Nox.addViewer(eint256.wrap(handle), viewer);
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.addViewer(ebool.wrap(handle), viewer);
+        } else if (t == TEEType.Address) {
+            Nox.addViewer(eaddress.wrap(handle), viewer);
+        } else if (t == TEEType.Uint16) {
+            Nox.addViewer(euint16.wrap(handle), viewer);
+        } else if (t == TEEType.Uint256) {
+            Nox.addViewer(euint256.wrap(handle), viewer);
+        } else if (t == TEEType.Int16) {
+            Nox.addViewer(eint16.wrap(handle), viewer);
+        } else if (t == TEEType.Int256) {
+            Nox.addViewer(eint256.wrap(handle), viewer);
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxIsViewer(bytes32 handle, address viewer) internal view {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.isViewer(ebool.wrap(handle), viewer);
-        else if (t == TEEType.Address) Nox.isViewer(eaddress.wrap(handle), viewer);
-        else if (t == TEEType.Uint16) Nox.isViewer(euint16.wrap(handle), viewer);
-        else if (t == TEEType.Uint256) Nox.isViewer(euint256.wrap(handle), viewer);
-        else if (t == TEEType.Int16) Nox.isViewer(eint16.wrap(handle), viewer);
-        else if (t == TEEType.Int256) Nox.isViewer(eint256.wrap(handle), viewer);
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.isViewer(ebool.wrap(handle), viewer);
+        } else if (t == TEEType.Address) {
+            Nox.isViewer(eaddress.wrap(handle), viewer);
+        } else if (t == TEEType.Uint16) {
+            Nox.isViewer(euint16.wrap(handle), viewer);
+        } else if (t == TEEType.Uint256) {
+            Nox.isViewer(euint256.wrap(handle), viewer);
+        } else if (t == TEEType.Int16) {
+            Nox.isViewer(eint16.wrap(handle), viewer);
+        } else if (t == TEEType.Int256) {
+            Nox.isViewer(eint256.wrap(handle), viewer);
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxAllowPublicDecryption(bytes32 handle) internal {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.allowPublicDecryption(ebool.wrap(handle));
-        else if (t == TEEType.Address) Nox.allowPublicDecryption(eaddress.wrap(handle));
-        else if (t == TEEType.Uint16) Nox.allowPublicDecryption(euint16.wrap(handle));
-        else if (t == TEEType.Uint256) Nox.allowPublicDecryption(euint256.wrap(handle));
-        else if (t == TEEType.Int16) Nox.allowPublicDecryption(eint16.wrap(handle));
-        else if (t == TEEType.Int256) Nox.allowPublicDecryption(eint256.wrap(handle));
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.allowPublicDecryption(ebool.wrap(handle));
+        } else if (t == TEEType.Address) {
+            Nox.allowPublicDecryption(eaddress.wrap(handle));
+        } else if (t == TEEType.Uint16) {
+            Nox.allowPublicDecryption(euint16.wrap(handle));
+        } else if (t == TEEType.Uint256) {
+            Nox.allowPublicDecryption(euint256.wrap(handle));
+        } else if (t == TEEType.Int16) {
+            Nox.allowPublicDecryption(eint16.wrap(handle));
+        } else if (t == TEEType.Int256) {
+            Nox.allowPublicDecryption(eint256.wrap(handle));
+        } else {
+            revert("unsupported type");
+        }
     }
 
     function _noxIsPubliclyDecryptable(bytes32 handle) internal view {
         TEEType t = handle.typeOf();
-        if (t == TEEType.Bool) Nox.isPubliclyDecryptable(ebool.wrap(handle));
-        else if (t == TEEType.Address) Nox.isPubliclyDecryptable(eaddress.wrap(handle));
-        else if (t == TEEType.Uint16) Nox.isPubliclyDecryptable(euint16.wrap(handle));
-        else if (t == TEEType.Uint256) Nox.isPubliclyDecryptable(euint256.wrap(handle));
-        else if (t == TEEType.Int16) Nox.isPubliclyDecryptable(eint16.wrap(handle));
-        else if (t == TEEType.Int256) Nox.isPubliclyDecryptable(eint256.wrap(handle));
-        else revert("unsupported type");
+        if (t == TEEType.Bool) {
+            Nox.isPubliclyDecryptable(ebool.wrap(handle));
+        } else if (t == TEEType.Address) {
+            Nox.isPubliclyDecryptable(eaddress.wrap(handle));
+        } else if (t == TEEType.Uint16) {
+            Nox.isPubliclyDecryptable(euint16.wrap(handle));
+        } else if (t == TEEType.Uint256) {
+            Nox.isPubliclyDecryptable(euint256.wrap(handle));
+        } else if (t == TEEType.Int16) {
+            Nox.isPubliclyDecryptable(eint16.wrap(handle));
+        } else if (t == TEEType.Int256) {
+            Nox.isPubliclyDecryptable(eint256.wrap(handle));
+        } else {
+            revert("unsupported type");
+        }
     }
 
     // ============ Internal Helpers ============
