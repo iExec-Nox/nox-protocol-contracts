@@ -87,9 +87,9 @@ contract NoxTest is Test {
 
     // ============ noxComputeContract ============
 
-    function test_Compute_ArbitrumSepolia() public {
+    function test_ContractAddress_ArbitrumSepolia() public {
         vm.chainId(421614);
-        address arbitrumSepoliaCompute = noxMock.compute();
+        address arbitrumSepoliaCompute = noxMock.noxComputeContract();
         vm.mockCall(
             arbitrumSepoliaCompute,
             abi.encodeCall(INoxCompute.isAllowed, (boolHandle, account)),
@@ -102,7 +102,7 @@ contract NoxTest is Test {
         Nox.isAllowed(ebool.wrap(boolHandle), account);
     }
 
-    function test_RevertWhen_Compute_UnsupportedChain() public {
+    function test_RevertWhen_ContractAddress_UnsupportedChain() public {
         vm.chainId(9999);
         vm.expectRevert("Nox: Unsupported chain");
         noxMock.addEuint16(uint16HandleA, uint16HandleB);
@@ -221,8 +221,9 @@ contract NoxTest is Test {
             // Use startPrank/stopPrank instead of prank to avoid coverage instrumentation
             // consuming the single-use prank before the intended external call.
             vm.startPrank(handleOwner);
-            _noxFromExternal(allHandles[i], proof);
+            bytes32 handle = _noxFromExternal(allHandles[i], proof);
             vm.stopPrank();
+            _assertHandleType(handle, t);
         }
     }
 
@@ -235,10 +236,167 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.add, (arithmeticA[i], arithmeticB[i]))
             );
             bytes32 result = _noxAdd(arithmeticA[i], arithmeticB[i]);
-            assertNotEq(result, 0);
+            _assertHandleType(result, arithmeticA[i].typeOf());
         }
     }
 
+    function test_sub() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.sub, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxSub(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_mul() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.mul, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxMul(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_div() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.div, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxDiv(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_safeAdd() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.safeAdd, (arithmeticA[i], arithmeticB[i]))
+            );
+            (bytes32 result, bytes32 success) = _noxSafeAdd(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(success, TEEType.Bool);
+        }
+    }
+
+    function test_safeSub() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.safeSub, (arithmeticA[i], arithmeticB[i]))
+            );
+            (bytes32 result, bytes32 success) = _noxSafeSub(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(success, TEEType.Bool);
+        }
+    }
+
+    function test_safeMul() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.safeMul, (arithmeticA[i], arithmeticB[i]))
+            );
+            (bytes32 result, bytes32 success) = _noxSafeMul(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(success, TEEType.Bool);
+        }
+    }
+
+    function test_safeDiv() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.safeDiv, (arithmeticA[i], arithmeticB[i]))
+            );
+            (bytes32 result, bytes32 success) = _noxSafeDiv(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+            _assertHandleType(success, TEEType.Bool);
+        }
+    }
+
+    function test_select() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.select, (boolHandle, arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxSelect(boolHandle, arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_eq() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.eq, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxEq(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_ne() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.ne, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxNe(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_lt() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.lt, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxLt(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_le() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.le, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxLe(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_gt() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.gt, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxGt(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_ge() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.ge, (arithmeticA[i], arithmeticB[i]))
+            );
+            bytes32 result = _noxGe(arithmeticA[i], arithmeticB[i]);
+            _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
     // TODO: Add null handle resolution tests (verify SDK resolves bytes32(0) to typed null handles)
 
     // ============ allow ============
@@ -496,7 +654,7 @@ contract NoxTest is Test {
         noxMock.publicDecryptEint256(int256HandleA, proof);
     }
 
-    // ============ Dispatch Helpers ============
+    // ============ Helpers ============
 
     function _makePubliclyDecryptable(bytes32 handle) internal {
         TestHelper.forceAllowPersistent(handle, owner);
@@ -968,9 +1126,18 @@ contract NoxTest is Test {
         }
     }
 
-    // ============ Internal Helpers ============
-
+    /**
+     * Asserts that a call is made to the noxCompute contract with the given
+     * selector and arguments.
+     */
     function _expectCall(bytes4 selector, bytes32 arg1, bytes32 arg2) internal {
         vm.expectCall(noxCompute, abi.encodeWithSelector(selector, arg1, arg2));
+    }
+
+    /**
+     * Asserts that the given handle has the expected TEE type.
+     */
+    function _assertHandleType(bytes32 handle, TEEType expected) internal pure {
+        assertEq(uint8(handle.typeOf()), uint8(expected), "type mismatch");
     }
 }

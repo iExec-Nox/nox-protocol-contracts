@@ -13,7 +13,7 @@ import {Nox} from "../../contracts/sdk/Nox.sol";
 contract NoxMock {
     // ============ Address resolution ============
 
-    function compute() external view returns (address) {
+    function noxComputeContract() external view returns (address) {
         return Nox.noxComputeContract();
     }
 
