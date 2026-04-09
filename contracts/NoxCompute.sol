@@ -95,7 +95,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param initialOwner Initial owner address
      * @param kmsPublicKey_ KMS public key for ECIES encryption
      */
-    function initialize(address initialOwner, bytes calldata kmsPublicKey_) external initializer {
+    function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
         require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
         __Ownable_init(initialOwner);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
@@ -111,7 +111,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @dev The call to this function does not need to be protected because it does
      * not do any critical operations.
      */
-    function initializeV2() external reinitializer(2) {
+    function initializeV2() public reinitializer(2) {
         _emitZeroHandleSeeds();
     }
 
