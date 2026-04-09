@@ -95,12 +95,24 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param initialOwner Initial owner address
      * @param kmsPublicKey_ KMS public key for ECIES encryption
      */
-    function initialize(address initialOwner, bytes calldata kmsPublicKey_) public initializer {
+    function initialize(address initialOwner, bytes calldata kmsPublicKey_) external initializer {
         require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
         __Ownable_init(initialOwner);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
         $.kmsPublicKey = kmsPublicKey_;
+        _emitZeroHandleSeeds();
+    }
+
+    /**
+     * @notice Intitializer of 0.1.1 upgrade for already deployed proxies.
+     * @notice Emits zero handle seeds for existing proxies.
+     * @dev The same logic is also called in `initialize()` for fresh deployments.
+     * @dev The call to this function does not need to be protected because it does
+     * not do any critical operations.
+     */
+    function initializeV2() external reinitializer(2) {
+        _emitZeroHandleSeeds();
     }
 
     // ----------- ACL management -----------
@@ -800,6 +812,22 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         // All operands are public handles: need storage counter for uniqueness
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         return ++$.uniqueSeedCounter;
+    }
+
+    /**
+     * Emits events to seed the zero handles for all supported types. This allows off-chain
+     * services to recognize the zero handle for each type without needing to hardcode them.
+     */
+    function _emitZeroHandleSeeds() private {
+        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        for (uint i = 0; i < types.length; i++) {
+            emit WrapAsPublicHandle(
+                address(this),
+                bytes32(0),
+                types[i],
+                HandleUtils.zeroHandle(types[i])
+            );
+        }
     }
 
     // ----------- Admin functions ----------

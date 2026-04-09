@@ -82,6 +82,21 @@ contract NoxComputeTest is Test {
         assertTrue(keccak256(bytes(version)) == keccak256(bytes("1")));
     }
 
+    function test_Initialize_ShouldEmitZeroHandleSeeds() public {
+        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        for (uint i = 0; i < types.length; i++) {
+            vm.expectEmit(false, false, false, true);
+            emit INoxCompute.WrapAsPublicHandle(
+                address(0), // ignored
+                bytes32(0),
+                types[i],
+                HandleUtils.zeroHandle(types[i])
+            );
+        }
+        // Initialize function is called when the proxy is deployed.
+        TestHelper.newProxyInstance();
+    }
+
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         noxCompute.initialize(owner, abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key")));
@@ -91,6 +106,30 @@ contract NoxComputeTest is Test {
         NoxCompute impl = new NoxCompute();
         vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
         NoxCompute(TestHelper.deployProxy(address(impl), owner, new bytes(0)));
+    }
+
+    // ============ initializeV2 ============
+
+    function test_InitializeV2() public {
+        NoxCompute proxy = TestHelper.newProxyInstance();
+        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        for (uint i = 0; i < types.length; i++) {
+            vm.expectEmit(false, false, false, true);
+            emit INoxCompute.WrapAsPublicHandle(
+                address(0), // ignored
+                bytes32(0),
+                types[i],
+                HandleUtils.zeroHandle(types[i])
+            );
+        }
+        proxy.initializeV2();
+    }
+
+    function test_RevertWhen_InitializeV2_AlreadyCalled() public {
+        NoxCompute proxy = TestHelper.newProxyInstance();
+        proxy.initializeV2();
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        proxy.initializeV2();
     }
 
     // ============ setKmsPublicKey ============

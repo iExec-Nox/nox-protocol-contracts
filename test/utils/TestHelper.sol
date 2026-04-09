@@ -187,6 +187,16 @@ library TestHelper {
         return address(proxy);
     }
 
+    /**
+     * Deploys a new random proxy instance of NoxCompute.
+     */
+    function newProxyInstance() internal returns (NoxCompute proxy) {
+        address implementation = address(new NoxCompute());
+        bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
+        address proxyAddress = deployProxy(implementation, address(this), kmsPublicKey);
+        proxy = NoxCompute(proxyAddress);
+    }
+
     function getVm() internal pure returns (Vm) {
         return Vm(address(uint160(uint256(keccak256("hevm cheat code")))));
     }

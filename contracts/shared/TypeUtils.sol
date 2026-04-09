@@ -117,6 +117,19 @@ error UnsupportedArithmeticType();
 
 library TypeUtils {
     /**
+     * Returns the list of all currently supported TEE types.
+     * @dev Update this list when new types are supported.
+     */
+    function allCurrentlySupportedTypes() internal pure returns (TEEType[] memory types) {
+        types = new TEEType[](5);
+        types[0] = TEEType.Bool;
+        types[1] = TEEType.Uint16;
+        types[2] = TEEType.Uint256;
+        types[3] = TEEType.Int16;
+        types[4] = TEEType.Int256;
+    }
+
+    /**
      * @notice Extracts the TEE type from a handle.
      * The type is stored at byte position 5 in the handle.
      * @param handle The handle to extract the type from
