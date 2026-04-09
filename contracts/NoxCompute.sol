@@ -6,6 +6,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
 import {INoxCompute} from "./interfaces/INoxCompute.sol";
+import {HandleUtils} from "./shared/HandleUtils.sol";
 import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
 
 /**
@@ -78,7 +79,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param handle The handle to check
      */
     modifier notPublicHandle(bytes32 handle) {
-        require(!TypeUtils.isPublicHandle(handle), PublicHandleACLForbidden());
+        require(!HandleUtils.isPublicHandle(handle), PublicHandleACLForbidden());
         _;
     }
 
@@ -142,7 +143,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     /// @inheritdoc INoxCompute
     function isAllowed(bytes32 handle, address account) public view override returns (bool) {
         return
-            TypeUtils.isPublicHandle(handle) ||
+            HandleUtils.isPublicHandle(handle) ||
             _isAllowedTransient(handle, account) ||
             _isAllowedPersistent(handle, account);
     }
@@ -170,7 +171,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         return
-            TypeUtils.isPublicHandle(handle) ||
+            HandleUtils.isPublicHandle(handle) ||
             $.isPubliclyDecryptable[handle] ||
             $.viewers[handle][viewer] ||
             $.admins[handle][viewer];
@@ -188,7 +189,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     /// @inheritdoc INoxCompute
     function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return TypeUtils.isPublicHandle(handle) || $.isPubliclyDecryptable[handle];
+        return HandleUtils.isPublicHandle(handle) || $.isPubliclyDecryptable[handle];
     }
 
     /**
@@ -203,7 +204,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      */
     function _allowTransient(bytes32 handle, address account) private {
         // Public handles don't need ACL; skip silently to save gas.
-        if (TypeUtils.isPublicHandle(handle)) {
+        if (HandleUtils.isPublicHandle(handle)) {
             return;
         }
         bytes32 key = keccak256(abi.encodePacked(handle, account));
@@ -596,7 +597,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             resultType,
             0,
             uniqueSeed,
-            TypeUtils.ATTR_IS_UNIQUE_HANDLE
+            HandleUtils.ATTR_IS_UNIQUE_HANDLE
         );
         _allowTransient(result, msg.sender);
         if (isSafeOperation) {
@@ -606,7 +607,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
                 TEEType.Bool,
                 1,
                 uniqueSeed,
-                TypeUtils.ATTR_IS_UNIQUE_HANDLE
+                HandleUtils.ATTR_IS_UNIQUE_HANDLE
             );
             _allowTransient(success, msg.sender);
         }
@@ -675,7 +676,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             TEEType.Bool,
             0,
             uniqueSeed,
-            TypeUtils.ATTR_IS_UNIQUE_HANDLE
+            HandleUtils.ATTR_IS_UNIQUE_HANDLE
         );
         result1 = _generateHandle(
             operator,
@@ -683,7 +684,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             resultType,
             1,
             uniqueSeed,
-            TypeUtils.ATTR_IS_UNIQUE_HANDLE
+            HandleUtils.ATTR_IS_UNIQUE_HANDLE
         );
         result2 = _generateHandle(
             operator,
@@ -691,7 +692,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             resultType,
             2,
             uniqueSeed,
-            TypeUtils.ATTR_IS_UNIQUE_HANDLE
+            HandleUtils.ATTR_IS_UNIQUE_HANDLE
         );
         _allowTransient(success, msg.sender);
         _allowTransient(result1, msg.sender);
@@ -735,7 +736,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
             handleType,
             0,
             uniqueSeed,
-            TypeUtils.ATTR_IS_UNIQUE_HANDLE
+            HandleUtils.ATTR_IS_UNIQUE_HANDLE
         );
     }
 
@@ -792,7 +793,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      */
     function _generateHandleUniqueSeed(bytes32[] memory operands) private returns (uint256) {
         for (uint256 i = 0; i < operands.length; i++) {
-            if (!TypeUtils.isPublicHandle(operands[i])) {
+            if (!HandleUtils.isPublicHandle(operands[i])) {
                 return 0;
             }
         }
