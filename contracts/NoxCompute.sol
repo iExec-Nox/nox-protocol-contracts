@@ -105,7 +105,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * @notice Intitializer of 0.1.1 upgrade for already deployed proxies.
+     * @notice Initializer of 0.1.1 upgrade for already deployed proxies.
      * @notice Emits zero handle seeds for existing proxies.
      * @dev The same logic is also called in `initialize()` for fresh deployments.
      * @dev The call to this function does not need to be protected because it does
