@@ -101,6 +101,35 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
         $.kmsPublicKey = kmsPublicKey_;
+        _emitZeroHandles();
+    }
+
+    /**
+     * Reinitializer for existing deployments that were initialized before zero handle
+     * events were emitted. Emits WrapAsPublicHandle events for the zero value of each
+     * arithmetic type so the Handle Gateway receives their crypto material.
+     */
+    function initializeV2() public reinitializer(2) {
+        _emitZeroHandles();
+    }
+
+    /**
+     * Emits WrapAsPublicHandle events for the zero handle of each type used by the
+     * Nox library. This lets the runner create and store the crypto material for these
+     * handles, which represent uninitialized encrypted values (e.g. a new account balance).
+     */
+    function _emitZeroHandles() private {
+        TEEType[5] memory types = [
+            TEEType.Bool,
+            TEEType.Uint16,
+            TEEType.Uint256,
+            TEEType.Int16,
+            TEEType.Int256
+        ];
+        for (uint256 i = 0; i < types.length; i++) {
+            bytes32 handle = HandleUtils.zeroHandle(types[i]);
+            emit WrapAsPublicHandle(address(this), bytes32(0), types[i], handle);
+        }
     }
 
     // ----------- ACL management -----------
