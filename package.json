@@ -1,6 +1,6 @@
 {
   "name": "@iexec-nox/nox-protocol-contracts",
-  "version": "0.1.0-beta.9",
+  "version": "0.1.0",
   "description": "Nox protocol smart contracts",
   "keywords": [
     "Nox",
