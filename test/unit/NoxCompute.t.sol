@@ -9,6 +9,7 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
+import {HandleUtils} from "../../contracts/shared/HandleUtils.sol";
 import {
     TEEType,
     TypeUtils,
@@ -1127,7 +1128,7 @@ contract NoxComputeTest is Test {
         assertEq(bytes4(h << (1 * 8)), bytes4(uint32(block.chainid)), "Invalid chainId");
         assertEq(uint8(TypeUtils.typeOf(h)), uint8(expectedType), "Invalid type");
         if (isPublic) {
-            assertTrue(TypeUtils.isPublicHandle(h), "Should be a public handle");
+            assertTrue(HandleUtils.isPublicHandle(h), "Should be a public handle");
         } else {
             assertEq(uint8(h[6]) & 0x01, 1, "Should have isUniqueHandle=1");
             assertTrue(noxCompute.isAllowed(h, caller), "Caller should be allowed for the handle");
