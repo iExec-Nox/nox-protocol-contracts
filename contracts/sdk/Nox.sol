@@ -1,6 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.27;
 
+import {HandleUtils} from "../shared/HandleUtils.sol";
 import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import "encrypted-types/EncryptedTypes.sol";
@@ -47,7 +48,7 @@ library Nox {
      * Public handles are already accessible by everyone and don't need ACL.
      */
     function _allowIfNotPublic(bytes32 handle, address account) private {
-        if (!TypeUtils.isPublicHandle(handle)) {
+        if (!HandleUtils.isPublicHandle(handle)) {
             _noxComputeContract().allow(handle, account);
         }
     }
@@ -57,7 +58,7 @@ library Nox {
      * Public handles are already accessible by everyone and don't need ACL.
      */
     function _allowTransientIfNotPublic(bytes32 handle, address account) private {
-        if (!TypeUtils.isPublicHandle(handle)) {
+        if (!HandleUtils.isPublicHandle(handle)) {
             _noxComputeContract().allowTransient(handle, account);
         }
     }
@@ -67,7 +68,7 @@ library Nox {
      * Public handles are already accessible by everyone and don't need ACL.
      */
     function _disallowTransientIfNotPublic(bytes32 handle, address account) private {
-        if (!TypeUtils.isPublicHandle(handle)) {
+        if (!HandleUtils.isPublicHandle(handle)) {
             _noxComputeContract().disallowTransient(handle, account);
         }
     }
@@ -1402,6 +1403,6 @@ library Nox {
         bytes32 handle,
         TEEType teeType
     ) private view returns (bytes32) {
-        return handle == bytes32(0) ? TypeUtils.zeroHandle(teeType) : handle;
+        return handle == bytes32(0) ? HandleUtils.zeroHandle(teeType) : handle;
     }
 }
