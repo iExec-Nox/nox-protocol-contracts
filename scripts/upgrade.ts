@@ -40,6 +40,7 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
+        call: { fn: "initializeV2", args: [] },
     });
     await upgrade.waitForDeployment();
     const newImplementation = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
