@@ -274,13 +274,6 @@ contract NoxMock {
         return Nox.fromExternal(handle, proof);
     }
 
-    function fromExternalEaddress(
-        externalEaddress handle,
-        bytes calldata proof
-    ) external returns (eaddress) {
-        return Nox.fromExternal(handle, proof);
-    }
-
     function fromExternalEuint16(
         externalEuint16 handle,
         bytes calldata proof
@@ -313,13 +306,6 @@ contract NoxMock {
 
     function publicDecryptEbool(bytes32 handle, bytes calldata proof) external view returns (bool) {
         return Nox.publicDecrypt(ebool.wrap(handle), proof);
-    }
-
-    function publicDecryptEaddress(
-        bytes32 handle,
-        bytes calldata proof
-    ) external view returns (address) {
-        return Nox.publicDecrypt(eaddress.wrap(handle), proof);
     }
 
     function publicDecryptEuint16(
