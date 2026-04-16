@@ -2,20 +2,13 @@
 
 ## [0.2.0](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.1.0...v0.2.0) (2026-04-16)
 
-
 ### 🚀 Added
 
 * Remove eaddress leftover references ([#122](https://github.com/iExec-Nox/nox-protocol-contracts/issues/122)) ([83ccb4e](https://github.com/iExec-Nox/nox-protocol-contracts/commit/83ccb4ec152cf73f1f49d6725002168b94be815c))
 
-
 ### ✍️ Changed
 
 * Emit zero handle seeds ([#119](https://github.com/iExec-Nox/nox-protocol-contracts/issues/119)) ([b3fa6f5](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b3fa6f50f7d6974465dde4711e3acd73b05e960d))
-
-
-### 📋 Misc
-
-* save upgrade artifacts for arbitrumSepolia (GitHub run id: 24203038665) ([#121](https://github.com/iExec-Nox/nox-protocol-contracts/issues/121)) ([9457353](https://github.com/iExec-Nox/nox-protocol-contracts/commit/94573532a2faf09f9e79824ffe6c9dd0de5bdb2f))
 
 ## 0.1.0 (2026-04-09)
 
@@ -76,7 +69,6 @@ This first release establishes the core Nox protocol contracts. It introduces th
 * Resolve null handles in SDK ([#102](https://github.com/iExec-Nox/nox-protocol-contracts/issues/102)) ([c6cf37b](https://github.com/iExec-Nox/nox-protocol-contracts/commit/c6cf37bb7462dfd306fe9e5f5ec1f716ef6a4ea8))
 * Support raw non ABI-encoded data in public decryption ([#103](https://github.com/iExec-Nox/nox-protocol-contracts/issues/103)) ([4f9b9b3](https://github.com/iExec-Nox/nox-protocol-contracts/commit/4f9b9b36106d861d163685b72a5b01480828d521))
 
-
 ### ✍️ Changed
 
 * Update deployment job dependencies and package manager version ([#19](https://github.com/iExec-Nox/nox-protocol-contracts/issues/19)) ([0128823](https://github.com/iExec-Nox/nox-protocol-contracts/commit/0128823d9a17deaa6c213b14b8c96b3fdcadf5b9))
@@ -102,7 +94,6 @@ This first release establishes the core Nox protocol contracts. It introduces th
 * Fix upgrade script ([#109](https://github.com/iExec-Nox/nox-protocol-contracts/issues/109)) ([0be7079](https://github.com/iExec-Nox/nox-protocol-contracts/commit/0be7079feed03ddc8793215975cf3fb20ab2263d))
 * Push upgrade artifacts from CI ([#110](https://github.com/iExec-Nox/nox-protocol-contracts/issues/110)) ([8ad27aa](https://github.com/iExec-Nox/nox-protocol-contracts/commit/8ad27aa795fe3ecdbf92941fcfb686a50a7963bd))
 * Refactor TypeUtils and fix coverage ([#114](https://github.com/iExec-Nox/nox-protocol-contracts/issues/114)) ([6f1271d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/6f1271d5d0607cf31971b13a1e1b94460fa3ef5f))
-
 
 ### 📋 Misc
 
