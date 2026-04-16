@@ -28,7 +28,6 @@ contract NoxTest is Test {
 
     // Individual handles
     bytes32 boolHandle = TestHelper.createHandle(TEEType.Bool);
-    bytes32 addressHandle = TestHelper.createHandle(TEEType.Address);
     bytes32 int16HandleA = TestHelper.createHandle(TEEType.Int16);
     bytes32 int16HandleB = TestHelper.createHandle(TEEType.Int16);
     bytes32 int256HandleA = TestHelper.createHandle(TEEType.Int256);
@@ -54,7 +53,6 @@ contract NoxTest is Test {
         noxMock = new NoxMock();
         // Allow all handles for the test contract
         TestHelper.forceAllowPersistent(boolHandle, address(this));
-        TestHelper.forceAllowPersistent(addressHandle, address(this));
         TestHelper.forceAllowPersistent(int16HandleA, address(this));
         TestHelper.forceAllowPersistent(int16HandleB, address(this));
         TestHelper.forceAllowPersistent(int256HandleA, address(this));
@@ -73,9 +71,8 @@ contract NoxTest is Test {
         arithmeticB.push(uint256HandleB);
         arithmeticB.push(int16HandleB);
         arithmeticB.push(int256HandleB);
-        // Build all handles: ebool, eaddress, euint16, euint256, eint16, eint256
+        // Build all handles: ebool, euint16, euint256, eint16, eint256
         allHandles.push(boolHandle);
-        allHandles.push(addressHandle);
         allHandles.push(uint16HandleA);
         allHandles.push(uint256HandleA);
         allHandles.push(int16HandleA);
@@ -112,7 +109,6 @@ contract NoxTest is Test {
 
     function test_isInitialized_True() public view {
         assertTrue(Nox.isInitialized(ebool.wrap(boolHandle)));
-        assertTrue(Nox.isInitialized(eaddress.wrap(addressHandle)));
         assertTrue(Nox.isInitialized(euint16.wrap(uint16HandleA)));
         assertTrue(Nox.isInitialized(euint256.wrap(uint256HandleA)));
         assertTrue(Nox.isInitialized(eint16.wrap(int16HandleA)));
@@ -121,7 +117,6 @@ contract NoxTest is Test {
 
     function test_isInitialized_False() public pure {
         assertFalse(Nox.isInitialized(ebool.wrap(0)));
-        assertFalse(Nox.isInitialized(eaddress.wrap(0)));
         assertFalse(Nox.isInitialized(euint16.wrap(0)));
         assertFalse(Nox.isInitialized(euint256.wrap(0)));
         assertFalse(Nox.isInitialized(eint16.wrap(0)));
@@ -552,42 +547,6 @@ contract NoxTest is Test {
         noxMock.publicDecryptEbool(boolHandle, proof);
     }
 
-    function test_publicDecrypt_Eaddress() public {
-        _makePubliclyDecryptable(addressHandle);
-        bytes memory data = abi.encodePacked(uint160(account));
-        bytes memory proof = TestHelper.buildDecryptionProof(
-            addressHandle,
-            data,
-            gatewayPrivateKey
-        );
-        address result = noxMock.publicDecryptEaddress(addressHandle, proof);
-        assertEq(result, account);
-    }
-
-    function test_RevertWhen_PublicDecrypt_Eaddress_DataSizeTooSmall() public {
-        _makePubliclyDecryptable(addressHandle);
-        bytes memory data = abi.encodePacked(uint152(uint160(account))); // < 20 bytes
-        bytes memory proof = TestHelper.buildDecryptionProof(
-            addressHandle,
-            data,
-            gatewayPrivateKey
-        );
-        vm.expectRevert(abi.encodeWithSelector(Nox.MalformedDecryptedData.selector, data));
-        noxMock.publicDecryptEaddress(addressHandle, proof);
-    }
-
-    function test_RevertWhen_PublicDecrypt_Eaddress_DataSizeTooLarge() public {
-        _makePubliclyDecryptable(addressHandle);
-        bytes memory data = abi.encodePacked(uint168(uint160(account))); // > 20 bytes
-        bytes memory proof = TestHelper.buildDecryptionProof(
-            addressHandle,
-            data,
-            gatewayPrivateKey
-        );
-        vm.expectRevert(abi.encodeWithSelector(Nox.MalformedDecryptedData.selector, data));
-        noxMock.publicDecryptEaddress(addressHandle, proof);
-    }
-
     function test_publicDecrypt_Euint16() public {
         _makePubliclyDecryptable(uint16HandleA);
         bytes memory data = abi.encodePacked(uint16(42));
@@ -708,10 +667,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             return ebool.unwrap(noxMock.fromExternalEbool(externalEbool.wrap(handle), proof));
-        }
-        if (t == TEEType.Address) {
-            return
-                eaddress.unwrap(noxMock.fromExternalEaddress(externalEaddress.wrap(handle), proof));
         }
         if (t == TEEType.Uint16) {
             return euint16.unwrap(noxMock.fromExternalEuint16(externalEuint16.wrap(handle), proof));
@@ -1020,8 +975,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.allow(ebool.wrap(handle), acc);
-        } else if (t == TEEType.Address) {
-            Nox.allow(eaddress.wrap(handle), acc);
         } else if (t == TEEType.Uint16) {
             Nox.allow(euint16.wrap(handle), acc);
         } else if (t == TEEType.Uint256) {
@@ -1039,8 +992,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.allowThis(ebool.wrap(handle));
-        } else if (t == TEEType.Address) {
-            Nox.allowThis(eaddress.wrap(handle));
         } else if (t == TEEType.Uint16) {
             Nox.allowThis(euint16.wrap(handle));
         } else if (t == TEEType.Uint256) {
@@ -1058,8 +1009,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.allowTransient(ebool.wrap(handle), acc);
-        } else if (t == TEEType.Address) {
-            Nox.allowTransient(eaddress.wrap(handle), acc);
         } else if (t == TEEType.Uint16) {
             Nox.allowTransient(euint16.wrap(handle), acc);
         } else if (t == TEEType.Uint256) {
@@ -1077,8 +1026,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.disallowTransient(ebool.wrap(handle), acc);
-        } else if (t == TEEType.Address) {
-            Nox.disallowTransient(eaddress.wrap(handle), acc);
         } else if (t == TEEType.Uint16) {
             Nox.disallowTransient(euint16.wrap(handle), acc);
         } else if (t == TEEType.Uint256) {
@@ -1096,8 +1043,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.isAllowed(ebool.wrap(handle), acc);
-        } else if (t == TEEType.Address) {
-            Nox.isAllowed(eaddress.wrap(handle), acc);
         } else if (t == TEEType.Uint16) {
             Nox.isAllowed(euint16.wrap(handle), acc);
         } else if (t == TEEType.Uint256) {
@@ -1115,8 +1060,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.addViewer(ebool.wrap(handle), viewer);
-        } else if (t == TEEType.Address) {
-            Nox.addViewer(eaddress.wrap(handle), viewer);
         } else if (t == TEEType.Uint16) {
             Nox.addViewer(euint16.wrap(handle), viewer);
         } else if (t == TEEType.Uint256) {
@@ -1134,8 +1077,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.isViewer(ebool.wrap(handle), viewer);
-        } else if (t == TEEType.Address) {
-            Nox.isViewer(eaddress.wrap(handle), viewer);
         } else if (t == TEEType.Uint16) {
             Nox.isViewer(euint16.wrap(handle), viewer);
         } else if (t == TEEType.Uint256) {
@@ -1153,8 +1094,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.allowPublicDecryption(ebool.wrap(handle));
-        } else if (t == TEEType.Address) {
-            Nox.allowPublicDecryption(eaddress.wrap(handle));
         } else if (t == TEEType.Uint16) {
             Nox.allowPublicDecryption(euint16.wrap(handle));
         } else if (t == TEEType.Uint256) {
@@ -1172,8 +1111,6 @@ contract NoxTest is Test {
         TEEType t = handle.typeOf();
         if (t == TEEType.Bool) {
             Nox.isPubliclyDecryptable(ebool.wrap(handle));
-        } else if (t == TEEType.Address) {
-            Nox.isPubliclyDecryptable(eaddress.wrap(handle));
         } else if (t == TEEType.Uint16) {
             Nox.isPubliclyDecryptable(euint16.wrap(handle));
         } else if (t == TEEType.Uint256) {

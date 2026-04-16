@@ -86,16 +86,6 @@ library Nox {
     }
 
     /**
-     * @dev Checks if an encrypted address handle is initialized.
-     * This is a basic check and does not guarantee that the handle
-     * is valid or recognized by the ACL.
-     * @param handle encrypted address handle
-     */
-    function isInitialized(eaddress handle) internal pure returns (bool) {
-        return eaddress.unwrap(handle) != 0;
-    }
-
-    /**
      * @dev Checks if an encrypted uint16 handle is initialized.
      * This is a basic check and does not guarantee that the handle
      * is valid or recognized by the ACL.
@@ -202,15 +192,6 @@ library Nox {
         bytes32 handle = externalEbool.unwrap(externalHandle);
         _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Bool);
         return ebool.wrap(handle);
-    }
-
-    function fromExternal(
-        externalEaddress externalHandle,
-        bytes calldata handleProof
-    ) internal returns (eaddress) {
-        bytes32 handle = externalEaddress.unwrap(externalHandle);
-        _noxComputeContract().validateInputProof(handle, msg.sender, handleProof, TEEType.Address);
-        return eaddress.wrap(handle);
     }
 
     function fromExternal(
@@ -906,14 +887,6 @@ library Nox {
      * @dev Allows the use of value for the address account.
      * Silently skips public handles (they are already accessible by everyone).
      */
-    function allow(eaddress value, address account) internal {
-        _allowIfNotPublic(eaddress.unwrap(value), account);
-    }
-
-    /**
-     * @dev Allows the use of value for the address account.
-     * Silently skips public handles (they are already accessible by everyone).
-     */
     function allow(euint16 value, address account) internal {
         _allowIfNotPublic(euint16.unwrap(value), account);
     }
@@ -948,14 +921,6 @@ library Nox {
      */
     function allowThis(ebool value) internal {
         _allowIfNotPublic(ebool.unwrap(value), address(this));
-    }
-
-    /**
-     * @dev Allows the use of value for this address (address(this)).
-     * Silently skips public handles (they are already accessible by everyone).
-     */
-    function allowThis(eaddress value) internal {
-        _allowIfNotPublic(eaddress.unwrap(value), address(this));
     }
 
     /**
@@ -1002,14 +967,6 @@ library Nox {
      * @dev Allows the use of value by address account for this transaction.
      * Silently skips public handles (they are already accessible by everyone).
      */
-    function allowTransient(eaddress value, address account) internal {
-        _allowTransientIfNotPublic(eaddress.unwrap(value), account);
-    }
-
-    /**
-     * @dev Allows the use of value by address account for this transaction.
-     * Silently skips public handles (they are already accessible by everyone).
-     */
     function allowTransient(euint16 value, address account) internal {
         _allowTransientIfNotPublic(euint16.unwrap(value), account);
     }
@@ -1044,14 +1001,6 @@ library Nox {
      */
     function disallowTransient(ebool value, address account) internal {
         _disallowTransientIfNotPublic(ebool.unwrap(value), account);
-    }
-
-    /**
-     * @dev Revokes transient access to value for address account within the current transaction.
-     * Silently skips public handles (they are already accessible by everyone).
-     */
-    function disallowTransient(eaddress value, address account) internal {
-        _disallowTransientIfNotPublic(eaddress.unwrap(value), account);
     }
 
     /**
@@ -1096,13 +1045,6 @@ library Nox {
     /**
      * @dev Checks if the handle is allowed for the account.
      */
-    function isAllowed(eaddress handle, address account) internal view returns (bool) {
-        return _noxComputeContract().isAllowed(eaddress.unwrap(handle), account);
-    }
-
-    /**
-     * @dev Checks if the handle is allowed for the account.
-     */
     function isAllowed(euint16 handle, address account) internal view returns (bool) {
         return _noxComputeContract().isAllowed(euint16.unwrap(handle), account);
     }
@@ -1135,13 +1077,6 @@ library Nox {
      */
     function addViewer(ebool value, address viewer) internal {
         _noxComputeContract().addViewer(ebool.unwrap(value), viewer);
-    }
-
-    /**
-     * @dev Adds a viewer for an eaddress handle.
-     */
-    function addViewer(eaddress value, address viewer) internal {
-        _noxComputeContract().addViewer(eaddress.unwrap(value), viewer);
     }
 
     /**
@@ -1182,13 +1117,6 @@ library Nox {
     /**
      * @dev Checks if the viewer can view the handle.
      */
-    function isViewer(eaddress handle, address viewer) internal view returns (bool) {
-        return _noxComputeContract().isViewer(eaddress.unwrap(handle), viewer);
-    }
-
-    /**
-     * @dev Checks if the viewer can view the handle.
-     */
     function isViewer(euint16 handle, address viewer) internal view returns (bool) {
         return _noxComputeContract().isViewer(euint16.unwrap(handle), viewer);
     }
@@ -1224,13 +1152,6 @@ library Nox {
     }
 
     /**
-     * @dev Marks an eaddress handle as publicly decryptable.
-     */
-    function allowPublicDecryption(eaddress value) internal {
-        _noxComputeContract().allowPublicDecryption(eaddress.unwrap(value));
-    }
-
-    /**
      * @dev Marks an euint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint16 value) internal {
@@ -1263,13 +1184,6 @@ library Nox {
      */
     function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
         return _noxComputeContract().isPubliclyDecryptable(ebool.unwrap(handle));
-    }
-
-    /**
-     * @dev Checks if the handle is publicly decryptable.
-     */
-    function isPubliclyDecryptable(eaddress handle) internal view returns (bool) {
-        return _noxComputeContract().isPubliclyDecryptable(eaddress.unwrap(handle));
     }
 
     /**
@@ -1316,21 +1230,6 @@ library Nox {
         require(result.length == 1, MalformedDecryptedData(result));
         require(result[0] == 0x00 || result[0] == 0x01, MalformedDecryptedData(result));
         return result[0] != 0x00;
-    }
-
-    /**
-     * @dev Verifies a decryption proof and returns the decrypted address value.
-     */
-    function publicDecrypt(
-        eaddress handle,
-        bytes calldata decryptionProof
-    ) internal view returns (address plaintextValue) {
-        bytes memory result = _noxComputeContract().validateDecryptionProof(
-            eaddress.unwrap(handle),
-            decryptionProof
-        );
-        require(result.length == 20, MalformedDecryptedData(result));
-        return address(bytes20(result));
     }
 
     /**

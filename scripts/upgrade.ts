@@ -43,6 +43,8 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
         call: { fn: "initializeV2", args: [] },
     });
     await upgrade.waitForDeployment();
+
+    _log("Upgrade transaction:", upgrade.deploymentTransaction()?.hash);
     const newImplementation = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
     _log(`New implementation deployed at: ${newImplementation}`);
     _log("NoxCompute proxy upgraded successfully");
