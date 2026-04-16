@@ -1,5 +1,22 @@
 # Changelog
 
+## [0.2.0](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.1.0...v0.2.0) (2026-04-16)
+
+
+### 🚀 Added
+
+* Remove eaddress leftover references ([#122](https://github.com/iExec-Nox/nox-protocol-contracts/issues/122)) ([83ccb4e](https://github.com/iExec-Nox/nox-protocol-contracts/commit/83ccb4ec152cf73f1f49d6725002168b94be815c))
+
+
+### ✍️ Changed
+
+* Emit zero handle seeds ([#119](https://github.com/iExec-Nox/nox-protocol-contracts/issues/119)) ([b3fa6f5](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b3fa6f50f7d6974465dde4711e3acd73b05e960d))
+
+
+### 📋 Misc
+
+* save upgrade artifacts for arbitrumSepolia (GitHub run id: 24203038665) ([#121](https://github.com/iExec-Nox/nox-protocol-contracts/issues/121)) ([9457353](https://github.com/iExec-Nox/nox-protocol-contracts/commit/94573532a2faf09f9e79824ffe6c9dd0de5bdb2f))
+
 ## 0.1.0 (2026-04-09)
 
 This first release establishes the core Nox protocol contracts. It introduces the ACL system with transient and permanent permissions, the NoxCompute with a full set of confidential compute primitives (arithmetic, comparison, safe math, transfer/mint/burn), and the Solidity SDK library. Key infrastructure additions include gateway registry, UUPS upgradeability, on-chain decryption proof validation, KMS public key support, CreateX deployment, and a dual BUSL-1.1/MIT license.
