@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.0...v0.2.1) (2026-04-17)
+
+
+### 📋 Misc
+
+* Include `NoxCompute.sol` in npm package files ([3bc4737](https://github.com/iExec-Nox/nox-protocol-contracts/commit/3bc47377191df222e74f8dbe175e7fda8456e5cd))
+
 ## [0.2.0](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.1.0...v0.2.0) (2026-04-16)
 
 ### 🚀 Added
