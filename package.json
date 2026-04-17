@@ -11,6 +11,7 @@
   "packageManager": "pnpm@10.33.0",
   "type": "module",
   "files": [
+    "/contracts/NoxCompute.sol",
     "/contracts/interfaces/",
     "/contracts/sdk/",
     "/contracts/shared/"
