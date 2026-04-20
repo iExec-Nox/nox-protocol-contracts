@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.2](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.1...v0.2.2) (2026-04-20)
+
+
+### 📋 Misc
+
+* Include artifacts of arbitrumSepolia in npm package files ([22e2247](https://github.com/iExec-Nox/nox-protocol-contracts/commit/22e2247f53291bc5c86c2bd4be0d8ea98840eeec))
+
 ## [0.2.1](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.0...v0.2.1) (2026-04-17)
 
 
