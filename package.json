@@ -14,7 +14,8 @@
     "/contracts/NoxCompute.sol",
     "/contracts/interfaces/",
     "/contracts/sdk/",
-    "/contracts/shared/"
+    "/contracts/shared/",
+    "/ignition/deployments/arbitrumSepolia/artifacts/"
   ],
   "scripts": {
     "prepare": "husky",
