@@ -11,11 +11,11 @@
   "packageManager": "pnpm@10.33.0",
   "type": "module",
   "files": [
-    "/contracts/NoxCompute.sol",
-    "/contracts/interfaces/",
-    "/contracts/sdk/",
-    "/contracts/shared/",
-    "/ignition/deployments/arbitrumSepolia/artifacts/"
+    "contracts/**/*.sol",
+    "contracts/**/LICENSE",
+    "!contracts/mock/**",
+    "artifacts/contracts/**/*.json",
+    "!artifacts/contracts/mock/**"
   ],
   "scripts": {
     "prepare": "husky",
