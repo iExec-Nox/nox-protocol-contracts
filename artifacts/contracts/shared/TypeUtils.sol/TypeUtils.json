@@ -1,0 +1,2628 @@
+{
+  "_format": "hh3-artifact-1",
+  "contractName": "TypeUtils",
+  "sourceName": "contracts/shared/TypeUtils.sol",
+  "abi": [],
+  "bytecode": "0x602c604b600b8282823980515f1a607314603f577f4e487b71000000000000000000000000000000000000000000000000000000005f525f60045260245ffd5b305f52607381538281f3fe730000000000000000000000000000000000000000301460806040525f5ffdfea164736f6c6343000822000a",
+  "deployedBytecode": "0x730000000000000000000000000000000000000000301460806040525f5ffdfea164736f6c6343000822000a",
+  "linkReferences": {},
+  "deployedLinkReferences": {},
+  "immutableReferences": {},
+  "inputSourceName": "project/contracts/shared/TypeUtils.sol",
+  "buildInfoId": "solc-0_8_34-e9cc5241e87b8883926d810b0479ed8df4e41353",
+  "ast": {
+    "absolutePath": "project/contracts/shared/TypeUtils.sol",
+    "exportedSymbols": {
+      "NonArithmeticType": [
+        19080
+      ],
+      "TEEType": [
+        19078
+      ],
+      "TypeUtils": [
+        19218
+      ],
+      "UnsupportedArithmeticType": [
+        19082
+      ]
+    },
+    "id": 19219,
+    "license": "MIT",
+    "nodeType": "SourceUnit",
+    "nodes": [
+      {
+        "id": 18976,
+        "literals": [
+          "solidity",
+          "^",
+          "0.8",
+          ".27"
+        ],
+        "nodeType": "PragmaDirective",
+        "src": "32:24:32"
+      },
+      {
+        "canonicalName": "TEEType",
+        "documentation": {
+          "id": 18977,
+          "nodeType": "StructuredDocumentation",
+          "src": "58:162:32",
+          "text": " @notice Enum values MUST NOT be reordered or removed once deployed.\n New types should only be appended at the end to maintain backward compatibility."
+        },
+        "id": 19078,
+        "members": [
+          {
+            "id": 18978,
+            "name": "Bool",
+            "nameLocation": "293:4:32",
+            "nodeType": "EnumValue",
+            "src": "293:4:32"
+          },
+          {
+            "id": 18979,
+            "name": "Address",
+            "nameLocation": "308:7:32",
+            "nodeType": "EnumValue",
+            "src": "308:7:32"
+          },
+          {
+            "id": 18980,
+            "name": "Bytes",
+            "nameLocation": "326:5:32",
+            "nodeType": "EnumValue",
+            "src": "326:5:32"
+          },
+          {
+            "id": 18981,
+            "name": "String",
+            "nameLocation": "352:6:32",
+            "nodeType": "EnumValue",
+            "src": "352:6:32"
+          },
+          {
+            "id": 18982,
+            "name": "Uint8",
+            "nameLocation": "432:5:32",
+            "nodeType": "EnumValue",
+            "src": "432:5:32"
+          },
+          {
+            "id": 18983,
+            "name": "Uint16",
+            "nameLocation": "448:6:32",
+            "nodeType": "EnumValue",
+            "src": "448:6:32"
+          },
+          {
+            "id": 18984,
+            "name": "Uint24",
+            "nameLocation": "465:6:32",
+            "nodeType": "EnumValue",
+            "src": "465:6:32"
+          },
+          {
+            "id": 18985,
+            "name": "Uint32",
+            "nameLocation": "482:6:32",
+            "nodeType": "EnumValue",
+            "src": "482:6:32"
+          },
+          {
+            "id": 18986,
+            "name": "Uint40",
+            "nameLocation": "499:6:32",
+            "nodeType": "EnumValue",
+            "src": "499:6:32"
+          },
+          {
+            "id": 18987,
+            "name": "Uint48",
+            "nameLocation": "516:6:32",
+            "nodeType": "EnumValue",
+            "src": "516:6:32"
+          },
+          {
+            "id": 18988,
+            "name": "Uint56",
+            "nameLocation": "533:6:32",
+            "nodeType": "EnumValue",
+            "src": "533:6:32"
+          },
+          {
+            "id": 18989,
+            "name": "Uint64",
+            "nameLocation": "551:6:32",
+            "nodeType": "EnumValue",
+            "src": "551:6:32"
+          },
+          {
+            "id": 18990,
+            "name": "Uint72",
+            "nameLocation": "569:6:32",
+            "nodeType": "EnumValue",
+            "src": "569:6:32"
+          },
+          {
+            "id": 18991,
+            "name": "Uint80",
+            "nameLocation": "587:6:32",
+            "nodeType": "EnumValue",
+            "src": "587:6:32"
+          },
+          {
+            "id": 18992,
+            "name": "Uint88",
+            "nameLocation": "605:6:32",
+            "nodeType": "EnumValue",
+            "src": "605:6:32"
+          },
+          {
+            "id": 18993,
+            "name": "Uint96",
+            "nameLocation": "623:6:32",
+            "nodeType": "EnumValue",
+            "src": "623:6:32"
+          },
+          {
+            "id": 18994,
+            "name": "Uint104",
+            "nameLocation": "641:7:32",
+            "nodeType": "EnumValue",
+            "src": "641:7:32"
+          },
+          {
+            "id": 18995,
+            "name": "Uint112",
+            "nameLocation": "660:7:32",
+            "nodeType": "EnumValue",
+            "src": "660:7:32"
+          },
+          {
+            "id": 18996,
+            "name": "Uint120",
+            "nameLocation": "679:7:32",
+            "nodeType": "EnumValue",
+            "src": "679:7:32"
+          },
+          {
+            "id": 18997,
+            "name": "Uint128",
+            "nameLocation": "698:7:32",
+            "nodeType": "EnumValue",
+            "src": "698:7:32"
+          },
+          {
+            "id": 18998,
+            "name": "Uint136",
+            "nameLocation": "717:7:32",
+            "nodeType": "EnumValue",
+            "src": "717:7:32"
+          },
+          {
+            "id": 18999,
+            "name": "Uint144",
+            "nameLocation": "736:7:32",
+            "nodeType": "EnumValue",
+            "src": "736:7:32"
+          },
+          {
+            "id": 19000,
+            "name": "Uint152",
+            "nameLocation": "755:7:32",
+            "nodeType": "EnumValue",
+            "src": "755:7:32"
+          },
+          {
+            "id": 19001,
+            "name": "Uint160",
+            "nameLocation": "774:7:32",
+            "nodeType": "EnumValue",
+            "src": "774:7:32"
+          },
+          {
+            "id": 19002,
+            "name": "Uint168",
+            "nameLocation": "793:7:32",
+            "nodeType": "EnumValue",
+            "src": "793:7:32"
+          },
+          {
+            "id": 19003,
+            "name": "Uint176",
+            "nameLocation": "812:7:32",
+            "nodeType": "EnumValue",
+            "src": "812:7:32"
+          },
+          {
+            "id": 19004,
+            "name": "Uint184",
+            "nameLocation": "831:7:32",
+            "nodeType": "EnumValue",
+            "src": "831:7:32"
+          },
+          {
+            "id": 19005,
+            "name": "Uint192",
+            "nameLocation": "850:7:32",
+            "nodeType": "EnumValue",
+            "src": "850:7:32"
+          },
+          {
+            "id": 19006,
+            "name": "Uint200",
+            "nameLocation": "869:7:32",
+            "nodeType": "EnumValue",
+            "src": "869:7:32"
+          },
+          {
+            "id": 19007,
+            "name": "Uint208",
+            "nameLocation": "888:7:32",
+            "nodeType": "EnumValue",
+            "src": "888:7:32"
+          },
+          {
+            "id": 19008,
+            "name": "Uint216",
+            "nameLocation": "907:7:32",
+            "nodeType": "EnumValue",
+            "src": "907:7:32"
+          },
+          {
+            "id": 19009,
+            "name": "Uint224",
+            "nameLocation": "926:7:32",
+            "nodeType": "EnumValue",
+            "src": "926:7:32"
+          },
+          {
+            "id": 19010,
+            "name": "Uint232",
+            "nameLocation": "945:7:32",
+            "nodeType": "EnumValue",
+            "src": "945:7:32"
+          },
+          {
+            "id": 19011,
+            "name": "Uint240",
+            "nameLocation": "964:7:32",
+            "nodeType": "EnumValue",
+            "src": "964:7:32"
+          },
+          {
+            "id": 19012,
+            "name": "Uint248",
+            "nameLocation": "983:7:32",
+            "nodeType": "EnumValue",
+            "src": "983:7:32"
+          },
+          {
+            "id": 19013,
+            "name": "Uint256",
+            "nameLocation": "1002:7:32",
+            "nodeType": "EnumValue",
+            "src": "1002:7:32"
+          },
+          {
+            "id": 19014,
+            "name": "Int8",
+            "nameLocation": "1083:4:32",
+            "nodeType": "EnumValue",
+            "src": "1083:4:32"
+          },
+          {
+            "id": 19015,
+            "name": "Int16",
+            "nameLocation": "1099:5:32",
+            "nodeType": "EnumValue",
+            "src": "1099:5:32"
+          },
+          {
+            "id": 19016,
+            "name": "Int24",
+            "nameLocation": "1116:5:32",
+            "nodeType": "EnumValue",
+            "src": "1116:5:32"
+          },
+          {
+            "id": 19017,
+            "name": "Int32",
+            "nameLocation": "1133:5:32",
+            "nodeType": "EnumValue",
+            "src": "1133:5:32"
+          },
+          {
+            "id": 19018,
+            "name": "Int40",
+            "nameLocation": "1150:5:32",
+            "nodeType": "EnumValue",
+            "src": "1150:5:32"
+          },
+          {
+            "id": 19019,
+            "name": "Int48",
+            "nameLocation": "1167:5:32",
+            "nodeType": "EnumValue",
+            "src": "1167:5:32"
+          },
+          {
+            "id": 19020,
+            "name": "Int56",
+            "nameLocation": "1184:5:32",
+            "nodeType": "EnumValue",
+            "src": "1184:5:32"
+          },
+          {
+            "id": 19021,
+            "name": "Int64",
+            "nameLocation": "1201:5:32",
+            "nodeType": "EnumValue",
+            "src": "1201:5:32"
+          },
+          {
+            "id": 19022,
+            "name": "Int72",
+            "nameLocation": "1218:5:32",
+            "nodeType": "EnumValue",
+            "src": "1218:5:32"
+          },
+          {
+            "id": 19023,
+            "name": "Int80",
+            "nameLocation": "1235:5:32",
+            "nodeType": "EnumValue",
+            "src": "1235:5:32"
+          },
+          {
+            "id": 19024,
+            "name": "Int88",
+            "nameLocation": "1252:5:32",
+            "nodeType": "EnumValue",
+            "src": "1252:5:32"
+          },
+          {
+            "id": 19025,
+            "name": "Int96",
+            "nameLocation": "1269:5:32",
+            "nodeType": "EnumValue",
+            "src": "1269:5:32"
+          },
+          {
+            "id": 19026,
+            "name": "Int104",
+            "nameLocation": "1286:6:32",
+            "nodeType": "EnumValue",
+            "src": "1286:6:32"
+          },
+          {
+            "id": 19027,
+            "name": "Int112",
+            "nameLocation": "1304:6:32",
+            "nodeType": "EnumValue",
+            "src": "1304:6:32"
+          },
+          {
+            "id": 19028,
+            "name": "Int120",
+            "nameLocation": "1322:6:32",
+            "nodeType": "EnumValue",
+            "src": "1322:6:32"
+          },
+          {
+            "id": 19029,
+            "name": "Int128",
+            "nameLocation": "1340:6:32",
+            "nodeType": "EnumValue",
+            "src": "1340:6:32"
+          },
+          {
+            "id": 19030,
+            "name": "Int136",
+            "nameLocation": "1358:6:32",
+            "nodeType": "EnumValue",
+            "src": "1358:6:32"
+          },
+          {
+            "id": 19031,
+            "name": "Int144",
+            "nameLocation": "1376:6:32",
+            "nodeType": "EnumValue",
+            "src": "1376:6:32"
+          },
+          {
+            "id": 19032,
+            "name": "Int152",
+            "nameLocation": "1394:6:32",
+            "nodeType": "EnumValue",
+            "src": "1394:6:32"
+          },
+          {
+            "id": 19033,
+            "name": "Int160",
+            "nameLocation": "1412:6:32",
+            "nodeType": "EnumValue",
+            "src": "1412:6:32"
+          },
+          {
+            "id": 19034,
+            "name": "Int168",
+            "nameLocation": "1430:6:32",
+            "nodeType": "EnumValue",
+            "src": "1430:6:32"
+          },
+          {
+            "id": 19035,
+            "name": "Int176",
+            "nameLocation": "1448:6:32",
+            "nodeType": "EnumValue",
+            "src": "1448:6:32"
+          },
+          {
+            "id": 19036,
+            "name": "Int184",
+            "nameLocation": "1466:6:32",
+            "nodeType": "EnumValue",
+            "src": "1466:6:32"
+          },
+          {
+            "id": 19037,
+            "name": "Int192",
+            "nameLocation": "1484:6:32",
+            "nodeType": "EnumValue",
+            "src": "1484:6:32"
+          },
+          {
+            "id": 19038,
+            "name": "Int200",
+            "nameLocation": "1502:6:32",
+            "nodeType": "EnumValue",
+            "src": "1502:6:32"
+          },
+          {
+            "id": 19039,
+            "name": "Int208",
+            "nameLocation": "1520:6:32",
+            "nodeType": "EnumValue",
+            "src": "1520:6:32"
+          },
+          {
+            "id": 19040,
+            "name": "Int216",
+            "nameLocation": "1538:6:32",
+            "nodeType": "EnumValue",
+            "src": "1538:6:32"
+          },
+          {
+            "id": 19041,
+            "name": "Int224",
+            "nameLocation": "1556:6:32",
+            "nodeType": "EnumValue",
+            "src": "1556:6:32"
+          },
+          {
+            "id": 19042,
+            "name": "Int232",
+            "nameLocation": "1574:6:32",
+            "nodeType": "EnumValue",
+            "src": "1574:6:32"
+          },
+          {
+            "id": 19043,
+            "name": "Int240",
+            "nameLocation": "1592:6:32",
+            "nodeType": "EnumValue",
+            "src": "1592:6:32"
+          },
+          {
+            "id": 19044,
+            "name": "Int248",
+            "nameLocation": "1610:6:32",
+            "nodeType": "EnumValue",
+            "src": "1610:6:32"
+          },
+          {
+            "id": 19045,
+            "name": "Int256",
+            "nameLocation": "1628:6:32",
+            "nodeType": "EnumValue",
+            "src": "1628:6:32"
+          },
+          {
+            "id": 19046,
+            "name": "Bytes1",
+            "nameLocation": "1710:6:32",
+            "nodeType": "EnumValue",
+            "src": "1710:6:32"
+          },
+          {
+            "id": 19047,
+            "name": "Bytes2",
+            "nameLocation": "1728:6:32",
+            "nodeType": "EnumValue",
+            "src": "1728:6:32"
+          },
+          {
+            "id": 19048,
+            "name": "Bytes3",
+            "nameLocation": "1746:6:32",
+            "nodeType": "EnumValue",
+            "src": "1746:6:32"
+          },
+          {
+            "id": 19049,
+            "name": "Bytes4",
+            "nameLocation": "1764:6:32",
+            "nodeType": "EnumValue",
+            "src": "1764:6:32"
+          },
+          {
+            "id": 19050,
+            "name": "Bytes5",
+            "nameLocation": "1782:6:32",
+            "nodeType": "EnumValue",
+            "src": "1782:6:32"
+          },
+          {
+            "id": 19051,
+            "name": "Bytes6",
+            "nameLocation": "1800:6:32",
+            "nodeType": "EnumValue",
+            "src": "1800:6:32"
+          },
+          {
+            "id": 19052,
+            "name": "Bytes7",
+            "nameLocation": "1818:6:32",
+            "nodeType": "EnumValue",
+            "src": "1818:6:32"
+          },
+          {
+            "id": 19053,
+            "name": "Bytes8",
+            "nameLocation": "1836:6:32",
+            "nodeType": "EnumValue",
+            "src": "1836:6:32"
+          },
+          {
+            "id": 19054,
+            "name": "Bytes9",
+            "nameLocation": "1854:6:32",
+            "nodeType": "EnumValue",
+            "src": "1854:6:32"
+          },
+          {
+            "id": 19055,
+            "name": "Bytes10",
+            "nameLocation": "1872:7:32",
+            "nodeType": "EnumValue",
+            "src": "1872:7:32"
+          },
+          {
+            "id": 19056,
+            "name": "Bytes11",
+            "nameLocation": "1891:7:32",
+            "nodeType": "EnumValue",
+            "src": "1891:7:32"
+          },
+          {
+            "id": 19057,
+            "name": "Bytes12",
+            "nameLocation": "1910:7:32",
+            "nodeType": "EnumValue",
+            "src": "1910:7:32"
+          },
+          {
+            "id": 19058,
+            "name": "Bytes13",
+            "nameLocation": "1929:7:32",
+            "nodeType": "EnumValue",
+            "src": "1929:7:32"
+          },
+          {
+            "id": 19059,
+            "name": "Bytes14",
+            "nameLocation": "1948:7:32",
+            "nodeType": "EnumValue",
+            "src": "1948:7:32"
+          },
+          {
+            "id": 19060,
+            "name": "Bytes15",
+            "nameLocation": "1967:7:32",
+            "nodeType": "EnumValue",
+            "src": "1967:7:32"
+          },
+          {
+            "id": 19061,
+            "name": "Bytes16",
+            "nameLocation": "1986:7:32",
+            "nodeType": "EnumValue",
+            "src": "1986:7:32"
+          },
+          {
+            "id": 19062,
+            "name": "Bytes17",
+            "nameLocation": "2005:7:32",
+            "nodeType": "EnumValue",
+            "src": "2005:7:32"
+          },
+          {
+            "id": 19063,
+            "name": "Bytes18",
+            "nameLocation": "2024:7:32",
+            "nodeType": "EnumValue",
+            "src": "2024:7:32"
+          },
+          {
+            "id": 19064,
+            "name": "Bytes19",
+            "nameLocation": "2043:7:32",
+            "nodeType": "EnumValue",
+            "src": "2043:7:32"
+          },
+          {
+            "id": 19065,
+            "name": "Bytes20",
+            "nameLocation": "2062:7:32",
+            "nodeType": "EnumValue",
+            "src": "2062:7:32"
+          },
+          {
+            "id": 19066,
+            "name": "Bytes21",
+            "nameLocation": "2081:7:32",
+            "nodeType": "EnumValue",
+            "src": "2081:7:32"
+          },
+          {
+            "id": 19067,
+            "name": "Bytes22",
+            "nameLocation": "2100:7:32",
+            "nodeType": "EnumValue",
+            "src": "2100:7:32"
+          },
+          {
+            "id": 19068,
+            "name": "Bytes23",
+            "nameLocation": "2119:7:32",
+            "nodeType": "EnumValue",
+            "src": "2119:7:32"
+          },
+          {
+            "id": 19069,
+            "name": "Bytes24",
+            "nameLocation": "2138:7:32",
+            "nodeType": "EnumValue",
+            "src": "2138:7:32"
+          },
+          {
+            "id": 19070,
+            "name": "Bytes25",
+            "nameLocation": "2157:7:32",
+            "nodeType": "EnumValue",
+            "src": "2157:7:32"
+          },
+          {
+            "id": 19071,
+            "name": "Bytes26",
+            "nameLocation": "2176:7:32",
+            "nodeType": "EnumValue",
+            "src": "2176:7:32"
+          },
+          {
+            "id": 19072,
+            "name": "Bytes27",
+            "nameLocation": "2195:7:32",
+            "nodeType": "EnumValue",
+            "src": "2195:7:32"
+          },
+          {
+            "id": 19073,
+            "name": "Bytes28",
+            "nameLocation": "2214:7:32",
+            "nodeType": "EnumValue",
+            "src": "2214:7:32"
+          },
+          {
+            "id": 19074,
+            "name": "Bytes29",
+            "nameLocation": "2233:7:32",
+            "nodeType": "EnumValue",
+            "src": "2233:7:32"
+          },
+          {
+            "id": 19075,
+            "name": "Bytes30",
+            "nameLocation": "2252:7:32",
+            "nodeType": "EnumValue",
+            "src": "2252:7:32"
+          },
+          {
+            "id": 19076,
+            "name": "Bytes31",
+            "nameLocation": "2271:7:32",
+            "nodeType": "EnumValue",
+            "src": "2271:7:32"
+          },
+          {
+            "id": 19077,
+            "name": "Bytes32",
+            "nameLocation": "2290:7:32",
+            "nodeType": "EnumValue",
+            "src": "2290:7:32"
+          }
+        ],
+        "name": "TEEType",
+        "nameLocation": "226:7:32",
+        "nodeType": "EnumDefinition",
+        "src": "221:2084:32"
+      },
+      {
+        "errorSelector": "84a73f36",
+        "id": 19080,
+        "name": "NonArithmeticType",
+        "nameLocation": "2313:17:32",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 19079,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "2330:2:32"
+        },
+        "src": "2307:26:32"
+      },
+      {
+        "errorSelector": "6b712a60",
+        "id": 19082,
+        "name": "UnsupportedArithmeticType",
+        "nameLocation": "2340:25:32",
+        "nodeType": "ErrorDefinition",
+        "parameters": {
+          "id": 19081,
+          "nodeType": "ParameterList",
+          "parameters": [],
+          "src": "2365:2:32"
+        },
+        "src": "2334:34:32"
+      },
+      {
+        "abstract": false,
+        "baseContracts": [],
+        "canonicalName": "TypeUtils",
+        "contractDependencies": [],
+        "contractKind": "library",
+        "fullyImplemented": true,
+        "id": 19218,
+        "linearizedBaseContracts": [
+          19218
+        ],
+        "name": "TypeUtils",
+        "nameLocation": "2378:9:32",
+        "nodeType": "ContractDefinition",
+        "nodes": [
+          {
+            "body": {
+              "id": 19134,
+              "nodeType": "Block",
+              "src": "2616:214:32",
+              "statements": [
+                {
+                  "expression": {
+                    "id": 19097,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "id": 19090,
+                      "name": "types",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 19088,
+                      "src": "2626:5:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                        "typeString": "enum TEEType[] memory"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "arguments": [
+                        {
+                          "hexValue": "35",
+                          "id": 19095,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "kind": "number",
+                          "lValueRequested": false,
+                          "nodeType": "Literal",
+                          "src": "2648:1:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_rational_5_by_1",
+                            "typeString": "int_const 5"
+                          },
+                          "value": "5"
+                        }
+                      ],
+                      "expression": {
+                        "argumentTypes": [
+                          {
+                            "typeIdentifier": "t_rational_5_by_1",
+                            "typeString": "int_const 5"
+                          }
+                        ],
+                        "id": 19094,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "nodeType": "NewExpression",
+                        "src": "2634:13:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_function_objectcreation_pure$_t_uint256_$returns$_t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr_$",
+                          "typeString": "function (uint256) pure returns (enum TEEType[] memory)"
+                        },
+                        "typeName": {
+                          "baseType": {
+                            "id": 19092,
+                            "nodeType": "UserDefinedTypeName",
+                            "pathNode": {
+                              "id": 19091,
+                              "name": "TEEType",
+                              "nameLocations": [
+                                "2638:7:32"
+                              ],
+                              "nodeType": "IdentifierPath",
+                              "referencedDeclaration": 19078,
+                              "src": "2638:7:32"
+                            },
+                            "referencedDeclaration": 19078,
+                            "src": "2638:7:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_enum$_TEEType_$19078",
+                              "typeString": "enum TEEType"
+                            }
+                          },
+                          "id": 19093,
+                          "nodeType": "ArrayTypeName",
+                          "src": "2638:9:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_storage_ptr",
+                            "typeString": "enum TEEType[]"
+                          }
+                        }
+                      },
+                      "id": 19096,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "kind": "functionCall",
+                      "lValueRequested": false,
+                      "nameLocations": [],
+                      "names": [],
+                      "nodeType": "FunctionCall",
+                      "src": "2634:16:32",
+                      "tryCall": false,
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                        "typeString": "enum TEEType[] memory"
+                      }
+                    },
+                    "src": "2626:24:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                      "typeString": "enum TEEType[] memory"
+                    }
+                  },
+                  "id": 19098,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2626:24:32"
+                },
+                {
+                  "expression": {
+                    "id": 19104,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "baseExpression": {
+                        "id": 19099,
+                        "name": "types",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19088,
+                        "src": "2660:5:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                          "typeString": "enum TEEType[] memory"
+                        }
+                      },
+                      "id": 19101,
+                      "indexExpression": {
+                        "hexValue": "30",
+                        "id": 19100,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2666:1:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_0_by_1",
+                          "typeString": "int_const 0"
+                        },
+                        "value": "0"
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "2660:8:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "expression": {
+                        "id": 19102,
+                        "name": "TEEType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19078,
+                        "src": "2671:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                          "typeString": "type(enum TEEType)"
+                        }
+                      },
+                      "id": 19103,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "memberLocation": "2679:4:32",
+                      "memberName": "Bool",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 18978,
+                      "src": "2671:12:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "src": "2660:23:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "id": 19105,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2660:23:32"
+                },
+                {
+                  "expression": {
+                    "id": 19111,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "baseExpression": {
+                        "id": 19106,
+                        "name": "types",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19088,
+                        "src": "2693:5:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                          "typeString": "enum TEEType[] memory"
+                        }
+                      },
+                      "id": 19108,
+                      "indexExpression": {
+                        "hexValue": "31",
+                        "id": 19107,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2699:1:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_1_by_1",
+                          "typeString": "int_const 1"
+                        },
+                        "value": "1"
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "2693:8:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "expression": {
+                        "id": 19109,
+                        "name": "TEEType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19078,
+                        "src": "2704:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                          "typeString": "type(enum TEEType)"
+                        }
+                      },
+                      "id": 19110,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "memberLocation": "2712:6:32",
+                      "memberName": "Uint16",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 18983,
+                      "src": "2704:14:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "src": "2693:25:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "id": 19112,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2693:25:32"
+                },
+                {
+                  "expression": {
+                    "id": 19118,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "baseExpression": {
+                        "id": 19113,
+                        "name": "types",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19088,
+                        "src": "2728:5:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                          "typeString": "enum TEEType[] memory"
+                        }
+                      },
+                      "id": 19115,
+                      "indexExpression": {
+                        "hexValue": "32",
+                        "id": 19114,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2734:1:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_2_by_1",
+                          "typeString": "int_const 2"
+                        },
+                        "value": "2"
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "2728:8:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "expression": {
+                        "id": 19116,
+                        "name": "TEEType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19078,
+                        "src": "2739:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                          "typeString": "type(enum TEEType)"
+                        }
+                      },
+                      "id": 19117,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "memberLocation": "2747:7:32",
+                      "memberName": "Uint256",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 19013,
+                      "src": "2739:15:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "src": "2728:26:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "id": 19119,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2728:26:32"
+                },
+                {
+                  "expression": {
+                    "id": 19125,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "baseExpression": {
+                        "id": 19120,
+                        "name": "types",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19088,
+                        "src": "2764:5:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                          "typeString": "enum TEEType[] memory"
+                        }
+                      },
+                      "id": 19122,
+                      "indexExpression": {
+                        "hexValue": "33",
+                        "id": 19121,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2770:1:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_3_by_1",
+                          "typeString": "int_const 3"
+                        },
+                        "value": "3"
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "2764:8:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "expression": {
+                        "id": 19123,
+                        "name": "TEEType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19078,
+                        "src": "2775:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                          "typeString": "type(enum TEEType)"
+                        }
+                      },
+                      "id": 19124,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "memberLocation": "2783:5:32",
+                      "memberName": "Int16",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 19015,
+                      "src": "2775:13:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "src": "2764:24:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "id": 19126,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2764:24:32"
+                },
+                {
+                  "expression": {
+                    "id": 19132,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftHandSide": {
+                      "baseExpression": {
+                        "id": 19127,
+                        "name": "types",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19088,
+                        "src": "2798:5:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                          "typeString": "enum TEEType[] memory"
+                        }
+                      },
+                      "id": 19129,
+                      "indexExpression": {
+                        "hexValue": "34",
+                        "id": 19128,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "kind": "number",
+                        "lValueRequested": false,
+                        "nodeType": "Literal",
+                        "src": "2804:1:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_rational_4_by_1",
+                          "typeString": "int_const 4"
+                        },
+                        "value": "4"
+                      },
+                      "isConstant": false,
+                      "isLValue": true,
+                      "isPure": false,
+                      "lValueRequested": true,
+                      "nodeType": "IndexAccess",
+                      "src": "2798:8:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "nodeType": "Assignment",
+                    "operator": "=",
+                    "rightHandSide": {
+                      "expression": {
+                        "id": 19130,
+                        "name": "TEEType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19078,
+                        "src": "2809:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                          "typeString": "type(enum TEEType)"
+                        }
+                      },
+                      "id": 19131,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "memberLocation": "2817:6:32",
+                      "memberName": "Int256",
+                      "nodeType": "MemberAccess",
+                      "referencedDeclaration": 19045,
+                      "src": "2809:14:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "src": "2798:25:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "id": 19133,
+                  "nodeType": "ExpressionStatement",
+                  "src": "2798:25:32"
+                }
+              ]
+            },
+            "documentation": {
+              "id": 19083,
+              "nodeType": "StructuredDocumentation",
+              "src": "2394:132:32",
+              "text": " Returns the list of all currently supported TEE types.\n @dev Update this list when new types are supported."
+            },
+            "id": 19135,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "allCurrentlySupportedTypes",
+            "nameLocation": "2540:26:32",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 19084,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "2566:2:32"
+            },
+            "returnParameters": {
+              "id": 19089,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 19088,
+                  "mutability": "mutable",
+                  "name": "types",
+                  "nameLocation": "2609:5:32",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 19135,
+                  "src": "2592:22:32",
+                  "stateVariable": false,
+                  "storageLocation": "memory",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_memory_ptr",
+                    "typeString": "enum TEEType[]"
+                  },
+                  "typeName": {
+                    "baseType": {
+                      "id": 19086,
+                      "nodeType": "UserDefinedTypeName",
+                      "pathNode": {
+                        "id": 19085,
+                        "name": "TEEType",
+                        "nameLocations": [
+                          "2592:7:32"
+                        ],
+                        "nodeType": "IdentifierPath",
+                        "referencedDeclaration": 19078,
+                        "src": "2592:7:32"
+                      },
+                      "referencedDeclaration": 19078,
+                      "src": "2592:7:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      }
+                    },
+                    "id": 19087,
+                    "nodeType": "ArrayTypeName",
+                    "src": "2592:9:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_array$_t_enum$_TEEType_$19078_$dyn_storage_ptr",
+                      "typeString": "enum TEEType[]"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "2591:24:32"
+            },
+            "scope": 19218,
+            "src": "2531:299:32",
+            "stateMutability": "pure",
+            "virtual": false,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 19153,
+              "nodeType": "Block",
+              "src": "3134:49:32",
+              "statements": [
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "arguments": [
+                          {
+                            "baseExpression": {
+                              "id": 19147,
+                              "name": "handle",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 19138,
+                              "src": "3165:6:32",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_bytes32",
+                                "typeString": "bytes32"
+                              }
+                            },
+                            "id": 19149,
+                            "indexExpression": {
+                              "hexValue": "35",
+                              "id": 19148,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "kind": "number",
+                              "lValueRequested": false,
+                              "nodeType": "Literal",
+                              "src": "3172:1:32",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_rational_5_by_1",
+                                "typeString": "int_const 5"
+                              },
+                              "value": "5"
+                            },
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": false,
+                            "lValueRequested": false,
+                            "nodeType": "IndexAccess",
+                            "src": "3165:9:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_bytes1",
+                              "typeString": "bytes1"
+                            }
+                          }
+                        ],
+                        "expression": {
+                          "argumentTypes": [
+                            {
+                              "typeIdentifier": "t_bytes1",
+                              "typeString": "bytes1"
+                            }
+                          ],
+                          "id": 19146,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "lValueRequested": false,
+                          "nodeType": "ElementaryTypeNameExpression",
+                          "src": "3159:5:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_uint8_$",
+                            "typeString": "type(uint8)"
+                          },
+                          "typeName": {
+                            "id": 19145,
+                            "name": "uint8",
+                            "nodeType": "ElementaryTypeName",
+                            "src": "3159:5:32",
+                            "typeDescriptions": {}
+                          }
+                        },
+                        "id": 19150,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "typeConversion",
+                        "lValueRequested": false,
+                        "nameLocations": [],
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "3159:16:32",
+                        "tryCall": false,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint8",
+                          "typeString": "uint8"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_uint8",
+                          "typeString": "uint8"
+                        }
+                      ],
+                      "id": 19144,
+                      "name": "TEEType",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [],
+                      "referencedDeclaration": 19078,
+                      "src": "3151:7:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                        "typeString": "type(enum TEEType)"
+                      }
+                    },
+                    "id": 19151,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "typeConversion",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3151:25:32",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "functionReturnParameters": 19143,
+                  "id": 19152,
+                  "nodeType": "Return",
+                  "src": "3144:32:32"
+                }
+              ]
+            },
+            "documentation": {
+              "id": 19136,
+              "nodeType": "StructuredDocumentation",
+              "src": "2836:229:32",
+              "text": " @notice Extracts the TEE type from a handle.\n The type is stored at byte position 5 in the handle.\n @param handle The handle to extract the type from\n @return The TEEType encoded in the handle"
+            },
+            "id": 19154,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "typeOf",
+            "nameLocation": "3079:6:32",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 19139,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 19138,
+                  "mutability": "mutable",
+                  "name": "handle",
+                  "nameLocation": "3094:6:32",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 19154,
+                  "src": "3086:14:32",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_bytes32",
+                    "typeString": "bytes32"
+                  },
+                  "typeName": {
+                    "id": 19137,
+                    "name": "bytes32",
+                    "nodeType": "ElementaryTypeName",
+                    "src": "3086:7:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bytes32",
+                      "typeString": "bytes32"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3085:16:32"
+            },
+            "returnParameters": {
+              "id": 19143,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 19142,
+                  "mutability": "mutable",
+                  "name": "",
+                  "nameLocation": "-1:-1:-1",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 19154,
+                  "src": "3125:7:32",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_enum$_TEEType_$19078",
+                    "typeString": "enum TEEType"
+                  },
+                  "typeName": {
+                    "id": 19141,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 19140,
+                      "name": "TEEType",
+                      "nameLocations": [
+                        "3125:7:32"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 19078,
+                      "src": "3125:7:32"
+                    },
+                    "referencedDeclaration": 19078,
+                    "src": "3125:7:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3124:9:32"
+            },
+            "scope": 19218,
+            "src": "3070:113:32",
+            "stateMutability": "pure",
+            "virtual": false,
+            "visibility": "internal"
+          },
+          {
+            "body": {
+              "id": 19216,
+              "nodeType": "Block",
+              "src": "3689:400:32",
+              "statements": [
+                {
+                  "assignments": [
+                    19162
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 19162,
+                      "mutability": "mutable",
+                      "name": "t",
+                      "nameLocation": "3705:1:32",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 19216,
+                      "src": "3699:7:32",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_uint8",
+                        "typeString": "uint8"
+                      },
+                      "typeName": {
+                        "id": 19161,
+                        "name": "uint8",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "3699:5:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_uint8",
+                          "typeString": "uint8"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 19167,
+                  "initialValue": {
+                    "arguments": [
+                      {
+                        "id": 19165,
+                        "name": "teeType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19158,
+                        "src": "3715:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_TEEType_$19078",
+                          "typeString": "enum TEEType"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_enum$_TEEType_$19078",
+                          "typeString": "enum TEEType"
+                        }
+                      ],
+                      "id": 19164,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": true,
+                      "lValueRequested": false,
+                      "nodeType": "ElementaryTypeNameExpression",
+                      "src": "3709:5:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_type$_t_uint8_$",
+                        "typeString": "type(uint8)"
+                      },
+                      "typeName": {
+                        "id": 19163,
+                        "name": "uint8",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "3709:5:32",
+                        "typeDescriptions": {}
+                      }
+                    },
+                    "id": 19166,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "typeConversion",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3709:14:32",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_uint8",
+                      "typeString": "uint8"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "3699:24:32"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "commonType": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "id": 19183,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "commonType": {
+                            "typeIdentifier": "t_uint8",
+                            "typeString": "uint8"
+                          },
+                          "id": 19175,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "id": 19169,
+                            "name": "t",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 19162,
+                            "src": "3741:1:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint8",
+                              "typeString": "uint8"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": ">=",
+                          "rightExpression": {
+                            "arguments": [
+                              {
+                                "expression": {
+                                  "id": 19172,
+                                  "name": "TEEType",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 19078,
+                                  "src": "3752:7:32",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                                    "typeString": "type(enum TEEType)"
+                                  }
+                                },
+                                "id": 19173,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": true,
+                                "lValueRequested": false,
+                                "memberLocation": "3760:5:32",
+                                "memberName": "Uint8",
+                                "nodeType": "MemberAccess",
+                                "referencedDeclaration": 18982,
+                                "src": "3752:13:32",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_enum$_TEEType_$19078",
+                                  "typeString": "enum TEEType"
+                                }
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": [
+                                {
+                                  "typeIdentifier": "t_enum$_TEEType_$19078",
+                                  "typeString": "enum TEEType"
+                                }
+                              ],
+                              "id": 19171,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "lValueRequested": false,
+                              "nodeType": "ElementaryTypeNameExpression",
+                              "src": "3746:5:32",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_uint8_$",
+                                "typeString": "type(uint8)"
+                              },
+                              "typeName": {
+                                "id": 19170,
+                                "name": "uint8",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "3746:5:32",
+                                "typeDescriptions": {}
+                              }
+                            },
+                            "id": 19174,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "typeConversion",
+                            "lValueRequested": false,
+                            "nameLocations": [],
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "3746:20:32",
+                            "tryCall": false,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint8",
+                              "typeString": "uint8"
+                            }
+                          },
+                          "src": "3741:25:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "&&",
+                        "rightExpression": {
+                          "commonType": {
+                            "typeIdentifier": "t_uint8",
+                            "typeString": "uint8"
+                          },
+                          "id": 19182,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "id": 19176,
+                            "name": "t",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 19162,
+                            "src": "3770:1:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint8",
+                              "typeString": "uint8"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "<=",
+                          "rightExpression": {
+                            "arguments": [
+                              {
+                                "expression": {
+                                  "id": 19179,
+                                  "name": "TEEType",
+                                  "nodeType": "Identifier",
+                                  "overloadedDeclarations": [],
+                                  "referencedDeclaration": 19078,
+                                  "src": "3781:7:32",
+                                  "typeDescriptions": {
+                                    "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                                    "typeString": "type(enum TEEType)"
+                                  }
+                                },
+                                "id": 19180,
+                                "isConstant": false,
+                                "isLValue": false,
+                                "isPure": true,
+                                "lValueRequested": false,
+                                "memberLocation": "3789:6:32",
+                                "memberName": "Int256",
+                                "nodeType": "MemberAccess",
+                                "referencedDeclaration": 19045,
+                                "src": "3781:14:32",
+                                "typeDescriptions": {
+                                  "typeIdentifier": "t_enum$_TEEType_$19078",
+                                  "typeString": "enum TEEType"
+                                }
+                              }
+                            ],
+                            "expression": {
+                              "argumentTypes": [
+                                {
+                                  "typeIdentifier": "t_enum$_TEEType_$19078",
+                                  "typeString": "enum TEEType"
+                                }
+                              ],
+                              "id": 19178,
+                              "isConstant": false,
+                              "isLValue": false,
+                              "isPure": true,
+                              "lValueRequested": false,
+                              "nodeType": "ElementaryTypeNameExpression",
+                              "src": "3775:5:32",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_uint8_$",
+                                "typeString": "type(uint8)"
+                              },
+                              "typeName": {
+                                "id": 19177,
+                                "name": "uint8",
+                                "nodeType": "ElementaryTypeName",
+                                "src": "3775:5:32",
+                                "typeDescriptions": {}
+                              }
+                            },
+                            "id": 19181,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "kind": "typeConversion",
+                            "lValueRequested": false,
+                            "nameLocations": [],
+                            "names": [],
+                            "nodeType": "FunctionCall",
+                            "src": "3775:21:32",
+                            "tryCall": false,
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_uint8",
+                              "typeString": "uint8"
+                            }
+                          },
+                          "src": "3770:26:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "src": "3741:55:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "arguments": [],
+                        "expression": {
+                          "argumentTypes": [],
+                          "id": 19184,
+                          "name": "NonArithmeticType",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 19080,
+                          "src": "3798:17:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_error_pure$__$returns$_t_error_$",
+                            "typeString": "function () pure returns (error)"
+                          }
+                        },
+                        "id": 19185,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "nameLocations": [],
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "3798:19:32",
+                        "tryCall": false,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_error",
+                          "typeString": "error"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_error",
+                          "typeString": "error"
+                        }
+                      ],
+                      "id": 19168,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "3733:7:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_error_$returns$__$",
+                        "typeString": "function (bool,error) pure"
+                      }
+                    },
+                    "id": 19186,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "3733:85:32",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 19187,
+                  "nodeType": "ExpressionStatement",
+                  "src": "3733:85:32"
+                },
+                {
+                  "assignments": [
+                    19189
+                  ],
+                  "declarations": [
+                    {
+                      "constant": false,
+                      "id": 19189,
+                      "mutability": "mutable",
+                      "name": "supportedType",
+                      "nameLocation": "3833:13:32",
+                      "nodeType": "VariableDeclaration",
+                      "scope": 19216,
+                      "src": "3828:18:32",
+                      "stateVariable": false,
+                      "storageLocation": "default",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "typeName": {
+                        "id": 19188,
+                        "name": "bool",
+                        "nodeType": "ElementaryTypeName",
+                        "src": "3828:4:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      "visibility": "internal"
+                    }
+                  ],
+                  "id": 19209,
+                  "initialValue": {
+                    "commonType": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    },
+                    "id": 19208,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "lValueRequested": false,
+                    "leftExpression": {
+                      "commonType": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      },
+                      "id": 19203,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "commonType": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        "id": 19198,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "commonType": {
+                            "typeIdentifier": "t_enum$_TEEType_$19078",
+                            "typeString": "enum TEEType"
+                          },
+                          "id": 19193,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "id": 19190,
+                            "name": "teeType",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 19158,
+                            "src": "3861:7:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_enum$_TEEType_$19078",
+                              "typeString": "enum TEEType"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "==",
+                          "rightExpression": {
+                            "expression": {
+                              "id": 19191,
+                              "name": "TEEType",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 19078,
+                              "src": "3872:7:32",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                                "typeString": "type(enum TEEType)"
+                              }
+                            },
+                            "id": 19192,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "memberLocation": "3880:6:32",
+                            "memberName": "Uint16",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 18983,
+                            "src": "3872:14:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_enum$_TEEType_$19078",
+                              "typeString": "enum TEEType"
+                            }
+                          },
+                          "src": "3861:25:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "||",
+                        "rightExpression": {
+                          "commonType": {
+                            "typeIdentifier": "t_enum$_TEEType_$19078",
+                            "typeString": "enum TEEType"
+                          },
+                          "id": 19197,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": false,
+                          "lValueRequested": false,
+                          "leftExpression": {
+                            "id": 19194,
+                            "name": "teeType",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 19158,
+                            "src": "3906:7:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_enum$_TEEType_$19078",
+                              "typeString": "enum TEEType"
+                            }
+                          },
+                          "nodeType": "BinaryOperation",
+                          "operator": "==",
+                          "rightExpression": {
+                            "expression": {
+                              "id": 19195,
+                              "name": "TEEType",
+                              "nodeType": "Identifier",
+                              "overloadedDeclarations": [],
+                              "referencedDeclaration": 19078,
+                              "src": "3917:7:32",
+                              "typeDescriptions": {
+                                "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                                "typeString": "type(enum TEEType)"
+                              }
+                            },
+                            "id": 19196,
+                            "isConstant": false,
+                            "isLValue": false,
+                            "isPure": true,
+                            "lValueRequested": false,
+                            "memberLocation": "3925:7:32",
+                            "memberName": "Uint256",
+                            "nodeType": "MemberAccess",
+                            "referencedDeclaration": 19013,
+                            "src": "3917:15:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_enum$_TEEType_$19078",
+                              "typeString": "enum TEEType"
+                            }
+                          },
+                          "src": "3906:26:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_bool",
+                            "typeString": "bool"
+                          }
+                        },
+                        "src": "3861:71:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "||",
+                      "rightExpression": {
+                        "commonType": {
+                          "typeIdentifier": "t_enum$_TEEType_$19078",
+                          "typeString": "enum TEEType"
+                        },
+                        "id": 19202,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "lValueRequested": false,
+                        "leftExpression": {
+                          "id": 19199,
+                          "name": "teeType",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 19158,
+                          "src": "3952:7:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_TEEType_$19078",
+                            "typeString": "enum TEEType"
+                          }
+                        },
+                        "nodeType": "BinaryOperation",
+                        "operator": "==",
+                        "rightExpression": {
+                          "expression": {
+                            "id": 19200,
+                            "name": "TEEType",
+                            "nodeType": "Identifier",
+                            "overloadedDeclarations": [],
+                            "referencedDeclaration": 19078,
+                            "src": "3963:7:32",
+                            "typeDescriptions": {
+                              "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                              "typeString": "type(enum TEEType)"
+                            }
+                          },
+                          "id": 19201,
+                          "isConstant": false,
+                          "isLValue": false,
+                          "isPure": true,
+                          "lValueRequested": false,
+                          "memberLocation": "3971:5:32",
+                          "memberName": "Int16",
+                          "nodeType": "MemberAccess",
+                          "referencedDeclaration": 19015,
+                          "src": "3963:13:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_enum$_TEEType_$19078",
+                            "typeString": "enum TEEType"
+                          }
+                        },
+                        "src": "3952:24:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      "src": "3861:115:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "nodeType": "BinaryOperation",
+                    "operator": "||",
+                    "rightExpression": {
+                      "commonType": {
+                        "typeIdentifier": "t_enum$_TEEType_$19078",
+                        "typeString": "enum TEEType"
+                      },
+                      "id": 19207,
+                      "isConstant": false,
+                      "isLValue": false,
+                      "isPure": false,
+                      "lValueRequested": false,
+                      "leftExpression": {
+                        "id": 19204,
+                        "name": "teeType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19158,
+                        "src": "3996:7:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_TEEType_$19078",
+                          "typeString": "enum TEEType"
+                        }
+                      },
+                      "nodeType": "BinaryOperation",
+                      "operator": "==",
+                      "rightExpression": {
+                        "expression": {
+                          "id": 19205,
+                          "name": "TEEType",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 19078,
+                          "src": "4007:7:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_type$_t_enum$_TEEType_$19078_$",
+                            "typeString": "type(enum TEEType)"
+                          }
+                        },
+                        "id": 19206,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": true,
+                        "lValueRequested": false,
+                        "memberLocation": "4015:6:32",
+                        "memberName": "Int256",
+                        "nodeType": "MemberAccess",
+                        "referencedDeclaration": 19045,
+                        "src": "4007:14:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_enum$_TEEType_$19078",
+                          "typeString": "enum TEEType"
+                        }
+                      },
+                      "src": "3996:25:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_bool",
+                        "typeString": "bool"
+                      }
+                    },
+                    "src": "3861:160:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_bool",
+                      "typeString": "bool"
+                    }
+                  },
+                  "nodeType": "VariableDeclarationStatement",
+                  "src": "3828:193:32"
+                },
+                {
+                  "expression": {
+                    "arguments": [
+                      {
+                        "id": 19211,
+                        "name": "supportedType",
+                        "nodeType": "Identifier",
+                        "overloadedDeclarations": [],
+                        "referencedDeclaration": 19189,
+                        "src": "4039:13:32",
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        }
+                      },
+                      {
+                        "arguments": [],
+                        "expression": {
+                          "argumentTypes": [],
+                          "id": 19212,
+                          "name": "UnsupportedArithmeticType",
+                          "nodeType": "Identifier",
+                          "overloadedDeclarations": [],
+                          "referencedDeclaration": 19082,
+                          "src": "4054:25:32",
+                          "typeDescriptions": {
+                            "typeIdentifier": "t_function_error_pure$__$returns$_t_error_$",
+                            "typeString": "function () pure returns (error)"
+                          }
+                        },
+                        "id": 19213,
+                        "isConstant": false,
+                        "isLValue": false,
+                        "isPure": false,
+                        "kind": "functionCall",
+                        "lValueRequested": false,
+                        "nameLocations": [],
+                        "names": [],
+                        "nodeType": "FunctionCall",
+                        "src": "4054:27:32",
+                        "tryCall": false,
+                        "typeDescriptions": {
+                          "typeIdentifier": "t_error",
+                          "typeString": "error"
+                        }
+                      }
+                    ],
+                    "expression": {
+                      "argumentTypes": [
+                        {
+                          "typeIdentifier": "t_bool",
+                          "typeString": "bool"
+                        },
+                        {
+                          "typeIdentifier": "t_error",
+                          "typeString": "error"
+                        }
+                      ],
+                      "id": 19210,
+                      "name": "require",
+                      "nodeType": "Identifier",
+                      "overloadedDeclarations": [
+                        -18,
+                        -18,
+                        -18
+                      ],
+                      "referencedDeclaration": -18,
+                      "src": "4031:7:32",
+                      "typeDescriptions": {
+                        "typeIdentifier": "t_function_require_pure$_t_bool_$_t_error_$returns$__$",
+                        "typeString": "function (bool,error) pure"
+                      }
+                    },
+                    "id": 19214,
+                    "isConstant": false,
+                    "isLValue": false,
+                    "isPure": false,
+                    "kind": "functionCall",
+                    "lValueRequested": false,
+                    "nameLocations": [],
+                    "names": [],
+                    "nodeType": "FunctionCall",
+                    "src": "4031:51:32",
+                    "tryCall": false,
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_tuple$__$",
+                      "typeString": "tuple()"
+                    }
+                  },
+                  "id": 19215,
+                  "nodeType": "ExpressionStatement",
+                  "src": "4031:51:32"
+                }
+              ]
+            },
+            "documentation": {
+              "id": 19155,
+              "nodeType": "StructuredDocumentation",
+              "src": "3189:432:32",
+              "text": " @notice Validates that a TEE type is supported for arithmetic operations.\n Only the following arithmetic types are supported:\n  - uint16\n  - uint256\n  - int16\n  - int256\n @param teeType The TEE type to validate\n @dev Reverts with NonArithmeticType when the type is not an arithmetic type.\n @dev Reverts with UnsupportedArithmeticType when the type is not supported."
+            },
+            "id": 19217,
+            "implemented": true,
+            "kind": "function",
+            "modifiers": [],
+            "name": "validateArithmeticType",
+            "nameLocation": "3635:22:32",
+            "nodeType": "FunctionDefinition",
+            "parameters": {
+              "id": 19159,
+              "nodeType": "ParameterList",
+              "parameters": [
+                {
+                  "constant": false,
+                  "id": 19158,
+                  "mutability": "mutable",
+                  "name": "teeType",
+                  "nameLocation": "3666:7:32",
+                  "nodeType": "VariableDeclaration",
+                  "scope": 19217,
+                  "src": "3658:15:32",
+                  "stateVariable": false,
+                  "storageLocation": "default",
+                  "typeDescriptions": {
+                    "typeIdentifier": "t_enum$_TEEType_$19078",
+                    "typeString": "enum TEEType"
+                  },
+                  "typeName": {
+                    "id": 19157,
+                    "nodeType": "UserDefinedTypeName",
+                    "pathNode": {
+                      "id": 19156,
+                      "name": "TEEType",
+                      "nameLocations": [
+                        "3658:7:32"
+                      ],
+                      "nodeType": "IdentifierPath",
+                      "referencedDeclaration": 19078,
+                      "src": "3658:7:32"
+                    },
+                    "referencedDeclaration": 19078,
+                    "src": "3658:7:32",
+                    "typeDescriptions": {
+                      "typeIdentifier": "t_enum$_TEEType_$19078",
+                      "typeString": "enum TEEType"
+                    }
+                  },
+                  "visibility": "internal"
+                }
+              ],
+              "src": "3657:17:32"
+            },
+            "returnParameters": {
+              "id": 19160,
+              "nodeType": "ParameterList",
+              "parameters": [],
+              "src": "3689:0:32"
+            },
+            "scope": 19218,
+            "src": "3626:463:32",
+            "stateMutability": "pure",
+            "virtual": false,
+            "visibility": "internal"
+          }
+        ],
+        "scope": 19219,
+        "src": "2370:1721:32",
+        "usedErrors": [],
+        "usedEvents": []
+      }
+    ],
+    "src": "32:4060:32"
+  },
+  "metadata": {
+    "compiler": {
+      "version": "0.8.34+commit.80d5c536"
+    },
+    "language": "Solidity",
+    "output": {
+      "abi": [],
+      "devdoc": {
+        "kind": "dev",
+        "methods": {},
+        "version": 1
+      },
+      "userdoc": {
+        "kind": "user",
+        "methods": {},
+        "version": 1
+      }
+    },
+    "settings": {
+      "compilationTarget": {
+        "project/contracts/shared/TypeUtils.sol": "TypeUtils"
+      },
+      "evmVersion": "osaka",
+      "libraries": {},
+      "metadata": {
+        "bytecodeHash": "none"
+      },
+      "optimizer": {
+        "enabled": false,
+        "runs": 200
+      },
+      "remappings": [
+        "npm/@openzeppelin/contracts-upgradeable@5.6.1/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.6.1/",
+        "project/:@openzeppelin/contracts-upgradeable/=npm/@openzeppelin/contracts-upgradeable@5.6.1/",
+        "project/:@openzeppelin/contracts/=npm/@openzeppelin/contracts@5.6.1/",
+        "project/:encrypted-types/=npm/encrypted-types@0.0.4/"
+      ]
+    },
+    "sources": {
+      "project/contracts/shared/TypeUtils.sol": {
+        "keccak256": "0x74e69b36de26eeb7c04db1a5378793e93fe93d9176139f2992e1c8779e8fa6cb",
+        "license": "MIT",
+        "urls": [
+          "bzz-raw://83b19289fe1e7abd0e82fd5e9fbe4304e5c2b403913d3bd90dd8c9dbcfac6ef6",
+          "dweb:/ipfs/QmTzc4BCrQCbAnoix1hzE6gkKQT6NLKf7264WTgor2ipaq"
+        ]
+      }
+    },
+    "version": 1
+  }
+}
