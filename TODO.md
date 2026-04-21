@@ -1,4 +1,4 @@
 - Linter: JS with imports sorting
 - Linter: Sol with imports sorting if relevant
 - Configure Solidity Solcover if required
-- Update license
+- Remove Hardhat Ignition (does not integrate with OZ Upgrades; artifacts duplicated with `artifacts/`)
