@@ -4,6 +4,8 @@
 
 # This a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
 # its forks (tenderlyArbitrumSepolia) as its chainId is not recognized by the plugin.
+# TODO this has been fixed in OZ Upgrades, update this when the release is out:
+# https://github.com/OpenZeppelin/openzeppelin-upgrades/pull/1237
 
 set -euo pipefail
 
