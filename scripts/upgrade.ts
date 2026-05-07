@@ -5,10 +5,12 @@ import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 import { Address } from "viem";
+import NoxComputeUpgrade from "../ignition/modules/NoxComputeUpgrade.ts";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
-// Uses @openzeppelin/hardhat-upgrades for upgrade safety checks
-// (storage layout validation, implementation compatibility).
+// Runs upgrades.validateUpgrade() before deploying to catch storage layout violations,
+// then uses Ignition to deploy the new implementation and call upgradeToAndCall on the proxy.
+// After upgrade, updates the OZ Upgrades manifest via forceImport to keep it in sync.
 //
 // When running on a local (edr-simulated) network, a fresh deployment is performed first
 // since each `hardhat run` starts a clean chain.
@@ -36,15 +38,27 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     const api = await upgrades(hre, connection);
     const newImplFactory = await ethers.getContractFactory(contractName);
 
-    // Upgrade the proxy using the OpenZeppelin Upgrades plugin.
-    // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
-    const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
+    // Validate storage layout compatibility before touching the chain.
+    // The proxy must be registered in the OZ manifest (done in deploy.ts via forceImport).
+    _log("Validating upgrade safety...");
+    await api.validateUpgrade(noxComputeProxyAddress, newImplFactory, {
+        kind: "uups",
         unsafeAllow: ["constructor"],
-        call: { fn: "initializeV2", args: [] },
     });
-    await upgrade.waitForDeployment();
 
-    _log("Upgrade transaction:", upgrade.deploymentTransaction()?.hash);
+    await connection.ignition.deploy(NoxComputeUpgrade, {
+        deploymentId: connection.networkName,
+        displayUi: printLogs,
+        parameters: {
+            NoxComputeUpgrade: {
+                proxyAddress: noxComputeProxyAddress,
+            },
+        },
+    });
+
+    // Re-import proxy into OZ Upgrades manifest so future validation calls are accurate.
+    await api.forceImport(noxComputeProxyAddress, newImplFactory, { kind: "uups" });
+
     const newImplementation = await api.erc1967.getImplementationAddress(noxComputeProxyAddress);
     _log(`New implementation deployed at: ${newImplementation}`);
     _log("NoxCompute proxy upgraded successfully");
