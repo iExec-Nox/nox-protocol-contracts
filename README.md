@@ -89,7 +89,7 @@ pnpm run deploy
 pnpm run deploy:production
 
 # Upgrade an existing proxy
-pnpm run upgrade
+pnpm run upgrade --network <name>
 ```
 
 ## Verification
