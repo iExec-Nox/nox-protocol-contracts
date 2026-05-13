@@ -1,5 +1,6 @@
-- TODO Linter: JS with imports sorting
-- TODO Linter: Sol with imports sorting if relevant
-- TODO Configure Solidity Solcover if required
-- TODO Remove Hardhat Ignition (does not integrate with OZ Upgrades; artifacts duplicated with `artifacts/`)
+- Linter: JS with imports sorting
+- Linter: Sol with imports sorting if relevant
+- Configure Solidity Solcover if required
+- Remove Hardhat Ignition (does not integrate with OZ Upgrades; artifacts duplicated with `artifacts/`)
 - TODO Use OZ SlotDerivation & TransientSlot for \_allowTransient & co
+- TODO Specify types in IncompatibleTypes() error
