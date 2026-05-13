@@ -258,7 +258,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle
-        result = _generatePublicHandle(Operator.WrapAsPublicHandle, operands, teeType);
+        // Generate a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00)
+        result = _generateHandle(
+            Operator.WrapAsPublicHandle,
+            operands,
+            teeType,
+            0,
+            0,
+            bytes1(0x00)
+        );
         _allowTransient(result, msg.sender);
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
@@ -718,17 +726,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         for (uint256 i = 0; i < operands.length; i++) {
             require(operands[i] != bytes32(0), UndefinedHandle());
         }
-    }
-
-    /**
-     * @dev Alias for _generateHandle producing a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00).
-     */
-    function _generatePublicHandle(
-        Operator operator,
-        bytes32[] memory operands,
-        TEEType handleType
-    ) private view returns (bytes32 result) {
-        result = _generateHandle(operator, operands, handleType, 0, 0, bytes1(0x00));
     }
 
     /**
