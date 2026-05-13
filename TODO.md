@@ -2,3 +2,4 @@
 - Linter: Sol with imports sorting if relevant
 - Configure Solidity Solcover if required
 - Remove Hardhat Ignition (does not integrate with OZ Upgrades; artifacts duplicated with `artifacts/`)
+- Use OZ SlotDerivation & TransientSlot for \_allowTransient & co
