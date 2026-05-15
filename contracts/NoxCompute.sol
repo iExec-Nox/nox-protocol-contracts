@@ -258,7 +258,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle
-        result = _generatePublicHandle(Operator.WrapAsPublicHandle, operands, teeType);
+        // Generate a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00)
+        result = _generateHandle(
+            Operator.WrapAsPublicHandle,
+            operands,
+            teeType,
+            0,
+            0,
+            bytes1(0x00)
+        );
         _allowTransient(result, msg.sender);
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
@@ -477,17 +485,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
-        require(
-            condition != bytes32(0) && ifTrue != bytes32(0) && ifFalse != bytes32(0),
-            UndefinedHandle()
-        );
-        require(TypeUtils.typeOf(condition) == TEEType.Bool, UnsupportedType());
-        TEEType resultType = TypeUtils.typeOf(ifTrue);
-        require(resultType == TypeUtils.typeOf(ifFalse), IncompatibleTypes());
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
+        _requireDefinedHandles(operands);
+        TEEType resultType = TypeUtils.typeOf(operands[1]);
+        TypeUtils.validateArithmeticType(resultType);
+        _requireTypeMatch(operands, TEEType.Bool, resultType);
         validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(Operator.Select, operands, resultType);
         _allowTransient(result, msg.sender);
@@ -584,8 +589,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param isSafeOperation Whether to generate a Bool success handle alongside the result
-     * @return success The success flag handle (Bool type), bytes32(0) if not safe operation
-     * @return result The resulting encrypted handle
+     * @return success The Bool success handle (bytes32(0) if not a safe operation)
+     * @return result The result handle
      */
     function _executeArithmeticOperation(
         Operator operator,
@@ -595,11 +600,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         _requireDefinedHandles(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
-        for (uint256 i = 1; i < operands.length; i++) {
-            if (resultType != TypeUtils.typeOf(operands[i])) {
-                revert IncompatibleTypes();
-            }
-        }
+        _requireTypeMatch(operands, resultType, resultType);
         validateAllowedForAll(msg.sender, operands);
         // Outputs differ by outputIndex and type, so they can safely share the same seed
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
@@ -637,20 +638,20 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param operator The comparison operator to apply
      * @param leftOperand Left-hand side operand handle
      * @param rightOperand Right-hand side operand handle
-     * @return result The resulting Bool handle
+     * @return result The Bool result handle
      */
     function _executeComparisonOperation(
         Operator operator,
         bytes32 leftOperand,
         bytes32 rightOperand
     ) private returns (bytes32 result) {
-        require(leftOperand != bytes32(0) && rightOperand != bytes32(0), UndefinedHandle());
-        TEEType operandType = TypeUtils.typeOf(leftOperand);
-        TypeUtils.validateArithmeticType(operandType);
-        require(TypeUtils.typeOf(rightOperand) == operandType, IncompatibleTypes());
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftOperand;
         operands[1] = rightOperand;
+        _requireDefinedHandles(operands);
+        TEEType operandType = TypeUtils.typeOf(operands[0]);
+        TypeUtils.validateArithmeticType(operandType);
+        _requireTypeMatch(operands, operandType, operandType);
         validateAllowedForAll(msg.sender, operands);
         result = _generateHandle(operator, operands, TEEType.Bool);
         _allowTransient(result, msg.sender);
@@ -663,7 +664,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      *
      * @param operator The operator to apply
      * @param operands Array of 3 operand handles
-     * @return success The success flag handle (Bool type)
+     * @return success The Bool success handle
      * @return result1 First result handle
      * @return result2 Second result handle
      */
@@ -674,11 +675,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         _requireDefinedHandles(operands);
         TEEType resultType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(resultType);
-        for (uint256 i = 1; i < operands.length; i++) {
-            if (resultType != TypeUtils.typeOf(operands[i])) {
-                revert IncompatibleTypes();
-            }
-        }
+        _requireTypeMatch(operands, resultType, resultType);
         validateAllowedForAll(msg.sender, operands);
         // Outputs differ by outputIndex and type, so they can safely share the same seed
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
@@ -721,14 +718,20 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * @dev Alias for _generateHandle producing a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00).
+     * Reverts if operands[0] type != first or any operands[1..] type != others.
+     * @param operands Array of operand handles
+     * @param first Expected TEEType for operands[0]
+     * @param others Expected TEEType for operands[1..]
      */
-    function _generatePublicHandle(
-        Operator operator,
+    function _requireTypeMatch(
         bytes32[] memory operands,
-        TEEType handleType
-    ) private view returns (bytes32 result) {
-        result = _generateHandle(operator, operands, handleType, 0, 0, bytes1(0x00));
+        TEEType first,
+        TEEType others
+    ) private pure {
+        require(TypeUtils.typeOf(operands[0]) == first, IncompatibleTypes());
+        for (uint256 i = 1; i < operands.length; i++) {
+            require(TypeUtils.typeOf(operands[i]) == others, IncompatibleTypes());
+        }
     }
 
     /**
