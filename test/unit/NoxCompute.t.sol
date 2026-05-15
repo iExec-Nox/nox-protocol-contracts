@@ -849,8 +849,8 @@ contract NoxComputeTest is Test {
         noxCompute.select(condition, ifTrue, ifFalse);
     }
 
-    function test_RevertWhen_Select_UnsupportedConditionType() public {
-        bytes32 condition = TestHelper.createHandle(TEEType.Uint256);
+    function test_RevertWhen_Select_IncompatibleConditionType() public {
+        bytes32 condition = TestHelper.createHandle(TEEType.Uint256); // Not a bool
         bytes32 ifTrue = TestHelper.createHandle(TEEType.Uint256);
         bytes32 ifFalse = TestHelper.createHandle(TEEType.Uint256);
         TestHelper.forceAllowPersistent(condition, caller);
@@ -858,7 +858,7 @@ contract NoxComputeTest is Test {
         TestHelper.forceAllowPersistent(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(INoxCompute.UnsupportedType.selector);
+        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
         noxCompute.select(condition, ifTrue, ifFalse);
     }
 
