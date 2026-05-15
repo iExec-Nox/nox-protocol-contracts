@@ -45,6 +45,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     uint8 private constant HANDLE_VERSION = 0;
 
+    // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
+    // slither-disable-next-line uninitialized-state
     bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION = bytes32(
         erc7201("nox.storage.NoxCompute")
     );
