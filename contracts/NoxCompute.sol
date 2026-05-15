@@ -496,8 +496,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         TypeUtils.validateArithmeticType(resultType);
         _requireTypeMatch(operands, TEEType.Bool, resultType);
         validateAllowedForAll(msg.sender, operands);
-        result = _generateHandle(Operator.Select, operands, resultType);
-        _allowTransient(result, msg.sender);
+        TEEType[] memory resultTypes = new TEEType[](1);
+        resultTypes[0] = resultType;
+        (, bytes32[] memory results) = _generateAllHandles(
+            Operator.Select,
+            operands,
+            resultTypes,
+            false
+        );
+        result = results[0];
         emit Select(msg.sender, condition, ifTrue, ifFalse, result);
     }
 
@@ -604,28 +611,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         TypeUtils.validateArithmeticType(resultType);
         _requireTypeMatch(operands, resultType, resultType);
         validateAllowedForAll(msg.sender, operands);
-        // Outputs differ by outputIndex and type, so they can safely share the same seed
-        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
-        result = _generateHandle(
-            operator,
-            operands,
-            resultType,
-            0,
-            uniqueSeed,
-            HandleUtils.ATTR_IS_UNIQUE_HANDLE
-        );
-        _allowTransient(result, msg.sender);
-        if (isSafeOperation) {
-            success = _generateHandle(
-                operator,
-                operands,
-                TEEType.Bool,
-                1,
-                uniqueSeed,
-                HandleUtils.ATTR_IS_UNIQUE_HANDLE
-            );
-            _allowTransient(success, msg.sender);
-        }
+        TEEType[] memory resultTypes = new TEEType[](1);
+        resultTypes[0] = resultType;
+        bytes32[] memory results;
+        (success, results) = _generateAllHandles(operator, operands, resultTypes, isSafeOperation);
+        result = results[0];
     }
 
     /**
@@ -655,8 +645,10 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         TypeUtils.validateArithmeticType(operandType);
         _requireTypeMatch(operands, operandType, operandType);
         validateAllowedForAll(msg.sender, operands);
-        result = _generateHandle(operator, operands, TEEType.Bool);
-        _allowTransient(result, msg.sender);
+        TEEType[] memory resultTypes = new TEEType[](1);
+        resultTypes[0] = TEEType.Bool;
+        (, bytes32[] memory results) = _generateAllHandles(operator, operands, resultTypes, false);
+        result = results[0];
     }
 
     /**
@@ -679,35 +671,13 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         TypeUtils.validateArithmeticType(resultType);
         _requireTypeMatch(operands, resultType, resultType);
         validateAllowedForAll(msg.sender, operands);
-        // Outputs differ by outputIndex and type, so they can safely share the same seed
-        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
-        success = _generateHandle(
-            operator,
-            operands,
-            TEEType.Bool,
-            0,
-            uniqueSeed,
-            HandleUtils.ATTR_IS_UNIQUE_HANDLE
-        );
-        result1 = _generateHandle(
-            operator,
-            operands,
-            resultType,
-            1,
-            uniqueSeed,
-            HandleUtils.ATTR_IS_UNIQUE_HANDLE
-        );
-        result2 = _generateHandle(
-            operator,
-            operands,
-            resultType,
-            2,
-            uniqueSeed,
-            HandleUtils.ATTR_IS_UNIQUE_HANDLE
-        );
-        _allowTransient(success, msg.sender);
-        _allowTransient(result1, msg.sender);
-        _allowTransient(result2, msg.sender);
+        TEEType[] memory resultTypes = new TEEType[](2);
+        resultTypes[0] = resultType;
+        resultTypes[1] = resultType;
+        bytes32[] memory results;
+        (success, results) = _generateAllHandles(operator, operands, resultTypes, true);
+        result1 = results[0];
+        result2 = results[1];
     }
 
     /**
@@ -737,24 +707,42 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * @dev Alias for single-output confidential operations (outputIndex=0, attrs=ATTR_IS_UNIQUE_HANDLE).
-     * Computes the uniqueness seed internally.
-     * Must NOT be called multiple times for multi-output operations (the seed counter would diverge).
+     * Generates all output handles for an operation from a single uniqueness seed and grants
+     * transient access to msg.sender for each.
+     * Result handles are generated at outputIndex 0, 1, ... resultTypes.length - 1.
+     * If withSuccess is true, a Bool success handle is generated at outputIndex resultTypes.length.
      */
-    function _generateHandle(
+    function _generateAllHandles(
         Operator operator,
         bytes32[] memory operands,
-        TEEType handleType
-    ) private returns (bytes32 result) {
+        TEEType[] memory resultTypes,
+        bool withSuccess
+    ) private returns (bytes32 success, bytes32[] memory results) {
+        // Outputs differ by outputIndex and type, so handles can safely share the same seed.
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
-        result = _generateHandle(
-            operator,
-            operands,
-            handleType,
-            0,
-            uniqueSeed,
-            HandleUtils.ATTR_IS_UNIQUE_HANDLE
-        );
+        results = new bytes32[](resultTypes.length);
+        for (uint256 i = 0; i < resultTypes.length; i++) {
+            results[i] = _generateHandle(
+                operator,
+                operands,
+                resultTypes[i],
+                uint8(i),
+                uniqueSeed,
+                HandleUtils.ATTR_IS_UNIQUE_HANDLE
+            );
+            _allowTransient(results[i], msg.sender);
+        }
+        if (withSuccess) {
+            success = _generateHandle(
+                operator,
+                operands,
+                TEEType.Bool,
+                uint8(resultTypes.length),
+                uniqueSeed,
+                HandleUtils.ATTR_IS_UNIQUE_HANDLE
+            );
+            _allowTransient(success, msg.sender);
+        }
     }
 
     /**
