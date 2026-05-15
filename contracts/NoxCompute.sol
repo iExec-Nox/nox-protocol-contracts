@@ -380,6 +380,54 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /// @inheritdoc INoxCompute
+    function safeAdd(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
+        emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc INoxCompute
+    function safeSub(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
+        emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc INoxCompute
+    function safeMul(
+        bytes32 leftHandOperand,
+        bytes32 rightHandOperand
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (success, result) = _executeArithmeticOperation(Operator.SafeMul, operands, true);
+        emit SafeMul(msg.sender, leftHandOperand, rightHandOperand, success, result);
+    }
+
+    /// @inheritdoc INoxCompute
+    function safeDiv(
+        bytes32 numerator,
+        bytes32 denominator
+    ) external returns (bytes32 success, bytes32 result) {
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = numerator;
+        operands[1] = denominator;
+        (success, result) = _executeArithmeticOperation(Operator.SafeDiv, operands, true);
+        emit SafeDiv(msg.sender, numerator, denominator, success, result);
+    }
+
+    /// @inheritdoc INoxCompute
     function eq(
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
@@ -431,54 +479,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     ) external returns (bytes32 result) {
         result = _executeComparisonOperation(Operator.Ge, leftHandOperand, rightHandOperand);
         emit Ge(msg.sender, leftHandOperand, rightHandOperand, result);
-    }
-
-    /// @inheritdoc INoxCompute
-    function safeAdd(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
-        emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
-    }
-
-    /// @inheritdoc INoxCompute
-    function safeSub(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
-        emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
-    }
-
-    /// @inheritdoc INoxCompute
-    function safeMul(
-        bytes32 leftHandOperand,
-        bytes32 rightHandOperand
-    ) external returns (bytes32 success, bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftHandOperand;
-        operands[1] = rightHandOperand;
-        (success, result) = _executeArithmeticOperation(Operator.SafeMul, operands, true);
-        emit SafeMul(msg.sender, leftHandOperand, rightHandOperand, success, result);
-    }
-
-    /// @inheritdoc INoxCompute
-    function safeDiv(
-        bytes32 numerator,
-        bytes32 denominator
-    ) external returns (bytes32 success, bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = numerator;
-        operands[1] = denominator;
-        (success, result) = _executeArithmeticOperation(Operator.SafeDiv, operands, true);
-        emit SafeDiv(msg.sender, numerator, denominator, success, result);
     }
 
     /// @inheritdoc INoxCompute
