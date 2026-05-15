@@ -616,40 +616,6 @@ contract NoxComputeTest is Test {
         }
     }
 
-    // ============ Comparison Operations (eq, ne, lt, le, gt, ge) ============
-
-    function test_ComparisonOperations() public {
-        this._test_ComparisonOperations();
-    }
-    function _test_ComparisonOperations() external {
-        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
-        TestHelper.forceAllowPersistent(leftHandOperand, caller);
-        TestHelper.forceAllowPersistent(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < comparisonOps.length; i++) {
-            vm.expectEmit(true, false, false, false);
-            if (comparisonOps[i] == INoxCompute.eq.selector) {
-                emit INoxCompute.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == INoxCompute.ne.selector) {
-                emit INoxCompute.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == INoxCompute.lt.selector) {
-                emit INoxCompute.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == INoxCompute.le.selector) {
-                emit INoxCompute.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == INoxCompute.gt.selector) {
-                emit INoxCompute.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else if (comparisonOps[i] == INoxCompute.ge.selector) {
-                emit INoxCompute.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
-            } else {
-                revert("Not implemented");
-            }
-            vm.prank(caller);
-            bytes32 result = _callOperation(comparisonOps[i], leftHandOperand, rightHandOperand);
-            _assertValidHandle(result, TEEType.Bool);
-        }
-    }
-
     // ============ Safe Arithmetic Operations (safeAdd, safeSub) ============
 
     function test_SafeArithmeticOperations() public {
@@ -707,6 +673,40 @@ contract NoxComputeTest is Test {
             assertNotEq(success, result);
             _assertValidHandle(success, TEEType.Bool);
             _assertValidHandle(result, TEEType.Uint256);
+        }
+    }
+
+    // ============ Comparison Operations (eq, ne, lt, le, gt, ge) ============
+
+    function test_ComparisonOperations() public {
+        this._test_ComparisonOperations();
+    }
+    function _test_ComparisonOperations() external {
+        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(leftHandOperand, caller);
+        TestHelper.forceAllowPersistent(rightHandOperand, caller);
+
+        for (uint256 i = 0; i < comparisonOps.length; i++) {
+            vm.expectEmit(true, false, false, false);
+            if (comparisonOps[i] == INoxCompute.eq.selector) {
+                emit INoxCompute.Eq(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (comparisonOps[i] == INoxCompute.ne.selector) {
+                emit INoxCompute.Ne(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (comparisonOps[i] == INoxCompute.lt.selector) {
+                emit INoxCompute.Lt(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (comparisonOps[i] == INoxCompute.le.selector) {
+                emit INoxCompute.Le(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (comparisonOps[i] == INoxCompute.gt.selector) {
+                emit INoxCompute.Gt(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else if (comparisonOps[i] == INoxCompute.ge.selector) {
+                emit INoxCompute.Ge(caller, leftHandOperand, rightHandOperand, bytes32(0));
+            } else {
+                revert("Not implemented");
+            }
+            vm.prank(caller);
+            bytes32 result = _callOperation(comparisonOps[i], leftHandOperand, rightHandOperand);
+            _assertValidHandle(result, TEEType.Bool);
         }
     }
 
