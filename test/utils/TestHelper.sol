@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
@@ -16,8 +16,9 @@ library TestHelper {
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
-        0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
+    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION = bytes32(
+        erc7201("nox.storage.NoxCompute")
+    );
 
     /**
      * Generates a deterministic unique handle with the given type.
