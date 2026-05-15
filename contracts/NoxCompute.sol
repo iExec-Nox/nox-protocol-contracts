@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
@@ -45,9 +45,11 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     uint8 private constant HANDLE_VERSION = 0;
 
-    // keccak256(abi.encode(uint256(keccak256("nox.storage.NoxCompute")) - 1)) & ~bytes32(uint256(0xff))
-    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
-        0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
+    // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
+    // slither-disable-next-line uninitialized-state
+    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION = bytes32(
+        erc7201("nox.storage.NoxCompute")
+    );
     bytes32 public constant HANDLE_PROOF_TYPEHASH = keccak256(
         "HandleProof(bytes32 handle,address owner,address app,uint256 createdAt)"
     );
@@ -900,8 +902,9 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
 
     function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
+        bytes32 slot = NOX_COMPUTE_STORAGE_LOCATION;
         assembly {
-            $.slot := NOX_COMPUTE_STORAGE_LOCATION
+            $.slot := slot
         }
     }
 }
