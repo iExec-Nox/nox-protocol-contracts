@@ -722,7 +722,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Executes a compute operation on encrypted handles.
+     * Executes a compute operation on encrypted handles with arithmetic types.
      * All operands must share the same type as the first operand.
      * Result handles take the type specified in `resultType`.
      * The caller is granted transient access on all generated handles.
