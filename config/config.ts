@@ -21,20 +21,14 @@ export default {
         initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f",
         kmsPublicKey: undefined, // Defined in GitHub environment.
     },
-
-    arbitrum: {
-        chainId: 42161,
-        initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f", // TODO Replace this
-        kmsPublicKey: undefined, // Defined in GitHub environment.
-    },
     sepolia: {
         chainId: 11155111,
-        initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f", // TODO Replace this
+        initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f",
         kmsPublicKey: undefined, // Defined in GitHub environment.
     },
     ethereum: {
         chainId: 1,
-        initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f", // TODO Replace this
+        initialOwner: "", // TODO Replace this
         kmsPublicKey: undefined, // Defined in GitHub environment.
     },
 } as {

@@ -67,13 +67,6 @@ export default defineConfig({
             url: configVariable("RPC_URL"),
             accounts: [configVariable("PRIVATE_KEY")],
         },
-        arbitrum: {
-            type: "http",
-            chainType: "op",
-            chainId: 42161,
-            url: configVariable("RPC_URL"),
-            accounts: [configVariable("PRIVATE_KEY")],
-        },
         sepolia: {
             type: "http",
             chainType: "l1",
