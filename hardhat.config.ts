@@ -53,6 +53,13 @@ export default defineConfig({
             chainType: "op",
             allowUnlimitedContractSize: true,
         },
+        tenderlyArbitrumSepolia: {
+            type: "http",
+            chainType: "op",
+            chainId: 421614,
+            url: configVariable("RPC_URL"),
+            accounts: [configVariable("PRIVATE_KEY")],
+        },
         arbitrumSepolia: {
             type: "http",
             chainType: "op",
@@ -60,10 +67,24 @@ export default defineConfig({
             url: configVariable("RPC_URL"),
             accounts: [configVariable("PRIVATE_KEY")],
         },
-        tenderlyArbitrumSepolia: {
+        arbitrum: {
             type: "http",
             chainType: "op",
-            chainId: 421614,
+            chainId: 42161,
+            url: configVariable("RPC_URL"),
+            accounts: [configVariable("PRIVATE_KEY")],
+        },
+        sepolia: {
+            type: "http",
+            chainType: "l1",
+            chainId: 11155111,
+            url: configVariable("RPC_URL"),
+            accounts: [configVariable("PRIVATE_KEY")],
+        },
+        ethereum: {
+            type: "http",
+            chainType: "l1",
+            chainId: 1,
             url: configVariable("RPC_URL"),
             accounts: [configVariable("PRIVATE_KEY")],
         },
