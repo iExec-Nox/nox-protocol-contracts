@@ -342,7 +342,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, result) = _executeArithmeticOperation(Operator.Add, operands, false);
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Add,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            false
+        );
+        result = results[0];
         emit Add(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -354,7 +361,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, result) = _executeArithmeticOperation(Operator.Sub, operands, false);
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Sub,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            false
+        );
+        result = results[0];
         emit Sub(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -363,7 +377,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
-        (, result) = _executeArithmeticOperation(Operator.Div, operands, false);
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Div,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            false
+        );
+        result = results[0];
         emit Div(msg.sender, numerator, denominator, result);
     }
 
@@ -375,7 +396,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, result) = _executeArithmeticOperation(Operator.Mul, operands, false);
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Mul,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            false
+        );
+        result = results[0];
         emit Mul(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -387,7 +415,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (success, result) = _executeArithmeticOperation(Operator.SafeAdd, operands, true);
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
+            Operator.SafeAdd,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            true
+        );
+        result = results[0];
         emit SafeAdd(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
@@ -399,7 +435,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (success, result) = _executeArithmeticOperation(Operator.SafeSub, operands, true);
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
+            Operator.SafeSub,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            true
+        );
+        result = results[0];
         emit SafeSub(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
@@ -411,7 +455,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (success, result) = _executeArithmeticOperation(Operator.SafeMul, operands, true);
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
+            Operator.SafeMul,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            true
+        );
+        result = results[0];
         emit SafeMul(msg.sender, leftHandOperand, rightHandOperand, success, result);
     }
 
@@ -423,7 +475,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
-        (success, result) = _executeArithmeticOperation(Operator.SafeDiv, operands, true);
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
+            Operator.SafeDiv,
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            1,
+            true
+        );
+        result = results[0];
         emit SafeDiv(msg.sender, numerator, denominator, success, result);
     }
 
@@ -432,7 +492,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Eq, leftHandOperand, rightHandOperand);
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Eq,
+            operands,
+            TEEType.Bool,
+            1,
+            false
+        );
+        result = results[0];
         emit Eq(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -441,7 +511,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Ne, leftHandOperand, rightHandOperand);
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Ne,
+            operands,
+            TEEType.Bool,
+            1,
+            false
+        );
+        result = results[0];
         emit Ne(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -450,7 +530,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Lt, leftHandOperand, rightHandOperand);
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Lt,
+            operands,
+            TEEType.Bool,
+            1,
+            false
+        );
+        result = results[0];
         emit Lt(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -459,7 +549,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Le, leftHandOperand, rightHandOperand);
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Le,
+            operands,
+            TEEType.Bool,
+            1,
+            false
+        );
+        result = results[0];
         emit Le(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -468,7 +568,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Gt, leftHandOperand, rightHandOperand);
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Gt,
+            operands,
+            TEEType.Bool,
+            1,
+            false
+        );
+        result = results[0];
         emit Gt(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -477,7 +587,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
-        result = _executeComparisonOperation(Operator.Ge, leftHandOperand, rightHandOperand);
+        bytes32[] memory operands = new bytes32[](2);
+        operands[0] = leftHandOperand;
+        operands[1] = rightHandOperand;
+        (, bytes32[] memory results) = _executeOperation(
+            Operator.Ge,
+            operands,
+            TEEType.Bool,
+            1,
+            false
+        );
+        result = results[0];
         emit Ge(msg.sender, leftHandOperand, rightHandOperand, result);
     }
 
@@ -518,10 +638,16 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = balanceFrom;
         operands[1] = balanceTo;
         operands[2] = amount;
-        (success, newBalanceFrom, newBalanceTo) = _executeCompositeOperation(
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
             Operator.Transfer,
-            operands
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            2,
+            true
         );
+        newBalanceFrom = results[0];
+        newBalanceTo = results[1];
         emit Transfer(
             msg.sender,
             balanceFrom,
@@ -543,10 +669,16 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = balanceTo;
         operands[1] = amount;
         operands[2] = totalSupply;
-        (success, newBalanceTo, newTotalSupply) = _executeCompositeOperation(
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
             Operator.Mint,
-            operands
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            2,
+            true
         );
+        newBalanceTo = results[0];
+        newTotalSupply = results[1];
         emit Mint(
             msg.sender,
             balanceTo,
@@ -568,10 +700,16 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         operands[0] = balanceFrom;
         operands[1] = amount;
         operands[2] = totalSupply;
-        (success, newBalanceFrom, newTotalSupply) = _executeCompositeOperation(
+        bytes32[] memory results;
+        (success, results) = _executeOperation(
             Operator.Burn,
-            operands
+            operands,
+            TypeUtils.typeOf(operands[0]),
+            2,
+            true
         );
+        newBalanceFrom = results[0];
+        newTotalSupply = results[1];
         emit Burn(
             msg.sender,
             balanceFrom,
@@ -584,100 +722,36 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Executes an arithmetic operation on N encrypted handles.
-     * All operands must share the same type as the first operand, which also determines the result type.
-     * Verifies ACL permissions for all operands, checks type compatibility,
-     * generates result handle(s), and grants transient access to the caller.
-     *
-     * When `isSafeOperation` is true, generates an additional Bool success handle (outputIndex 1)
-     * and the result handle at outputIndex 0, enabling overflow/underflow detection.
-     *
-     * @dev Reverts with NotAllowed if caller lacks permission on any operand
-     * @dev Reverts with IncompatibleTypes if operand types don't match
+     * Executes a compute operation on encrypted handles with arithmetic types.
+     * All operands must share the same type as the first operand.
+     * Result handles take the type specified in `resultType`.
+     * The caller is granted transient access on all generated handles.
      *
      * @param operator The operator to apply
      * @param operands Array of operand handles
-     * @param isSafeOperation Whether to generate a Bool success handle alongside the result
-     * @return success The Bool success handle (bytes32(0) if not a safe operation)
-     * @return result The result handle
+     * @param resultType TEE type for each result handle
+     * @param resultCount Number of result handles to generate
+     * @param withSuccess Whether to generate a Bool success handle
+     * @return success The Bool success handle (bytes32(0) if withSuccess is false)
+     * @return results Array of result handles
      */
-    function _executeArithmeticOperation(
+    function _executeOperation(
         Operator operator,
         bytes32[] memory operands,
-        bool isSafeOperation
-    ) private returns (bytes32 success, bytes32 result) {
-        _requireDefinedHandles(operands);
-        TEEType resultType = TypeUtils.typeOf(operands[0]);
-        TypeUtils.validateArithmeticType(resultType);
-        _requireTypeMatch(operands, resultType, resultType);
-        validateAllowedForAll(msg.sender, operands);
-        TEEType[] memory resultTypes = new TEEType[](1);
-        resultTypes[0] = resultType;
-        bytes32[] memory results;
-        (success, results) = _generateAllHandles(operator, operands, resultTypes, isSafeOperation);
-        result = results[0];
-    }
-
-    /**
-     * Executes a comparison operation on two encrypted handles.
-     * Both operands must share the same arithmetic type.
-     * Verifies ACL permissions for both operands, checks type compatibility,
-     * generates a Bool result handle, and grants transient access to the caller.
-     *
-     * @dev Reverts with NotAllowed if caller lacks permission on any operand
-     * @dev Reverts with IncompatibleTypes if operand types don't match
-     *
-     * @param operator The comparison operator to apply
-     * @param leftOperand Left-hand side operand handle
-     * @param rightOperand Right-hand side operand handle
-     * @return result The Bool result handle
-     */
-    function _executeComparisonOperation(
-        Operator operator,
-        bytes32 leftOperand,
-        bytes32 rightOperand
-    ) private returns (bytes32 result) {
-        bytes32[] memory operands = new bytes32[](2);
-        operands[0] = leftOperand;
-        operands[1] = rightOperand;
+        TEEType resultType,
+        uint8 resultCount,
+        bool withSuccess
+    ) private returns (bytes32 success, bytes32[] memory results) {
         _requireDefinedHandles(operands);
         TEEType operandType = TypeUtils.typeOf(operands[0]);
         TypeUtils.validateArithmeticType(operandType);
         _requireTypeMatch(operands, operandType, operandType);
         validateAllowedForAll(msg.sender, operands);
-        TEEType[] memory resultTypes = new TEEType[](1);
-        resultTypes[0] = TEEType.Bool;
-        (, bytes32[] memory results) = _generateAllHandles(operator, operands, resultTypes, false);
-        result = results[0];
-    }
-
-    /**
-     * Executes a composite operation on 3 encrypted handles (e.g. transfer, mint, burn).
-     * All operands must share the same arithmetic type.
-     * Generates 3 output handles: a Bool success flag and two result handles of the input type.
-     *
-     * @param operator The operator to apply
-     * @param operands Array of 3 operand handles
-     * @return success The Bool success handle
-     * @return result1 First result handle
-     * @return result2 Second result handle
-     */
-    function _executeCompositeOperation(
-        Operator operator,
-        bytes32[] memory operands
-    ) private returns (bytes32 success, bytes32 result1, bytes32 result2) {
-        _requireDefinedHandles(operands);
-        TEEType resultType = TypeUtils.typeOf(operands[0]);
-        TypeUtils.validateArithmeticType(resultType);
-        _requireTypeMatch(operands, resultType, resultType);
-        validateAllowedForAll(msg.sender, operands);
-        TEEType[] memory resultTypes = new TEEType[](2);
-        resultTypes[0] = resultType;
-        resultTypes[1] = resultType;
-        bytes32[] memory results;
-        (success, results) = _generateAllHandles(operator, operands, resultTypes, true);
-        result1 = results[0];
-        result2 = results[1];
+        TEEType[] memory resultTypes = new TEEType[](resultCount);
+        for (uint8 i = 0; i < resultCount; i++) {
+            resultTypes[i] = resultType;
+        }
+        (success, results) = _generateAllHandles(operator, operands, resultTypes, withSuccess);
     }
 
     /**
