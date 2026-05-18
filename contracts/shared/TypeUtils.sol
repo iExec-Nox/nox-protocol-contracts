@@ -6,8 +6,6 @@ pragma solidity ^0.8.35;
  * New types should only be appended at the end to maintain backward compatibility.
  */
 enum TEEType {
-    // Null type (0) is reserved for uninitialized handles and should not be used for valid types.
-    // TODO  Null, // 0
     // ============ Special Types (0-3) ============
     Bool, // 0
     Address, // 1

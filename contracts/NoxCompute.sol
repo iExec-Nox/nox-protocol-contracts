@@ -724,14 +724,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     /**
      * Executes a compute operation on encrypted handles.
      * All operands must share the same type as the first operand.
-     * Verifies ACL permissions, checks type compatibility, generates result and optional success handles.
-     * Result handles are all typed as the operand type.
+     * Result handles take the type specified in `resultType`.
+     * The caller is granted transient access on all generated handles.
      *
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param resultType TEE type for each result handle
      * @param resultCount Number of result handles to generate
-     * @param withSuccess Whether to generate a Bool success handle at outputIndex resultCount
+     * @param withSuccess Whether to generate a Bool success handle
      * @return success The Bool success handle (bytes32(0) if withSuccess is false)
      * @return results Array of result handles
      */
