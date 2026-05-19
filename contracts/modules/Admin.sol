@@ -5,6 +5,11 @@ import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeab
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Common} from "./Common.sol";
 
+/**
+ * @title Admin
+ * @notice Configuration of KMS public key, gateway address, and proof expiration.
+ * @notice Owner-only functions to set configuration and manage upgrades.
+ */
 abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     /**
      * Sets the KMS public key used for ECIES encryption.

@@ -8,16 +8,12 @@ import {Compute} from "./modules/Compute.sol";
 
 /**
  * @title NoxCompute
- * This contract is the main entry point to the TEE compute functionalities of the Nox protocol.
+ * @notice The entry point contract for the Nox TEE compute protocol.
  * It's role includes:
  * - Managing the access control list (ACL) for encrypted handles
  * - Validating handle proofs issued by a trusted gateway
- * - Facilitating the conversion of plaintext values to encrypted values
+ * - Wrapping plaintext values into public handles
  * - Triggering off-chain TEE computations through event emissions
- *
- * @dev Using non upgradeable EIP712 is safe here because it has no storage and the config is saved
- * in immutable variables which should be enough here since we don't use multiple proxies with the
- * same implementation.
  */
 contract NoxCompute is Admin, ACL, Compute {
     /**

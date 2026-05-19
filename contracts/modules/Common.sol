@@ -3,6 +3,11 @@ pragma solidity ^0.8.35;
 
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 
+/**
+ * @title Common
+ * @notice Shared base for all modules. Defines the ERC7201 storage layout,
+ * the storage accessor, and virtual declarations for cross-module functions.
+ */
 abstract contract Common is INoxCompute {
     // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
     // slither-disable-next-line uninitialized-state

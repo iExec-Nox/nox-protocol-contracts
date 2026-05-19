@@ -5,6 +5,11 @@ import {HandleUtils} from "../shared/HandleUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 
+/**
+ * @title ACL
+ * @notice Access control for encrypted handles. Supports persistent and transient access,
+ * plus viewer and public-decryption roles.
+ */
 abstract contract ACL is Common {
     modifier notZeroAddress(address account) {
         require(account != address(0), InvalidZeroAddress());
@@ -134,6 +139,9 @@ abstract contract ACL is Common {
         }
     }
 
+    /**
+     * Reverts if account lacks access to any handle in the array.
+     */
     function _validateAllowedForAll(
         address account,
         bytes32[] memory handles
@@ -145,6 +153,10 @@ abstract contract ACL is Common {
         }
     }
 
+    /**
+     * Checks if the handle is public, or if account has transient or persistent
+     * access to the handle.
+     */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
         return
             HandleUtils.isPublicHandle(handle) ||

@@ -8,6 +8,15 @@ import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 
+/**
+ * @title Compute
+ * @notice TEE compute operations: handle wrapping, EIP712 proof validation,
+ * arithmetic, comparisons, optimized transfer/mint/burn.
+ *
+ * @dev Using non-upgradeable EIP712 is safe here as it has no storage and the config is saved
+ * in immutable variables, which is sufficient since we don't use multiple proxies with the
+ * same implementation.
+ */
 abstract contract Compute is Common, EIP712 {
     using TypeUtils for bytes32;
 
