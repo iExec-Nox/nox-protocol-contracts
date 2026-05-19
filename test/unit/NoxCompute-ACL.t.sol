@@ -11,7 +11,7 @@ import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
-contract NoxComputeACLTest is Test {
+contract NoxCompute_ACLTest is Test {
     address internal owner = address(this);
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");
