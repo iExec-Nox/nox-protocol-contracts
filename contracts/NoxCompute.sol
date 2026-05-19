@@ -23,6 +23,8 @@ import {TEEType, TypeUtils} from "./shared/TypeUtils.sol";
  * same implementation.
  */
 contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 {
+    using TypeUtils for bytes32;
+
     /// @custom:storage-location erc7201:nox.storage.NoxCompute
     struct NoxComputeStorage {
         // An admin of a handle can:
@@ -339,13 +341,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Add,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             false
         );
@@ -358,13 +361,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Sub,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             false
         );
@@ -374,13 +378,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
 
     /// @inheritdoc INoxCompute
     function div(bytes32 numerator, bytes32 denominator) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(numerator, denominator);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Div,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             false
         );
@@ -393,13 +398,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Mul,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             false
         );
@@ -412,6 +418,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -419,7 +426,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.SafeAdd,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             true
         );
@@ -432,6 +439,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -439,7 +447,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.SafeSub,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             true
         );
@@ -452,6 +460,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 success, bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -459,7 +468,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.SafeMul,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             true
         );
@@ -472,6 +481,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 numerator,
         bytes32 denominator
     ) external returns (bytes32 success, bytes32 result) {
+        _validateArithmeticOperationTypes(numerator, denominator);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
@@ -479,7 +489,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.SafeDiv,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             1,
             true
         );
@@ -492,13 +502,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Eq,
             operands,
-            TEEType.Bool,
+            TEEType.Bool, // Result type
             1,
             false
         );
@@ -511,13 +522,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Ne,
             operands,
-            TEEType.Bool,
+            TEEType.Bool, // Result type
             1,
             false
         );
@@ -530,13 +542,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Lt,
             operands,
-            TEEType.Bool,
+            TEEType.Bool, // Result type
             1,
             false
         );
@@ -549,13 +562,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Le,
             operands,
-            TEEType.Bool,
+            TEEType.Bool, // Result type
             1,
             false
         );
@@ -568,13 +582,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Gt,
             operands,
-            TEEType.Bool,
+            TEEType.Bool, // Result type
             1,
             false
         );
@@ -587,13 +602,14 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external returns (bytes32 result) {
+        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         (, bytes32[] memory results) = _executeOperation(
             Operator.Ge,
             operands,
-            TEEType.Bool,
+            TEEType.Bool, // Result type
             1,
             false
         );
@@ -607,21 +623,17 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external returns (bytes32 result) {
+        _requireType(condition, TEEType.Bool);
+        _validateArithmeticOperationTypes(ifTrue, ifFalse);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
-        _requireDefinedHandles(operands);
-        TEEType resultType = TypeUtils.typeOf(operands[1]);
-        TypeUtils.validateArithmeticType(resultType);
-        _requireTypeMatch(operands, TEEType.Bool, resultType);
-        validateAllowedForAll(msg.sender, operands);
-        TEEType[] memory resultTypes = new TEEType[](1);
-        resultTypes[0] = resultType;
-        (, bytes32[] memory results) = _generateAllHandles(
+        (, bytes32[] memory results) = _executeOperation(
             Operator.Select,
             operands,
-            resultTypes,
+            operands[1].typeOf(), // Result type
+            1,
             false
         );
         result = results[0];
@@ -634,6 +646,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 balanceTo,
         bytes32 amount
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newBalanceTo) {
+        _validateArithmeticOperationTypes(balanceFrom, balanceTo, amount);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = balanceFrom;
         operands[1] = balanceTo;
@@ -642,7 +655,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.Transfer,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             2,
             true
         );
@@ -665,6 +678,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) {
+        _validateArithmeticOperationTypes(balanceTo, amount, totalSupply);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = balanceTo;
         operands[1] = amount;
@@ -673,7 +687,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.Mint,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             2,
             true
         );
@@ -696,6 +710,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         bytes32 amount,
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply) {
+        _validateArithmeticOperationTypes(balanceFrom, amount, totalSupply);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = balanceFrom;
         operands[1] = amount;
@@ -704,7 +719,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         (success, results) = _executeOperation(
             Operator.Burn,
             operands,
-            TypeUtils.typeOf(operands[0]),
+            operands[0].typeOf(), // Result type
             2,
             true
         );
@@ -722,36 +737,55 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Executes a compute operation on encrypted handles with arithmetic types.
-     * All operands must share the same type as the first operand.
-     * Result handles take the type specified in `resultType`.
-     * The caller is granted transient access on all generated handles.
-     *
+     * Processes a compute operation on encrypted handles with arithmetic types.
+     * - Validates ACL for all input handles
+     * - Generates result handles
+     * - Grants transient access to msg.sender
+     * Note: Callers are responsible for type validation.
      * @param operator The operator to apply
      * @param operands Array of operand handles
-     * @param resultType TEE type for each result handle
-     * @param resultCount Number of result handles to generate
+     * @param resultType TEE type for result handles
+     * @param resultcount Number of result handles to generate
      * @param withSuccess Whether to generate a Bool success handle
      * @return success The Bool success handle (bytes32(0) if withSuccess is false)
      * @return results Array of result handles
      */
+    // TODO rename to _processOperation.
     function _executeOperation(
         Operator operator,
         bytes32[] memory operands,
         TEEType resultType,
-        uint8 resultCount,
+        uint8 resultcount,
         bool withSuccess
     ) private returns (bytes32 success, bytes32[] memory results) {
         _requireDefinedHandles(operands);
-        TEEType operandType = TypeUtils.typeOf(operands[0]);
-        TypeUtils.validateArithmeticType(operandType);
-        _requireTypeMatch(operands, operandType, operandType);
         validateAllowedForAll(msg.sender, operands);
-        TEEType[] memory resultTypes = new TEEType[](resultCount);
-        for (uint8 i = 0; i < resultCount; i++) {
-            resultTypes[i] = resultType;
+        // The same seed can be used for all result handles because
+        // they differ by outputIndex.
+        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
+        results = new bytes32[](resultcount);
+        for (uint8 i = 0; i < resultcount; i++) {
+            results[i] = _generateHandle(
+                operator,
+                operands,
+                resultType,
+                i,
+                uniqueSeed,
+                HandleUtils.ATTR_IS_UNIQUE_HANDLE
+            );
+            _allowTransient(results[i], msg.sender);
         }
-        (success, results) = _generateAllHandles(operator, operands, resultTypes, withSuccess);
+        if (withSuccess) {
+            success = _generateHandle(
+                operator,
+                operands,
+                TEEType.Bool,
+                resultcount,
+                uniqueSeed,
+                HandleUtils.ATTR_IS_UNIQUE_HANDLE
+            );
+            _allowTransient(success, msg.sender);
+        }
     }
 
     /**
@@ -764,59 +798,30 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Reverts if operands[0] type != first or any operands[1..] type != others.
-     * @param operands Array of operand handles
-     * @param first Expected TEEType for operands[0]
-     * @param others Expected TEEType for operands[1..]
+     * Reverts if the handle's TEEType doesn't match the expected type.
      */
-    function _requireTypeMatch(
-        bytes32[] memory operands,
-        TEEType first,
-        TEEType others
-    ) private pure {
-        require(TypeUtils.typeOf(operands[0]) == first, IncompatibleTypes());
-        for (uint256 i = 1; i < operands.length; i++) {
-            require(TypeUtils.typeOf(operands[i]) == others, IncompatibleTypes());
-        }
+    function _requireType(bytes32 handle, TEEType expected) private pure {
+        require(handle.typeOf() == expected, IncompatibleTypes());
     }
 
     /**
-     * Generates all output handles for an operation from a single uniqueness seed and grants
-     * transient access to msg.sender for each.
-     * Result handles are generated at outputIndex 0, 1, ... resultTypes.length - 1.
-     * If withSuccess is true, a Bool success handle is generated at outputIndex resultTypes.length.
+     * Validates that first and second have the same supported arithmetic type.
      */
-    function _generateAllHandles(
-        Operator operator,
-        bytes32[] memory operands,
-        TEEType[] memory resultTypes,
-        bool withSuccess
-    ) private returns (bytes32 success, bytes32[] memory results) {
-        // Outputs differ by outputIndex and type, so handles can safely share the same seed.
-        uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
-        results = new bytes32[](resultTypes.length);
-        for (uint256 i = 0; i < resultTypes.length; i++) {
-            results[i] = _generateHandle(
-                operator,
-                operands,
-                resultTypes[i],
-                uint8(i),
-                uniqueSeed,
-                HandleUtils.ATTR_IS_UNIQUE_HANDLE
-            );
-            _allowTransient(results[i], msg.sender);
-        }
-        if (withSuccess) {
-            success = _generateHandle(
-                operator,
-                operands,
-                TEEType.Bool,
-                uint8(resultTypes.length),
-                uniqueSeed,
-                HandleUtils.ATTR_IS_UNIQUE_HANDLE
-            );
-            _allowTransient(success, msg.sender);
-        }
+    function _validateArithmeticOperationTypes(bytes32 first, bytes32 second) private pure {
+        TypeUtils.validateArithmeticType(first.typeOf());
+        require(first.typeOf() == second.typeOf(), IncompatibleTypes());
+    }
+
+    /**
+     * Validates that first, second, and third have the same supported arithmetic type.
+     */
+    function _validateArithmeticOperationTypes(
+        bytes32 first,
+        bytes32 second,
+        bytes32 third
+    ) private pure {
+        _validateArithmeticOperationTypes(first, second);
+        _requireType(third, first.typeOf());
     }
 
     /**
