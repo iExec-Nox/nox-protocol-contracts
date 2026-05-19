@@ -536,6 +536,7 @@ abstract contract Compute is Common, EIP712 {
         uint8 resultCount,
         bool withSuccess
     ) private returns (bytes32 success, bytes32[] memory results) {
+        _processPayment(msg.sender, operator);
         _requireDefinedHandles(operands);
         _validateAllowedForAll(msg.sender, operands);
         // The same seed can be used for all result handles because

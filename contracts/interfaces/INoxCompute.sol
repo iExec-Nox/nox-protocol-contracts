@@ -184,6 +184,13 @@ interface INoxCompute {
         Burn
     }
 
+    enum SponsorStatus {
+        UNSET,
+        PENDING,
+        APPROVED,
+        REVOKED
+    }
+
     // ------------- ACL functions -------------
 
     /**
@@ -564,6 +571,49 @@ interface INoxCompute {
     function kmsPublicKey() external view returns (bytes memory);
     function gateway() external view returns (address);
     function proofExpirationDuration() external view returns (uint256);
+
+    // ------------- Payment functions -------------
+
+    /**
+     * @notice Declares a sponsor for the calling app contract.
+     * Sponsor status is set to PENDING until the sponsor calls approveSponsorship.
+     * Overwrites any existing sponsor declaration (resets approval).
+     * @param sponsor Address that will pay USDC on behalf of this app
+     */
+    function setSponsor(address sponsor) external;
+
+    /**
+     * @notice Approves sponsorship for an app that declared msg.sender as its sponsor.
+     * @param app App contract address to approve
+     */
+    function approveSponsorship(address app) external;
+
+    /**
+     * @notice Revokes sponsorship for an app. Immediately cuts off USDC billing.
+     * @param app App contract address to revoke
+     */
+    function revokeSponsorship(address app) external;
+
+    /**
+     * @notice Returns the declared sponsor and approval status for an app.
+     * @param app App contract address
+     */
+    function sponsor(address app) external view returns (address sponsor, SponsorStatus status);
+
+    /**
+     * @notice Provisions or revokes a license for an app.
+     * Set expirationDate=0 and monthlyQuota=0 to revoke.
+     * @param app App contract address
+     * @param licenseOwner Address that holds the license (one license per owner, shared across apps)
+     * @param expirationDate Unix timestamp of license expiry
+     * @param monthlyQuota Max CU per month
+     */
+    function setLicense(
+        address app,
+        address licenseOwner,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) external;
 
     // ------------- Admin functions -------------
 
