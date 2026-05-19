@@ -7,7 +7,7 @@ import {
     TypeUtils,
     NonArithmeticType,
     UnsupportedArithmeticType
-} from "../../../contracts/shared/TypeUtils.sol";
+} from "../../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 
 contract TypeUtilsTest is Test {

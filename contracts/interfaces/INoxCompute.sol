@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.35;
 
-import {TEEType} from "../shared/TypeUtils.sol";
+import {TEEType} from "../utils/TypeUtils.sol";
 
 /**
  * @title INoxCompute

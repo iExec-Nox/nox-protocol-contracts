@@ -9,13 +9,13 @@ import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/Own
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {HandleUtils} from "../../contracts/shared/HandleUtils.sol";
+import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
 import {
     TEEType,
     TypeUtils,
     NonArithmeticType,
     UnsupportedArithmeticType
-} from "../../contracts/shared/TypeUtils.sol";
+} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {

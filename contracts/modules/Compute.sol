@@ -3,8 +3,8 @@ pragma solidity ^0.8.35;
 
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {HandleUtils} from "../shared/HandleUtils.sol";
-import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
+import {HandleUtils} from "../utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 

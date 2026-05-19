@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.35;
 
-import {HandleUtils} from "../shared/HandleUtils.sol";
-import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
+import {HandleUtils} from "../utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import "encrypted-types/EncryptedTypes.sol";
 

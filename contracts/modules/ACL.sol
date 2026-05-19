@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
-import {HandleUtils} from "../shared/HandleUtils.sol";
+import {HandleUtils} from "../utils/HandleUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 
