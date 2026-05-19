@@ -5,12 +5,24 @@ import {TEEType} from "./TypeUtils.sol";
 
 library HandleUtils {
     /// @dev Bit 0 of the attrs byte. When set, the handle is guaranteed unique on-chain.
+    // TODO rename to IS_UNIQUE_HANDLE_ATTRIBUTE
     bytes1 internal constant ATTR_IS_UNIQUE_HANDLE = 0x01;
 
     /**
      * @notice Checks if a handle is a public handle (isUniqueHandle bit == 0).
      * A public handle wraps a plaintext value known on-chain, has no ACL,
      * and is accessible by everyone.
+     *
+     * @dev **Security invariant — public handles bypass all ACL checks.**
+     * Every access-control gate in the system short-circuits on this predicate:
+     *   - `_isAllowed`               → always returns true for public handles
+     *   - `_allowTransient`          → silently skips (no tstore needed)
+     *   - `allow`, `addViewer`...    → ACL mutations are blocked to prevent confusion
+     *   - `isViewer`                 → always returns true for public handles
+     *   - `isPubliclyDecryptable`    → always returns true for public handles
+     * This is intentional: public handles contain no secret, their plaintext
+     * is deterministically derivable from the handle itself.
+     *
      * @param handle The handle to check
      * @return True if the handle is a public handle
      */
