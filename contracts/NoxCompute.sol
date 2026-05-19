@@ -745,7 +745,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param resultType TEE type for result handles
-     * @param resultcount Number of result handles to generate
+     * @param resultCount Number of result handles to generate
      * @param withSuccess Whether to generate a Bool success handle
      * @return success The Bool success handle (bytes32(0) if withSuccess is false)
      * @return results Array of result handles
@@ -755,7 +755,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         Operator operator,
         bytes32[] memory operands,
         TEEType resultType,
-        uint8 resultcount,
+        uint8 resultCount,
         bool withSuccess
     ) private returns (bytes32 success, bytes32[] memory results) {
         _requireDefinedHandles(operands);
@@ -763,8 +763,8 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
         // The same seed can be used for all result handles because
         // they differ by outputIndex.
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
-        results = new bytes32[](resultcount);
-        for (uint8 i = 0; i < resultcount; i++) {
+        results = new bytes32[](resultCount);
+        for (uint8 i = 0; i < resultCount; i++) {
             results[i] = _generateHandle(
                 operator,
                 operands,
@@ -780,7 +780,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
                 operator,
                 operands,
                 TEEType.Bool,
-                resultcount,
+                resultCount,
                 uniqueSeed,
                 HandleUtils.ATTR_IS_UNIQUE_HANDLE
             );
