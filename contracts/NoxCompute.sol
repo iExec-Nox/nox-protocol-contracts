@@ -741,7 +741,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      * - Validates ACL for all input handles
      * - Generates result handles
      * - Grants transient access to msg.sender
-     * Note: Callers are responsible for type validation.
+     * Note: Caller functions are responsible for type validation.
      * @param operator The operator to apply
      * @param operands Array of operand handles
      * @param resultType TEE type for result handles
