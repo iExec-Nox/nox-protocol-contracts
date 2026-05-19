@@ -20,12 +20,6 @@ import {Compute} from "./modules/Compute.sol";
  * same implementation.
  */
 contract NoxCompute is Admin, ACL, Compute {
-    // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
-    // slither-disable-next-line uninitialized-state
-    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION = bytes32(
-        erc7201("nox.storage.NoxCompute")
-    );
-
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
@@ -56,12 +50,5 @@ contract NoxCompute is Admin, ACL, Compute {
      */
     function initializeV2() public reinitializer(2) {
         _emitZeroHandleSeeds();
-    }
-
-    function _getNoxComputeStorage() internal pure override returns (NoxComputeStorage storage $) {
-        bytes32 slot = NOX_COMPUTE_STORAGE_LOCATION;
-        assembly {
-            $.slot := slot
-        }
     }
 }
