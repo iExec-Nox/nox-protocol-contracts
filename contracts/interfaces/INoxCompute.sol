@@ -17,8 +17,6 @@ interface INoxCompute {
     /// Error thrown when an account is not allowed to use a handle
     error NotAllowed(bytes32 handle, address account);
     error InvalidProof(bytes proof, string reason);
-    error UnsupportedType();
-    error IncompatibleTypes();
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();

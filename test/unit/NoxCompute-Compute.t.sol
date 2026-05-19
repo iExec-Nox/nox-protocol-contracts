@@ -9,7 +9,8 @@ import {
     TEEType,
     TypeUtils,
     NonArithmeticType,
-    UnsupportedArithmeticType
+    UnsupportedArithmeticType,
+    IncompatibleTypes
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -584,7 +585,7 @@ contract NoxCompute_ComputeTest is Test {
 
         for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
-            vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+            vm.expectRevert(IncompatibleTypes.selector);
             _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }
@@ -681,7 +682,7 @@ contract NoxCompute_ComputeTest is Test {
         TestHelper.forceAllowPersistent(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        vm.expectRevert(IncompatibleTypes.selector);
         noxCompute.select(condition, ifTrue, ifFalse);
     }
 
@@ -694,7 +695,7 @@ contract NoxCompute_ComputeTest is Test {
         TestHelper.forceAllowPersistent(ifFalse, caller);
 
         vm.prank(caller);
-        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        vm.expectRevert(IncompatibleTypes.selector);
         noxCompute.select(condition, ifTrue, ifFalse);
     }
 
@@ -780,7 +781,7 @@ contract NoxCompute_ComputeTest is Test {
         TestHelper.forceAllowPersistent(amount, caller);
 
         vm.prank(caller);
-        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        vm.expectRevert(IncompatibleTypes.selector);
         noxCompute.transfer(balanceFrom, balanceTo, amount);
     }
 
@@ -866,7 +867,7 @@ contract NoxCompute_ComputeTest is Test {
         TestHelper.forceAllowPersistent(totalSupply, caller);
 
         vm.prank(caller);
-        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        vm.expectRevert(IncompatibleTypes.selector);
         noxCompute.mint(balanceTo, amount, totalSupply);
     }
 
@@ -954,7 +955,7 @@ contract NoxCompute_ComputeTest is Test {
         TestHelper.forceAllowPersistent(totalSupply, caller);
 
         vm.prank(caller);
-        vm.expectRevert(INoxCompute.IncompatibleTypes.selector);
+        vm.expectRevert(IncompatibleTypes.selector);
         noxCompute.burn(balanceFrom, amount, totalSupply);
     }
 
