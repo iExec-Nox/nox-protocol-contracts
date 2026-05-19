@@ -789,15 +789,6 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     }
 
     /**
-     * Reverts if any operand is bytes32(0) (undefined handle).
-     */
-    function _requireDefinedHandles(bytes32[] memory operands) private pure {
-        for (uint256 i = 0; i < operands.length; i++) {
-            require(operands[i] != bytes32(0), UndefinedHandle());
-        }
-    }
-
-    /**
      * Reverts if the handle's TEEType doesn't match the expected type.
      */
     function _requireType(bytes32 handle, TEEType expected) private pure {
@@ -809,7 +800,7 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
      */
     function _validateArithmeticOperationTypes(bytes32 first, bytes32 second) private pure {
         TypeUtils.validateArithmeticType(first.typeOf());
-        require(first.typeOf() == second.typeOf(), IncompatibleTypes());
+        _requireType(second, first.typeOf());
     }
 
     /**
@@ -822,6 +813,15 @@ contract NoxCompute is INoxCompute, UUPSUpgradeable, OwnableUpgradeable, EIP712 
     ) private pure {
         _validateArithmeticOperationTypes(first, second);
         _requireType(third, first.typeOf());
+    }
+
+    /**
+     * Reverts if any operand is bytes32(0) (undefined handle).
+     */
+    function _requireDefinedHandles(bytes32[] memory operands) private pure {
+        for (uint256 i = 0; i < operands.length; i++) {
+            require(operands[i] != bytes32(0), UndefinedHandle());
+        }
     }
 
     /**
