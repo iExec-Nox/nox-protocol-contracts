@@ -47,7 +47,7 @@ abstract contract Compute is Common, EIP712 {
         address owner,
         bytes calldata proof,
         TEEType teeType
-    ) public override {
+    ) external override {
         bytes4 chainIdInHandle = bytes4(handle << (1 * 8));
         require(
             chainIdInHandle == bytes4(uint32(block.chainid)),
@@ -528,7 +528,7 @@ abstract contract Compute is Common, EIP712 {
         bool withSuccess
     ) private returns (bytes32 success, bytes32[] memory results) {
         _requireDefinedHandles(operands);
-        validateAllowedForAll(msg.sender, operands);
+        _validateAllowedForAll(msg.sender, operands);
         // The same seed can be used for all result handles because
         // they differ by outputIndex.
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);

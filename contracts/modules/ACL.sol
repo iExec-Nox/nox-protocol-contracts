@@ -16,7 +16,7 @@ abstract contract ACL is Common {
      * @param handle The handle to check access for
      */
     modifier onlyAllowed(bytes32 handle) {
-        require(isAllowed(handle, msg.sender), UnauthorizedSender(msg.sender));
+        require(_isAllowed(handle, msg.sender), UnauthorizedSender(msg.sender));
         _;
     }
 
@@ -31,20 +31,16 @@ abstract contract ACL is Common {
     }
 
     /// @inheritdoc INoxCompute
-    function isAllowed(bytes32 handle, address account) public view override returns (bool) {
-        return
-            HandleUtils.isPublicHandle(handle) ||
-            _isAllowedTransient(handle, account) ||
-            _isAllowedPersistent(handle, account);
+    function isAllowed(bytes32 handle, address account) external view override returns (bool) {
+        return _isAllowed(handle, account);
     }
 
     /// @inheritdoc INoxCompute
-    function validateAllowedForAll(address account, bytes32[] memory handles) public view override {
-        for (uint256 i = 0; i < handles.length; i++) {
-            if (!isAllowed(handles[i], account)) {
-                revert NotAllowed(handles[i], account);
-            }
-        }
+    function validateAllowedForAll(
+        address account,
+        bytes32[] calldata handles
+    ) external view override {
+        _validateAllowedForAll(account, handles);
     }
 
     /// @inheritdoc INoxCompute
@@ -136,6 +132,24 @@ abstract contract ACL is Common {
         assembly {
             tstore(key, 1)
         }
+    }
+
+    function _validateAllowedForAll(
+        address account,
+        bytes32[] memory handles
+    ) internal view override {
+        for (uint256 i = 0; i < handles.length; i++) {
+            if (!_isAllowed(handles[i], account)) {
+                revert NotAllowed(handles[i], account);
+            }
+        }
+    }
+
+    function _isAllowed(bytes32 handle, address account) private view returns (bool) {
+        return
+            HandleUtils.isPublicHandle(handle) ||
+            _isAllowedTransient(handle, account) ||
+            _isAllowedPersistent(handle, account);
     }
 
     /**

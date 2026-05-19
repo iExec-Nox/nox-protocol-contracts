@@ -24,12 +24,14 @@ abstract contract Common is INoxCompute {
         uint256 uniqueSeedCounter;
     }
 
+    // ----- Functions used cross-modules -----
+
     function _getNoxComputeStorage() internal pure virtual returns (NoxComputeStorage storage $);
 
     function _allowTransient(bytes32 handle, address account) internal virtual;
 
-    function validateAllowedForAll(
+    function _validateAllowedForAll(
         address account,
         bytes32[] memory handles
-    ) public view virtual override;
+    ) internal view virtual;
 }
