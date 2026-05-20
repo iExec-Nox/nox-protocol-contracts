@@ -262,6 +262,80 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.revokeLicense(app);
     }
 
+    // ============ setAppLicense (admin) ============
+
+    function test_SetAppLicense_AsOwner() public {
+        _provisionDefaultLicense();
+        address newApp = makeAddr("newApp");
+
+        vm.prank(owner);
+        vm.expectEmit();
+        emit INoxCompute.AppLicenseSet(newApp, licenseOwner);
+        noxCompute.setAppLicense(newApp, licenseOwner);
+    }
+
+    function test_SetAppLicense_AsOwner_Unlink() public {
+        _provisionDefaultLicense();
+
+        vm.prank(owner);
+        vm.expectEmit();
+        emit INoxCompute.AppLicenseUnset(app, licenseOwner);
+        noxCompute.setAppLicense(app, address(0));
+    }
+
+    function test_RevertWhen_SetAppLicense_AsOwner_UnauthorizedCaller() public {
+        address unauthorizedCaller = makeAddr("unauthorized");
+        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
+        vm.prank(unauthorizedCaller);
+        noxCompute.setAppLicense(app, licenseOwner);
+    }
+
+    function test_RevertWhen_SetAppLicense_AsOwner_ZeroApp() public {
+        vm.expectRevert(INoxCompute.InvalidAppAddress.selector);
+        vm.prank(owner);
+        noxCompute.setAppLicense(address(0), licenseOwner);
+    }
+
+    function test_RevertWhen_SetAppLicense_AsOwner_LicenseOwnerHasNoLicense() public {
+        address unknownOwner = makeAddr("unknownOwner");
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.LicenseOwnerHasNoLicense.selector, unknownOwner)
+        );
+        vm.prank(owner);
+        noxCompute.setAppLicense(app, unknownOwner);
+    }
+
+    // ============ setAppLicense (self-service) ============
+
+    function test_SetAppLicense_SelfService() public {
+        _provisionDefaultLicense();
+        address newApp = makeAddr("newApp");
+
+        vm.prank(licenseOwner);
+        vm.expectEmit();
+        emit INoxCompute.AppLicenseSet(newApp, licenseOwner);
+        noxCompute.setAppLicense(newApp);
+    }
+
+    function test_RevertWhen_SetAppLicense_SelfService_ZeroApp() public {
+        _provisionDefaultLicense();
+        vm.expectRevert(INoxCompute.InvalidAppAddress.selector);
+        vm.prank(licenseOwner);
+        noxCompute.setAppLicense(address(0));
+    }
+
+    function test_RevertWhen_SetAppLicense_SelfService_CallerHasNoLicense() public {
+        address callerWithoutLicense = makeAddr("noLicense");
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.LicenseOwnerHasNoLicense.selector,
+                callerWithoutLicense
+            )
+        );
+        vm.prank(callerWithoutLicense);
+        noxCompute.setAppLicense(app);
+    }
+
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {

@@ -64,7 +64,7 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         address licenseOwner,
         uint32 expirationDate,
         uint24 monthlyQuota
-    ) external virtual override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
+    ) external override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
         require(licenseOwner != address(0), InvalidLicenseOwnerAddress());
         _setLicense(app, licenseOwner, expirationDate, monthlyQuota);
     }
@@ -75,7 +75,7 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         address app,
         uint32 expirationDate,
         uint24 monthlyQuota
-    ) external virtual override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
+    ) external override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
         address licenseOwner = _getNoxComputeStorage().appLicensors[app];
         require(licenseOwner != address(0), LicenseNotFound(app));
         _setLicense(app, licenseOwner, expirationDate, monthlyQuota);
@@ -83,9 +83,20 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
 
     // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
-    function revokeLicense(address app) external virtual override onlyOwner {
+    function revokeLicense(address app) external override onlyOwner {
         require(_getNoxComputeStorage().appLicensors[app] != address(0), LicenseNotFound(app));
         _setLicense(app, address(0), 0, 0);
+    }
+
+    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
+    /// @inheritdoc INoxCompute
+    function setAppLicense(address app, address licenseOwner) external override onlyOwner {
+        _setAppLicense(app, licenseOwner);
+    }
+
+    /// @inheritdoc INoxCompute
+    function setAppLicense(address app) external override {
+        _setAppLicense(app, msg.sender);
     }
 
     /**
@@ -141,6 +152,29 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
             license.monthlyQuota = monthlyQuota;
             license.consumedQuota = 0;
             emit LicenseSet(app, licenseOwner, expirationDate, monthlyQuota);
+        }
+    }
+
+    /**
+     * @notice Internal helper that links/unlinks an app to a license owner.
+     * If licenseOwner == address(0), the app is unlinked and AppLicenseUnset is emitted.
+     * Otherwise, the licenseOwner must hold an active license, the link is recorded and
+     * AppLicenseSet is emitted.
+     */
+    function _setAppLicense(address app, address licenseOwner) private {
+        require(app != address(0), InvalidAppAddress());
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        if (licenseOwner == address(0)) {
+            address previousOwner = $.appLicensors[app];
+            delete $.appLicensors[app];
+            emit AppLicenseUnset(app, previousOwner);
+        } else {
+            require(
+                $.licenses[licenseOwner].expirationDate != 0,
+                LicenseOwnerHasNoLicense(licenseOwner)
+            );
+            $.appLicensors[app] = licenseOwner;
+            emit AppLicenseSet(app, licenseOwner);
         }
     }
 }

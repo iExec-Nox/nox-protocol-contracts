@@ -32,6 +32,8 @@ interface INoxCompute {
     error InvalidLicenseOwnerAddress();
     /// Error thrown when the monthly quota provided is zero.
     error InvalidMonthlyQuota();
+    /// Error thrown when trying to link an app to a license owner that has no active license.
+    error LicenseOwnerHasNoLicense(address licenseOwner);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -46,6 +48,10 @@ interface INoxCompute {
     event LicenseSet(address app, address licenseOwner, uint32 expirationDate, uint24 monthlyQuota);
     /// Emitted when a license is revoked for an app.
     event LicenseRevoked(address app, address licenseOwner);
+    /// Emitted when an app is linked to a license owner.
+    event AppLicenseSet(address app, address licenseOwner);
+    /// Emitted when an app is unlinked from its license owner.
+    event AppLicenseUnset(address app, address previousLicenseOwner);
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
@@ -644,6 +650,21 @@ interface INoxCompute {
      * @param app App contract address
      */
     function revokeLicense(address app) external;
+
+    /**
+     * @notice Admin-side: link an app to an existing license owner, or unset it by passing
+     * licenseOwner=address(0). Reverts if licenseOwner is set but has no license.
+     * @param app App contract address
+     * @param licenseOwner Address holding the license, or address(0) to unlink
+     */
+    function setAppLicense(address app, address licenseOwner) external;
+
+    /**
+     * @notice License-owner self-service: link an app to the caller's license.
+     * The caller must already hold an active license. Reverts otherwise.
+     * @param app App contract address
+     */
+    function setAppLicense(address app) external;
 
     // ------------- Admin functions -------------
 
