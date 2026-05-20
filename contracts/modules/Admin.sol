@@ -4,6 +4,7 @@ pragma solidity ^0.8.35;
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
 import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
 import {Common} from "./Common.sol";
+import {INoxCompute} from "../interfaces/INoxCompute.sol";
 
 /**
  * @title Admin
@@ -11,6 +12,16 @@ import {Common} from "./Common.sol";
  * @notice Owner-only functions to set configuration and manage upgrades.
  */
 abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
+    /**
+     * @dev Validates the common license inputs: non-zero app, expiration date, and monthly quota.
+     */
+    modifier validLicenseParams(address app, uint32 expirationDate, uint24 monthlyQuota) {
+        require(app != address(0), InvalidAppAddress());
+        require(expirationDate != 0, InvalidExpirationDate());
+        require(monthlyQuota != 0, InvalidMonthlyQuota());
+        _;
+    }
+
     /**
      * Sets the KMS public key used for ECIES encryption.
      * Only callable by the owner.
@@ -46,13 +57,36 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         emit ProofExpirationDurationUpdated(newDuration);
     }
 
-    // TODO: implement — restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
+    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
+    /// @inheritdoc INoxCompute
     function setLicense(
-        address /*app*/,
-        address /*licenseOwner*/,
-        uint32 /*expirationDate*/,
-        uint24 /*monthlyQuota*/
-    ) external virtual override {}
+        address app,
+        address licenseOwner,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) external virtual override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
+        require(licenseOwner != address(0), InvalidLicenseOwnerAddress());
+        _setLicense(app, licenseOwner, expirationDate, monthlyQuota);
+    }
+
+    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
+    /// @inheritdoc INoxCompute
+    function renewLicense(
+        address app,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) external virtual override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
+        address licenseOwner = _getNoxComputeStorage().appLicensors[app];
+        require(licenseOwner != address(0), LicenseNotFound(app));
+        _setLicense(app, licenseOwner, expirationDate, monthlyQuota);
+    }
+
+    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
+    /// @inheritdoc INoxCompute
+    function revokeLicense(address app) external virtual override onlyOwner {
+        require(_getNoxComputeStorage().appLicensors[app] != address(0), LicenseNotFound(app));
+        _setLicense(app, address(0), 0, 0);
+    }
 
     /**
      * Returns the KMS public key used for ECIES encryption.
@@ -82,4 +116,31 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
      * Authorizes contract upgrades only by the owner.
      */
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+
+    /**
+     * @notice Internal helper that applies the license mutation.
+     * When expirationDate == 0, the app's licensor mapping is cleared and a LicenseRevoked
+     * event is emitted. Otherwise, the licensor is updated, the owner's License struct is
+     * refreshed (consumedQuota is reset to 0), and a LicenseSet event is emitted.
+     */
+    function _setLicense(
+        address app,
+        address licenseOwner,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) private {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        if (expirationDate == 0) {
+            address previousOwner = $.appLicensors[app];
+            delete $.appLicensors[app];
+            emit LicenseRevoked(app, previousOwner);
+        } else {
+            $.appLicensors[app] = licenseOwner;
+            License storage license = $.licenses[licenseOwner];
+            license.expirationDate = expirationDate;
+            license.monthlyQuota = monthlyQuota;
+            license.consumedQuota = 0;
+            emit LicenseSet(app, licenseOwner, expirationDate, monthlyQuota);
+        }
+    }
 }

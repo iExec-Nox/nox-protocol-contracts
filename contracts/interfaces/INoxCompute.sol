@@ -22,6 +22,16 @@ interface INoxCompute {
     error PublicHandleACLForbidden();
     /// Error thrown when an operand is bytes32(0), indicating an undefined handle
     error UndefinedHandle();
+    /// Error thrown when attempting to renew or revoke a license that does not exist.
+    error LicenseNotFound(address app);
+    /// Error thrown when attempting to provision a license with an invalid expiration date (0).
+    error InvalidExpirationDate();
+    /// Error thrown when the app address provided to a license operation is the zero address.
+    error InvalidAppAddress();
+    /// Error thrown when the license owner address provided is the zero address.
+    error InvalidLicenseOwnerAddress();
+    /// Error thrown when the monthly quota provided is zero.
+    error InvalidMonthlyQuota();
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -32,7 +42,10 @@ interface INoxCompute {
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
-
+    /// Emitted when a license is provisioned or renewed for an app.
+    event LicenseSet(address app, address licenseOwner, uint32 expirationDate, uint24 monthlyQuota);
+    /// Emitted when a license is revoked for an app.
+    event LicenseRevoked(address app, address licenseOwner);
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
@@ -614,6 +627,23 @@ interface INoxCompute {
         uint32 expirationDate,
         uint24 monthlyQuota
     ) external;
+
+    /**
+     * @notice Renews an existing license for an app, updating its expiration date and monthly quota.
+     * Reuses the current license owner stored for the app. Reverts if no license exists.
+     * Consumed quota is reset to 0.
+     * @param app App contract address
+     * @param expirationDate New unix timestamp of license expiry (must be non-zero)
+     * @param monthlyQuota New max CU per month
+     */
+    function renewLicense(address app, uint32 expirationDate, uint24 monthlyQuota) external;
+
+    /**
+     * @notice Revokes the license of an app. Reverts if no license exists.
+     * The caller immediately loses licensed access and falls back to pay-per-task on the next call.
+     * @param app App contract address
+     */
+    function revokeLicense(address app) external;
 
     // ------------- Admin functions -------------
 
