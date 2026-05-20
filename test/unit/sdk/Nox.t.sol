@@ -5,7 +5,7 @@ import {Test} from "forge-std/Test.sol";
 import {stdError} from "forge-std/StdError.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
+import {TEEType, TypeUtils} from "../../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
 import {NoxMock} from "../../../contracts/mock/NoxMock.sol";

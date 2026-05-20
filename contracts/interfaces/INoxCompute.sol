@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: MIT
 pragma solidity ^0.8.35;
 
-import {TEEType} from "../shared/TypeUtils.sol";
+import {TEEType} from "../utils/TypeUtils.sol";
 
 /**
  * @title INoxCompute
@@ -17,8 +17,6 @@ interface INoxCompute {
     /// Error thrown when an account is not allowed to use a handle
     error NotAllowed(bytes32 handle, address account);
     error InvalidProof(bytes proof, string reason);
-    error UnsupportedType();
-    error IncompatibleTypes();
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();

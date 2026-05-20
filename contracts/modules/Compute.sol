@@ -3,8 +3,8 @@ pragma solidity ^0.8.35;
 
 import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {ECDSA} from "@openzeppelin/contracts/utils/cryptography/ECDSA.sol";
-import {HandleUtils} from "../shared/HandleUtils.sol";
-import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
+import {HandleUtils} from "../utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 
@@ -116,7 +116,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -136,7 +136,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -156,7 +156,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 numerator,
         bytes32 denominator
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(numerator, denominator);
+        TypeUtils.validateOperationTypes(numerator, denominator);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
@@ -176,7 +176,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -196,7 +196,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 success, bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -217,7 +217,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 success, bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -238,7 +238,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 success, bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -259,7 +259,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 numerator,
         bytes32 denominator
     ) external override returns (bytes32 success, bytes32 result) {
-        _validateArithmeticOperationTypes(numerator, denominator);
+        TypeUtils.validateOperationTypes(numerator, denominator);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
@@ -280,7 +280,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -300,7 +300,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -320,7 +320,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -340,7 +340,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -360,7 +360,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -380,7 +380,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 leftHandOperand,
         bytes32 rightHandOperand
     ) external override returns (bytes32 result) {
-        _validateArithmeticOperationTypes(leftHandOperand, rightHandOperand);
+        TypeUtils.validateOperationTypes(leftHandOperand, rightHandOperand);
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
@@ -401,8 +401,8 @@ abstract contract Compute is Common, EIP712 {
         bytes32 ifTrue,
         bytes32 ifFalse
     ) external override returns (bytes32 result) {
-        _requireType(condition, TEEType.Bool);
-        _validateArithmeticOperationTypes(ifTrue, ifFalse);
+        TypeUtils.requireType(condition, TEEType.Bool);
+        TypeUtils.validateOperationTypes(ifTrue, ifFalse);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = condition;
         operands[1] = ifTrue;
@@ -424,7 +424,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 balanceTo,
         bytes32 amount
     ) external override returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newBalanceTo) {
-        _validateArithmeticOperationTypes(balanceFrom, balanceTo, amount);
+        TypeUtils.validateOperationTypes(balanceFrom, balanceTo, amount);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = balanceFrom;
         operands[1] = balanceTo;
@@ -456,7 +456,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 amount,
         bytes32 totalSupply
     ) external override returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) {
-        _validateArithmeticOperationTypes(balanceTo, amount, totalSupply);
+        TypeUtils.validateOperationTypes(balanceTo, amount, totalSupply);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = balanceTo;
         operands[1] = amount;
@@ -488,7 +488,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 amount,
         bytes32 totalSupply
     ) external override returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply) {
-        _validateArithmeticOperationTypes(balanceFrom, amount, totalSupply);
+        TypeUtils.validateOperationTypes(balanceFrom, amount, totalSupply);
         bytes32[] memory operands = new bytes32[](3);
         operands[0] = balanceFrom;
         operands[1] = amount;
@@ -564,33 +564,6 @@ abstract contract Compute is Common, EIP712 {
             );
             _allowTransient(success, msg.sender);
         }
-    }
-
-    /**
-     * Reverts if the handle's TEEType doesn't match the expected type.
-     */
-    function _requireType(bytes32 handle, TEEType expected) private pure {
-        require(handle.typeOf() == expected, IncompatibleTypes());
-    }
-
-    /**
-     * Validates that first and second have the same supported arithmetic type.
-     */
-    function _validateArithmeticOperationTypes(bytes32 first, bytes32 second) private pure {
-        TypeUtils.validateArithmeticType(first.typeOf());
-        _requireType(second, first.typeOf());
-    }
-
-    /**
-     * Validates that first, second, and third have the same supported arithmetic type.
-     */
-    function _validateArithmeticOperationTypes(
-        bytes32 first,
-        bytes32 second,
-        bytes32 third
-    ) private pure {
-        _validateArithmeticOperationTypes(first, second);
-        _requireType(third, first.typeOf());
     }
 
     /**

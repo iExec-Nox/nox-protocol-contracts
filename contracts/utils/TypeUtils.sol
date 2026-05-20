@@ -114,6 +114,7 @@ enum TEEType {
 
 error NonArithmeticType();
 error UnsupportedArithmeticType();
+error IncompatibleTypes();
 
 library TypeUtils {
     /**
@@ -159,5 +160,28 @@ library TypeUtils {
                 teeType == TEEType.Int16 ||
                 teeType == TEEType.Int256;
         require(supportedType, UnsupportedArithmeticType());
+    }
+
+    /**
+     * Reverts if handle's TEEType doesn't match the expected type.
+     */
+    function requireType(bytes32 handle, TEEType expected) internal pure {
+        require(typeOf(handle) == expected, IncompatibleTypes());
+    }
+
+    /**
+     * Validates that first and second have the same supported arithmetic type.
+     */
+    function validateOperationTypes(bytes32 first, bytes32 second) internal pure {
+        validateArithmeticType(typeOf(first));
+        requireType(second, typeOf(first));
+    }
+
+    /**
+     * Validates that first, second, and third have the same supported arithmetic type.
+     */
+    function validateOperationTypes(bytes32 first, bytes32 second, bytes32 third) internal pure {
+        validateOperationTypes(first, second);
+        requireType(third, typeOf(first));
     }
 }

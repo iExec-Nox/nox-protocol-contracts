@@ -6,7 +6,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
