@@ -62,8 +62,10 @@ abstract contract Common is INoxCompute {
 
     // ----- Functions used cross-modules -----
 
+    // Implemented by ACL, called by Compute.
     function _allowTransient(bytes32 handle, address account) internal virtual;
 
+    // Implemented by ACL, called by Compute.
     function _validateAllowedForAll(
         address account,
         bytes32[] memory handles
