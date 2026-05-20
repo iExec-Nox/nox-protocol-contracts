@@ -228,7 +228,7 @@ interface INoxCompute {
     function validateAllowedForAll(address account, bytes32[] calldata handles) external view;
 
     /**
-     * Add a viewer for a specific handle
+     * Adds a viewer for a specific handle
      * @dev Only an admin can add a viewer. The viewer address cannot be address(0).
      * @param handle The handle identifier
      * @param viewer The address to grant viewer role
@@ -561,6 +561,12 @@ interface INoxCompute {
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
 
+    // ------------- Config getters -------------
+
+    function kmsPublicKey() external view returns (bytes memory);
+    function gateway() external view returns (address);
+    function proofExpirationDuration() external view returns (uint256);
+
     // ------------- Admin functions -------------
 
     /**
@@ -580,8 +586,4 @@ interface INoxCompute {
      * @param newDuration The new expiration duration in seconds
      */
     function setProofExpirationDuration(uint256 newDuration) external;
-
-    function kmsPublicKey() external view returns (bytes memory);
-    function gateway() external view returns (address);
-    function proofExpirationDuration() external view returns (uint256);
 }
