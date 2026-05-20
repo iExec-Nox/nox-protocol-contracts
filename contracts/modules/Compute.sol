@@ -538,6 +538,7 @@ abstract contract Compute is Common, EIP712 {
     ) private returns (bytes32 success, bytes32[] memory results) {
         _requireDefinedHandles(operands);
         _validateAllowedForAll(msg.sender, operands);
+        _processPayment(msg.sender, operator);
         // The same seed can be used for all result handles because
         // they differ by outputIndex.
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);

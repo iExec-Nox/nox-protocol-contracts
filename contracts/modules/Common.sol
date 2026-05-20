@@ -15,6 +15,20 @@ abstract contract Common is INoxCompute {
         erc7201("nox.storage.NoxCompute")
     );
 
+    // Fits in a single 32-byte slot
+    struct License {
+        uint32 expirationDate; // unix timestamp, 0 = no license
+        uint16 quotaLastResetMonth; // year * 12 + month, for lazy monthly reset
+        uint24 monthlyQuota; // CU cap per month
+        uint24 consumedQuota; // resets lazily at call time
+    }
+
+    // Fits in a single 32-byte slot.
+    struct Sponsor {
+        address sponsor;
+        SponsorStatus status;
+    }
+
     /// @custom:storage-location erc7201:nox.storage.NoxCompute
     struct NoxComputeStorage {
         // An admin of a handle can:
@@ -33,6 +47,10 @@ abstract contract Common is INoxCompute {
         uint256 proofExpirationDuration;
         // Counter used to guarantee handle uniqueness when all operands are public handles
         uint256 uniqueSeedCounter;
+        // Payment storage
+        mapping(address licenseOwner => License) licenses;
+        mapping(address app => address licenseOwner) appLicensors;
+        mapping(address app => Sponsor) sponsors;
     }
 
     function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
@@ -44,10 +62,15 @@ abstract contract Common is INoxCompute {
 
     // ----- Functions used cross-modules -----
 
+    // Implemented by ACL, called by Compute.
     function _allowTransient(bytes32 handle, address account) internal virtual;
 
+    // Implemented by ACL, called by Compute.
     function _validateAllowedForAll(
         address account,
         bytes32[] memory handles
     ) internal view virtual;
+
+    // Implemented by Payment, called by Compute.
+    function _processPayment(address caller, Operator operator) internal virtual;
 }

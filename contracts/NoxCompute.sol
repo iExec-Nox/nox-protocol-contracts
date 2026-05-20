@@ -5,6 +5,7 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {Admin} from "./modules/Admin.sol";
 import {ACL} from "./modules/ACL.sol";
 import {Compute} from "./modules/Compute.sol";
+import {Payment} from "./modules/Payment.sol";
 
 /**
  * @title NoxCompute
@@ -15,7 +16,7 @@ import {Compute} from "./modules/Compute.sol";
  * - Wrapping plaintext values into public handles
  * - Triggering off-chain TEE computations through event emissions
  */
-contract NoxCompute is Admin, ACL, Compute {
+contract NoxCompute is Admin, ACL, Compute, Payment {
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */

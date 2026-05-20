@@ -46,6 +46,14 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         emit ProofExpirationDurationUpdated(newDuration);
     }
 
+    // TODO: implement — restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
+    function setLicense(
+        address /*app*/,
+        address /*licenseOwner*/,
+        uint32 /*expirationDate*/,
+        uint24 /*monthlyQuota*/
+    ) external virtual override {}
+
     /**
      * Returns the KMS public key used for ECIES encryption.
      */
