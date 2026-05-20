@@ -19,7 +19,7 @@ import {INoxCompute} from "../interfaces/INoxCompute.sol";
  *   sponsor calls revokeSponsorship(app)  → status: REVOKED
  */
 abstract contract Payment is Common {
-    // TODO: set final values before mainnet deployment
+    // TODO: set final values before deployment
     address public constant USDC = address(0);
     address public constant TREASURY = address(0);
     uint256 public constant CU_PER_OPERATION = 1;
@@ -37,9 +37,7 @@ abstract contract Payment is Common {
     /// @inheritdoc INoxCompute
     function sponsor(
         address /*app*/
-    ) external view virtual override returns (address, SponsorStatus) {
-        return (address(0), SponsorStatus.UNSET);
-    }
+    ) external view virtual override returns (address, SponsorStatus) {}
 
     function _processPayment(address /*caller*/, Operator /*operator*/) internal virtual override {
         // TODO: implement payment logic
