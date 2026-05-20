@@ -14,6 +14,8 @@ contract NoxCompute_AdminTest is Test {
     address gateway = vm.addr(gatewayPrivateKey);
     address app = makeAddr("app");
     address licenseOwner = makeAddr("licenseOwner");
+    uint24 constant DEFAULT_QUOTA = 1000;
+    uint32 constant DEFAULT_EXPIRATION_OFFSET = 30 days;
     NoxCompute noxCompute;
 
     function setUp() public {
@@ -126,64 +128,71 @@ contract NoxCompute_AdminTest is Test {
     }
 
     function test_SetLicense_OverwritesExistingLicense() public {
-        uint32 firstExpiration = uint32(block.timestamp + 30 days);
-        uint32 secondExpiration = uint32(block.timestamp + 60 days);
+        _provisionDefaultLicense();
 
-        vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, firstExpiration, 1000);
-
+        uint32 newExpiration = uint32(block.timestamp + 60 days);
         vm.prank(owner);
         vm.expectEmit();
-        emit INoxCompute.LicenseSet(app, licenseOwner, secondExpiration, 2000);
-        noxCompute.setLicense(app, licenseOwner, secondExpiration, 2000);
+        emit INoxCompute.LicenseSet(app, licenseOwner, newExpiration, 2000);
+        noxCompute.setLicense(app, licenseOwner, newExpiration, 2000);
     }
 
     function test_RevertWhen_SetLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
+        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
         vm.prank(unauthorizedCaller);
-        noxCompute.setLicense(app, licenseOwner, uint32(block.timestamp + 30 days), 1000);
+        noxCompute.setLicense(
+            app,
+            licenseOwner,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
     }
 
     function test_RevertWhen_SetLicense_ZeroApp() public {
         vm.expectRevert(INoxCompute.InvalidAppAddress.selector);
         vm.prank(owner);
-        noxCompute.setLicense(address(0), licenseOwner, uint32(block.timestamp + 30 days), 1000);
+        noxCompute.setLicense(
+            address(0),
+            licenseOwner,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
     }
 
     function test_RevertWhen_SetLicense_ZeroLicenseOwner() public {
         vm.expectRevert(INoxCompute.InvalidLicenseOwnerAddress.selector);
         vm.prank(owner);
-        noxCompute.setLicense(app, address(0), uint32(block.timestamp + 30 days), 1000);
+        noxCompute.setLicense(
+            app,
+            address(0),
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
     }
 
     function test_RevertWhen_SetLicense_ZeroExpirationDate() public {
         vm.expectRevert(INoxCompute.InvalidExpirationDate.selector);
         vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, 0, 1000);
+        noxCompute.setLicense(app, licenseOwner, 0, DEFAULT_QUOTA);
     }
 
     function test_RevertWhen_SetLicense_ZeroMonthlyQuota() public {
         vm.expectRevert(INoxCompute.InvalidMonthlyQuota.selector);
         vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, uint32(block.timestamp + 30 days), 0);
+        noxCompute.setLicense(
+            app,
+            licenseOwner,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            0
+        );
     }
 
     // ============ renewLicense ============
 
     function test_RenewLicense() public {
-        // Provision a license first
-        uint32 initialExpiration = uint32(block.timestamp + 30 days);
-        vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, initialExpiration, 1000);
+        _provisionDefaultLicense();
 
-        // Renew it
         uint32 newExpiration = uint32(block.timestamp + 365 days);
         uint24 newQuota = 5000;
         vm.prank(owner);
@@ -194,37 +203,35 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_RenewLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
+        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
         vm.prank(unauthorizedCaller);
-        noxCompute.renewLicense(app, uint32(block.timestamp + 30 days), 1000);
+        noxCompute.renewLicense(
+            app,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
     }
 
     function test_RevertWhen_RenewLicense_NoExistingLicense() public {
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.LicenseNotFound.selector, app));
         vm.prank(owner);
-        noxCompute.renewLicense(app, uint32(block.timestamp + 30 days), 1000);
+        noxCompute.renewLicense(
+            app,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
     }
 
     function test_RevertWhen_RenewLicense_ZeroExpirationDate() public {
-        // Provision a license first
-        vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, uint32(block.timestamp + 30 days), 1000);
+        _provisionDefaultLicense();
 
         vm.expectRevert(INoxCompute.InvalidExpirationDate.selector);
         vm.prank(owner);
-        noxCompute.renewLicense(app, 0, 1000);
+        noxCompute.renewLicense(app, 0, DEFAULT_QUOTA);
     }
 
     function test_RevertWhen_RenewLicense_ZeroMonthlyQuota() public {
-        // Provision a license first
-        vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, uint32(block.timestamp + 30 days), 1000);
+        _provisionDefaultLicense();
 
         vm.expectRevert(INoxCompute.InvalidMonthlyQuota.selector);
         vm.prank(owner);
@@ -234,11 +241,8 @@ contract NoxCompute_AdminTest is Test {
     // ============ revokeLicense ============
 
     function test_RevokeLicense() public {
-        // Provision a license first
-        vm.prank(owner);
-        noxCompute.setLicense(app, licenseOwner, uint32(block.timestamp + 30 days), 1000);
+        _provisionDefaultLicense();
 
-        // Revoke it
         vm.prank(owner);
         vm.expectEmit();
         emit INoxCompute.LicenseRevoked(app, licenseOwner);
@@ -247,13 +251,7 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_RevokeLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
+        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
         vm.prank(unauthorizedCaller);
         noxCompute.revokeLicense(app);
     }
@@ -285,5 +283,27 @@ contract NoxCompute_AdminTest is Test {
         );
         vm.prank(unauthorizedUpgrader);
         noxCompute.upgradeToAndCall(makeAddr("newImpl"), "");
+    }
+
+    // ============ Helpers ============
+
+    function _provisionDefaultLicense() internal {
+        vm.prank(owner);
+        noxCompute.setLicense(
+            app,
+            licenseOwner,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
+    }
+
+    function _expectOwnableUnauthorizedRevert(address caller) internal {
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
+                caller,
+                noxCompute
+            )
+        );
     }
 }
