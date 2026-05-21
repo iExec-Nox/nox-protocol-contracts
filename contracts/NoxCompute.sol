@@ -17,6 +17,7 @@ import {Payment} from "./modules/Payment.sol";
  * - Triggering off-chain TEE computations through event emissions
  */
 contract NoxCompute is Admin, ACL, Compute, Payment {
+    uint a;
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
