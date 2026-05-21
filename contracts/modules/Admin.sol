@@ -113,12 +113,14 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
     function removeAppFromLicense(address app, address licenseOwner) external override onlyOwner {
-        require(app != address(0), InvalidZeroAddress());
-        require(licenseOwner != address(0), InvalidZeroAddress());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        require($.appLicensors[app] == licenseOwner, AppNotLinkedToLicense(app, licenseOwner));
-        delete $.appLicensors[app];
-        emit AppRemovedFromLicense(app, licenseOwner);
+        _removeAppFromLicense(app, licenseOwner);
+    }
+
+    /// @inheritdoc INoxCompute
+    function removeAppFromLicense(address app) external override {
+        // The link check inside _removeAppFromLicense (appLicensors[app] == msg.sender)
+        // implicitly enforces that the caller owns the link being removed.
+        _removeAppFromLicense(app, msg.sender);
     }
 
     /**
@@ -149,6 +151,19 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
      * Authorizes contract upgrades only by the owner.
      */
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+
+    /**
+     * @notice Internal helper that unlinks an app from a license owner. Reverts if
+     * `app` is not currently linked to `licenseOwner`. Emits AppRemovedFromLicense.
+     */
+    function _removeAppFromLicense(address app, address licenseOwner) private {
+        require(app != address(0), InvalidZeroAddress());
+        require(licenseOwner != address(0), InvalidZeroAddress());
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        require($.appLicensors[app] == licenseOwner, AppNotLinkedToLicense(app, licenseOwner));
+        delete $.appLicensors[app];
+        emit AppRemovedFromLicense(app, licenseOwner);
+    }
 
     /**
      * @notice Internal helper that links an app to a license owner. The owner must

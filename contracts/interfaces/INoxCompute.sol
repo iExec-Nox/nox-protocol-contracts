@@ -676,6 +676,13 @@ interface INoxCompute {
      */
     function removeAppFromLicense(address app, address licenseOwner) external;
 
+    /**
+     * @notice License-owner self-service: unlink an app from the caller's license.
+     * Reverts if the app is not currently linked to the caller.
+     * @param app App contract address
+     */
+    function removeAppFromLicense(address app) external;
+
     // ------------- Admin functions -------------
 
     /**

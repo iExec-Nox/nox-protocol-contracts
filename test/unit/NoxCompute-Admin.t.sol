@@ -324,9 +324,9 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.addAppToLicense(app);
     }
 
-    // ============ removeAppFromLicense ============
+    // ============ removeAppFromLicense (admin) ============
 
-    function test_RemoveAppFromLicense() public {
+    function test_RemoveAppFromLicense_AsAdmin() public {
         _provisionDefaultLicense();
         vm.prank(owner);
         noxCompute.addAppToLicense(app, licenseOwner);
@@ -337,14 +337,14 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.removeAppFromLicense(app, licenseOwner);
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_UnauthorizedCaller() public {
+    function test_RevertWhen_RemoveAppFromLicense_AsAdmin_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         _expectOwnableUnauthorizedRevert(unauthorizedCaller);
         vm.prank(unauthorizedCaller);
         noxCompute.removeAppFromLicense(app, licenseOwner);
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_NotLinked() public {
+    function test_RevertWhen_RemoveAppFromLicense_AsAdmin_NotLinked() public {
         _provisionDefaultLicense();
         // app was never linked to licenseOwner.
         vm.expectRevert(
@@ -354,7 +354,7 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.removeAppFromLicense(app, licenseOwner);
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_WrongOwner() public {
+    function test_RevertWhen_RemoveAppFromLicense_AsAdmin_WrongOwner() public {
         _provisionDefaultLicense();
         vm.prank(owner);
         noxCompute.addAppToLicense(app, licenseOwner);
@@ -365,6 +365,41 @@ contract NoxCompute_AdminTest is Test {
         );
         vm.prank(owner);
         noxCompute.removeAppFromLicense(app, otherOwner);
+    }
+
+    // ============ removeAppFromLicense (self-service) ============
+
+    function test_RemoveAppFromLicense_SelfService() public {
+        _provisionDefaultLicense();
+        // licenseOwner links the app to their own license via self-service.
+        vm.prank(licenseOwner);
+        noxCompute.addAppToLicense(app);
+
+        vm.prank(licenseOwner);
+        vm.expectEmit();
+        emit INoxCompute.AppRemovedFromLicense(app, licenseOwner);
+        noxCompute.removeAppFromLicense(app);
+    }
+
+    function test_RevertWhen_RemoveAppFromLicense_SelfService_ZeroApp() public {
+        _provisionDefaultLicense();
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        vm.prank(licenseOwner);
+        noxCompute.removeAppFromLicense(address(0));
+    }
+
+    function test_RevertWhen_RemoveAppFromLicense_SelfService_NotCallersApp() public {
+        _provisionDefaultLicense();
+        // app linked to licenseOwner (not the random caller below).
+        vm.prank(owner);
+        noxCompute.addAppToLicense(app, licenseOwner);
+
+        address otherCaller = makeAddr("otherCaller");
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.AppNotLinkedToLicense.selector, app, otherCaller)
+        );
+        vm.prank(otherCaller);
+        noxCompute.removeAppFromLicense(app);
     }
 
     // ============ _authorizeUpgrade ============
