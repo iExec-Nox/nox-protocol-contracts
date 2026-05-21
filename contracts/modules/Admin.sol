@@ -13,17 +13,6 @@ import {INoxCompute} from "../interfaces/INoxCompute.sol";
  */
 abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     /**
-     * @dev Validates the common license inputs: non-zero owner, future expiration date,
-     * and non-zero monthly quota.
-     */
-    modifier validLicenseParams(address owner, uint32 expirationDate, uint24 monthlyQuota) {
-        require(owner != address(0), InvalidZeroAddress());
-        require(expirationDate > block.timestamp, InvalidExpirationDate());
-        require(monthlyQuota != 0, InvalidMonthlyQuota());
-        _;
-    }
-
-    /**
      * Sets the KMS public key used for ECIES encryption.
      * Only callable by the owner.
      * @param newKmsPublicKey Compressed SEC1 secp256k1 public key (33 bytes)
@@ -64,11 +53,18 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         address licenseOwner,
         uint32 expirationDate,
         uint24 monthlyQuota
-    ) external override onlyOwner validLicenseParams(licenseOwner, expirationDate, monthlyQuota) {
+    ) external override onlyOwner {
+        _validateLicenseParams(licenseOwner, expirationDate, monthlyQuota);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        License storage license = $.licenses[licenseOwner];
-        license.expirationDate = expirationDate;
-        license.monthlyQuota = monthlyQuota;
+        require($.licenses[licenseOwner].expirationDate == 0, LicenseAlreadyExists(licenseOwner));
+        // TODO: initialize `quotaLastResetMonth` with the current month once on-chain
+        // date utilities (e.g. solady DateTimeLib) are wired into the contract.
+        $.licenses[licenseOwner] = License({
+            expirationDate: expirationDate,
+            quotaLastResetMonth: 0,
+            monthlyQuota: monthlyQuota,
+            consumedQuota: 0
+        });
         emit LicenseSet(licenseOwner, expirationDate, monthlyQuota);
     }
 
@@ -78,14 +74,29 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         address licenseOwner,
         uint32 expirationDate,
         uint24 monthlyQuota
-    ) external override onlyOwner validLicenseParams(licenseOwner, expirationDate, monthlyQuota) {
+    ) external override onlyOwner {
+        _validateLicenseParams(licenseOwner, expirationDate, monthlyQuota);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         License storage license = $.licenses[licenseOwner];
+        // New expiration must be strictly later than the current one (which is 0 for a
+        // revoked / never-created license — so the check is always satisfied there).
         require(expirationDate > license.expirationDate, InvalidExpirationDate());
-        license.expirationDate = expirationDate;
-        license.monthlyQuota = monthlyQuota;
-        // consumedQuota is intentionally NOT reset: the new monthlyQuota only applies starting
-        // at next month's lazy reset, the current-month usage carries over.
+        if (license.expirationDate == 0) {
+            // No live entry: initialize all fields just like createLicense.
+            // TODO: initialize `quotaLastResetMonth` once date utilities are wired in.
+            $.licenses[licenseOwner] = License({
+                expirationDate: expirationDate,
+                quotaLastResetMonth: 0,
+                monthlyQuota: monthlyQuota,
+                consumedQuota: 0
+            });
+        } else {
+            // Existing entry: only refresh expiration and monthly quota. consumedQuota and
+            // quotaLastResetMonth carry over; the new monthlyQuota applies starting at next
+            // month's lazy reset.
+            license.expirationDate = expirationDate;
+            license.monthlyQuota = monthlyQuota;
+        }
         emit LicenseSet(licenseOwner, expirationDate, monthlyQuota);
     }
 
@@ -93,34 +104,33 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     /// @inheritdoc INoxCompute
     function revokeLicense(address licenseOwner) external override onlyOwner {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        License storage license = $.licenses[licenseOwner];
-        require(license.expirationDate != 0, LicenseNotFound(licenseOwner));
+        require($.licenses[licenseOwner].expirationDate != 0, LicenseNotFound(licenseOwner));
         delete $.licenses[licenseOwner];
         emit LicenseRevoked(licenseOwner);
     }
 
     // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
-    function addAppToLicense(address app, address licenseOwner) external override onlyOwner {
-        _addAppToLicense(app, licenseOwner);
+    function linkAppToLicense(address app, address licenseOwner) external override onlyOwner {
+        _linkAppToLicense(app, licenseOwner);
     }
 
     /// @inheritdoc INoxCompute
-    function addAppToLicense(address app) external override {
-        _addAppToLicense(app, msg.sender);
+    function linkAppToLicense(address app) external override {
+        _linkAppToLicense(app, msg.sender);
     }
 
     // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
-    function removeAppFromLicense(address app, address licenseOwner) external override onlyOwner {
-        _removeAppFromLicense(app, licenseOwner);
+    function unlinkAppFromLicense(address app, address licenseOwner) external override onlyOwner {
+        _unlinkAppFromLicense(app, licenseOwner);
     }
 
     /// @inheritdoc INoxCompute
-    function removeAppFromLicense(address app) external override {
-        // The link check inside _removeAppFromLicense (appLicensors[app] == msg.sender)
+    function unlinkAppFromLicense(address app) external override {
+        // The link check inside _unlinkAppFromLicense (appLicensors[app] == msg.sender)
         // implicitly enforces that the caller owns the link being removed.
-        _removeAppFromLicense(app, msg.sender);
+        _unlinkAppFromLicense(app, msg.sender);
     }
 
     /**
@@ -147,38 +157,68 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         return $.proofExpirationDuration;
     }
 
+    /// @inheritdoc INoxCompute
+    function license(address licenseOwner) external view override returns (License memory) {
+        return _getNoxComputeStorage().licenses[licenseOwner];
+    }
+
+    /// @inheritdoc INoxCompute
+    function appLicense(
+        address app
+    ) external view override returns (address licenseOwner, License memory licenseEntry) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        licenseOwner = $.appLicensors[app];
+        licenseEntry = $.licenses[licenseOwner];
+    }
+
     /**
      * Authorizes contract upgrades only by the owner.
      */
     function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
 
     /**
-     * @notice Internal helper that unlinks an app from a license owner. Reverts if
-     * `app` is not currently linked to `licenseOwner`. Emits AppRemovedFromLicense.
+     * @dev Validates the common license inputs: non-zero owner, future expiration date,
+     * and non-zero monthly quota. Implemented as a private function (cheaper than a
+     * modifier when reused across multiple call sites).
      */
-    function _removeAppFromLicense(address app, address licenseOwner) private {
+    function _validateLicenseParams(
+        address owner,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) private view {
+        require(owner != address(0), InvalidZeroAddress());
+        require(expirationDate > block.timestamp, InvalidExpirationDate());
+        require(monthlyQuota != 0, InvalidMonthlyQuota());
+    }
+
+    /**
+     * @notice Internal helper that links an app to a license owner. The owner must
+     * hold an active license (non-expired, non-zero monthly quota). Emits AppLinkedToLicense.
+     */
+    function _linkAppToLicense(address app, address licenseOwner) private {
+        require(app != address(0), InvalidZeroAddress());
+        require(licenseOwner != address(0), InvalidZeroAddress());
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        // Memory copy: we read multiple fields and never write to the License here.
+        License memory licenseEntry = $.licenses[licenseOwner];
+        require(
+            licenseEntry.expirationDate > block.timestamp && licenseEntry.monthlyQuota > 0,
+            LicenseOwnerHasNoLicense(licenseOwner)
+        );
+        $.appLicensors[app] = licenseOwner;
+        emit AppLinkedToLicense(app, licenseOwner);
+    }
+
+    /**
+     * @notice Internal helper that unlinks an app from a license owner. Reverts if
+     * `app` is not currently linked to `licenseOwner`. Emits AppUnlinkedFromLicense.
+     */
+    function _unlinkAppFromLicense(address app, address licenseOwner) private {
         require(app != address(0), InvalidZeroAddress());
         require(licenseOwner != address(0), InvalidZeroAddress());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require($.appLicensors[app] == licenseOwner, AppNotLinkedToLicense(app, licenseOwner));
         delete $.appLicensors[app];
-        emit AppRemovedFromLicense(app, licenseOwner);
-    }
-
-    /**
-     * @notice Internal helper that links an app to a license owner. The owner must
-     * hold an active license (non-expired, non-zero monthly quota). Emits AppAddedToLicense.
-     */
-    function _addAppToLicense(address app, address licenseOwner) private {
-        require(app != address(0), InvalidZeroAddress());
-        require(licenseOwner != address(0), InvalidZeroAddress());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        License storage license = $.licenses[licenseOwner];
-        require(
-            license.expirationDate > block.timestamp && license.monthlyQuota > 0,
-            LicenseOwnerHasNoLicense(licenseOwner)
-        );
-        $.appLicensors[app] = licenseOwner;
-        emit AppAddedToLicense(app, licenseOwner);
+        emit AppUnlinkedFromLicense(app, licenseOwner);
     }
 }

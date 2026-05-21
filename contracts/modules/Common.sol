@@ -15,14 +15,6 @@ abstract contract Common is INoxCompute {
         erc7201("nox.storage.NoxCompute")
     );
 
-    // Fits in a single 32-byte slot
-    struct License {
-        uint32 expirationDate; // unix timestamp, 0 = no license
-        uint16 quotaLastResetMonth; // year * 12 + month, for lazy monthly reset
-        uint24 monthlyQuota; // CU cap per month
-        uint24 consumedQuota; // resets lazily at call time
-    }
-
     // Fits in a single 32-byte slot.
     struct Sponsor {
         address sponsor;

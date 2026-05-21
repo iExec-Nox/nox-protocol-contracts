@@ -8,6 +8,14 @@ import {TEEType} from "../utils/TypeUtils.sol";
  * @notice Interface for the Nox compute contract powered by TEE.
  */
 interface INoxCompute {
+    /// @notice On-chain representation of a license. Fits in a single 32-byte slot.
+    struct License {
+        uint32 expirationDate; // unix timestamp, 0 = no license
+        uint16 quotaLastResetMonth; // year * 12 + month, for lazy monthly reset
+        uint24 monthlyQuota; // CU cap per month
+        uint24 consumedQuota; // resets lazily at call time
+    }
+
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
     /// Error thrown when bytes parameter is empty
@@ -24,6 +32,8 @@ interface INoxCompute {
     error UndefinedHandle();
     /// Error thrown when attempting to revoke a license that does not exist.
     error LicenseNotFound(address licenseOwner);
+    /// Error thrown when attempting to create a license for an owner that already has one.
+    error LicenseAlreadyExists(address licenseOwner);
     /// Error thrown when attempting to provision a license with an invalid expiration date (<= current timestamp).
     error InvalidExpirationDate();
     /// Error thrown when the monthly quota provided is zero.
@@ -47,9 +57,9 @@ interface INoxCompute {
     /// Emitted when a license is revoked.
     event LicenseRevoked(address licenseOwner);
     /// Emitted when an app is linked to a license.
-    event AppAddedToLicense(address app, address licenseOwner);
+    event AppLinkedToLicense(address app, address licenseOwner);
     /// Emitted when an app is unlinked from its license.
-    event AppRemovedFromLicense(address app, address licenseOwner);
+    event AppUnlinkedFromLicense(address app, address licenseOwner);
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
@@ -619,7 +629,7 @@ interface INoxCompute {
 
     /**
      * @notice Creates a license for a given owner. Reverts if a license already exists.
-     * License creation does not link any app yet; use `addAppToLicense` for that.
+     * License creation does not link any app yet; use `linkAppToLicense` for that.
      * @param licenseOwner License owner address
      * @param expirationDate Unix timestamp of license expiry (must be in the future)
      * @param monthlyQuota Max CU per month (must be non-zero)
@@ -632,9 +642,12 @@ interface INoxCompute {
 
     /**
      * @notice Renews an existing or previously revoked license for a given owner.
-     * The new expiration date must be strictly greater than the current one (0 for a
-     * revoked license). The new monthlyQuota takes effect at the next monthly reset;
-     * the current month's consumed quota is preserved.
+     * - If a license exists (`expirationDate > 0`): only `expirationDate` and `monthlyQuota`
+     *   are updated. `consumedQuota` and `quotaLastResetMonth` carry over; the new monthly
+     *   quota only applies starting at the next monthly reset.
+     * - If no license exists: behaves like `createLicense` (initializes all fields).
+     * The new `expirationDate` must be strictly greater than the current one (which is 0
+     * for a revoked license).
      * @param licenseOwner License owner address
      * @param expirationDate New unix timestamp of license expiry (> current expirationDate)
      * @param monthlyQuota New max CU per month (must be non-zero, applies next month)
@@ -647,18 +660,20 @@ interface INoxCompute {
 
     /**
      * @notice Revokes an existing license. Reverts if no license exists.
-     * The owner immediately loses licensed access and falls back to pay-per-task on the next call for all of their apps.
+     * The owner immediately loses licensed access and falls back to pay-per-task on the next
+     * call for all of their apps.
      * @param licenseOwner License owner address
      */
     function revokeLicense(address licenseOwner) external;
 
     /**
      * @notice Admin-side: link an app to an existing license owner.
+     * Used to delegate this config to Nox admin.
      * The licenseOwner must hold an active license.
      * @param app App contract address
      * @param licenseOwner License owner address
      */
-    function addAppToLicense(address app, address licenseOwner) external;
+    function linkAppToLicense(address app, address licenseOwner) external;
 
     /**
      * @notice License-owner self-service: link an app to the caller's license.
@@ -666,22 +681,40 @@ interface INoxCompute {
      * is the license owner.
      * @param app App contract address
      */
-    function addAppToLicense(address app) external;
+    function linkAppToLicense(address app) external;
 
     /**
      * @notice Admin-side: unlink an app from a license. Reverts if the app is not
      * currently linked to that owner.
+     * Used to delegate this config to Nox admin.
      * @param app App contract address
      * @param licenseOwner Address that currently holds the link
      */
-    function removeAppFromLicense(address app, address licenseOwner) external;
+    function unlinkAppFromLicense(address app, address licenseOwner) external;
 
     /**
      * @notice License-owner self-service: unlink an app from the caller's license.
      * Reverts if the app is not currently linked to the caller.
      * @param app App contract address
      */
-    function removeAppFromLicense(address app) external;
+    function unlinkAppFromLicense(address app) external;
+
+    /**
+     * @notice Returns the License entry for a given owner. Returns a zero-filled struct
+     * if no license has been provisioned for the owner.
+     * @param licenseOwner License owner address
+     */
+    function license(address licenseOwner) external view returns (License memory);
+
+    /**
+     * @notice Returns the license-owner currently linked to `app` together with that
+     * owner's License entry. Returns `(address(0), zero-filled License)` if no link
+     * exists.
+     * @param app App contract address
+     */
+    function appLicense(
+        address app
+    ) external view returns (address licenseOwner, License memory licenseEntry);
 
     // ------------- Admin functions -------------
 
