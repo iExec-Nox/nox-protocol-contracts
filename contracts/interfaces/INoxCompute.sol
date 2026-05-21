@@ -36,7 +36,6 @@ interface INoxCompute {
     // Sponsorship events
     //
     event SponsorSet(address app, address sponsor);
-    event SponsorSet2(address app, address sponsor);
     event SponsorshipApproved(address app, address sponsor);
     event SponsorshipRevoked(address app, address sponsor);
     //
