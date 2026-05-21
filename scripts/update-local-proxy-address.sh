@@ -1,7 +1,7 @@
 #!/usr/bin/env sh
 
 #
-# Usage: pnpm run test:fix
+# Usage: pnpm run update-local-proxy-address
 #
 # The NoxCompute proxy address for local dev (chainId 31337) is hardcoded in
 # contracts/sdk/Nox.sol. Because the address is derived from the contract bytecode

@@ -22,7 +22,7 @@ BYTECODE_CHANGED=$(echo "$CHANGED_FILES" | grep -E \
 # Only run the fix script if bytecode-affecting files changed
 if [ -n "$BYTECODE_CHANGED" ]; then
     COMMIT_BEFORE=$(git rev-parse HEAD)
-    pnpm run test:fix
+    pnpm run update-local-proxy-address
     # Warn if a new commit was made — it won't be included in the current push
     if [ "$(git rev-parse HEAD)" != "$COMMIT_BEFORE" ]; then
         echo "⚠️  Nox.sol updated and committed — push again to include it."
