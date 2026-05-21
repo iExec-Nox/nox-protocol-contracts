@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
 
-# If any file that affects the NoxCompute bytecode changed, redeploy locally and
-# patch contracts/sdk/Nox.sol with the new proxy address. The script auto-commits
-# the update if Nox.sol was clean before.
-# A second push is required to include the update if a commit was made.
+# If any file that affects NoxCompute bytecode changed, run the update script to
+# redeploy locally and patch contracts/sdk/Nox.sol with the new proxy address.
+# If the script commits an address update, a second push is needed to include it.
 
 # Current branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)

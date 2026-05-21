@@ -1,12 +1,13 @@
 #!/usr/bin/env sh
 
 #
-# Usage: sh scripts/fix-local-address.sh
+# Usage: pnpm run test:fix
 #
 # The NoxCompute proxy address for local dev (chainId 31337) is hardcoded in
-# contracts/sdk/Nox.sol. Because the address is derived from the contract
-# bytecode via CREATE2, it changes whenever the bytecode changes.
-# Run this script to redeploy locally and patch Nox.sol with the new address.
+# contracts/sdk/Nox.sol. Because the address is derived from the contract bytecode
+# via CREATE2, it changes whenever the bytecode changes.
+# This script redeploys locally and patches Nox.sol with the new address.
+# Auto-commits the change if Nox.sol is clean and nothing else is staged.
 
 set -eu
 
