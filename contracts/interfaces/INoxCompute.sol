@@ -22,18 +22,18 @@ interface INoxCompute {
     error PublicHandleACLForbidden();
     /// Error thrown when an operand is bytes32(0), indicating an undefined handle
     error UndefinedHandle();
-    /// Error thrown when attempting to renew or revoke a license that does not exist.
-    error LicenseNotFound(address app);
-    /// Error thrown when attempting to provision a license with an invalid expiration date (0).
+    /// Error thrown when attempting to revoke a license that does not exist.
+    error LicenseNotFound(address licenseOwner);
+    /// Error thrown when attempting to create a license that already exists for this owner.
+    error LicenseAlreadyExists(address licenseOwner);
+    /// Error thrown when attempting to provision a license with an invalid expiration date (<= current timestamp).
     error InvalidExpirationDate();
-    /// Error thrown when the app address provided to a license operation is the zero address.
-    error InvalidAppAddress();
-    /// Error thrown when the license owner address provided is the zero address.
-    error InvalidLicenseOwnerAddress();
     /// Error thrown when the monthly quota provided is zero.
     error InvalidMonthlyQuota();
     /// Error thrown when trying to link an app to a license owner that has no active license.
     error LicenseOwnerHasNoLicense(address licenseOwner);
+    /// Error thrown when removing an app from a license it isn't currently linked to.
+    error AppNotLinkedToLicense(address app, address licenseOwner);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -44,14 +44,14 @@ interface INoxCompute {
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
-    /// Emitted when a license is provisioned or renewed for an app.
-    event LicenseSet(address app, address licenseOwner, uint32 expirationDate, uint24 monthlyQuota);
-    /// Emitted when a license is revoked for an app.
-    event LicenseRevoked(address app, address licenseOwner);
-    /// Emitted when an app is linked to a license owner.
-    event AppLicenseSet(address app, address licenseOwner);
-    /// Emitted when an app is unlinked from its license owner.
-    event AppLicenseUnset(address app, address previousLicenseOwner);
+    /// Emitted when a license is created or renewed.
+    event LicenseSet(address licenseOwner, uint32 expirationDate, uint24 monthlyQuota);
+    /// Emitted when a license is revoked.
+    event LicenseRevoked(address licenseOwner);
+    /// Emitted when an app is linked to a license.
+    event AppAddedToLicense(address app, address licenseOwner);
+    /// Emitted when an app is unlinked from its license.
+    event AppRemovedFromLicense(address app, address licenseOwner);
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
@@ -620,51 +620,63 @@ interface INoxCompute {
     function sponsor(address app) external view returns (address sponsor, SponsorStatus status);
 
     /**
-     * @notice Provisions or revokes a license for an app.
-     * Set expirationDate=0 and monthlyQuota=0 to revoke.
-     * @param app App contract address
-     * @param licenseOwner Address that holds the license (one license per owner, shared across apps)
-     * @param expirationDate Unix timestamp of license expiry
-     * @param monthlyQuota Max CU per month
+     * @notice Creates a license for a given owner. Reverts if a license already exists.
+     * License creation does not link any app yet; use `addAppToLicense` for that.
+     * @param licenseOwner License owner address
+     * @param expirationDate Unix timestamp of license expiry (must be in the future)
+     * @param monthlyQuota Max CU per month (must be non-zero)
      */
-    function setLicense(
-        address app,
+    function createLicense(
         address licenseOwner,
         uint32 expirationDate,
         uint24 monthlyQuota
     ) external;
 
     /**
-     * @notice Renews an existing license for an app, updating its expiration date and monthly quota.
-     * Reuses the current license owner stored for the app. Reverts if no license exists.
-     * Consumed quota is reset to 0.
-     * @param app App contract address
-     * @param expirationDate New unix timestamp of license expiry (must be non-zero)
-     * @param monthlyQuota New max CU per month
+     * @notice Renews an existing or previously revoked license for a given owner.
+     * The new expiration date must be strictly greater than the current one (0 for a
+     * revoked license). The new monthlyQuota takes effect at the next monthly reset;
+     * the current month's consumed quota is preserved.
+     * @param licenseOwner License owner address
+     * @param expirationDate New unix timestamp of license expiry (> current expirationDate)
+     * @param monthlyQuota New max CU per month (must be non-zero, applies next month)
      */
-    function renewLicense(address app, uint32 expirationDate, uint24 monthlyQuota) external;
+    function renewLicense(
+        address licenseOwner,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) external;
 
     /**
-     * @notice Revokes the license of an app. Reverts if no license exists.
-     * The caller immediately loses licensed access and falls back to pay-per-task on the next call.
-     * @param app App contract address
+     * @notice Revokes an existing license. Reverts if no license exists.
+     * The owner immediately loses licensed access and falls back to pay-per-task on the next call for all of their apps.
+     * @param licenseOwner License owner address
      */
-    function revokeLicense(address app) external;
+    function revokeLicense(address licenseOwner) external;
 
     /**
-     * @notice Admin-side: link an app to an existing license owner, or unset it by passing
-     * licenseOwner=address(0). Reverts if licenseOwner is set but has no license.
+     * @notice Admin-side: link an app to an existing license owner.
+     * The licenseOwner must hold an active license.
      * @param app App contract address
-     * @param licenseOwner Address holding the license, or address(0) to unlink
+     * @param licenseOwner License owner address
      */
-    function setAppLicense(address app, address licenseOwner) external;
+    function addAppToLicense(address app, address licenseOwner) external;
 
     /**
      * @notice License-owner self-service: link an app to the caller's license.
-     * The caller must already hold an active license. Reverts otherwise.
+     * The caller must hold an active license; this implicitly enforces that msg.sender
+     * is the license owner.
      * @param app App contract address
      */
-    function setAppLicense(address app) external;
+    function addAppToLicense(address app) external;
+
+    /**
+     * @notice Admin-side: unlink an app from a license. Reverts if the app is not
+     * currently linked to that owner.
+     * @param app App contract address
+     * @param licenseOwner Address that currently holds the link
+     */
+    function removeAppFromLicense(address app, address licenseOwner) external;
 
     // ------------- Admin functions -------------
 
