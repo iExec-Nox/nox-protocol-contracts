@@ -32,6 +32,9 @@ interface INoxCompute {
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
+    event SponsorSet(address app, address sponsor);
+    event SponsorshipApproved(address app, address sponsor);
+    event SponsorshipRevoked(address app, address sponsor);
 
     event WrapAsPublicHandle(
         address indexed caller,
@@ -187,8 +190,7 @@ interface INoxCompute {
     enum SponsorStatus {
         UNSET,
         PENDING,
-        APPROVED,
-        REVOKED
+        APPROVED
     }
 
     // ------------- ACL functions -------------
