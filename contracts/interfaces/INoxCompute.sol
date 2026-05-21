@@ -24,8 +24,6 @@ interface INoxCompute {
     error UndefinedHandle();
     /// Error thrown when attempting to revoke a license that does not exist.
     error LicenseNotFound(address licenseOwner);
-    /// Error thrown when attempting to create a license that already exists for this owner.
-    error LicenseAlreadyExists(address licenseOwner);
     /// Error thrown when attempting to provision a license with an invalid expiration date (<= current timestamp).
     error InvalidExpirationDate();
     /// Error thrown when the monthly quota provided is zero.
