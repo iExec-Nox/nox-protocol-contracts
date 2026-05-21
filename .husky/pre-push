@@ -18,5 +18,11 @@ BYTECODE_CHANGED=$(echo "$CHANGED" | grep -E \
 
 # Only run the fix script if bytecode-affecting files changed
 if [ -n "$BYTECODE_CHANGED" ]; then
+    COMMIT_BEFORE=$(git rev-parse HEAD)
     pnpm run test:fix
+    # If the script committed a new address update, abort and ask to re-push
+    if [ "$(git rev-parse HEAD)" != "$COMMIT_BEFORE" ]; then
+        echo "⚠️  Nox.sol updated and committed — re-run git push to include it."
+        exit 1
+    fi
 fi
