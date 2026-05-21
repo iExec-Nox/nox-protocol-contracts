@@ -12,9 +12,9 @@ else
     CHANGED=$(git diff --name-only origin/main HEAD)
 fi
 
-# Filter for files that affect NoxCompute bytecode
+# Filter for files that affect NoxCompute bytecode (|| true: grep exits 1 on no match)
 BYTECODE_CHANGED=$(echo "$CHANGED" | grep -E \
-    'contracts/(interfaces|modules|utils)/|contracts/NoxCompute\.sol')
+    'contracts/(interfaces|modules|utils)/|contracts/NoxCompute\.sol' || true)
 
 # Only run the fix script if bytecode-affecting files changed
 if [ -n "$BYTECODE_CHANGED" ]; then
