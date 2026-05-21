@@ -16,6 +16,8 @@ contract NoxCompute_PaymentTest is Test {
 
     function setUp() public {
         noxCompute = TestHelper.deploy(owner, gateway);
+        vm.label(app, "app");
+        vm.label(sponsor, "sponsor");
     }
 
     // ============ setSponsor ============
