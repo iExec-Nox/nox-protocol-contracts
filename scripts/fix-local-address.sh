@@ -29,7 +29,20 @@ if [ -z "$NEW_ADDRESS" ]; then
     exit 1
 fi
 
+# Check if Nox.sol is clean before applying the replacement
+git diff --quiet "$NOX_SOL" && git diff --cached --quiet "$NOX_SOL" && NOX_SOL_CLEAN=true || NOX_SOL_CLEAN=false
+
 # Replace the exact 42-char address (0x + 40 hex) on the line following the 31337 chainId check
 sed -i "/block.chainid == 31337/{n;s/return 0x[0-9a-fA-F]\{40\}/return $NEW_ADDRESS/;}" "$NOX_SOL"
 
-echo "Updated $NOX_SOL"
+
+# Don't commit if there are other changes.
+if ! $NOX_SOL_CLEAN; then
+    echo "Warning: $NOX_SOL has other changes — skipping auto-commit"
+# If the only change is the address update, commit it.
+elif ! git diff --quiet "$NOX_SOL"; then
+    echo "Updated $NOX_SOL"
+    git add "$NOX_SOL"
+    git commit -m "chore: update local proxy address"
+    echo "Committed $NOX_SOL"
+fi
