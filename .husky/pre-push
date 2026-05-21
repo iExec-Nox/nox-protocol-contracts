@@ -2,7 +2,7 @@
 
 # If any file that affects NoxCompute bytecode changed, run the update script to
 # redeploy locally and patch contracts/sdk/Nox.sol with the new proxy address.
-# If the script commits an address update, a second push is needed to include it.
+# If the address changed, the push is aborted — run git push again to include the fix.
 
 # Current branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
@@ -23,8 +23,9 @@ BYTECODE_CHANGED=$(echo "$CHANGED_FILES" | grep -E \
 if [ -n "$BYTECODE_CHANGED" ]; then
     COMMIT_BEFORE=$(git rev-parse HEAD)
     pnpm run update-local-proxy-address
-    # Warn if a new commit was made — it won't be included in the current push
+    # Abort push so the fix commit is included — user must push again
     if [ "$(git rev-parse HEAD)" != "$COMMIT_BEFORE" ]; then
-        echo "⚠️  Nox.sol updated and committed — push again to include it."
+        echo "⚠️  Nox.sol updated and committed — run git push again to include it."
+        exit 1
     fi
 fi
