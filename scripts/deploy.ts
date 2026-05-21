@@ -37,11 +37,10 @@ export async function deploy(printLogs = true) {
     const fallbackAdmin = chainConfig.initialOwner;
     const initialAdmin = process.env.INITIAL_ADMIN ?? fallbackAdmin;
     const initialUpgrader = process.env.INITIAL_UPGRADER ?? fallbackAdmin;
-    const initialInfra = process.env.INITIAL_INFRA ?? fallbackAdmin;
     const initialPaymentManager = process.env.INITIAL_PAYMENT_MANAGER ?? fallbackAdmin;
-    if (!initialAdmin || !initialUpgrader || !initialInfra || !initialPaymentManager) {
+    if (!initialAdmin || !initialUpgrader || !initialPaymentManager) {
         throw new Error(
-            "INITIAL_ADMIN / INITIAL_UPGRADER / INITIAL_INFRA / INITIAL_PAYMENT_MANAGER (or chainConfig.initialOwner) are required",
+            "INITIAL_ADMIN / INITIAL_UPGRADER / INITIAL_PAYMENT_MANAGER (or chainConfig.initialOwner) are required",
         );
     }
 
@@ -73,12 +72,10 @@ export async function deploy(printLogs = true) {
     _log(`Initializing roles via initializeV3...`);
     _log(`  admin:          ${initialAdmin}`);
     _log(`  upgrader:       ${initialUpgrader}`);
-    _log(`  infra:          ${initialInfra}`);
     _log(`  paymentManager: ${initialPaymentManager}`);
     const tx = await noxCompute.write.initializeV3([
         initialAdmin as `0x${string}`,
         initialUpgrader as `0x${string}`,
-        initialInfra as `0x${string}`,
         initialPaymentManager as `0x${string}`,
     ]);
     _log(`initializeV3 tx: ${tx}`);

@@ -51,30 +51,27 @@ contract NoxCompute is Admin, ACL, Compute, Payment {
 
     /**
      * @notice V3 reinitializer migrating the contract from `OwnableUpgradeable` to
-     * `AccessControlUpgradeable`. Sets up the four roles and clears the legacy
+     * `AccessControlUpgradeable`. Sets up the three roles and clears the legacy
      * Ownable storage slot.
      * @dev Must be called once per proxy:
      *      - on a fresh deployment, right after `initialize`;
      *      - on an existing V2 proxy, as part of the upgrade transaction.
      * @param admin Address granted `DEFAULT_ADMIN_ROLE` (usually a multisig).
-     * @param upgrader Address granted `UPGRADER_ROLE` (CI/CD key for upgrades).
-     * @param infra Address granted `INFRA_ROLE` (CI/CD key for KMS/gateway/proof config).
+     * @param upgrader Address granted `UPGRADER_ROLE` (CI/CD key for upgrades and
+     *        infra config: KMS public key, gateway address, proof expiration).
      * @param paymentManager Address granted `PAYMENT_MANAGER_ROLE`.
      */
     function initializeV3(
         address admin,
         address upgrader,
-        address infra,
         address paymentManager
     ) public reinitializer(3) {
         require(admin != address(0), InvalidZeroAddress());
         require(upgrader != address(0), InvalidZeroAddress());
-        require(infra != address(0), InvalidZeroAddress());
         require(paymentManager != address(0), InvalidZeroAddress());
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
-        _grantRole(INFRA_ROLE, infra);
         _grantRole(PAYMENT_MANAGER_ROLE, paymentManager);
         _clearOwnableStorage();
     }

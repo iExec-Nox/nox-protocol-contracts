@@ -135,7 +135,7 @@ library TestHelper {
         noxCompute.initialize(kmsKey);
         // `owner` in legacy tests stands for the all-powerful admin. Grant it all four
         // roles so existing tests keep working without role-specific signers.
-        noxCompute.initializeV3(owner, owner, owner, owner);
+        noxCompute.initializeV3(owner, owner, owner);
         vm.prank(owner);
         noxCompute.setGateway(gateway);
 

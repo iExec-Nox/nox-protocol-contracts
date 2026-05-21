@@ -24,7 +24,6 @@ contract NoxComputeTest is Test {
     function test_Initialize() public view {
         assertTrue(noxCompute.hasRole(noxCompute.DEFAULT_ADMIN_ROLE(), owner));
         assertTrue(noxCompute.hasRole(noxCompute.UPGRADER_ROLE(), owner));
-        assertTrue(noxCompute.hasRole(noxCompute.INFRA_ROLE(), owner));
         assertTrue(noxCompute.hasRole(noxCompute.PAYMENT_MANAGER_ROLE(), owner));
         assertEq(noxCompute.proofExpirationDuration(), 1 hours);
         (

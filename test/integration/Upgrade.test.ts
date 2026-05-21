@@ -43,12 +43,12 @@ describe("[IT] Upgrade", function () {
         // Simulates an existing V2 proxy (Ownable-based) being upgraded to V3 (AccessControl).
         // We rewrite the proxy's `_initialized` slot down to version 2 so we can exercise the
         // real `reinitializer(3)` path of `initializeV3`. After the upgrade we check that:
-        //   - The four roles are granted to the addresses passed to initializeV3.
+        //   - The three roles are granted to the addresses passed to initializeV3.
         //   - The legacy Ownable storage slot has been cleared.
-        //   - The proxy is functional under the new role model (only INFRA can setGateway,
-        //     only UPGRADER can upgrade, only PAYMENT_MANAGER can setLicense).
+        //   - The proxy is functional under the new role model (only UPGRADER can setGateway
+        //     and upgrade, only PAYMENT_MANAGER can manage licenses).
         it("Should migrate a V2 proxy to V3 via initializeV3", async function () {
-            const { noxCompute, admin, wallet1, wallet2, wallet3, wallet4 } = await loadFixture();
+            const { noxCompute, admin, wallet1, wallet2, wallet3 } = await loadFixture();
             const viem = connection.viem;
             const publicClient = await viem.getPublicClient();
 
@@ -78,17 +78,15 @@ describe("[IT] Upgrade", function () {
             // Upgrade and atomically run initializeV3.
             const newAdmin = wallet1.account.address;
             const newUpgrader = wallet2.account.address;
-            const newInfra = wallet3.account.address;
-            const newPaymentManager = wallet4.account.address;
+            const newPaymentManager = wallet3.account.address;
             await upgradeNoxCompute(noxCompute.address, false, "NoxCompute", {
                 fn: "initializeV3",
-                args: [newAdmin, newUpgrader, newInfra, newPaymentManager],
+                args: [newAdmin, newUpgrader, newPaymentManager],
             });
 
             // Verify role grants.
             const DEFAULT_ADMIN_ROLE = await noxCompute.read.DEFAULT_ADMIN_ROLE();
             const UPGRADER_ROLE = await noxCompute.read.UPGRADER_ROLE();
-            const INFRA_ROLE = await noxCompute.read.INFRA_ROLE();
             const PAYMENT_MANAGER_ROLE = await noxCompute.read.PAYMENT_MANAGER_ROLE();
             assert.strictEqual(
                 await noxCompute.read.hasRole([DEFAULT_ADMIN_ROLE, newAdmin]),
@@ -99,11 +97,6 @@ describe("[IT] Upgrade", function () {
                 await noxCompute.read.hasRole([UPGRADER_ROLE, newUpgrader]),
                 true,
                 "newUpgrader should have UPGRADER_ROLE",
-            );
-            assert.strictEqual(
-                await noxCompute.read.hasRole([INFRA_ROLE, newInfra]),
-                true,
-                "newInfra should have INFRA_ROLE",
             );
             assert.strictEqual(
                 await noxCompute.read.hasRole([PAYMENT_MANAGER_ROLE, newPaymentManager]),
@@ -122,38 +115,33 @@ describe("[IT] Upgrade", function () {
                 "Ownable storage slot should be cleared after V3 migration",
             );
 
-            // Functional check: only INFRA can change the gateway now.
+            // Functional check: only UPGRADER can change the gateway now.
             await assert.rejects(
                 noxCompute.write.setGateway([zeroAddress], { account: newAdmin }),
-                "Admin without INFRA_ROLE should not be able to setGateway",
-            );
-            await assert.rejects(
-                noxCompute.write.setGateway([zeroAddress], { account: newUpgrader }),
-                "Upgrader without INFRA_ROLE should not be able to setGateway",
+                "Admin without UPGRADER_ROLE should not be able to setGateway",
             );
             const freshGateway = getAddress("0x000000000000000000000000000000000000b0b0");
-            const tx = await noxCompute.write.setGateway([freshGateway], { account: newInfra });
+            const tx = await noxCompute.write.setGateway([freshGateway], { account: newUpgrader });
             await publicClient.waitForTransactionReceipt({ hash: tx });
             assert.strictEqual(
                 (await noxCompute.read.gateway()).toLowerCase(),
                 freshGateway.toLowerCase(),
-                "INFRA should be able to setGateway after migration",
+                "UPGRADER should be able to setGateway after migration",
             );
 
             // Functional check: only PAYMENT_MANAGER can manage licenses.
-            const app = getAddress("0x000000000000000000000000000000000000a1a1");
             const licenseOwner = getAddress("0x000000000000000000000000000000000000b1b1");
             const expirationDate = Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
             await assert.rejects(
-                noxCompute.write.setLicense([app, licenseOwner, expirationDate, 1000], {
-                    account: newInfra,
+                noxCompute.write.createLicense([licenseOwner, expirationDate, 1000], {
+                    account: newUpgrader,
                 }),
-                "Infra without PAYMENT_MANAGER_ROLE should not setLicense",
+                "Upgrader without PAYMENT_MANAGER_ROLE should not createLicense",
             );
-            const setLicenseTx = await noxCompute.write.setLicense([app, licenseOwner, expirationDate, 1000], {
+            const createTx = await noxCompute.write.createLicense([licenseOwner, expirationDate, 1000], {
                 account: newPaymentManager,
             });
-            await publicClient.waitForTransactionReceipt({ hash: setLicenseTx });
+            await publicClient.waitForTransactionReceipt({ hash: createTx });
         });
     });
 });
