@@ -3,7 +3,7 @@ pragma solidity ^0.8.35;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
@@ -39,13 +39,7 @@ contract NoxCompute_AdminTest is Test {
     function test_RevertWhen_SetKmsPublicKey_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         bytes memory newKey = abi.encodePacked(bytes1(0x02), keccak256("unauthorized-kms-key"));
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.INFRA_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.setKmsPublicKey(newKey);
     }
@@ -71,13 +65,7 @@ contract NoxCompute_AdminTest is Test {
     function test_RevertWhen_SetGateway_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         address newGateway = makeAddr("newGateway");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.INFRA_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.setGateway(newGateway);
     }
@@ -104,13 +92,7 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_SetProofExpirationDuration_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedCaller,
-                noxCompute
-            )
-        );
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.INFRA_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.setProofExpirationDuration(2 hours);
     }
@@ -139,7 +121,7 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_SetLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.setLicense(
             app,
@@ -203,7 +185,7 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_RenewLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.renewLicense(
             app,
@@ -251,7 +233,7 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_RevokeLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.revokeLicense(app);
     }
@@ -285,7 +267,7 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_SetAppLicense_AsOwner_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
-        _expectOwnableUnauthorizedRevert(unauthorizedCaller);
+        _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
         noxCompute.setAppLicense(app, licenseOwner);
     }
@@ -348,15 +330,86 @@ contract NoxCompute_AdminTest is Test {
 
     function test_RevertWhen_UpgradeToAndCall_UnauthorizedCaller() public {
         address unauthorizedUpgrader = makeAddr("unauthorized");
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
-                unauthorizedUpgrader,
-                noxCompute
-            )
-        );
+        _expectMissingRoleRevert(unauthorizedUpgrader, noxCompute.UPGRADER_ROLE());
         vm.prank(unauthorizedUpgrader);
         noxCompute.upgradeToAndCall(makeAddr("newImpl"), "");
+    }
+
+    // ============ Role separation ============
+
+    function test_Roles_PaymentManagerCannotCallInfra() public {
+        address paymentManager = makeAddr("paymentManager");
+        bytes32 pmRole = noxCompute.PAYMENT_MANAGER_ROLE();
+        bytes32 infraRole = noxCompute.INFRA_ROLE();
+        vm.prank(owner);
+        noxCompute.grantRole(pmRole, paymentManager);
+
+        _expectMissingRoleRevert(paymentManager, infraRole);
+        vm.prank(paymentManager);
+        noxCompute.setGateway(makeAddr("anyGateway"));
+    }
+
+    function test_Roles_UpgraderCannotCallInfra() public {
+        address upgrader = makeAddr("upgrader");
+        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
+        bytes32 infraRole = noxCompute.INFRA_ROLE();
+        vm.prank(owner);
+        noxCompute.grantRole(upgraderRole, upgrader);
+
+        _expectMissingRoleRevert(upgrader, infraRole);
+        vm.prank(upgrader);
+        noxCompute.setGateway(makeAddr("anyGateway"));
+    }
+
+    function test_Roles_InfraCannotCallPaymentManager() public {
+        address infra = makeAddr("infra");
+        bytes32 pmRole = noxCompute.PAYMENT_MANAGER_ROLE();
+        bytes32 infraRole = noxCompute.INFRA_ROLE();
+        vm.prank(owner);
+        noxCompute.grantRole(infraRole, infra);
+
+        _expectMissingRoleRevert(infra, pmRole);
+        vm.prank(infra);
+        noxCompute.setLicense(
+            app,
+            licenseOwner,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
+    }
+
+    function test_Roles_DedicatedHoldersCanCallTheirFunctions() public {
+        address upgrader = makeAddr("upgrader");
+        address infra = makeAddr("infra");
+        address paymentManager = makeAddr("paymentManager");
+        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
+        bytes32 infraRole = noxCompute.INFRA_ROLE();
+        bytes32 pmRole = noxCompute.PAYMENT_MANAGER_ROLE();
+        vm.startPrank(owner);
+        noxCompute.grantRole(upgraderRole, upgrader);
+        noxCompute.grantRole(infraRole, infra);
+        noxCompute.grantRole(pmRole, paymentManager);
+        vm.stopPrank();
+
+        // INFRA can set gateway.
+        address newGateway = makeAddr("freshGateway");
+        vm.prank(infra);
+        noxCompute.setGateway(newGateway);
+        assertEq(noxCompute.gateway(), newGateway);
+
+        // PAYMENT_MANAGER can set licenses.
+        vm.prank(paymentManager);
+        noxCompute.setLicense(
+            app,
+            licenseOwner,
+            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
+            DEFAULT_QUOTA
+        );
+
+        // UPGRADER can authorize an upgrade.
+        address newImpl = address(new NoxCompute());
+        vm.prank(upgrader);
+        noxCompute.upgradeToAndCall(newImpl, "");
     }
 
     // ============ Helpers ============
@@ -371,12 +424,12 @@ contract NoxCompute_AdminTest is Test {
         );
     }
 
-    function _expectOwnableUnauthorizedRevert(address caller) internal {
+    function _expectMissingRoleRevert(address caller, bytes32 role) internal {
         vm.expectRevert(
             abi.encodeWithSelector(
-                OwnableUpgradeable.OwnableUnauthorizedAccount.selector,
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
                 caller,
-                noxCompute
+                role
             )
         );
     }

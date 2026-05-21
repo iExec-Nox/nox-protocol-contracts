@@ -31,18 +31,26 @@ export async function deploy(printLogs = true) {
     if (!kmsPublicKey) {
         throw new Error("KMS_PUBLIC_KEY environment variable is required");
     }
-    // INITIAL_OWNER env var takes precedence, then falls back to the config value.
-    const initialOwner = process.env.INITIAL_OWNER ?? chainConfig.initialOwner;
-    if (!initialOwner) {
-        throw new Error("INITIAL_OWNER environment variable is required");
+    // Role accounts. Each env var takes precedence, then falls back to `initialOwner` from
+    // the chain config. This keeps single-signer setups simple while allowing per-role
+    // overrides in CI/CD or for production deployments.
+    const fallbackAdmin = chainConfig.initialOwner;
+    const initialAdmin = process.env.INITIAL_ADMIN ?? fallbackAdmin;
+    const initialUpgrader = process.env.INITIAL_UPGRADER ?? fallbackAdmin;
+    const initialInfra = process.env.INITIAL_INFRA ?? fallbackAdmin;
+    const initialPaymentManager = process.env.INITIAL_PAYMENT_MANAGER ?? fallbackAdmin;
+    if (!initialAdmin || !initialUpgrader || !initialInfra || !initialPaymentManager) {
+        throw new Error(
+            "INITIAL_ADMIN / INITIAL_UPGRADER / INITIAL_INFRA / INITIAL_PAYMENT_MANAGER (or chainConfig.initialOwner) are required",
+        );
     }
+
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
         strategy: "create2",
         parameters: {
             NoxCompute: {
-                initialOwner,
                 kmsPublicKey,
             },
         },
@@ -58,6 +66,23 @@ export async function deploy(printLogs = true) {
 
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
+
+    // Set up AccessControl roles via initializeV3 (reinitializer v3). This separates
+    // base state setup from role configuration so the same NoxCompute implementation
+    // can be used for fresh deploys and for upgrades from older Ownable-based proxies.
+    _log(`Initializing roles via initializeV3...`);
+    _log(`  admin:          ${initialAdmin}`);
+    _log(`  upgrader:       ${initialUpgrader}`);
+    _log(`  infra:          ${initialInfra}`);
+    _log(`  paymentManager: ${initialPaymentManager}`);
+    const tx = await noxCompute.write.initializeV3([
+        initialAdmin as `0x${string}`,
+        initialUpgrader as `0x${string}`,
+        initialInfra as `0x${string}`,
+        initialPaymentManager as `0x${string}`,
+    ]);
+    _log(`initializeV3 tx: ${tx}`);
+
     return {
         noxCompute,
     };

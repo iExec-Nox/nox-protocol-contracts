@@ -120,7 +120,7 @@ library TestHelper {
 
         // Deploy a temporary proxy to get its runtime bytecode
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
-        address noxComputeProxyTemp = deployProxy(noxComputeImplementation, owner, kmsKey);
+        address noxComputeProxyTemp = deployProxy(noxComputeImplementation, kmsKey);
 
         // Etch the proxy bytecode at the NoxCompute address resolved by Nox
         vm.etch(noxComputeAddress, noxComputeProxyTemp.code);
@@ -132,7 +132,10 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(noxComputeAddress);
-        noxCompute.initialize(owner, kmsKey);
+        noxCompute.initialize(kmsKey);
+        // `owner` in legacy tests stands for the all-powerful admin. Grant it all four
+        // roles so existing tests keep working without role-specific signers.
+        noxCompute.initializeV3(owner, owner, owner, owner);
         vm.prank(owner);
         noxCompute.setGateway(gateway);
 
@@ -180,10 +183,9 @@ library TestHelper {
 
     function deployProxy(
         address implementation,
-        address owner,
         bytes memory kmsPublicKey
     ) internal returns (address) {
-        bytes memory initData = abi.encodeCall(NoxCompute.initialize, (owner, kmsPublicKey));
+        bytes memory initData = abi.encodeCall(NoxCompute.initialize, (kmsPublicKey));
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
     }
@@ -194,7 +196,7 @@ library TestHelper {
     function newProxyInstance() internal returns (NoxCompute proxy) {
         address implementation = address(new NoxCompute());
         bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
-        address proxyAddress = deployProxy(implementation, address(this), kmsPublicKey);
+        address proxyAddress = deployProxy(implementation, kmsPublicKey);
         proxy = NoxCompute(proxyAddress);
     }
 

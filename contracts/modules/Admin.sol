@@ -2,16 +2,28 @@
 pragma solidity ^0.8.35;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {OwnableUpgradeable} from "@openzeppelin/contracts-upgradeable/access/OwnableUpgradeable.sol";
+import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
 import {Common} from "./Common.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 
 /**
  * @title Admin
- * @notice Configuration of KMS public key, gateway address, and proof expiration.
- * @notice Owner-only functions to set configuration and manage upgrades.
+ * @notice Role-based admin layer for NoxCompute.
+ * @dev Four roles drive privileged actions:
+ *      - DEFAULT_ADMIN_ROLE: grants/revokes other roles (multisig).
+ *      - UPGRADER_ROLE: authorizes UUPS upgrades (`upgradeToAndCall`).
+ *      - INFRA_ROLE: updates infrastructure config (KMS public key, gateway address,
+ *        proof expiration duration).
+ *      - PAYMENT_MANAGER_ROLE: provisions, renews, revokes, and links licenses.
  */
-abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
+abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
+    /// @notice Role allowed to upgrade the proxy implementation.
+    bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
+    /// @notice Role allowed to update infrastructure config (KMS key, gateway, proof expiration).
+    bytes32 public constant INFRA_ROLE = keccak256("INFRA_ROLE");
+    /// @notice Role allowed to manage licenses (provision, renew, revoke, link apps).
+    bytes32 public constant PAYMENT_MANAGER_ROLE = keccak256("PAYMENT_MANAGER_ROLE");
+
     /**
      * @dev Validates the common license inputs: non-zero app, expiration date, and monthly quota.
      */
@@ -24,10 +36,12 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
 
     /**
      * Sets the KMS public key used for ECIES encryption.
-     * Only callable by the owner.
+     * Only callable by an INFRA_ROLE holder.
      * @param newKmsPublicKey Compressed SEC1 secp256k1 public key (33 bytes)
      */
-    function setKmsPublicKey(bytes calldata newKmsPublicKey) external override onlyOwner {
+    function setKmsPublicKey(
+        bytes calldata newKmsPublicKey
+    ) external override onlyRole(INFRA_ROLE) {
         require(newKmsPublicKey.length != 0, InvalidEmptyBytes());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.kmsPublicKey = newKmsPublicKey;
@@ -36,10 +50,10 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
 
     /**
      * Sets Gateway wallet address.
-     * Only callable by the owner.
+     * Only callable by an INFRA_ROLE holder.
      * @param gatewayAddress New Gateway wallet address
      */
-    function setGateway(address gatewayAddress) external override onlyOwner {
+    function setGateway(address gatewayAddress) external override onlyRole(INFRA_ROLE) {
         require(gatewayAddress != address(0), InvalidZeroAddress());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.gateway = gatewayAddress;
@@ -48,49 +62,60 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
 
     /**
      * Sets the proof expiration duration.
-     * Only callable by the owner.
+     * Only callable by an INFRA_ROLE holder.
      * @param newDuration New expiration duration in seconds
      */
-    function setProofExpirationDuration(uint256 newDuration) external override onlyOwner {
+    function setProofExpirationDuration(
+        uint256 newDuration
+    ) external override onlyRole(INFRA_ROLE) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = newDuration;
         emit ProofExpirationDurationUpdated(newDuration);
     }
 
-    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
     function setLicense(
         address app,
         address licenseOwner,
         uint32 expirationDate,
         uint24 monthlyQuota
-    ) external override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
+    )
+        external
+        override
+        onlyRole(PAYMENT_MANAGER_ROLE)
+        validLicenseParams(app, expirationDate, monthlyQuota)
+    {
         require(licenseOwner != address(0), InvalidLicenseOwnerAddress());
         _setLicense(app, licenseOwner, expirationDate, monthlyQuota);
     }
 
-    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
     function renewLicense(
         address app,
         uint32 expirationDate,
         uint24 monthlyQuota
-    ) external override onlyOwner validLicenseParams(app, expirationDate, monthlyQuota) {
+    )
+        external
+        override
+        onlyRole(PAYMENT_MANAGER_ROLE)
+        validLicenseParams(app, expirationDate, monthlyQuota)
+    {
         address licenseOwner = _getNoxComputeStorage().appLicensors[app];
         require(licenseOwner != address(0), LicenseNotFound(app));
         _setLicense(app, licenseOwner, expirationDate, monthlyQuota);
     }
 
-    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
-    function revokeLicense(address app) external override onlyOwner {
+    function revokeLicense(address app) external override onlyRole(PAYMENT_MANAGER_ROLE) {
         require(_getNoxComputeStorage().appLicensors[app] != address(0), LicenseNotFound(app));
         _setLicense(app, address(0), 0, 0);
     }
 
-    // TODO: restrict to PAYMENT_MANAGER_ROLE once AccessControl replaces OwnableUpgradeable.
     /// @inheritdoc INoxCompute
-    function setAppLicense(address app, address licenseOwner) external override onlyOwner {
+    function setAppLicense(
+        address app,
+        address licenseOwner
+    ) external override onlyRole(PAYMENT_MANAGER_ROLE) {
         _setAppLicense(app, licenseOwner);
     }
 
@@ -124,9 +149,11 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * Authorizes contract upgrades only by the owner.
+     * Authorizes contract upgrades only by an UPGRADER_ROLE holder.
      */
-    function _authorizeUpgrade(address /*newImplementation*/) internal override onlyOwner {}
+    function _authorizeUpgrade(
+        address /*newImplementation*/
+    ) internal override onlyRole(UPGRADER_ROLE) {}
 
     /**
      * @notice Internal helper that applies the license mutation.
