@@ -75,6 +75,11 @@ pnpm run test:gas
 
 # Run coverage
 pnpm run coverage
+
+# Fix NodeJS tests that rely on the correct address of NoxCompute
+# in contracts/sdk/Nox.sol with the new proxy address after source
+# code changes.
+pnpm run test:fix
 ```
 
 ## Deployment

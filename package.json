@@ -25,6 +25,7 @@
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
     "test:gas": "pnpm hardhat test solidity --gas-stats",
+    "test:fix": "bash scripts/fix-local-address.sh",
     "coverage": "pnpm hardhat test solidity --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "deploy:production": "pnpm hardhat run scripts/deploy.ts --build-profile production",

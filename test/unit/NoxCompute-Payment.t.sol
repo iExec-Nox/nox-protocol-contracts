@@ -174,7 +174,7 @@ contract NoxCompute_PaymentTest is Test {
 
     // ============ sponsor getter ============
 
-    function test_Sponsor_DefaultUnset() public view {
+    function test_Sponsor_Default() public view {
         _assertSponsorState(app, address(0), INoxCompute.SponsorStatus.UNSET);
     }
 
