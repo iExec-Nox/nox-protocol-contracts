@@ -1,3 +1,5 @@
+#!/usr/bin/env sh
+
 # If any file that affects the NoxCompute bytecode changed, redeploy locally and
 # patch contracts/sdk/Nox.sol with the new proxy address. The script auto-commits
 # the update if Nox.sol was clean before.
