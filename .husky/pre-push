@@ -18,5 +18,5 @@ BYTECODE_CHANGED=$(echo "$CHANGED" | grep -E \
 
 # Only run the fix script if bytecode-affecting files changed
 if [ -n "$BYTECODE_CHANGED" ]; then
-    bash scripts/fix-local-address.sh
+    pnpm run test:fix
 fi
