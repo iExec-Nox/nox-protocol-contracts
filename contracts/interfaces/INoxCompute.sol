@@ -32,10 +32,15 @@ interface INoxCompute {
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
+    //
+    // Sponsorship events
+    //
     event SponsorSet(address app, address sponsor);
     event SponsorshipApproved(address app, address sponsor);
     event SponsorshipRevoked(address app, address sponsor);
-
+    //
+    // Compute events
+    //
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,

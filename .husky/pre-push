@@ -3,26 +3,28 @@
 # If any file that affects the NoxCompute bytecode changed, redeploy locally and
 # patch contracts/sdk/Nox.sol with the new proxy address. The script auto-commits
 # the update if Nox.sol was clean before.
+# A second push is required to include the update if a commit was made.
 
 # Current branch name
 BRANCH=$(git rev-parse --abbrev-ref HEAD)
 
 # Compare against remote branch if it exists, otherwise fall back to main
 if git rev-parse --verify origin/$BRANCH > /dev/null 2>&1; then
-    CHANGED=$(git diff --name-only origin/$BRANCH HEAD)
+    CHANGED_FILES=$(git diff --name-only origin/$BRANCH HEAD)
 else
-    CHANGED=$(git diff --name-only origin/main HEAD)
+    CHANGED_FILES=$(git diff --name-only origin/main HEAD)
 fi
 
-# Filter for files that affect NoxCompute bytecode (|| true: grep exits 1 on no match)
-BYTECODE_CHANGED=$(echo "$CHANGED" | grep -E \
+# Filter for files that affect NoxCompute bytecode.
+# Using `|| true` because grep exits 1 on no match.
+BYTECODE_CHANGED=$(echo "$CHANGED_FILES" | grep -E \
     'contracts/(interfaces|modules|utils)/|contracts/NoxCompute\.sol' || true)
 
 # Only run the fix script if bytecode-affecting files changed
 if [ -n "$BYTECODE_CHANGED" ]; then
     COMMIT_BEFORE=$(git rev-parse HEAD)
     pnpm run test:fix
-    # Warn if a new commit was made — it won't be included in this push
+    # Warn if a new commit was made — it won't be included in the current push
     if [ "$(git rev-parse HEAD)" != "$COMMIT_BEFORE" ]; then
         echo "⚠️  Nox.sol updated and committed — push again to include it."
     fi
