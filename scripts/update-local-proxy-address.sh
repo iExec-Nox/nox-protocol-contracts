@@ -12,7 +12,7 @@ set -euo pipefail
 
 NOX_SOL="contracts/sdk/Nox.sol"
 
-echo "Updating local NoxCompute proxy address in $NOX_SOL"
+echo "Updating local proxy address in $NOX_SOL"
 # Extract old address before deploying
 OLD_ADDRESS=$(sed -n '/block.chainid == 31337/{n;s/.*return \(0x[0-9a-fA-F]\{40\}\).*/\1/p;}' "$NOX_SOL")
 echo "Old proxy address: $OLD_ADDRESS"
