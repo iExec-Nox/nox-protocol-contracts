@@ -5,22 +5,16 @@ import {Common} from "./Common.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 
 /**
- * @title Payment
- * @notice Pay-per-task USDC billing and sponsorship management.
- * @dev Hardcoded pricing constants. No on-chain price setter — price changes require a contract upgrade.
+ * @title Sponsorship
+ * @notice Sponsorship management: an app can declare a sponsor, the sponsor approves or revokes.
+ * Sponsors pay for app operations in USDC if the app has no active license.
  *
- * Sponsorship setup (called by app contracts and sponsors, not by Nox admin):
+ * Setup flow:
  *   app calls setSponsor(sponsorAddr)    → status: PENDING
  *   sponsor calls approveSponsorship(app) → status: APPROVED
  *   sponsor calls revokeSponsorship(app)  → clears sponsor (address(0), UNSET)
  */
-abstract contract Payment is Common {
-    // TODO: set final values before deployment
-    address public constant USDC = address(0);
-    address public constant TREASURY = address(0);
-    uint256 public constant CU_PER_OPERATION = 1;
-    uint256 public constant CU_PRICE_USDC = 0; // e.g. 1e4 = 0.01 USDC (6 decimals)
-
+abstract contract Sponsorship is Common {
     /// @inheritdoc INoxCompute
     function setSponsor(address newSponsor) external override {
         require(newSponsor != address(0), InvalidZeroAddress());
@@ -52,10 +46,6 @@ abstract contract Payment is Common {
     function sponsor(address app) external view override returns (address, SponsorStatus) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         return ($.sponsors[app].sponsor, $.sponsors[app].status);
-    }
-
-    function _processPayment(address /*caller*/, Operator /*operator*/) internal virtual override {
-        // TODO: implement payment logic
     }
 
     /// @dev Always use this to update sponsor state to guarantee both fields stay in sync.

@@ -6,7 +6,7 @@ import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
-contract NoxCompute_PaymentTest is Test {
+contract NoxCompute_SponsorshipTest is Test {
     address owner = makeAddr("owner");
     address gateway = vm.addr(123456789);
     NoxCompute noxCompute;
