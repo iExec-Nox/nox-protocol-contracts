@@ -21,8 +21,8 @@ abstract contract PaymentModule is Common {
     address public constant USDC = address(0);
     address public constant TREASURY = address(0);
     uint24 public constant CU_PRICE_USDC = 0; // e.g. 1e4 = 0.01 USDC (6 decimals)
-
-    // Kill switch: set to 0 to disable payment.
+    // Payment kill switch: set to 0 to disable payment.
+    /// @custom:oz-upgrades-unsafe-allow state-variable-immutable
     uint8 public immutable CU_PER_OPERATION;
 
     constructor(uint8 cuPerOperation) {
