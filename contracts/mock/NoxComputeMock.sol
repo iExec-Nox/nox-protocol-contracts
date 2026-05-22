@@ -8,7 +8,7 @@ import {NoxCompute} from "../../contracts/NoxCompute.sol";
  * @dev Mock NoxCompute contract for testing ACL functionality with helper functions
  */
 contract NoxComputeMock is NoxCompute {
-    constructor(uint8 cuPerOperation) NoxCompute(cuPerOperation) {}
+    constructor() NoxCompute(0) {}
 
     /**
      * @dev Helper function to grant transient access and then persistent access in the same transaction.
