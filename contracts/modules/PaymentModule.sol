@@ -12,7 +12,7 @@ import {Common} from "./Common.sol";
  * Billing priority per operation:
  *   1. App linked to an active license with remaining quota → deduct 1 CU
  *   2. App has an approved sponsor                         → USDC.transferFrom(sponsor, TREASURY, cost)
- *   3. Neither                                             → revert NoPaymentMethod
+ *   3. Neither                                             → revert NoApprovedSponsor
  */
 abstract contract PaymentModule is Common {
     // TODO: set final values before deployment
@@ -31,42 +31,39 @@ abstract contract PaymentModule is Common {
         if (CU_PER_OPERATION == 0) {
             return;
         }
-
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         address licenseOwner = $.appLicensors[caller];
-
-        if (licenseOwner != address(0) && _licenseActive(licenseOwner)) {
-            if (_payWithLicense($.licenses[licenseOwner])) {
-                return;
-            }
+        if (licenseOwner != address(0) && _payWithLicense(licenseOwner)) {
+            return;
         }
-
         _payWithSponsor(caller);
     }
 
-    /// @return true if quota was available and CU was deducted, false if quota exhausted
-    function _payWithLicense(License storage license) private returns (bool) {
-        // TODO: add monthly quota reset once date utilities are available
-        if (license.consumedQuota >= license.monthlyQuota) {
+    /// @return true if license is active and quota was available and CU was deducted, false otherwise
+    function _payWithLicense(address licenseOwner) private returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        License memory license = $.licenses[licenseOwner];
+        if (license.expirationDate <= block.timestamp) {
             return false;
         }
-        // Safe: consumedQuota < monthlyQuota guaranteed by check above
+        // TODO: add monthly quota reset once date utilities are available
+        if (uint48(license.consumedQuota) + CU_PER_OPERATION > license.monthlyQuota) {
+            return false;
+        }
+        // Safe: consumedQuota + CU_PER_OPERATION <= monthlyQuota <= type(uint24).max
         unchecked {
-            license.consumedQuota += CU_PER_OPERATION;
+            $.licenses[licenseOwner].consumedQuota = license.consumedQuota + CU_PER_OPERATION;
         }
         return true;
     }
 
     function _payWithSponsor(address caller) private {
+        if (CU_PRICE_USDC == 0) {
+            return;
+        }
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         Sponsor memory s = $.sponsors[caller];
-        require(s.status == SponsorStatus.APPROVED, NoPaymentMethod(caller));
-        if (CU_PRICE_USDC > 0) {
-            IERC20(USDC).transferFrom(
-                s.sponsor,
-                TREASURY,
-                uint256(CU_PER_OPERATION) * CU_PRICE_USDC
-            );
-        }
+        require(s.status == SponsorStatus.APPROVED, NoApprovedSponsor(caller));
+        IERC20(USDC).transferFrom(s.sponsor, TREASURY, uint256(CU_PER_OPERATION) * CU_PRICE_USDC);
     }
 }

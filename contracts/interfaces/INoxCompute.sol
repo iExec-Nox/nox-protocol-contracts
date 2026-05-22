@@ -43,7 +43,7 @@ interface INoxCompute {
     /// Error thrown when removing an app from a license it isn't currently linked to.
     error AppNotLinkedToLicense(address app, address licenseOwner);
     /// Error thrown when an app has no active payment method (no active license with quota, no approved sponsor).
-    error NoPaymentMethod(address app);
+    error NoApprovedSponsor(address app);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
