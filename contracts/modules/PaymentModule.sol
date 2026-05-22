@@ -6,13 +6,14 @@ import {Common} from "./Common.sol";
 
 /**
  * @title PaymentModule
- * @notice Pay-per-task billing: license-based quota deduction with sponsor USDC fallback.
- * @dev Hardcoded pricing constants. No on-chain price setter — price changes require a contract upgrade.
+ * @notice Billing enforcement for confidential operations.
+ * @dev Pricing constants are hardcoded; changes require a contract upgrade.
+ *      Set CU_PER_OPERATION to 0 to disable billing entirely (e.g. local dev).
  *
  * Billing priority per operation:
- *   1. App linked to an active license with remaining quota → deduct 1 CU
- *   2. App has an approved sponsor                         → USDC.transferFrom(sponsor, TREASURY, cost)
- *   3. Neither                                             → revert NoApprovedSponsor
+ *   1. App linked to an active license with remaining quota → pay with license quota
+ *   2. App has an approved sponsor and CU_PRICE_USDC > 0    → pay with sponsor's USDC
+ *   3. Neither                                              → revert NoApprovedSponsor
  */
 abstract contract PaymentModule is Common {
     // TODO: set final values before deployment
@@ -20,13 +21,18 @@ abstract contract PaymentModule is Common {
     address public constant TREASURY = address(0);
     uint24 public constant CU_PRICE_USDC = 0; // e.g. 1e4 = 0.01 USDC (6 decimals)
 
-    // Kill switch: set to 0 to deactivate payment.
+    // Kill switch: set to 0 to disable payment.
     uint8 public immutable CU_PER_OPERATION;
 
     constructor(uint8 cuPerOperation) {
         CU_PER_OPERATION = cuPerOperation;
     }
 
+    /**
+     * @dev Charges the caller for one operation. No-op if payment is disabled.
+     * Try license payment first, then sponsor payment, and revert if neither is available.
+     * @param caller address of the app calling the compute function
+     */
     function _processPayment(address caller, Operator /*operator*/) internal virtual override {
         if (CU_PER_OPERATION == 0) {
             return;
@@ -39,7 +45,10 @@ abstract contract PaymentModule is Common {
         _payWithSponsor(caller);
     }
 
-    /// @return true if license is active and quota was available and CU was deducted, false otherwise
+    /**
+     * @dev Attempts license payment. Returns true if quota was available and deducted, false otherwise.
+     * @param licenseOwner address of the license owner whose quota should be charged
+     */
     function _payWithLicense(address licenseOwner) private returns (bool) {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         License memory license = $.licenses[licenseOwner];
@@ -57,6 +66,10 @@ abstract contract PaymentModule is Common {
         return true;
     }
 
+    /**
+     * @dev Charges the caller's sponsor in USDC. No-op if price in USDC is 0.
+     * @param caller address of the app calling the compute function
+     */
     function _payWithSponsor(address caller) private {
         if (CU_PRICE_USDC == 0) {
             return;
