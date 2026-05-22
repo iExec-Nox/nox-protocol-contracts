@@ -78,8 +78,9 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         _validateLicenseParams(licenseOwner, expirationDate, monthlyQuota);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         License storage license = $.licenses[licenseOwner];
-        require(expirationDate > license.expirationDate, InvalidExpirationDate());
-        if (license.expirationDate == 0) {
+        uint32 currentExpirationDate = license.expirationDate;
+        require(expirationDate > currentExpirationDate, InvalidExpirationDate());
+        if (currentExpirationDate == 0) {
             // No live entry: initialize all fields just like createLicense.
             // TODO: initialize `quotaLastResetMonth` once date utilities are wired in.
             $.licenses[licenseOwner] = License({
