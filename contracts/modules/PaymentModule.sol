@@ -2,6 +2,7 @@
 pragma solidity ^0.8.35;
 
 import {IERC20} from "@openzeppelin/contracts/token/ERC20/IERC20.sol";
+import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol";
 import {Common} from "./Common.sol";
 
 /**
@@ -17,6 +18,8 @@ import {Common} from "./Common.sol";
  */
 // TODO rename to Payment.
 abstract contract PaymentModule is Common {
+    using SafeERC20 for IERC20;
+
     // TODO: set final values before deployment
     address public constant USDC = address(0);
     address public constant TREASURY = address(0);
@@ -78,6 +81,10 @@ abstract contract PaymentModule is Common {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         Sponsor memory s = $.sponsors[caller];
         require(s.status == SponsorStatus.APPROVED, NoApprovedSponsor(caller));
-        IERC20(USDC).transferFrom(s.sponsor, TREASURY, uint256(CU_PER_OPERATION) * CU_PRICE_USDC);
+        IERC20(USDC).safeTransferFrom(
+            s.sponsor,
+            TREASURY,
+            uint256(CU_PER_OPERATION) * CU_PRICE_USDC
+        );
     }
 }
