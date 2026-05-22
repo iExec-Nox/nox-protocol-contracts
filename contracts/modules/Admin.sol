@@ -56,7 +56,7 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     ) external override onlyOwner {
         _validateLicenseParams(licenseOwner, expirationDate, monthlyQuota);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        require($.licenses[licenseOwner].expirationDate == 0, LicenseAlreadyExists(licenseOwner));
+        require(!_licenseExists(licenseOwner), LicenseAlreadyExists(licenseOwner));
         // TODO: initialize `quotaLastResetMonth` with the current month once on-chain
         // date utilities (e.g. solady DateTimeLib) are wired into the contract.
         $.licenses[licenseOwner] = License({
@@ -78,9 +78,8 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         _validateLicenseParams(licenseOwner, expirationDate, monthlyQuota);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         License storage license = $.licenses[licenseOwner];
-        uint32 currentExpirationDate = license.expirationDate;
-        require(expirationDate > currentExpirationDate, InvalidExpirationDate());
-        if (currentExpirationDate == 0) {
+        require(expirationDate > license.expirationDate, InvalidExpirationDate());
+        if (!_licenseExists(licenseOwner)) {
             // No live entry: initialize all fields just like createLicense.
             // TODO: initialize `quotaLastResetMonth` once date utilities are wired in.
             $.licenses[licenseOwner] = License({
@@ -103,7 +102,7 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     /// @inheritdoc INoxCompute
     function revokeLicense(address licenseOwner) external override onlyOwner {
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        require($.licenses[licenseOwner].expirationDate != 0, LicenseNotFound(licenseOwner));
+        require(_licenseExists(licenseOwner), LicenseNotFound(licenseOwner));
         delete $.licenses[licenseOwner];
         emit LicenseRevoked(licenseOwner);
     }
@@ -188,6 +187,16 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
         require(owner != address(0), InvalidZeroAddress());
         require(expirationDate > block.timestamp, InvalidExpirationDate());
         require(monthlyQuota != 0, InvalidMonthlyQuota());
+    }
+
+    /**
+     * @dev Returns true if a license record exists for `licenseOwner` (expirationDate != 0).
+     * When called after already reading the license slot (e.g. in renewLicense), the second
+     * SLOAD hits a warm slot (100 gas); acceptable for an onlyOwner admin function.
+     */
+    function _licenseExists(address licenseOwner) private view returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.licenses[licenseOwner].expirationDate != 0;
     }
 
     /**
