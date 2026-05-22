@@ -15,6 +15,7 @@ import {Common} from "./Common.sol";
  *   2. App has an approved sponsor and CU_PRICE_USDC > 0    → pay with sponsor's USDC
  *   3. Neither                                              → revert NoApprovedSponsor
  */
+// TODO rename to Payment.
 abstract contract PaymentModule is Common {
     // TODO: set final values before deployment
     address public constant USDC = address(0);
