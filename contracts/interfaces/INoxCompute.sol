@@ -8,6 +8,14 @@ import {TEEType} from "../utils/TypeUtils.sol";
  * @notice Interface for the Nox compute contract powered by TEE.
  */
 interface INoxCompute {
+    /// @notice On-chain representation of a license. Fits in a single 32-byte slot.
+    struct License {
+        uint32 expirationDate; // unix timestamp, 0 = no license
+        uint16 quotaLastResetMonth; // year * 12 + month, for lazy monthly reset
+        uint24 monthlyQuota; // CU cap per month
+        uint24 consumedQuota; // resets lazily at call time
+    }
+
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
     /// Error thrown when bytes parameter is empty
@@ -22,6 +30,18 @@ interface INoxCompute {
     error PublicHandleACLForbidden();
     /// Error thrown when an operand is bytes32(0), indicating an undefined handle
     error UndefinedHandle();
+    /// Error thrown when attempting to revoke a license that does not exist.
+    error LicenseNotFound(address licenseOwner);
+    /// Error thrown when attempting to create a license for an owner that already has one.
+    error LicenseAlreadyExists(address licenseOwner);
+    /// Error thrown when attempting to provision a license with an invalid expiration date (<= current timestamp).
+    error InvalidExpirationDate();
+    /// Error thrown when the monthly quota provided is zero.
+    error InvalidMonthlyQuota();
+    /// Error thrown when trying to link an app to a license owner whose license is not found or expired.
+    error LicenseNotActive(address licenseOwner);
+    /// Error thrown when removing an app from a license it isn't currently linked to.
+    error AppNotLinkedToLicense(address app, address licenseOwner);
 
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
@@ -29,11 +49,22 @@ interface INoxCompute {
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
+    //
+    // Protocol config events
+    //
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
     //
-    // Sponsorship events
+    // License management events
+    //
+    /// Emitted when a license is created or renewed.
+    event LicenseSet(address licenseOwner, uint32 expirationDate, uint24 monthlyQuota);
+    event LicenseRevoked(address licenseOwner);
+    event AppLinkedToLicense(address app, address licenseOwner);
+    event AppUnlinkedFromLicense(address app, address licenseOwner);
+    //
+    // Sponsorship management events
     //
     event SponsorSet(address app, address sponsor);
     event SponsorshipApproved(address app, address sponsor);
@@ -608,19 +639,93 @@ interface INoxCompute {
     function sponsor(address app) external view returns (address sponsor, SponsorStatus status);
 
     /**
-     * @notice Provisions or revokes a license for an app.
-     * Set expirationDate=0 and monthlyQuota=0 to revoke.
-     * @param app App contract address
-     * @param licenseOwner Address that holds the license (one license per owner, shared across apps)
-     * @param expirationDate Unix timestamp of license expiry
-     * @param monthlyQuota Max CU per month
+     * @notice Creates a license for a given owner. Reverts if a license already exists.
+     * License creation does not link any app yet; use `linkAppToLicense` for that.
+     * @param licenseOwner License owner address
+     * @param expirationDate Unix timestamp of license expiry (must be in the future)
+     * @param monthlyQuota Max CU per month (must be non-zero)
      */
-    function setLicense(
-        address app,
+    function createLicense(
         address licenseOwner,
         uint32 expirationDate,
         uint24 monthlyQuota
     ) external;
+
+    /**
+     * @notice Renews an existing or previously revoked license for a given owner.
+     * - If a license exists (`expirationDate > 0`): only `expirationDate` and `monthlyQuota`
+     *   are updated. `consumedQuota` and `quotaLastResetMonth` carry over; the new monthly
+     *   quota only applies starting at the next monthly reset.
+     * - If no license exists: behaves like `createLicense` (initializes all fields).
+     * The new `expirationDate` must be strictly greater than the current one (which is 0
+     * for a revoked license).
+     * @param licenseOwner License owner address
+     * @param expirationDate New unix timestamp of license expiry (> current expirationDate)
+     * @param monthlyQuota New max CU per month (must be non-zero, applies next month)
+     */
+    function renewLicense(
+        address licenseOwner,
+        uint32 expirationDate,
+        uint24 monthlyQuota
+    ) external;
+
+    /**
+     * @notice Revokes an existing license. Reverts if no license exists.
+     * The owner immediately loses licensed access and falls back to pay-per-task on the next
+     * call for all of their apps.
+     * @param licenseOwner License owner address
+     */
+    function revokeLicense(address licenseOwner) external;
+
+    /**
+     * @notice Admin-side: link an app to an existing license owner.
+     * Used to delegate this config to Nox admin.
+     * The licenseOwner must hold an active license.
+     * @param app App contract address
+     * @param licenseOwner License owner address
+     */
+    function linkAppToLicense(address app, address licenseOwner) external;
+
+    /**
+     * @notice License-owner self-service: link an app to the caller's license.
+     * The caller must hold an active license; this implicitly enforces that msg.sender
+     * is the license owner.
+     * @param app App contract address
+     */
+    function linkAppToLicense(address app) external;
+
+    /**
+     * @notice Admin-side: unlink an app from a license. Reverts if the app is not
+     * currently linked to that owner.
+     * Used to delegate this config to Nox admin.
+     * @param app App contract address
+     * @param licenseOwner Address that currently holds the link
+     */
+    function unlinkAppFromLicense(address app, address licenseOwner) external;
+
+    /**
+     * @notice License-owner self-service: unlink an app from the caller's license.
+     * Reverts if the app is not currently linked to the caller.
+     * @param app App contract address
+     */
+    function unlinkAppFromLicense(address app) external;
+
+    /**
+     * @notice Returns the License entry for a given owner. Returns a zero-filled struct
+     * if no license has been provisioned for the owner.
+     * @param licenseOwner License owner address
+     */
+    function license(address licenseOwner) external view returns (License memory);
+
+    /**
+     * @notice Returns the license-owner currently linked to `app` together with that
+     * owner's License entry. Returns `(address(0), zero-filled License)` if no link
+     * exists.
+     * @param app App contract address
+     */
+    function appLicense(
+        address app
+    ) external view returns (address licenseOwner, License memory licenseEntry);
 
     // ------------- Admin functions -------------
 
