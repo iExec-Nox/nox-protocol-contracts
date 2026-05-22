@@ -26,6 +26,7 @@ export async function deploy(printLogs = true) {
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Chain config:`, chainConfig);
     // Deploy NoxCompute.
+    // TODO read env variables in config.ts and validate config them there and use config.get().
     // KMS_PUBLIC_KEY env var takes precedence, then falls back to the config value.
     const kmsPublicKey = process.env.KMS_PUBLIC_KEY ?? chainConfig.kmsPublicKey;
     if (!kmsPublicKey) {
@@ -36,6 +37,9 @@ export async function deploy(printLogs = true) {
     if (!initialOwner) {
         throw new Error("INITIAL_OWNER environment variable is required");
     }
+    // CU_PER_OPERATION env var takes precedence, then falls back to the config value.
+    const cuPerOperation =
+        process.env.CU_PER_OPERATION !== undefined ? Number(process.env.CU_PER_OPERATION) : chainConfig.cuPerOperation;
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
@@ -44,6 +48,7 @@ export async function deploy(printLogs = true) {
             NoxCompute: {
                 initialOwner,
                 kmsPublicKey,
+                cuPerOperation,
             },
         },
     });
@@ -54,7 +59,10 @@ export async function deploy(printLogs = true) {
     // Doing it here (right after deploy) ensures the manifest references the correct implementation.
     const api = await upgrades(hre, connection);
     const noxComputeFactory = await connection.ethers.getContractFactory("NoxCompute");
-    await api.forceImport(noxComputeProxy.address, noxComputeFactory, { kind: "uups" });
+    await api.forceImport(noxComputeProxy.address, noxComputeFactory, {
+        kind: "uups",
+        constructorArgs: [cuPerOperation],
+    });
 
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);

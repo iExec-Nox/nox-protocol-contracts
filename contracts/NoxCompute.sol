@@ -21,7 +21,7 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, PaymentModule {
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
-    constructor() EIP712("NoxCompute", "1") {
+    constructor(uint24 cuPerOperation) EIP712("NoxCompute", "1") PaymentModule(cuPerOperation) {
         _disableInitializers();
     }
 
