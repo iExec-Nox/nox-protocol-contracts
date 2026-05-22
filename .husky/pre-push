@@ -25,7 +25,10 @@ if [ -n "$BYTECODE_CHANGED" ]; then
     pnpm run update-local-proxy-address
     # Abort push so the fix commit is included — user must push again
     if [ "$(git rev-parse HEAD)" != "$COMMIT_BEFORE" ]; then
-        echo "⚠️  Nox.sol updated and committed — run git push again to include it."
+        echo " ====================================="
+        echo "| ⚠️  Proxy address updated in Nox.sol |"
+        echo "|    Run git push again               |"
+        echo " ====================================="
         exit 1
     fi
 fi
