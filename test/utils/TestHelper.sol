@@ -189,10 +189,21 @@ library TestHelper {
     }
 
     /**
-     * Deploys a new random proxy instance of NoxCompute.
+     * Deploy a new instance of the NoxCompute implementation contract with payment disabled.
+     */
+    function newImplementationInstance() internal returns (NoxCompute) {
+        return new NoxCompute(0);
+    }
+
+    function newImplementationInstance(uint24 cuPerOperation) internal returns (NoxCompute) {
+        return new NoxCompute(cuPerOperation);
+    }
+
+    /**
+     * Deploys a new random proxy instance of NoxCompute with payment disabled.
      */
     function newProxyInstance() internal returns (NoxCompute proxy) {
-        address implementation = address(new NoxCompute());
+        address implementation = address(newImplementationInstance());
         bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
         address proxyAddress = deployProxy(implementation, address(this), kmsPublicKey);
         proxy = NoxCompute(proxyAddress);
