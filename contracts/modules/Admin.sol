@@ -77,8 +77,8 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     ) external override onlyOwner {
         _validateLicenseParams(licenseOwner, expirationDate, monthlyQuota);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        License storage license = $.licenses[licenseOwner];
-        require(expirationDate > license.expirationDate, InvalidExpirationDate());
+        License memory currentLicense = $.licenses[licenseOwner];
+        require(expirationDate > currentLicense.expirationDate, InvalidExpirationDate());
         if (!_licenseExists(licenseOwner)) {
             // No live entry: initialize all fields just like createLicense.
             // TODO: initialize `quotaLastResetMonth` once date utilities are wired in.
@@ -92,8 +92,12 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
             // Existing entry: only refresh expiration and monthly quota. consumedQuota and
             // quotaLastResetMonth carry over; the new monthlyQuota applies starting at next
             // month's lazy reset.
-            license.expirationDate = expirationDate;
-            license.monthlyQuota = monthlyQuota;
+            $.licenses[licenseOwner] = License({
+                expirationDate: expirationDate,
+                quotaLastResetMonth: currentLicense.quotaLastResetMonth,
+                monthlyQuota: monthlyQuota,
+                consumedQuota: currentLicense.consumedQuota
+            });
         }
         emit LicenseSet(licenseOwner, expirationDate, monthlyQuota);
     }
