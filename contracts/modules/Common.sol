@@ -63,6 +63,6 @@ abstract contract Common is INoxCompute {
         bytes32[] memory handles
     ) internal view virtual;
 
-    // Implemented by Payment, called by Compute.
+    // Implemented by PaymentModule, called by Compute.
     function _processPayment(address caller, Operator operator) internal virtual;
 }

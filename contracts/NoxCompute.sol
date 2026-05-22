@@ -19,9 +19,11 @@ import {PaymentModule} from "./modules/PaymentModule.sol";
  */
 contract NoxCompute is Admin, ACL, Compute, Sponsorship, PaymentModule {
     /**
+     * @dev Set cuPerOperation to 0 to disable payment.
+     * @param cuPerOperation Number of Compute Units (CU) to charge per operation.
      * @custom:oz-upgrades-unsafe-allow constructor
      */
-    constructor(uint24 cuPerOperation) EIP712("NoxCompute", "1") PaymentModule(cuPerOperation) {
+    constructor(uint8 cuPerOperation) EIP712("NoxCompute", "1") PaymentModule(cuPerOperation) {
         _disableInitializers();
     }
 

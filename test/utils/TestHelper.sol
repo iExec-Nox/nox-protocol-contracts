@@ -120,7 +120,7 @@ library TestHelper {
     function deploy(
         address owner,
         address gateway,
-        uint24 cuPerOperation
+        uint8 cuPerOperation
     ) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
         address noxComputeAddress = Nox.noxComputeContract();
@@ -204,7 +204,7 @@ library TestHelper {
         return new NoxCompute(0);
     }
 
-    function newImplementationInstance(uint24 cuPerOperation) internal returns (NoxCompute) {
+    function newImplementationInstance(uint8 cuPerOperation) internal returns (NoxCompute) {
         return new NoxCompute(cuPerOperation);
     }
 
