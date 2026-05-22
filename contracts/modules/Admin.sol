@@ -161,7 +161,8 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
 
     /// @inheritdoc INoxCompute
     function license(address licenseOwner) external view override returns (License memory) {
-        return _getNoxComputeStorage().licenses[licenseOwner];
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.licenses[licenseOwner];
     }
 
     /// @inheritdoc INoxCompute
@@ -204,19 +205,24 @@ abstract contract Admin is Common, OwnableUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @dev Returns true if `licenseOwner` holds a non-expired license.
+     * Covers both the not-found case (expirationDate == 0) and the expired case.
+     */
+    function _licenseActive(address licenseOwner) private view returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.licenses[licenseOwner].expirationDate > block.timestamp;
+    }
+
+    /**
      * @notice Internal helper that links an app to a license owner. The owner must
-     * hold an active license (non-expired, non-zero monthly quota). Emits AppLinkedToLicense.
+     * hold an active license (non-expired).
+     * Emits AppLinkedToLicense.
      */
     function _linkAppToLicense(address app, address licenseOwner) private {
         require(app != address(0), InvalidZeroAddress());
         require(licenseOwner != address(0), InvalidZeroAddress());
+        require(_licenseActive(licenseOwner), LicenseNotActive(licenseOwner));
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        // Memory copy: we read multiple fields and never write to the License here.
-        License memory licenseEntry = $.licenses[licenseOwner];
-        require(
-            licenseEntry.expirationDate > block.timestamp && licenseEntry.monthlyQuota > 0,
-            LicenseOwnerHasNoLicense(licenseOwner)
-        );
         $.appLicensors[app] = licenseOwner;
         emit AppLinkedToLicense(app, licenseOwner);
     }

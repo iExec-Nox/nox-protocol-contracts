@@ -38,8 +38,8 @@ interface INoxCompute {
     error InvalidExpirationDate();
     /// Error thrown when the monthly quota provided is zero.
     error InvalidMonthlyQuota();
-    /// Error thrown when trying to link an app to a license owner that has no active license.
-    error LicenseOwnerHasNoLicense(address licenseOwner);
+    /// Error thrown when trying to link an app to a license owner whose license is not found or expired.
+    error LicenseNotActive(address licenseOwner);
     /// Error thrown when removing an app from a license it isn't currently linked to.
     error AppNotLinkedToLicense(address app, address licenseOwner);
 

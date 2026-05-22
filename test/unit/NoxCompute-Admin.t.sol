@@ -298,10 +298,10 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.linkAppToLicense(app, address(0));
     }
 
-    function test_RevertWhen_LinkAppToLicense_AsAdmin_LicenseOwnerHasNoLicense() public {
+    function test_RevertWhen_LinkAppToLicense_AsAdmin_LicenseNotActive() public {
         address unknownOwner = makeAddr("unknownOwner");
         vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.LicenseOwnerHasNoLicense.selector, unknownOwner)
+            abi.encodeWithSelector(INoxCompute.LicenseNotActive.selector, unknownOwner)
         );
         vm.prank(owner);
         noxCompute.linkAppToLicense(app, unknownOwner);
@@ -331,10 +331,7 @@ contract NoxCompute_AdminTest is Test {
     function test_RevertWhen_LinkAppToLicense_LicenseOwner_CallerHasNoLicense() public {
         address callerWithoutLicense = makeAddr("noLicense");
         vm.expectRevert(
-            abi.encodeWithSelector(
-                INoxCompute.LicenseOwnerHasNoLicense.selector,
-                callerWithoutLicense
-            )
+            abi.encodeWithSelector(INoxCompute.LicenseNotActive.selector, callerWithoutLicense)
         );
         vm.prank(callerWithoutLicense);
         noxCompute.linkAppToLicense(app);
