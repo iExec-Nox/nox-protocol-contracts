@@ -30,7 +30,7 @@ describe("[IT] Upgrade", function () {
             const { noxCompute, wallet1 } = await loadFixture();
             const viem = connection.viem;
 
-            const newImpl = await viem.deployContract("NoxComputeV2Mock", []);
+            const newImpl = await viem.deployContract("NoxComputeV2Mock", [0]);
 
             await assert.rejects(
                 noxCompute.write.upgradeToAndCall([newImpl.address, "0x"], { account: wallet1.account }),

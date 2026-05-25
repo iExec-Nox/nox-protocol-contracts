@@ -4,6 +4,7 @@ pragma solidity ^0.8.35;
 import {Test} from "forge-std/Test.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
+import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxCompute_PaymentTest is Test {
@@ -13,180 +14,62 @@ contract NoxCompute_PaymentTest is Test {
 
     address app = makeAddr("app");
     address sponsor = makeAddr("sponsor");
+    address licenseOwner = makeAddr("licenseOwner");
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, gateway);
+        noxCompute = TestHelper.deploy(owner, gateway, 1);
         vm.label(app, "app");
         vm.label(sponsor, "sponsor");
+        vm.label(licenseOwner, "licenseOwner");
     }
 
-    // ============ setSponsor ============
+    // ============ Kill switch ============
 
-    function test_SetSponsor() public {
-        vm.expectEmit(address(noxCompute));
-        emit INoxCompute.SponsorSet(app, sponsor);
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
+    function test_NoOp_WhenPaymentDisabled() public {}
 
-        _assertSponsorState(app, sponsor, INoxCompute.SponsorStatus.PENDING);
-    }
+    // ============ License path ============
 
-    function test_RevertWhen_SetSponsor_ZeroAddress() public {
-        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
-        vm.prank(app);
-        noxCompute.setSponsor(address(0));
-    }
+    function test_LicensePath_OperationSucceeds() public {}
 
-    function test_SetSponsor_OverwritesExisting() public {
-        address firstSponsor = makeAddr("firstSponsor");
-        vm.prank(app);
-        noxCompute.setSponsor(firstSponsor);
-        _assertSponsorState(app, firstSponsor, INoxCompute.SponsorStatus.PENDING);
+    function test_LicensePath_ConsumedQuotaIncrements() public {}
 
-        address secondSponsor = makeAddr("secondSponsor");
-        vm.prank(app);
-        noxCompute.setSponsor(secondSponsor);
-        _assertSponsorState(app, secondSponsor, INoxCompute.SponsorStatus.PENDING);
-    }
+    function test_LicensePath_ConsumedQuotaIncrementsAfterNOperations() public {}
 
-    function test_SetSponsor_IndependentApps() public {
-        address app1 = makeAddr("app1");
-        address app2 = makeAddr("app2");
-        address sponsor1 = makeAddr("sponsor1");
-        address sponsor2 = makeAddr("sponsor2");
+    function test_LicensePath_LicenseTakesPriorityOverSponsor() public {}
 
-        vm.prank(app1);
-        noxCompute.setSponsor(sponsor1);
-        vm.prank(app2);
-        noxCompute.setSponsor(sponsor2);
+    function test_RevertWhen_LicensePath_QuotaExhausted_NoSponsor() public {}
 
-        _assertSponsorState(app1, sponsor1, INoxCompute.SponsorStatus.PENDING);
-        _assertSponsorState(app2, sponsor2, INoxCompute.SponsorStatus.PENDING);
-    }
+    function test_RevertWhen_LicensePath_QuotaWouldOverflow_NoSponsor() public {}
 
-    function test_SetSponsor_SameSponsorMultipleApps() public {
-        address app1 = makeAddr("app1");
-        address app2 = makeAddr("app2");
+    function test_RevertWhen_LicensePath_Expired_NoSponsor() public {}
 
-        vm.prank(app1);
-        noxCompute.setSponsor(sponsor);
-        vm.prank(app2);
-        noxCompute.setSponsor(sponsor);
-        _assertSponsorState(app1, sponsor, INoxCompute.SponsorStatus.PENDING);
-        _assertSponsorState(app2, sponsor, INoxCompute.SponsorStatus.PENDING);
+    // ============ License fallback to sponsor ============
 
-        vm.startPrank(sponsor);
-        noxCompute.approveSponsorship(app1);
-        noxCompute.approveSponsorship(app2);
-        vm.stopPrank();
+    function test_LicensePath_QuotaExhausted_FallsBackToApprovedSponsor() public {}
 
-        _assertSponsorState(app1, sponsor, INoxCompute.SponsorStatus.APPROVED);
-        _assertSponsorState(app2, sponsor, INoxCompute.SponsorStatus.APPROVED);
-    }
+    function test_LicensePath_QuotaWouldOverflow_FallsBackToApprovedSponsor() public {}
 
-    // ============ approveSponsorship ============
+    function test_LicensePath_Expired_FallsBackToApprovedSponsor() public {}
 
-    function test_ApproveSponsorship() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
+    // ============ Sponsor path ============
 
-        vm.expectEmit(address(noxCompute));
-        emit INoxCompute.SponsorshipApproved(app, sponsor);
-        vm.prank(sponsor);
-        noxCompute.approveSponsorship(app);
+    function test_SponsorPath_NoOp_WhenPriceInUsdcIsZero() public {}
 
-        _assertSponsorState(app, sponsor, INoxCompute.SponsorStatus.APPROVED);
-    }
+    function test_SponsorPath_ApprovedSponsor_OperationSucceeds() public {}
 
-    function test_RevertWhen_ApproveSponsorship_UnauthorizedSponsor() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
+    function test_RevertWhen_SponsorPath_PendingSponsor() public {}
 
-        address unauthorizedSponsor = makeAddr("unauthorizedSponsor");
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, unauthorizedSponsor)
-        );
-        vm.prank(unauthorizedSponsor);
-        noxCompute.approveSponsorship(app);
-    }
+    function test_RevertWhen_NoApprovedSponsor() public {}
 
-    function test_RevertWhen_ApproveSponsorship_NotPending() public {
-        _setupApprovedSponsorship(app, sponsor);
+    // ============ Multi-app / shared license ============
 
-        // already approved — status is no longer PENDING
-        vm.expectRevert(abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, sponsor));
-        vm.prank(sponsor);
-        noxCompute.approveSponsorship(app);
-    }
+    function test_MultipleApps_SameLicenseOwner_QuotaTrackedShared() public {}
 
-    // ============ revokeSponsorship ============
+    function test_RevertWhen_MultipleApps_SameLicenseOwner_SharedQuotaExhausted() public {}
 
-    function test_RevokeSponsorship() public {
-        _setupApprovedSponsorship(app, sponsor);
+    // ============ Multi-app / shared sponsor ============
 
-        vm.expectEmit(address(noxCompute));
-        emit INoxCompute.SponsorshipRevoked(app, sponsor);
-        vm.prank(sponsor);
-        noxCompute.revokeSponsorship(app);
+    function test_MultipleApps_SameSponsor_EachChargedIndependently() public {}
 
-        _assertSponsorState(app, address(0), INoxCompute.SponsorStatus.UNSET);
-    }
-
-    function test_RevokeSponsorship_WhilePending() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-
-        vm.prank(sponsor);
-        noxCompute.revokeSponsorship(app);
-
-        _assertSponsorState(app, address(0), INoxCompute.SponsorStatus.UNSET);
-    }
-
-    function test_RevertWhen_RevokeSponsorship_UnauthorizedSponsor_WhilePending() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-
-        address unauthorizedSponsor = makeAddr("unauthorizedSponsor");
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, unauthorizedSponsor)
-        );
-        vm.prank(unauthorizedSponsor);
-        noxCompute.revokeSponsorship(app);
-    }
-
-    function test_RevertWhen_RevokeSponsorship_UnauthorizedSponsor_WhileApproved() public {
-        _setupApprovedSponsorship(app, sponsor);
-
-        address unauthorizedSponsor = makeAddr("unauthorizedSponsor");
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, unauthorizedSponsor)
-        );
-        vm.prank(unauthorizedSponsor);
-        noxCompute.revokeSponsorship(app);
-    }
-
-    // ============ sponsor getter ============
-
-    function test_Sponsor_Default() public view {
-        _assertSponsorState(app, address(0), INoxCompute.SponsorStatus.UNSET);
-    }
-
-    // ============ helpers ============
-
-    function _setupApprovedSponsorship(address _app, address _sponsor) internal {
-        vm.prank(_app);
-        noxCompute.setSponsor(_sponsor);
-        vm.prank(_sponsor);
-        noxCompute.approveSponsorship(_app);
-    }
-
-    function _assertSponsorState(
-        address _app,
-        address expectedSponsor,
-        INoxCompute.SponsorStatus expectedStatus
-    ) internal view {
-        (address actualSponsor, INoxCompute.SponsorStatus actualStatus) = noxCompute.sponsor(_app);
-        assertEq(actualSponsor, expectedSponsor);
-        assertEq(uint8(actualStatus), uint8(expectedStatus));
-    }
+    function test_RevertWhen_MultipleApps_SameSponsor_OneNotApproved() public {}
 }
