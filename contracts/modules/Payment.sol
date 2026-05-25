@@ -6,7 +6,7 @@ import {SafeERC20} from "@openzeppelin/contracts/token/ERC20/utils/SafeERC20.sol
 import {Common} from "./Common.sol";
 
 /**
- * @title PaymentModule
+ * @title Payment
  * @notice Billing enforcement for confidential operations.
  * @dev Pricing constants are hardcoded; changes require a contract upgrade.
  *      Set CU_PER_OPERATION to 0 to disable billing entirely (e.g. local dev).
@@ -16,8 +16,7 @@ import {Common} from "./Common.sol";
  *   2. App has an approved sponsor and CU_PRICE_USDC > 0    → pay with sponsor's USDC
  *   3. Neither                                              → revert NoApprovedSponsor
  */
-// TODO rename to Payment.
-abstract contract PaymentModule is Common {
+abstract contract Payment is Common {
     using SafeERC20 for IERC20;
 
     // TODO: set final values before deployment

@@ -6,7 +6,7 @@ import {Admin} from "./modules/Admin.sol";
 import {ACL} from "./modules/ACL.sol";
 import {Compute} from "./modules/Compute.sol";
 import {Sponsorship} from "./modules/Sponsorship.sol";
-import {PaymentModule} from "./modules/PaymentModule.sol";
+import {Payment} from "./modules/Payment.sol";
 
 /**
  * @title NoxCompute
@@ -17,13 +17,13 @@ import {PaymentModule} from "./modules/PaymentModule.sol";
  * - Wrapping plaintext values into public handles
  * - Triggering off-chain TEE computations through event emissions
  */
-contract NoxCompute is Admin, ACL, Compute, Sponsorship, PaymentModule {
+contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
     /**
      * @dev Set cuPerOperation to 0 to disable payment.
      * @param cuPerOperation Number of Compute Units (CU) to charge per operation.
      * @custom:oz-upgrades-unsafe-allow constructor
      */
-    constructor(uint8 cuPerOperation) EIP712("NoxCompute", "1") PaymentModule(cuPerOperation) {
+    constructor(uint8 cuPerOperation) EIP712("NoxCompute", "1") Payment(cuPerOperation) {
         _disableInitializers();
     }
 
