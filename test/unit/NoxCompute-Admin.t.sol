@@ -15,13 +15,14 @@ contract NoxCompute_AdminTest is Test {
     address app = makeAddr("app");
     address licenseOwner = makeAddr("licenseOwner");
     uint24 constant DEFAULT_QUOTA = 1000;
-    uint32 constant DEFAULT_EXPIRATION_OFFSET = 30 days;
+    uint32 DEFAULT_EXPIRATION_DATE;
     NoxCompute noxCompute;
 
     function setUp() public {
         noxCompute = TestHelper.deploy(owner, gateway);
         vm.label(app, "app");
         vm.label(licenseOwner, "licenseOwner");
+        DEFAULT_EXPIRATION_DATE = uint32(block.timestamp + 30 days);
     }
 
     // ============ setKmsPublicKey ============
@@ -100,34 +101,57 @@ contract NoxCompute_AdminTest is Test {
     // ============ createLicense ============
 
     function test_CreateLicense() public {
-        uint32 expirationDate = uint32(block.timestamp + 365 days);
-        uint24 monthlyQuota = 1_000_000;
-
         vm.prank(owner);
-        vm.expectEmit();
-        emit INoxCompute.LicenseSet(licenseOwner, expirationDate, monthlyQuota);
-        noxCompute.createLicense(licenseOwner, expirationDate, monthlyQuota);
+        vm.expectEmit(address(noxCompute));
+        emit INoxCompute.LicenseSet(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
+
+        // Storage assertion via the new getter.
+        INoxCompute.License memory entry = noxCompute.license(licenseOwner);
+        assertEq(entry.expirationDate, DEFAULT_EXPIRATION_DATE);
+        assertEq(entry.monthlyQuota, DEFAULT_QUOTA);
+        assertEq(entry.consumedQuota, 0);
+        assertEq(entry.quotaLastResetMonth, 0);
+    }
+
+    function test_CreateLicense_TwoDifferentOwnersGetIndependentLicenses() public {
+        address otherOwner = makeAddr("otherOwner");
+        uint24 otherQuota = 2000;
+        uint32 otherExpiration = uint32(block.timestamp + 60 days);
+
+        vm.startPrank(owner);
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
+        noxCompute.createLicense(otherOwner, otherExpiration, otherQuota);
+        vm.stopPrank();
+
+        INoxCompute.License memory a = noxCompute.license(licenseOwner);
+        INoxCompute.License memory b = noxCompute.license(otherOwner);
+        assertEq(a.expirationDate, DEFAULT_EXPIRATION_DATE);
+        assertEq(a.monthlyQuota, DEFAULT_QUOTA);
+        assertEq(b.expirationDate, otherExpiration);
+        assertEq(b.monthlyQuota, otherQuota);
+    }
+
+    function test_RevertWhen_CreateLicense_AlreadyExists() public {
+        _provisionDefaultLicense();
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.LicenseAlreadyExists.selector, licenseOwner)
+        );
+        vm.prank(owner);
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     function test_RevertWhen_CreateLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
-        noxCompute.createLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     function test_RevertWhen_CreateLicense_ZeroOwner() public {
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(owner);
-        noxCompute.createLicense(
-            address(0),
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.createLicense(address(0), DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     function test_RevertWhen_CreateLicense_PastExpirationDate() public {
@@ -139,11 +163,7 @@ contract NoxCompute_AdminTest is Test {
     function test_RevertWhen_CreateLicense_ZeroMonthlyQuota() public {
         vm.expectRevert(INoxCompute.InvalidMonthlyQuota.selector);
         vm.prank(owner);
-        noxCompute.createLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            0
-        );
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, 0);
     }
 
     // ============ renewLicense ============
@@ -154,9 +174,13 @@ contract NoxCompute_AdminTest is Test {
         uint32 newExpiration = uint32(block.timestamp + 365 days);
         uint24 newQuota = 5000;
         vm.prank(owner);
-        vm.expectEmit();
+        vm.expectEmit(address(noxCompute));
         emit INoxCompute.LicenseSet(licenseOwner, newExpiration, newQuota);
         noxCompute.renewLicense(licenseOwner, newExpiration, newQuota);
+
+        INoxCompute.License memory entry = noxCompute.license(licenseOwner);
+        assertEq(entry.expirationDate, newExpiration);
+        assertEq(entry.monthlyQuota, newQuota);
     }
 
     function test_RenewLicense_OnRevokedLicense() public {
@@ -165,23 +189,24 @@ contract NoxCompute_AdminTest is Test {
         vm.prank(owner);
         noxCompute.revokeLicense(licenseOwner);
 
-        // Renewing a revoked license should work without any existence check.
+        // Renewing a revoked license behaves like createLicense: initializes all fields.
         uint32 newExpiration = uint32(block.timestamp + 365 days);
         vm.prank(owner);
-        vm.expectEmit();
+        vm.expectEmit(address(noxCompute));
         emit INoxCompute.LicenseSet(licenseOwner, newExpiration, DEFAULT_QUOTA);
         noxCompute.renewLicense(licenseOwner, newExpiration, DEFAULT_QUOTA);
+
+        INoxCompute.License memory entry = noxCompute.license(licenseOwner);
+        assertEq(entry.expirationDate, newExpiration);
+        assertEq(entry.monthlyQuota, DEFAULT_QUOTA);
+        assertEq(entry.consumedQuota, 0);
     }
 
     function test_RevertWhen_RenewLicense_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
-        noxCompute.renewLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.renewLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     function test_RevertWhen_RenewLicense_PastExpirationDate() public {
@@ -199,16 +224,11 @@ contract NoxCompute_AdminTest is Test {
     }
 
     function test_RevertWhen_RenewLicense_ExpirationNotAfterOld() public {
-        // Default license expires at block.timestamp + DEFAULT_EXPIRATION_OFFSET (30 days).
         _provisionDefaultLicense();
         // Trying to renew with the same expiration must revert (not strictly greater).
         vm.expectRevert(INoxCompute.InvalidExpirationDate.selector);
         vm.prank(owner);
-        noxCompute.renewLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.renewLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     // ============ revokeLicense ============
@@ -217,9 +237,16 @@ contract NoxCompute_AdminTest is Test {
         _provisionDefaultLicense();
 
         vm.prank(owner);
-        vm.expectEmit();
+        vm.expectEmit(address(noxCompute));
         emit INoxCompute.LicenseRevoked(licenseOwner);
         noxCompute.revokeLicense(licenseOwner);
+
+        // Storage check: entry is fully cleared.
+        INoxCompute.License memory entry = noxCompute.license(licenseOwner);
+        assertEq(entry.expirationDate, 0);
+        assertEq(entry.monthlyQuota, 0);
+        assertEq(entry.consumedQuota, 0);
+        assertEq(entry.quotaLastResetMonth, 0);
     }
 
     function test_RevertWhen_RevokeLicense_UnauthorizedCaller() public {
@@ -235,153 +262,160 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.revokeLicense(licenseOwner);
     }
 
-    // ============ addAppToLicense (admin) ============
+    // ============ linkAppToLicense (admin) ============
 
-    function test_AddAppToLicense_AsAdmin() public {
+    function test_LinkAppToLicense_AsAdmin() public {
         _provisionDefaultLicense();
-        address newApp = makeAddr("newApp");
 
         vm.prank(owner);
-        vm.expectEmit();
-        emit INoxCompute.AppAddedToLicense(newApp, licenseOwner);
-        noxCompute.addAppToLicense(newApp, licenseOwner);
+        vm.expectEmit(address(noxCompute));
+        emit INoxCompute.AppLinkedToLicense(app, licenseOwner);
+        noxCompute.linkAppToLicense(app, licenseOwner);
+
+        // Storage check via appLicense getter.
+        (address linkedOwner, INoxCompute.License memory entry) = noxCompute.appLicense(app);
+        assertEq(linkedOwner, licenseOwner);
+        assertEq(entry.expirationDate, DEFAULT_EXPIRATION_DATE);
+        assertEq(entry.monthlyQuota, DEFAULT_QUOTA);
     }
 
-    function test_RevertWhen_AddAppToLicense_AsAdmin_UnauthorizedCaller() public {
+    function test_RevertWhen_LinkAppToLicense_AsAdmin_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
-        noxCompute.addAppToLicense(app, licenseOwner);
+        noxCompute.linkAppToLicense(app, licenseOwner);
     }
 
-    function test_RevertWhen_AddAppToLicense_AsAdmin_ZeroApp() public {
+    function test_RevertWhen_LinkAppToLicense_AsAdmin_ZeroApp() public {
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(owner);
-        noxCompute.addAppToLicense(address(0), licenseOwner);
+        noxCompute.linkAppToLicense(address(0), licenseOwner);
     }
 
-    function test_RevertWhen_AddAppToLicense_AsAdmin_ZeroLicenseOwner() public {
+    function test_RevertWhen_LinkAppToLicense_AsAdmin_ZeroLicenseOwner() public {
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(owner);
-        noxCompute.addAppToLicense(app, address(0));
+        noxCompute.linkAppToLicense(app, address(0));
     }
 
-    function test_RevertWhen_AddAppToLicense_AsAdmin_LicenseOwnerHasNoLicense() public {
+    function test_RevertWhen_LinkAppToLicense_AsAdmin_LicenseNotActive() public {
         address unknownOwner = makeAddr("unknownOwner");
         vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.LicenseOwnerHasNoLicense.selector, unknownOwner)
+            abi.encodeWithSelector(INoxCompute.LicenseNotActive.selector, unknownOwner)
         );
         vm.prank(owner);
-        noxCompute.addAppToLicense(app, unknownOwner);
+        noxCompute.linkAppToLicense(app, unknownOwner);
     }
 
-    // ============ addAppToLicense (self-service) ============
+    // ============ linkAppToLicense (license owner) ============
 
-    function test_AddAppToLicense_SelfService() public {
+    function test_LinkAppToLicense_LicenseOwner() public {
         _provisionDefaultLicense();
-        address newApp = makeAddr("newApp");
 
         vm.prank(licenseOwner);
-        vm.expectEmit();
-        emit INoxCompute.AppAddedToLicense(newApp, licenseOwner);
-        noxCompute.addAppToLicense(newApp);
+        vm.expectEmit(address(noxCompute));
+        emit INoxCompute.AppLinkedToLicense(app, licenseOwner);
+        noxCompute.linkAppToLicense(app);
+
+        (address linkedOwner, ) = noxCompute.appLicense(app);
+        assertEq(linkedOwner, licenseOwner);
     }
 
-    function test_RevertWhen_AddAppToLicense_SelfService_ZeroApp() public {
+    function test_RevertWhen_LinkAppToLicense_LicenseOwner_ZeroApp() public {
         _provisionDefaultLicense();
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(licenseOwner);
-        noxCompute.addAppToLicense(address(0));
+        noxCompute.linkAppToLicense(address(0));
     }
 
-    function test_RevertWhen_AddAppToLicense_SelfService_CallerHasNoLicense() public {
+    function test_RevertWhen_LinkAppToLicense_LicenseOwner_CallerHasNoLicense() public {
         address callerWithoutLicense = makeAddr("noLicense");
         vm.expectRevert(
-            abi.encodeWithSelector(
-                INoxCompute.LicenseOwnerHasNoLicense.selector,
-                callerWithoutLicense
-            )
+            abi.encodeWithSelector(INoxCompute.LicenseNotActive.selector, callerWithoutLicense)
         );
         vm.prank(callerWithoutLicense);
-        noxCompute.addAppToLicense(app);
+        noxCompute.linkAppToLicense(app);
     }
 
-    // ============ removeAppFromLicense (admin) ============
+    // ============ unlinkAppFromLicense (admin) ============
 
-    function test_RemoveAppFromLicense_AsAdmin() public {
+    function test_UnlinkAppFromLicense_AsAdmin() public {
         _provisionDefaultLicense();
         vm.prank(owner);
-        noxCompute.addAppToLicense(app, licenseOwner);
+        noxCompute.linkAppToLicense(app, licenseOwner);
 
         vm.prank(owner);
-        vm.expectEmit();
-        emit INoxCompute.AppRemovedFromLicense(app, licenseOwner);
-        noxCompute.removeAppFromLicense(app, licenseOwner);
+        vm.expectEmit(address(noxCompute));
+        emit INoxCompute.AppUnlinkedFromLicense(app, licenseOwner);
+        noxCompute.unlinkAppFromLicense(app, licenseOwner);
+
+        (address linkedOwner, ) = noxCompute.appLicense(app);
+        assertEq(linkedOwner, address(0));
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_AsAdmin_UnauthorizedCaller() public {
+    function test_RevertWhen_UnlinkAppFromLicense_AsAdmin_UnauthorizedCaller() public {
         address unauthorizedCaller = makeAddr("unauthorized");
         _expectMissingRoleRevert(unauthorizedCaller, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(unauthorizedCaller);
-        noxCompute.removeAppFromLicense(app, licenseOwner);
+        noxCompute.unlinkAppFromLicense(app, licenseOwner);
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_AsAdmin_NotLinked() public {
+    function test_RevertWhen_UnlinkAppFromLicense_AsAdmin_NotLinked() public {
         _provisionDefaultLicense();
         // app was never linked to licenseOwner.
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.AppNotLinkedToLicense.selector, app, licenseOwner)
         );
         vm.prank(owner);
-        noxCompute.removeAppFromLicense(app, licenseOwner);
+        noxCompute.unlinkAppFromLicense(app, licenseOwner);
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_AsAdmin_WrongOwner() public {
+    function test_RevertWhen_UnlinkAppFromLicense_AsAdmin_WrongOwner() public {
         _provisionDefaultLicense();
         vm.prank(owner);
-        noxCompute.addAppToLicense(app, licenseOwner);
+        noxCompute.linkAppToLicense(app, licenseOwner);
 
         address otherOwner = makeAddr("otherOwner");
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.AppNotLinkedToLicense.selector, app, otherOwner)
         );
         vm.prank(owner);
-        noxCompute.removeAppFromLicense(app, otherOwner);
+        noxCompute.unlinkAppFromLicense(app, otherOwner);
     }
 
-    // ============ removeAppFromLicense (self-service) ============
+    // ============ unlinkAppFromLicense (license owner) ============
 
-    function test_RemoveAppFromLicense_SelfService() public {
+    function test_UnlinkAppFromLicense_LicenseOwner() public {
         _provisionDefaultLicense();
-        // licenseOwner links the app to their own license via self-service.
+        // licenseOwner links the app to their own license.
         vm.prank(licenseOwner);
-        noxCompute.addAppToLicense(app);
+        noxCompute.linkAppToLicense(app);
 
         vm.prank(licenseOwner);
-        vm.expectEmit();
-        emit INoxCompute.AppRemovedFromLicense(app, licenseOwner);
-        noxCompute.removeAppFromLicense(app);
+        vm.expectEmit(address(noxCompute));
+        emit INoxCompute.AppUnlinkedFromLicense(app, licenseOwner);
+        noxCompute.unlinkAppFromLicense(app);
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_SelfService_ZeroApp() public {
+    function test_RevertWhen_UnlinkAppFromLicense_LicenseOwner_ZeroApp() public {
         _provisionDefaultLicense();
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         vm.prank(licenseOwner);
-        noxCompute.removeAppFromLicense(address(0));
+        noxCompute.unlinkAppFromLicense(address(0));
     }
 
-    function test_RevertWhen_RemoveAppFromLicense_SelfService_NotCallersApp() public {
+    function test_RevertWhen_UnlinkAppFromLicense_LicenseOwner_NotCallersApp() public {
         _provisionDefaultLicense();
         // app linked to licenseOwner (not the random caller below).
         vm.prank(owner);
-        noxCompute.addAppToLicense(app, licenseOwner);
+        noxCompute.linkAppToLicense(app, licenseOwner);
 
         address otherCaller = makeAddr("otherCaller");
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.AppNotLinkedToLicense.selector, app, otherCaller)
         );
         vm.prank(otherCaller);
-        noxCompute.removeAppFromLicense(app);
+        noxCompute.unlinkAppFromLicense(app);
     }
 
     // ============ _authorizeUpgrade ============
@@ -424,11 +458,7 @@ contract NoxCompute_AdminTest is Test {
 
         _expectMissingRoleRevert(upgrader, pmRole);
         vm.prank(upgrader);
-        noxCompute.createLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     function test_Roles_DedicatedHoldersCanCallTheirFunctions() public {
@@ -449,11 +479,7 @@ contract NoxCompute_AdminTest is Test {
 
         // PAYMENT_MANAGER can create licenses.
         vm.prank(paymentManager);
-        noxCompute.createLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
 
         // UPGRADER can authorize an upgrade.
         address newImpl = address(new NoxCompute());
@@ -465,11 +491,7 @@ contract NoxCompute_AdminTest is Test {
 
     function _provisionDefaultLicense() internal {
         vm.prank(owner);
-        noxCompute.createLicense(
-            licenseOwner,
-            uint32(block.timestamp + DEFAULT_EXPIRATION_OFFSET),
-            DEFAULT_QUOTA
-        );
+        noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
 
     function _expectMissingRoleRevert(address caller, bytes32 role) internal {
