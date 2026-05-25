@@ -34,8 +34,11 @@ fi
 # Check if Nox.sol is clean before applying the replacement
 git diff --quiet "$NOX_SOL" && git diff --cached --quiet && CAN_AUTO_COMMIT=true || CAN_AUTO_COMMIT=false
 
-# Replace the exact 42-char address (0x + 40 hex) on the line following the 31337 chainId check
-sed -i "/block.chainid == 31337/{n;s/return 0x[0-9a-fA-F]\{40\}/return $NEW_ADDRESS/;}" "$NOX_SOL"
+# Replace the exact 42-char address (0x + 40 hex) on the line following the 31337 chainId check.
+# Portable in-place edit: write to a temp file then move it back (works on both BSD/macOS and GNU sed).
+TMP_FILE=$(mktemp)
+sed "/block.chainid == 31337/{n;s/return 0x[0-9a-fA-F]\{40\}/return $NEW_ADDRESS/;}" "$NOX_SOL" > "$TMP_FILE"
+mv "$TMP_FILE" "$NOX_SOL"
 
 
 # Don't commit if there are other changes.
