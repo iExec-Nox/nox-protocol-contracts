@@ -42,19 +42,22 @@ abstract contract PaymentModule is Common {
             return;
         }
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        address licenseOwner = $.appLicensors[caller];
-        if (licenseOwner != address(0) && _payWithLicense(licenseOwner)) {
+        if (_payWithLicense($, caller)) {
             return;
         }
-        _payWithSponsor(caller);
+        _payWithSponsor($, caller);
     }
 
     /**
-     * @dev Attempts license payment. Returns true if quota was available and deducted, false otherwise.
-     * @param licenseOwner address of the license owner whose quota should be charged
+     * @dev Attempts license payment. Returns true if the caller's app is linked to an active
+     * license with remaining quota and the quota was deducted, false otherwise.
+     * @param caller address of the app calling the compute function
      */
-    function _payWithLicense(address licenseOwner) private returns (bool) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
+    function _payWithLicense(NoxComputeStorage storage $, address caller) private returns (bool) {
+        address licenseOwner = $.appLicensors[caller];
+        if (licenseOwner == address(0)) {
+            return false;
+        }
         License memory license = $.licenses[licenseOwner];
         if (license.expirationDate <= block.timestamp) {
             return false;
@@ -74,11 +77,10 @@ abstract contract PaymentModule is Common {
      * @dev Charges the caller's sponsor in USDC. No-op if price in USDC is 0.
      * @param caller address of the app calling the compute function
      */
-    function _payWithSponsor(address caller) private {
+    function _payWithSponsor(NoxComputeStorage storage $, address caller) private {
         if (CU_PRICE_USDC == 0) {
             return;
         }
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
         Sponsor memory s = $.sponsors[caller];
         require(s.status == SponsorStatus.APPROVED, NoApprovedSponsor(caller));
         IERC20(USDC).safeTransferFrom(
