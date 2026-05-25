@@ -111,10 +111,7 @@ contract NoxCompute_PaymentTest is Test {
     }
 
     function test_RevertWhen_ApproveSponsorship_NotPending() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-        vm.prank(sponsor);
-        noxCompute.approveSponsorship(app);
+        _setupApprovedSponsorship(app, sponsor);
 
         // already approved — status is no longer PENDING
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, sponsor));
@@ -125,10 +122,7 @@ contract NoxCompute_PaymentTest is Test {
     // ============ revokeSponsorship ============
 
     function test_RevokeSponsorship() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-        vm.prank(sponsor);
-        noxCompute.approveSponsorship(app);
+        _setupApprovedSponsorship(app, sponsor);
 
         vm.expectEmit(address(noxCompute));
         emit INoxCompute.SponsorshipRevoked(app, sponsor);
@@ -161,10 +155,7 @@ contract NoxCompute_PaymentTest is Test {
     }
 
     function test_RevertWhen_RevokeSponsorship_UnauthorizedSponsor_WhileApproved() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-        vm.prank(sponsor);
-        noxCompute.approveSponsorship(app);
+        _setupApprovedSponsorship(app, sponsor);
 
         address unauthorizedSponsor = makeAddr("unauthorizedSponsor");
         vm.expectRevert(
@@ -180,38 +171,14 @@ contract NoxCompute_PaymentTest is Test {
         _assertSponsorState(app, address(0), INoxCompute.SponsorStatus.UNSET);
     }
 
-    // ============ invariants ============
-
-    function test_Invariant_AfterSetSponsor_StatusIsPending() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-
-        (, INoxCompute.SponsorStatus status) = noxCompute.sponsor(app);
-        assertTrue(status == INoxCompute.SponsorStatus.PENDING);
-    }
-
-    function test_Invariant_AfterApprove_StatusIsApproved() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-        vm.prank(sponsor);
-        noxCompute.approveSponsorship(app);
-
-        (, INoxCompute.SponsorStatus status) = noxCompute.sponsor(app);
-        assertTrue(status == INoxCompute.SponsorStatus.APPROVED);
-    }
-
-    function test_Invariant_AfterRevoke_SponsorIsZeroAndStatusIsUnset() public {
-        vm.prank(app);
-        noxCompute.setSponsor(sponsor);
-        vm.prank(sponsor);
-        noxCompute.revokeSponsorship(app);
-
-        (address actualSponsor, INoxCompute.SponsorStatus status) = noxCompute.sponsor(app);
-        assertEq(actualSponsor, address(0));
-        assertTrue(status == INoxCompute.SponsorStatus.UNSET);
-    }
-
     // ============ helpers ============
+
+    function _setupApprovedSponsorship(address _app, address _sponsor) internal {
+        vm.prank(_app);
+        noxCompute.setSponsor(_sponsor);
+        vm.prank(_sponsor);
+        noxCompute.approveSponsorship(_app);
+    }
 
     function _assertSponsorState(
         address _app,
