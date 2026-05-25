@@ -82,6 +82,9 @@ abstract contract Payment is Common {
         }
         Sponsor memory s = $.sponsors[caller];
         require(s.status == SponsorStatus.APPROVED, NoApprovedSponsor(caller));
+        // The sponsor opted in via approveSponsorship and must grant USDC allowance
+        // to this contract. Pulling from s.sponsor is the documented payment flow.
+        // slither-disable-next-line arbitrary-send-erc20
         IERC20(USDC).safeTransferFrom(
             s.sponsor,
             TREASURY,
