@@ -16,20 +16,29 @@ interface INoxCompute {
         uint24 consumedQuota; // resets lazily at call time
     }
 
+    // ------------- General errors -------------
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
     /// Error thrown when bytes parameter is empty
     error InvalidEmptyBytes();
+
+    // ------------- ACL errors -------------
     /// Error thrown when sender doesn't have access to the handle
     error UnauthorizedSender(address sender);
     /// Error thrown when an account is not allowed to use a handle
     error NotAllowed(bytes32 handle, address account);
-    error InvalidProof(bytes proof, string reason);
+    /// Error thrown when a handle is not publicly decryptable
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();
+
+    // ------------- Compute errors -------------
+    /// Error thrown when the input proof is invalid
+    error InvalidProof(bytes proof, string reason);
     /// Error thrown when an operand is bytes32(0), indicating an undefined handle
     error UndefinedHandle();
+
+    // ------------- License management errors -------------
     /// Error thrown when attempting to revoke a license that does not exist.
     error LicenseNotFound(address licenseOwner);
     /// Error thrown when attempting to create a license for an owner that already has one.
@@ -45,35 +54,32 @@ interface INoxCompute {
     /// Error thrown when an app has no active payment method (no active license with quota, no approved sponsor).
     error NoApprovedSponsor(address app);
 
+    // ------------- ACL events -------------
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
     /// Emitted when viewer role is granted
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
-    //
-    // Protocol config events
-    //
+
+    // ------------- Protocol config events -------------
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
-    //
-    // License management events
-    //
+
+    // ------------- License management events -------------
     /// Emitted when a license is created or renewed.
     event LicenseSet(address licenseOwner, uint32 expirationDate, uint24 monthlyQuota);
     event LicenseRevoked(address licenseOwner);
     event AppLinkedToLicense(address app, address licenseOwner);
     event AppUnlinkedFromLicense(address app, address licenseOwner);
-    //
-    // Sponsorship management events
-    //
+
+    // ------------- Sponsorship management events -------------
     event SponsorSet(address app, address sponsor);
     event SponsorshipApproved(address app, address sponsor);
     event SponsorshipRevoked(address app, address sponsor);
-    //
-    // Compute events
-    //
+
+    // ------------- Compute events -------------
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
