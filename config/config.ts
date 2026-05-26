@@ -40,7 +40,12 @@ export default {
 } as {
     [network: string]: {
         chainId: number;
+        // Fallback for role addresses if `initialAdmin/Upgrader/PaymentManager` are not set.
         initialOwner: string;
+        // Role addresses passed to `initializeV3`. If undefined, `initialOwner` is used.
+        initialAdmin?: string;
+        initialUpgrader?: string;
+        initialPaymentManager?: string;
         kmsPublicKey?: string;
         cuPerOperation: number;
     };

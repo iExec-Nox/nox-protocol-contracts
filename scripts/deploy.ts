@@ -32,15 +32,16 @@ export async function deploy(printLogs = true) {
     if (!kmsPublicKey) {
         throw new Error("KMS_PUBLIC_KEY environment variable is required");
     }
-    // Role accounts. Each env var takes precedence, then falls back to `initialOwner` from
-    // the chain config.
-    const fallbackAdmin = chainConfig.initialOwner;
-    const initialAdmin = process.env.INITIAL_ADMIN ?? fallbackAdmin;
-    const initialUpgrader = process.env.INITIAL_UPGRADER ?? fallbackAdmin;
-    const initialPaymentManager = process.env.INITIAL_PAYMENT_MANAGER ?? fallbackAdmin;
+    // Role accounts. Resolution order per role: env var → chain-config field
+    // (`initialAdmin`/`initialUpgrader`/`initialPaymentManager`) → `initialOwner` fallback.
+    const initialAdmin = process.env.INITIAL_ADMIN ?? chainConfig.initialAdmin ?? chainConfig.initialOwner;
+    const initialUpgrader = process.env.INITIAL_UPGRADER ?? chainConfig.initialUpgrader ?? chainConfig.initialOwner;
+    const initialPaymentManager =
+        process.env.INITIAL_PAYMENT_MANAGER ?? chainConfig.initialPaymentManager ?? chainConfig.initialOwner;
     if (!initialAdmin || !initialUpgrader || !initialPaymentManager) {
         throw new Error(
-            "INITIAL_ADMIN / INITIAL_UPGRADER / INITIAL_PAYMENT_MANAGER (or chainConfig.initialOwner) are required",
+            "Role addresses are required: set INITIAL_ADMIN / INITIAL_UPGRADER / INITIAL_PAYMENT_MANAGER, " +
+                "or chainConfig.initialAdmin / initialUpgrader / initialPaymentManager, or chainConfig.initialOwner.",
         );
     }
     // CU_PER_OPERATION env var takes precedence, then falls back to the config value.
@@ -73,9 +74,7 @@ export async function deploy(printLogs = true) {
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
 
     // Run the same reinitializer sequence a long-lived proxy would have gone through
-    // (initialize → initializeV2 → initializeV3). This keeps fresh deploys exercising
-    // the exact same upgrade path as production proxies, so any regression in a past
-    // reinitializer is caught here too.
+    // (initialize → initializeV2 → initializeV3).
     _log(`Running initializeV2...`);
     const txV2 = await noxCompute.write.initializeV2();
     _log(`initializeV2 succeeded, tx: ${txV2}`);
