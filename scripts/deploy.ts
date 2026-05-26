@@ -33,8 +33,7 @@ export async function deploy(printLogs = true) {
         throw new Error("KMS_PUBLIC_KEY environment variable is required");
     }
     // Role accounts. Each env var takes precedence, then falls back to `initialOwner` from
-    // the chain config. This keeps single-signer setups simple while allowing per-role
-    // overrides in CI/CD or for production deployments.
+    // the chain config.
     const fallbackAdmin = chainConfig.initialOwner;
     const initialAdmin = process.env.INITIAL_ADMIN ?? fallbackAdmin;
     const initialUpgrader = process.env.INITIAL_UPGRADER ?? fallbackAdmin;
@@ -73,19 +72,24 @@ export async function deploy(printLogs = true) {
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
 
-    // Set up AccessControl roles via initializeV3 (reinitializer v3). This separates
-    // base state setup from role configuration so the same NoxCompute implementation
-    // can be used for fresh deploys and for upgrades from older Ownable-based proxies.
-    _log(`Initializing roles via initializeV3...`);
+    // Run the same reinitializer sequence a long-lived proxy would have gone through
+    // (initialize → initializeV2 → initializeV3). This keeps fresh deploys exercising
+    // the exact same upgrade path as production proxies, so any regression in a past
+    // reinitializer is caught here too.
+    _log(`Running initializeV2...`);
+    const txV2 = await noxCompute.write.initializeV2();
+    _log(`initializeV2 succeeded, tx: ${txV2}`);
+
+    _log(`Running initializeV3...`);
     _log(`  admin:          ${initialAdmin}`);
     _log(`  upgrader:       ${initialUpgrader}`);
     _log(`  paymentManager: ${initialPaymentManager}`);
-    const tx = await noxCompute.write.initializeV3([
+    const txV3 = await noxCompute.write.initializeV3([
         initialAdmin as `0x${string}`,
         initialUpgrader as `0x${string}`,
         initialPaymentManager as `0x${string}`,
     ]);
-    _log(`initializeV3 tx: ${tx}`);
+    _log(`initializeV3 succeeded, tx: ${txV3}`);
 
     return {
         noxCompute,

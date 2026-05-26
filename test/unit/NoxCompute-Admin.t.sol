@@ -439,24 +439,18 @@ contract NoxCompute_AdminTest is Test {
 
     function test_Roles_PaymentManagerCannotCallUpgrader() public {
         address paymentManager = makeAddr("paymentManager");
-        bytes32 pmRole = noxCompute.PAYMENT_MANAGER_ROLE();
-        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
-        vm.prank(owner);
-        noxCompute.grantRole(pmRole, paymentManager);
+        _grantRole(noxCompute.PAYMENT_MANAGER_ROLE(), paymentManager);
 
-        _expectMissingRoleRevert(paymentManager, upgraderRole);
+        _expectMissingRoleRevert(paymentManager, noxCompute.UPGRADER_ROLE());
         vm.prank(paymentManager);
         noxCompute.setGateway(makeAddr("anyGateway"));
     }
 
     function test_Roles_UpgraderCannotCallPaymentManager() public {
         address upgrader = makeAddr("upgrader");
-        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
-        bytes32 pmRole = noxCompute.PAYMENT_MANAGER_ROLE();
-        vm.prank(owner);
-        noxCompute.grantRole(upgraderRole, upgrader);
+        _grantRole(noxCompute.UPGRADER_ROLE(), upgrader);
 
-        _expectMissingRoleRevert(upgrader, pmRole);
+        _expectMissingRoleRevert(upgrader, noxCompute.PAYMENT_MANAGER_ROLE());
         vm.prank(upgrader);
         noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
     }
@@ -464,12 +458,8 @@ contract NoxCompute_AdminTest is Test {
     function test_Roles_DedicatedHoldersCanCallTheirFunctions() public {
         address upgrader = makeAddr("upgrader");
         address paymentManager = makeAddr("paymentManager");
-        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
-        bytes32 pmRole = noxCompute.PAYMENT_MANAGER_ROLE();
-        vm.startPrank(owner);
-        noxCompute.grantRole(upgraderRole, upgrader);
-        noxCompute.grantRole(pmRole, paymentManager);
-        vm.stopPrank();
+        _grantRole(noxCompute.UPGRADER_ROLE(), upgrader);
+        _grantRole(noxCompute.PAYMENT_MANAGER_ROLE(), paymentManager);
 
         // UPGRADER can set infra config.
         address newGateway = makeAddr("freshGateway");
@@ -492,6 +482,11 @@ contract NoxCompute_AdminTest is Test {
     function _provisionDefaultLicense() internal {
         vm.prank(owner);
         noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
+    }
+
+    function _grantRole(bytes32 role, address account) internal {
+        vm.prank(owner);
+        noxCompute.grantRole(role, account);
     }
 
     function _expectMissingRoleRevert(address caller, bytes32 role) internal {
