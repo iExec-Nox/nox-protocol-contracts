@@ -53,6 +53,9 @@ export async function deploy(printLogs = true) {
         strategy: "create2",
         parameters: {
             NoxCompute: {
+                initialAdmin,
+                initialUpgrader,
+                initialPaymentManager,
                 kmsPublicKey,
                 cuPerOperation,
             },
@@ -72,23 +75,6 @@ export async function deploy(printLogs = true) {
 
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
-
-    // Run the same reinitializer sequence a long-lived proxy would have gone through
-    // (initialize → initializeV2 → initializeV3).
-    _log(`Running initializeV2...`);
-    const txV2 = await noxCompute.write.initializeV2();
-    _log(`initializeV2 succeeded, tx: ${txV2}`);
-
-    _log(`Running initializeV3...`);
-    _log(`  admin:          ${initialAdmin}`);
-    _log(`  upgrader:       ${initialUpgrader}`);
-    _log(`  paymentManager: ${initialPaymentManager}`);
-    const txV3 = await noxCompute.write.initializeV3([
-        initialAdmin as `0x${string}`,
-        initialUpgrader as `0x${string}`,
-        initialPaymentManager as `0x${string}`,
-    ]);
-    _log(`initializeV3 succeeded, tx: ${txV3}`);
 
     return {
         noxCompute,

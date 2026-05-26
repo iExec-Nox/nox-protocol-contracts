@@ -28,13 +28,26 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
     }
 
     /**
-     * Initializes the proxy contract state.
-     * @dev Role setup is performed in `initializeV3` (called separately at deploy time
-     * for fresh proxies and as part of the upgrade flow for existing ones).
-     * @param kmsPublicKey_ KMS public key for ECIES encryption
+     * Initializes the proxy contract state for a fresh deployment.
+     * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
+     * @param upgrader Address granted `UPGRADER_ROLE`.
+     * @param paymentManager Address granted `PAYMENT_MANAGER_ROLE`.
+     * @param kmsPublicKey_ KMS public key for ECIES encryption.
      */
-    function initialize(bytes calldata kmsPublicKey_) public initializer {
+    function initialize(
+        address admin,
+        address upgrader,
+        address paymentManager,
+        bytes calldata kmsPublicKey_
+    ) public initializer {
+        require(admin != address(0), InvalidZeroAddress());
+        require(upgrader != address(0), InvalidZeroAddress());
+        require(paymentManager != address(0), InvalidZeroAddress());
         require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
+        __AccessControl_init();
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(UPGRADER_ROLE, upgrader);
+        _grantRole(PAYMENT_MANAGER_ROLE, paymentManager);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
         $.kmsPublicKey = kmsPublicKey_;

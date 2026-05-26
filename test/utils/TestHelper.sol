@@ -106,11 +106,6 @@ library TestHelper {
         return abi.encodePacked(r, s, v, decryptedResult);
     }
 
-    // TODO remove this to activate payment in all tests by default.
-    function deploy(address owner, address gateway) internal returns (NoxCompute) {
-        return deploy(owner, gateway, 0);
-    }
-
     /**
      * @notice Deploys NoxCompute at the addresses resolved by Nox for the current chain.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
@@ -118,18 +113,25 @@ library TestHelper {
      *      library calls work correctly in tests.
      */
     function deploy(
-        address owner,
+        address admin,
+        address upgrader,
+        address paymentManager,
         address gateway,
         uint8 cuPerOperation
     ) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
         address noxComputeAddress = Nox.noxComputeContract();
-        // Deploy NoxCompute implementation
         address noxComputeImplementation = address(newImplementationInstance(cuPerOperation));
 
         // Deploy a temporary proxy to get its runtime bytecode
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
-        address noxComputeProxyTemp = deployProxy(noxComputeImplementation, kmsKey);
+        address noxComputeProxyTemp = deployProxy(
+            noxComputeImplementation,
+            admin,
+            upgrader,
+            paymentManager,
+            kmsKey
+        );
 
         // Etch the proxy bytecode at the NoxCompute address resolved by Nox
         vm.etch(noxComputeAddress, noxComputeProxyTemp.code);
@@ -141,15 +143,16 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(noxComputeAddress);
-        noxCompute.initialize(kmsKey);
-        // `owner` in legacy tests stands for the all-powerful admin. Grant it all four
-        // roles so existing tests keep working without role-specific signers.
-        noxCompute.initializeV3(owner, owner, owner);
-        vm.prank(owner);
+        noxCompute.initialize(admin, upgrader, paymentManager, kmsKey);
+        vm.prank(upgrader);
         noxCompute.setGateway(gateway);
 
         // Set labels
-        vm.label(owner, "owner");
+        vm.label(admin, "admin");
+        if (upgrader != admin) vm.label(upgrader, "upgrader");
+        if (paymentManager != admin && paymentManager != upgrader) {
+            vm.label(paymentManager, "paymentManager");
+        }
         vm.label(gateway, "gateway");
         vm.label(noxComputeAddress, "noxCompute");
 
@@ -192,9 +195,15 @@ library TestHelper {
 
     function deployProxy(
         address implementation,
+        address admin,
+        address upgrader,
+        address paymentManager,
         bytes memory kmsPublicKey
     ) internal returns (address) {
-        bytes memory initData = abi.encodeCall(NoxCompute.initialize, (kmsPublicKey));
+        bytes memory initData = abi.encodeCall(
+            NoxCompute.initialize,
+            (admin, upgrader, paymentManager, kmsPublicKey)
+        );
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
     }
@@ -216,7 +225,13 @@ library TestHelper {
     function newProxyInstance() internal returns (NoxCompute proxy) {
         address implementation = address(newImplementationInstance());
         bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
-        address proxyAddress = deployProxy(implementation, kmsPublicKey);
+        address proxyAddress = deployProxy(
+            implementation,
+            address(this),
+            address(this),
+            address(this),
+            kmsPublicKey
+        );
         proxy = NoxCompute(proxyAddress);
     }
 
