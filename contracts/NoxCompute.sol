@@ -53,15 +53,11 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
     }
 
     /**
-     * @notice V3 reinitializer migrating the contract from `OwnableUpgradeable` to
-     * `AccessControlUpgradeable`. Sets up the three roles and clears the legacy
-     * Ownable storage slot.
-     * @dev Must be called once per proxy:
-     *      - on a fresh deployment, right after `initialize`;
-     *      - on an existing V2 proxy, as part of the upgrade transaction.
-     * @param admin Address granted `DEFAULT_ADMIN_ROLE` (usually a multisig).
-     * @param upgrader Address granted `UPGRADER_ROLE` (CI/CD key for upgrades and
-     *        infra config: KMS public key, gateway address, proof expiration).
+     * @notice Initializer of 0.3.0 upgrade for already deployed proxies.
+     * @notice Migrates the contract from `OwnableUpgradeable` to `AccessControlUpgradeable`:
+     * initializes AccessControl, grants the three roles, and clears the legacy Ownable storage slot.
+     * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
+     * @param upgrader Address granted `UPGRADER_ROLE`.
      * @param paymentManager Address granted `PAYMENT_MANAGER_ROLE`.
      */
     function initializeV3(
@@ -85,8 +81,9 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
      * costs only the warm-write surcharge and is safe on fresh deployments.
      */
     function _clearOwnableStorage() private {
-        // bytes32(uint256(keccak256("openzeppelin.storage.Ownable")) - 1) & ~bytes32(uint256(0xff))
-        bytes32 slot = 0x9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300;
+        // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
+        // slither-disable-next-line uninitialized-state
+        bytes32 slot = bytes32(erc7201("openzeppelin.storage.Ownable"));
         assembly {
             sstore(slot, 0)
         }
