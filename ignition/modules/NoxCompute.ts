@@ -9,7 +9,8 @@ import { buildModule } from "@nomicfoundation/hardhat-ignition/modules";
  */
 export default buildModule("NoxCompute", (m) => {
     const kmsPublicKey = m.getParameter("kmsPublicKey");
-    const implementation = m.contract("NoxCompute", [], {
+    const cuPerOperation = m.getParameter("cuPerOperation", 1);
+    const implementation = m.contract("NoxCompute", [cuPerOperation], {
         id: "implementation",
     });
     const initData = m.encodeFunctionCall(implementation, "initialize", [kmsPublicKey]);

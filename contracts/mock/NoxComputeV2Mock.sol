@@ -9,6 +9,8 @@ import {NoxCompute} from "../NoxCompute.sol";
  * Adds a version() function to verify the upgrade was applied.
  */
 contract NoxComputeV2Mock is NoxCompute {
+    constructor(uint8 cuPerOperation) NoxCompute(cuPerOperation) {}
+
     /**
      * Returns the contract version.
      * @return The version number (2 for the V2 mock)

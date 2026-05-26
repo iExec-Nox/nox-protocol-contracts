@@ -421,7 +421,7 @@ contract NoxCompute_AdminTest is Test {
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
-        address newImplementation = address(new NoxCompute());
+        address newImplementation = address(TestHelper.newImplementationInstance());
         vm.prank(owner);
         vm.expectEmit();
         emit IERC1967.Upgraded(newImplementation);
@@ -482,7 +482,7 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.createLicense(licenseOwner, DEFAULT_EXPIRATION_DATE, DEFAULT_QUOTA);
 
         // UPGRADER can authorize an upgrade.
-        address newImpl = address(new NoxCompute());
+        address newImpl = address(new NoxCompute(0));
         vm.prank(upgrader);
         noxCompute.upgradeToAndCall(newImpl, "");
     }

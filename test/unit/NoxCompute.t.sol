@@ -60,7 +60,7 @@ contract NoxComputeTest is Test {
     }
 
     function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
-        NoxCompute impl = new NoxCompute();
+        NoxCompute impl = TestHelper.newImplementationInstance();
         vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
         NoxCompute(TestHelper.deployProxy(address(impl), new bytes(0)));
     }

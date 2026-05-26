@@ -51,6 +51,8 @@ interface INoxCompute {
     error LicenseNotActive(address licenseOwner);
     /// Error thrown when removing an app from a license it isn't currently linked to.
     error AppNotLinkedToLicense(address app, address licenseOwner);
+    /// Error thrown when an app has no active payment method (no active license with quota, no approved sponsor).
+    error NoApprovedSponsor(address app);
 
     // ------------- ACL events -------------
     /// Emitted when admin role is granted

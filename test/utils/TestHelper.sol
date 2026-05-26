@@ -106,17 +106,26 @@ library TestHelper {
         return abi.encodePacked(r, s, v, decryptedResult);
     }
 
+    // TODO remove this to activate payment in all tests by default.
+    function deploy(address owner, address gateway) internal returns (NoxCompute) {
+        return deploy(owner, gateway, 0);
+    }
+
     /**
      * @notice Deploys NoxCompute at the addresses resolved by Nox for the current chain.
      * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
      */
-    function deploy(address owner, address gateway) internal returns (NoxCompute noxCompute) {
+    function deploy(
+        address owner,
+        address gateway,
+        uint8 cuPerOperation
+    ) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
         address noxComputeAddress = Nox.noxComputeContract();
         // Deploy NoxCompute implementation
-        address noxComputeImplementation = address(new NoxCompute());
+        address noxComputeImplementation = address(newImplementationInstance(cuPerOperation));
 
         // Deploy a temporary proxy to get its runtime bytecode
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
@@ -191,10 +200,21 @@ library TestHelper {
     }
 
     /**
-     * Deploys a new random proxy instance of NoxCompute.
+     * Deploy a new instance of the NoxCompute implementation contract with payment disabled.
+     */
+    function newImplementationInstance() internal returns (NoxCompute) {
+        return new NoxCompute(0);
+    }
+
+    function newImplementationInstance(uint8 cuPerOperation) internal returns (NoxCompute) {
+        return new NoxCompute(cuPerOperation);
+    }
+
+    /**
+     * Deploys a new random proxy instance of NoxCompute with payment disabled.
      */
     function newProxyInstance() internal returns (NoxCompute proxy) {
-        address implementation = address(new NoxCompute());
+        address implementation = address(newImplementationInstance());
         bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
         address proxyAddress = deployProxy(implementation, kmsPublicKey);
         proxy = NoxCompute(proxyAddress);
