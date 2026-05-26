@@ -10,30 +10,14 @@ import {INoxCompute} from "../interfaces/INoxCompute.sol";
  * @title Admin
  * @notice Role-based admin layer for NoxCompute.
  * @dev Three roles drive privileged actions:
- *      - DEFAULT_ADMIN_ROLE: grants/revokes other roles (multisig).
+ *      - DEFAULT_ADMIN_ROLE: grants/revokes other roles.
  *      - UPGRADER_ROLE: authorizes UUPS upgrades AND updates infrastructure config
- *        (KMS public key, gateway address, proof expiration duration). Held by the
- *        CI/CD pipeline key — both the upgrade transaction and the post-upgrade
- *        config tuning are driven from the same automation, so they share a single
- *        role rather than being split between distinct keys.
- *      - PAYMENT_MANAGER_ROLE: provisions, renews, revokes, and links licenses.
+ *        (KMS public key, gateway address, proof expiration duration).
+ *      - PAYMENT_MANAGER_ROLE: provisions, renews, revokes licenses, and links/unlinks apps to them.
  */
 abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
-    /// @notice Role allowed to upgrade the proxy and to tune infrastructure config.
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
-    /// @notice Role allowed to manage licenses (provision, renew, revoke, link apps).
     bytes32 public constant PAYMENT_MANAGER_ROLE = keccak256("PAYMENT_MANAGER_ROLE");
-
-    /**
-     * @dev Validates the common license inputs: non-zero owner, future expiration date,
-     * and non-zero monthly quota.
-     */
-    modifier validLicenseParams(address owner, uint32 expirationDate, uint24 monthlyQuota) {
-        require(owner != address(0), InvalidZeroAddress());
-        require(expirationDate > block.timestamp, InvalidExpirationDate());
-        require(monthlyQuota != 0, InvalidMonthlyQuota());
-        _;
-    }
 
     /**
      * Sets the KMS public key used for ECIES encryption.
