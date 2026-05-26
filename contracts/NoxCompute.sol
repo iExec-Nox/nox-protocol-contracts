@@ -77,8 +77,7 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
 
     /**
      * @dev Clears the slot where `OwnableUpgradeable` stored the previous `_owner`
-     * (ERC-7201 location for `openzeppelin.storage.Ownable`). Idempotent: writing 0
-     * costs only the warm-write surcharge and is safe on fresh deployments.
+     * (ERC-7201 location for `openzeppelin.storage.Ownable`).
      */
     function _clearOwnableStorage() private {
         // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
