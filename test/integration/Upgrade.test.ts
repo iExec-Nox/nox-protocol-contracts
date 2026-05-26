@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { getAddress, zeroAddress } from "viem";
 import { loadFixture } from "../utils/fixture.ts";
 import { upgradeNoxCompute } from "../../scripts/upgrade.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
@@ -40,34 +39,25 @@ describe("[IT] Upgrade", function () {
             );
         });
 
-        // Simulates an existing V2 proxy (Ownable-based) being upgraded to V3 (AccessControl).
-        // We rewrite the proxy's `_initialized` slot down to version 2 so we can exercise the
-        // real `reinitializer(3)` path of `initializeV3`. After the upgrade we check that:
-        //   - The three roles are granted to the addresses passed to initializeV3.
-        //   - The legacy Ownable storage slot has been cleared.
-        //   - The proxy is functional under the new role model (only UPGRADER can setGateway
-        //     and upgrade, only PAYMENT_MANAGER can manage licenses).
+        // Simulates an existing V2 proxy (Ownable-based) being migrated to V3 (AccessControl).
+        // We roll the `_initialized` counter back to 2 so the real `reinitializer(3)` path of
+        // `initializeV3` runs, then verify the two effects unique to the migration:
+        //   - The three AccessControl roles are granted to the addresses passed to initializeV3.
+        //   - The legacy Ownable storage slot is cleared.
+        // Role enforcement after migration is covered in unit tests (NoxCompute-Admin.t.sol).
         it("Should migrate a V2 proxy to V3 via initializeV3", async function () {
             const { noxCompute, admin, wallet1, wallet2, wallet3 } = await loadFixture();
-            const viem = connection.viem;
-            const publicClient = await viem.getPublicClient();
+            const publicClient = await connection.viem.getPublicClient();
 
-            // Roll the Initializable version back to 2 to simulate a proxy stuck at V2.
-            //
-            // ERC-7201 location for `openzeppelin.storage.Initializable`:
-            //   bytes32(uint256(keccak256("openzeppelin.storage.Initializable")) - 1) & ~bytes32(uint256(0xff))
+            // ERC-7201 slot for `openzeppelin.storage.Initializable`. Force `_initialized = 2`
+            // (packed uint64 at offset 0) so the proxy looks like it stopped at V2.
             const INITIALIZABLE_SLOT = "0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00" as const;
-            // Storage layout in InitializableStorage:
-            //   uint64 _initialized;   // packed at offset 0
-            //   bool   _initializing;  // packed at offset 8
-            // We force `_initialized = 2`, `_initializing = false`.
             await connection.networkHelpers.setStorageAt(
                 noxCompute.address,
                 INITIALIZABLE_SLOT,
                 "0x0000000000000000000000000000000000000000000000000000000000000002",
             );
-
-            // Also seed the legacy Ownable slot with a sentinel value so we can verify it gets cleared.
+            // Seed the legacy Ownable slot so we can later verify initializeV3 clears it.
             const OWNABLE_SLOT = "0x9016d09d72d40fdae2fd8ceac6b6234c7706214fd39c1cd1e609a0528c199300" as const;
             await connection.networkHelpers.setStorageAt(
                 noxCompute.address,
@@ -84,27 +74,17 @@ describe("[IT] Upgrade", function () {
                 args: [newAdmin, newUpgrader, newPaymentManager],
             });
 
-            // Verify role grants.
-            const DEFAULT_ADMIN_ROLE = await noxCompute.read.DEFAULT_ADMIN_ROLE();
-            const UPGRADER_ROLE = await noxCompute.read.UPGRADER_ROLE();
-            const PAYMENT_MANAGER_ROLE = await noxCompute.read.PAYMENT_MANAGER_ROLE();
-            assert.strictEqual(
-                await noxCompute.read.hasRole([DEFAULT_ADMIN_ROLE, newAdmin]),
-                true,
-                "newAdmin should have DEFAULT_ADMIN_ROLE",
-            );
-            assert.strictEqual(
-                await noxCompute.read.hasRole([UPGRADER_ROLE, newUpgrader]),
-                true,
-                "newUpgrader should have UPGRADER_ROLE",
-            );
-            assert.strictEqual(
-                await noxCompute.read.hasRole([PAYMENT_MANAGER_ROLE, newPaymentManager]),
-                true,
-                "newPaymentManager should have PAYMENT_MANAGER_ROLE",
-            );
+            // Effect #1: roles granted to the addresses passed to initializeV3.
+            const [DEFAULT_ADMIN_ROLE, UPGRADER_ROLE, PAYMENT_MANAGER_ROLE] = await Promise.all([
+                noxCompute.read.DEFAULT_ADMIN_ROLE(),
+                noxCompute.read.UPGRADER_ROLE(),
+                noxCompute.read.PAYMENT_MANAGER_ROLE(),
+            ]);
+            assert.strictEqual(await noxCompute.read.hasRole([DEFAULT_ADMIN_ROLE, newAdmin]), true);
+            assert.strictEqual(await noxCompute.read.hasRole([UPGRADER_ROLE, newUpgrader]), true);
+            assert.strictEqual(await noxCompute.read.hasRole([PAYMENT_MANAGER_ROLE, newPaymentManager]), true);
 
-            // Verify the legacy Ownable slot is cleared.
+            // Effect #2: legacy Ownable storage slot cleared.
             const ownableAfter = await publicClient.getStorageAt({
                 address: noxCompute.address,
                 slot: OWNABLE_SLOT,
@@ -114,34 +94,6 @@ describe("[IT] Upgrade", function () {
                 "0x0000000000000000000000000000000000000000000000000000000000000000",
                 "Ownable storage slot should be cleared after V3 migration",
             );
-
-            // Functional check: only UPGRADER can change the gateway now.
-            await assert.rejects(
-                noxCompute.write.setGateway([zeroAddress], { account: newAdmin }),
-                "Admin without UPGRADER_ROLE should not be able to setGateway",
-            );
-            const freshGateway = getAddress("0x000000000000000000000000000000000000b0b0");
-            const tx = await noxCompute.write.setGateway([freshGateway], { account: newUpgrader });
-            await publicClient.waitForTransactionReceipt({ hash: tx });
-            assert.strictEqual(
-                (await noxCompute.read.gateway()).toLowerCase(),
-                freshGateway.toLowerCase(),
-                "UPGRADER should be able to setGateway after migration",
-            );
-
-            // Functional check: only PAYMENT_MANAGER can manage licenses.
-            const licenseOwner = getAddress("0x000000000000000000000000000000000000b1b1");
-            const expirationDate = Math.floor(Date.now() / 1000) + 30 * 24 * 3600;
-            await assert.rejects(
-                noxCompute.write.createLicense([licenseOwner, expirationDate, 1000], {
-                    account: newUpgrader,
-                }),
-                "Upgrader without PAYMENT_MANAGER_ROLE should not createLicense",
-            );
-            const createTx = await noxCompute.write.createLicense([licenseOwner, expirationDate, 1000], {
-                account: newPaymentManager,
-            });
-            await publicClient.waitForTransactionReceipt({ hash: createTx });
         });
     });
 });
