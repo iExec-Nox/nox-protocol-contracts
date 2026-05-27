@@ -17,6 +17,11 @@ on:
         required: false
         type: boolean
         default: false
+      deploy-genesis:
+        description: "Deploy the genesis version (tag v0.1.0) instead of current HEAD, to preserve the original proxy CREATE2 address"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   pre-deploy:
@@ -29,8 +34,12 @@ jobs:
       contents: write # Required to commit artifacts.
       pull-requests: write # Required to create pull requests.
     environment: ${{ inputs.network }}
+    env:
+      GENESIS_TAG: v0.1.0
     steps:
       - uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.deploy-genesis && env.GENESIS_TAG || github.ref }}
 
       - uses: actions/setup-node@v6
         with:
@@ -55,6 +64,27 @@ jobs:
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
           KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
         run: pnpm run deploy:production --network ${{ inputs.network }}
+
+      # After a genesis deploy, the workspace is on a detached HEAD at the genesis tag.
+      # Move freshly produced artifacts aside, re-checkout the dispatched ref so that
+      # subsequent commit/PR steps target the right branch, then restore the artifacts.
+      - name: Stash genesis artifacts
+        if: inputs.network != 'hardhat' && inputs.deploy-genesis
+        run: |
+          mkdir -p /tmp/genesis-artifacts
+          mv ignition/deployments/${{ inputs.network }} /tmp/genesis-artifacts/ignition-deployment
+
+      - name: Re-checkout dispatched ref
+        if: inputs.network != 'hardhat' && inputs.deploy-genesis
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.ref }}
+
+      - name: Restore genesis artifacts
+        if: inputs.network != 'hardhat' && inputs.deploy-genesis
+        run: |
+          mkdir -p ignition/deployments
+          mv /tmp/genesis-artifacts/ignition-deployment ignition/deployments/${{ inputs.network }}
 
       # Used in set-gateway job.
       - name: Upload deployment artifacts
