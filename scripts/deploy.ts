@@ -32,10 +32,17 @@ export async function deploy(printLogs = true) {
     if (!kmsPublicKey) {
         throw new Error("KMS_PUBLIC_KEY environment variable is required");
     }
-    // INITIAL_OWNER env var takes precedence, then falls back to the config value.
-    const initialOwner = process.env.INITIAL_OWNER ?? chainConfig.initialOwner;
-    if (!initialOwner) {
-        throw new Error("INITIAL_OWNER environment variable is required");
+    // Role accounts. Resolution order per role: env var → chain-config field
+    // (`initialAdmin`/`initialUpgrader`/`initialPaymentManager`) → `initialOwner` fallback.
+    const initialAdmin = process.env.INITIAL_ADMIN ?? chainConfig.initialAdmin ?? chainConfig.initialOwner;
+    const initialUpgrader = process.env.INITIAL_UPGRADER ?? chainConfig.initialUpgrader ?? chainConfig.initialOwner;
+    const initialPaymentManager =
+        process.env.INITIAL_PAYMENT_MANAGER ?? chainConfig.initialPaymentManager ?? chainConfig.initialOwner;
+    if (!initialAdmin || !initialUpgrader || !initialPaymentManager) {
+        throw new Error(
+            "Role addresses are required: set INITIAL_ADMIN / INITIAL_UPGRADER / INITIAL_PAYMENT_MANAGER, " +
+                "or chainConfig.initialAdmin / initialUpgrader / initialPaymentManager, or chainConfig.initialOwner.",
+        );
     }
     // CU_PER_OPERATION env var takes precedence, then falls back to the config value.
     const cuPerOperation =
@@ -46,7 +53,9 @@ export async function deploy(printLogs = true) {
         strategy: "create2",
         parameters: {
             NoxCompute: {
-                initialOwner,
+                initialAdmin,
+                initialUpgrader,
+                initialPaymentManager,
                 kmsPublicKey,
                 cuPerOperation,
             },

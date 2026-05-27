@@ -17,7 +17,7 @@ contract NoxCompute_PaymentTest is Test {
     address licenseOwner = makeAddr("licenseOwner");
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, gateway, 1);
+        noxCompute = TestHelper.deploy(owner, owner, owner, gateway, 1);
         vm.label(app, "app");
         vm.label(sponsor, "sponsor");
         vm.label(licenseOwner, "licenseOwner");

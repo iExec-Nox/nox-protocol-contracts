@@ -16,13 +16,15 @@ contract NoxComputeTest is Test {
     NoxCompute noxCompute;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, gateway);
+        noxCompute = TestHelper.deploy(owner, owner, owner, gateway, 0);
     }
 
     // ============ initialize ============
 
     function test_Initialize() public view {
-        assertEq(noxCompute.owner(), owner);
+        assertTrue(noxCompute.hasRole(noxCompute.DEFAULT_ADMIN_ROLE(), owner));
+        assertTrue(noxCompute.hasRole(noxCompute.UPGRADER_ROLE(), owner));
+        assertTrue(noxCompute.hasRole(noxCompute.PAYMENT_MANAGER_ROLE(), owner));
         assertEq(noxCompute.proofExpirationDuration(), 1 hours);
         (
             , // bytes1 fields
@@ -54,13 +56,26 @@ contract NoxComputeTest is Test {
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
-        noxCompute.initialize(owner, abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key")));
+        noxCompute.initialize(
+            owner,
+            owner,
+            owner,
+            abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key"))
+        );
     }
 
     function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
         NoxCompute impl = TestHelper.newImplementationInstance();
         vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
-        NoxCompute(TestHelper.deployProxy(address(impl), owner, new bytes(0)));
+        NoxCompute(
+            TestHelper.deployProxy(
+                address(impl),
+                address(this),
+                address(this),
+                address(this),
+                new bytes(0)
+            )
+        );
     }
 
     // ============ initializeV2 ============

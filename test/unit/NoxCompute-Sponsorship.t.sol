@@ -15,7 +15,7 @@ contract NoxCompute_SponsorshipTest is Test {
     address sponsor = makeAddr("sponsor");
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, gateway);
+        noxCompute = TestHelper.deploy(owner, owner, owner, gateway, 0);
         vm.label(app, "app");
         vm.label(sponsor, "sponsor");
     }
