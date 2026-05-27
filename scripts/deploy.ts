@@ -75,7 +75,6 @@ export async function deploy(printLogs = true) {
 
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);
-
     return {
         noxCompute,
     };
