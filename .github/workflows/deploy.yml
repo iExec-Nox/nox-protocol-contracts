@@ -11,6 +11,7 @@ on:
           - hardhat
           - arbitrumSepolia
           - tenderlyArbitrumSepolia
+          - sepolia
         default: "hardhat"
       reset-artifacts:
         description: "Reset Ignition deployment artifacts before deploying (required when contract bytecode changes)"
