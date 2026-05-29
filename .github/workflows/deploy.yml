@@ -50,6 +50,49 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
+      # v0.1.0 predates the sepolia network. Inject it into the checked-out source
+      # so Hardhat accepts `--network sepolia` and `deploy.ts` finds a chainConfig.
+      # The injected `initialOwner` and `kmsPublicKey` match those used at the original
+      # arbitrumSepolia deploy, which is what makes the CREATE2 proxy address identical.
+      - name: Patch v0.1.0 source to support sepolia
+        if: inputs.deploy-genesis && inputs.network == 'sepolia'
+        run: |
+          node <<'EOF'
+          const fs = require('fs');
+
+          let hh = fs.readFileSync('hardhat.config.ts', 'utf8');
+          const sepoliaNetwork = `
+                  sepolia: {
+                      type: "http",
+                      chainType: "l1",
+                      chainId: 11155111,
+                      url: configVariable("RPC_URL"),
+                      accounts: [configVariable("PRIVATE_KEY")],
+                  },`;
+          const hhPatched = hh.replace(
+            /(tenderlyArbitrumSepolia: \{[\s\S]*?\},)/,
+            `$1${sepoliaNetwork}`,
+          );
+          if (hhPatched === hh) throw new Error('Failed to patch hardhat.config.ts');
+          fs.writeFileSync('hardhat.config.ts', hhPatched);
+
+          let cf = fs.readFileSync('config/config.ts', 'utf8');
+          const sepoliaCfg = `
+              sepolia: {
+                  chainId: 11155111,
+                  initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f",
+                  kmsPublicKey: undefined,
+              },`;
+          const cfPatched = cf.replace(
+            /(tenderlyArbitrumSepolia: \{[\s\S]*?\},)/,
+            `$1${sepoliaCfg}`,
+          );
+          if (cfPatched === cf) throw new Error('Failed to patch config/config.ts');
+          fs.writeFileSync('config/config.ts', cfPatched);
+
+          console.log('Patched v0.1.0 source for sepolia genesis deploy.');
+          EOF
+
       - name: Deploy contracts on Hardhat (dry-run)
         if: inputs.network == 'hardhat'
         run: pnpm run deploy
@@ -63,7 +106,9 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
+          # On a genesis sepolia deploy, force the KMS used at the original arbitrumSepolia
+          # deploy so the CREATE2 proxy address matches `0xd464B198f06756a1d00be223634b85E0a731c229`.
+          KMS_PUBLIC_KEY: ${{ (inputs.deploy-genesis && inputs.network == 'sepolia') && '0x02221f1baca89fd75ec26566b9c6003bc793b47affe171a7824279d973f54a2fd9' || vars.KMS_PUBLIC_KEY }}
         run: pnpm run deploy:production --network ${{ inputs.network }}
 
       # After a genesis deploy, the workspace is on a detached HEAD at the genesis tag.
