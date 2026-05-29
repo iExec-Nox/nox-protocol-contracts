@@ -1,13 +1,4 @@
 #!/usr/bin/env node
-// Inject a sepolia entry into the genesis (v0.1.0) source so that:
-//   - Hardhat accepts `--network sepolia`
-//   - `scripts/deploy.ts` finds a matching `chainConfig`
-// The injected `initialOwner` matches the value used at the original arbitrumSepolia
-// deploy, which is required for the CREATE2 proxy address to be identical.
-//
-// Usage (run from the repo root after `git checkout v0.1.0`):
-//   node scripts/patch-genesis-sepolia.mjs
-
 import { readFileSync, writeFileSync } from "node:fs";
 
 const HARDHAT_CONFIG = "hardhat.config.ts";

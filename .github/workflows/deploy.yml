@@ -19,7 +19,7 @@ on:
         type: boolean
         default: false
       deploy-genesis:
-        description: "Deploy the genesis version (tag v0.1.0) instead of current HEAD, to preserve the original proxy CREATE2 address"
+        description: "Deploy the genesis version (tag v0.1.0-beta.8) instead of current HEAD, to preserve the original proxy CREATE2 address"
         required: false
         type: boolean
         default: false
@@ -36,7 +36,7 @@ jobs:
       pull-requests: write # Required to create pull requests.
     environment: ${{ inputs.network }}
     env:
-      GENESIS_TAG: v0.1.0
+      GENESIS_TAG: v0.1.0-beta.8
     steps:
       - uses: actions/checkout@v5
         with:
@@ -50,13 +50,13 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # v0.1.0 predates the sepolia network. The patch script injects a sepolia
+      # The genesis tag predates the sepolia network. The patch script injects a sepolia
       # entry into the checked-out hardhat.config.ts and config/config.ts so the
       # genesis deploy reproduces the original arbitrumSepolia CREATE2 address.
       # NOTE: the script lives on the current branch but is invoked while the
-      # working tree is at the v0.1.0 tag; we run it through the dispatched ref's
-      # version via the GitHub raw URL to avoid depending on what existed at v0.1.0.
-      - name: Patch v0.1.0 source to support sepolia
+      # working tree is at the genesis tag; we fetch it via GitHub raw URL pinned to
+      # the dispatched commit SHA so we don't depend on what existed at that tag.
+      - name: Patch genesis source to support sepolia
         if: inputs.deploy-genesis && inputs.network == 'sepolia'
         run: |
           curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/scripts/patch-genesis-sepolia.mjs" \
