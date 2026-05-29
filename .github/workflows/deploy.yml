@@ -50,48 +50,18 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # v0.1.0 predates the sepolia network. Inject it into the checked-out source
-      # so Hardhat accepts `--network sepolia` and `deploy.ts` finds a chainConfig.
-      # The injected `initialOwner` and `kmsPublicKey` match those used at the original
-      # arbitrumSepolia deploy, which is what makes the CREATE2 proxy address identical.
+      # v0.1.0 predates the sepolia network. The patch script injects a sepolia
+      # entry into the checked-out hardhat.config.ts and config/config.ts so the
+      # genesis deploy reproduces the original arbitrumSepolia CREATE2 address.
+      # NOTE: the script lives on the current branch but is invoked while the
+      # working tree is at the v0.1.0 tag; we run it through the dispatched ref's
+      # version via the GitHub raw URL to avoid depending on what existed at v0.1.0.
       - name: Patch v0.1.0 source to support sepolia
         if: inputs.deploy-genesis && inputs.network == 'sepolia'
         run: |
-          node <<'EOF'
-          const fs = require('fs');
-
-          let hh = fs.readFileSync('hardhat.config.ts', 'utf8');
-          const sepoliaNetwork = `
-                  sepolia: {
-                      type: "http",
-                      chainType: "l1",
-                      chainId: 11155111,
-                      url: configVariable("RPC_URL"),
-                      accounts: [configVariable("PRIVATE_KEY")],
-                  },`;
-          const hhPatched = hh.replace(
-            /(tenderlyArbitrumSepolia: \{[\s\S]*?\},)/,
-            `$1${sepoliaNetwork}`,
-          );
-          if (hhPatched === hh) throw new Error('Failed to patch hardhat.config.ts');
-          fs.writeFileSync('hardhat.config.ts', hhPatched);
-
-          let cf = fs.readFileSync('config/config.ts', 'utf8');
-          const sepoliaCfg = `
-              sepolia: {
-                  chainId: 11155111,
-                  initialOwner: "0x0bcEAC5cdb4f6390c470972dCBDbeefdD88cfB8f",
-                  kmsPublicKey: undefined,
-              },`;
-          const cfPatched = cf.replace(
-            /(tenderlyArbitrumSepolia: \{[\s\S]*?\},)/,
-            `$1${sepoliaCfg}`,
-          );
-          if (cfPatched === cf) throw new Error('Failed to patch config/config.ts');
-          fs.writeFileSync('config/config.ts', cfPatched);
-
-          console.log('Patched v0.1.0 source for sepolia genesis deploy.');
-          EOF
+          curl -fsSL "https://raw.githubusercontent.com/${{ github.repository }}/${{ github.sha }}/scripts/patch-genesis-sepolia.mjs" \
+            -o /tmp/patch-genesis-sepolia.mjs
+          node /tmp/patch-genesis-sepolia.mjs
 
       - name: Deploy contracts on Hardhat (dry-run)
         if: inputs.network == 'hardhat'
