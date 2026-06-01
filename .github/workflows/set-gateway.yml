@@ -17,6 +17,7 @@ on:
         options:
           - arbitrumSepolia
           - tenderlyArbitrumSepolia
+          - sepolia
         default: "arbitrumSepolia"
 
 jobs:
@@ -49,5 +50,4 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
-          GATEWAY_ADDRESS: ${{ vars.GATEWAY_ADDRESS }}
         run: pnpm run set-gateway --network ${{ inputs.network }}

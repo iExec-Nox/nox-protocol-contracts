@@ -25,20 +25,16 @@ export async function deploy(printLogs = true) {
 
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Chain config:`, chainConfig);
-    // Deploy NoxCompute.
-    // TODO read env variables in config.ts and validate config them there and use config.get().
-    // KMS_PUBLIC_KEY env var takes precedence, then falls back to the config value.
-    const kmsPublicKey = process.env.KMS_PUBLIC_KEY ?? chainConfig.kmsPublicKey;
-    if (!kmsPublicKey) {
-        throw new Error("KMS_PUBLIC_KEY environment variable is required");
-    }
-    // Role addresses come from chain config.
-    const { initialAdmin, initialUpgrader, initialPaymentManager } = chainConfig;
+    // All deploy parameters come from chain config (single source of truth).
+    const { initialAdmin, initialUpgrader, initialPaymentManager, kmsPublicKey } = chainConfig;
     if (!initialAdmin || !initialUpgrader || !initialPaymentManager) {
         throw new Error(
             `Role addresses missing in chainConfig for network "${connection.networkName}": ` +
                 "initialAdmin, initialUpgrader and initialPaymentManager are required.",
         );
+    }
+    if (!kmsPublicKey) {
+        throw new Error(`kmsPublicKey missing in chainConfig for network "${connection.networkName}".`);
     }
     // CU_PER_OPERATION env var takes precedence, then falls back to the config value.
     const cuPerOperation =
