@@ -50,12 +50,6 @@ jobs:
 
       - run: pnpm install --frozen-lockfile
 
-      # The genesis tag predates the sepolia network. The patch script injects a sepolia
-      # entry into the checked-out hardhat.config.ts and config/config.ts so the
-      # genesis deploy reproduces the original arbitrumSepolia CREATE2 address.
-      # NOTE: the script lives on the current branch but is invoked while the
-      # working tree is at the genesis tag; we fetch it via GitHub raw URL pinned to
-      # the dispatched commit SHA so we don't depend on what existed at that tag.
       - name: Patch genesis source to support sepolia
         if: inputs.deploy-genesis && inputs.network == 'sepolia'
         run: |
@@ -76,14 +70,9 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          # On a genesis sepolia deploy, force the KMS used at the original arbitrumSepolia
-          # deploy so the CREATE2 proxy address matches `0xd464B198f06756a1d00be223634b85E0a731c229`.
           KMS_PUBLIC_KEY: ${{ (inputs.deploy-genesis && inputs.network == 'sepolia') && '0x02221f1baca89fd75ec26566b9c6003bc793b47affe171a7824279d973f54a2fd9' || vars.KMS_PUBLIC_KEY }}
         run: pnpm run deploy:production --network ${{ inputs.network }}
 
-      # After a genesis deploy, the workspace is on a detached HEAD at the genesis tag.
-      # Move freshly produced artifacts aside, re-checkout the dispatched ref so that
-      # subsequent commit/PR steps target the right branch, then restore the artifacts.
       - name: Stash genesis artifacts
         if: inputs.network != 'hardhat' && inputs.deploy-genesis
         run: |
