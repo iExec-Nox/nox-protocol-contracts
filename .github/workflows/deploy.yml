@@ -53,7 +53,6 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
         run: pnpm run deploy:production --network ${{ inputs.network }}
 
       # Used in set-gateway job.

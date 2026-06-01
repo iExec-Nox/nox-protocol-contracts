@@ -1,9 +1,10 @@
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import config from "../config/config.ts";
 
 // Script to set the KMS public key on the NoxCompute contract.
-// It reads the deployed contract address from ignition deployment artifacts.
-// Requires KMS_PUBLIC_KEY environment variable to be set.
+// It reads the deployed contract address from ignition deployment artifacts
+// and the KMS public key from `config/config.ts`.
 
 /**
  * Sets the KMS public key on the NoxCompute contract.
@@ -21,9 +22,9 @@ export async function setKmsPublicKey(printLogs = true) {
         throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
     }
 
-    const kmsPublicKey = process.env.KMS_PUBLIC_KEY;
+    const kmsPublicKey = config[connection.networkName]?.kmsPublicKey;
     if (!kmsPublicKey) {
-        throw new Error("KMS_PUBLIC_KEY environment variable is required");
+        throw new Error(`kmsPublicKey missing in chainConfig for network "${connection.networkName}".`);
     }
 
     _log(`Setting KMS public key: ${kmsPublicKey}`);
