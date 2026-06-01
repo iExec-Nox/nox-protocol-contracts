@@ -17,11 +17,11 @@ export default {
         cuPerOperation: 0,
     },
     tenderlyArbitrumSepolia: {
-        chainId: 421614, // Same chainId as Arbitrum Sepolia
-        initialAdmin: "0x9990cfb1feb7f47297f54bef4d4ebedf6c5463a3", // TODO Replace this
-        initialUpgrader: "0x9990cfb1feb7f47297f54bef4d4ebedf6c5463a3", // TODO Replace this
-        initialPaymentManager: "0x9990cfb1feb7f47297f54bef4d4ebedf6c5463a3", // TODO Replace this
-        kmsPublicKey: "0x026f0005c5c3807e69dcbe52a97ca55aa26c8655999b5a81f5098666cd7dd5d1f6",
+        chainId: 421614,
+        initialAdmin: "0x40D03906B889AbF57266C2433B0b200177D15664",
+        initialUpgrader: "0x6148045F5281af51Dde61E9072bf8a53004a34c0",
+        initialPaymentManager: "0x4f511B48A2c62dc8C4Db0F17A2b963b53b18369A",
+        kmsPublicKey: "0x02221f1baca89fd75ec26566b9c6003bc793b47affe171a7824279d973f54a2fd9", // Defined in GitHub environment.
         cuPerOperation: 1,
     },
     arbitrumSepolia: {
