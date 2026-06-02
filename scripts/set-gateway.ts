@@ -1,6 +1,6 @@
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
-import config from "../config/config.ts";
+import { getChainConfig } from "../config/config.ts";
 
 // Script to set the gateway address on the NoxCompute contract.
 // It reads the deployed contract address from ignition deployment artifacts
@@ -22,10 +22,7 @@ export async function setGateway(printLogs = true) {
         throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
     }
 
-    const gatewayAddress = config[connection.networkName]?.gateway;
-    if (!gatewayAddress) {
-        throw new Error(`gateway missing in chainConfig for network "${connection.networkName}".`);
-    }
+    const { gateway: gatewayAddress } = getChainConfig(connection.networkName);
 
     _log(`Setting gateway address: ${gatewayAddress}`);
     _log(`Using owner address: ${ownerClient.account.address}`);

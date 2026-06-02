@@ -4,7 +4,16 @@
 // TODO use salt config per chain.
 export const CREATE2_SALT = "0x0000000000000000000000000000000000000000000000000000000000000000" as const;
 
-export default {
+type ChainConfig = {
+    chainId: number;
+    // Role addresses passed to `initialize` / `initializeV3`.
+    initialAdmin: string;
+    initialUpgrader: string;
+    kmsPublicKey: string;
+    gateway: string;
+};
+
+const config: { [network: string]: ChainConfig } = {
     // Default Hardhat network.
     default: {
         chainId: 31337,
@@ -42,13 +51,22 @@ export default {
         kmsPublicKey: "", // TODO Replace this
         gateway: "", // TODO Replace this
     },
-} as {
-    [network: string]: {
-        chainId: number;
-        // Role addresses passed to `initialize` / `initializeV3`.
-        initialAdmin: string;
-        initialUpgrader: string;
-        kmsPublicKey: string;
-        gateway: string;
-    };
 };
+
+export function getChainConfig(networkName: string): ChainConfig {
+    const chainConfig = config[networkName];
+    if (!chainConfig) {
+        throw new Error(`No chain config found for network: ${networkName}`);
+    }
+    const { initialAdmin, initialUpgrader, kmsPublicKey, gateway } = chainConfig;
+    if (!initialAdmin || !initialUpgrader) {
+        throw new Error(`Role addresses missing in config for network "${networkName}".`);
+    }
+    if (!kmsPublicKey) {
+        throw new Error(`KMS public key missing in config for network "${networkName}".`);
+    }
+    if (!gateway) {
+        throw new Error(`Gateway address missing in config for network "${networkName}".`);
+    }
+    return chainConfig;
+}
