@@ -9,8 +9,9 @@ on:
         type: choice
         options:
           - hardhat
-          - arbitrumSepolia
           - tenderlyArbitrumSepolia
+          - arbitrumSepolia
+          - sepolia
         default: "hardhat"
       reset-artifacts:
         description: "Reset Ignition deployment artifacts before deploying (required when contract bytecode changes)"

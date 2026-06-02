@@ -8,9 +8,10 @@ on:
         required: true
         type: choice
         options:
-          - arbitrumSepolia
           - tenderlyArbitrumSepolia
-        default: "arbitrumSepolia"
+          - arbitrumSepolia
+          - sepolia
+        default: "tenderlyArbitrumSepolia"
 
 jobs:
   set-kms-public-key:
