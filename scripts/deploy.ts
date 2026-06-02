@@ -26,19 +26,16 @@ export async function deploy(printLogs = true) {
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Chain config:`, chainConfig);
     // All deploy parameters come from chain config (single source of truth).
-    const { initialAdmin, initialUpgrader, initialPaymentManager, kmsPublicKey } = chainConfig;
-    if (!initialAdmin || !initialUpgrader || !initialPaymentManager) {
+    const { initialAdmin, initialUpgrader, kmsPublicKey } = chainConfig;
+    if (!initialAdmin || !initialUpgrader) {
         throw new Error(
             `Role addresses missing in chainConfig for network "${connection.networkName}": ` +
-                "initialAdmin, initialUpgrader and initialPaymentManager are required.",
+                "initialAdmin and initialUpgrader are required.",
         );
     }
     if (!kmsPublicKey) {
         throw new Error(`kmsPublicKey missing in chainConfig for network "${connection.networkName}".`);
     }
-    // CU_PER_OPERATION env var takes precedence, then falls back to the config value.
-    const cuPerOperation =
-        process.env.CU_PER_OPERATION !== undefined ? Number(process.env.CU_PER_OPERATION) : chainConfig.cuPerOperation;
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
@@ -47,9 +44,7 @@ export async function deploy(printLogs = true) {
             NoxCompute: {
                 initialAdmin,
                 initialUpgrader,
-                initialPaymentManager,
                 kmsPublicKey,
-                cuPerOperation,
             },
         },
     });
@@ -60,10 +55,7 @@ export async function deploy(printLogs = true) {
     // Doing it here (right after deploy) ensures the manifest references the correct implementation.
     const api = await upgrades(hre, connection);
     const noxComputeFactory = await connection.ethers.getContractFactory("NoxCompute");
-    await api.forceImport(noxComputeProxy.address, noxComputeFactory, {
-        kind: "uups",
-        constructorArgs: [cuPerOperation],
-    });
+    await api.forceImport(noxComputeProxy.address, noxComputeFactory, { kind: "uups" });
 
     // Get NoxCompute contract instance.
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeProxy.address);

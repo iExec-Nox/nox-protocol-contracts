@@ -47,7 +47,7 @@ contract NoxTest is Test {
     bytes32[] allHandles;
 
     function setUp() public {
-        noxComputeContract = TestHelper.deploy(owner, owner, owner, gateway, 0);
+        noxComputeContract = TestHelper.deploy(owner, owner, gateway);
         noxCompute = address(noxComputeContract);
 
         noxMock = new NoxMock();

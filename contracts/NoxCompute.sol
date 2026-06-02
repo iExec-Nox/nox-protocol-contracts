@@ -5,8 +5,6 @@ import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
 import {Admin} from "./modules/Admin.sol";
 import {ACL} from "./modules/ACL.sol";
 import {Compute} from "./modules/Compute.sol";
-import {Sponsorship} from "./modules/Sponsorship.sol";
-import {Payment} from "./modules/Payment.sol";
 
 /**
  * @title NoxCompute
@@ -17,13 +15,11 @@ import {Payment} from "./modules/Payment.sol";
  * - Wrapping plaintext values into public handles
  * - Triggering off-chain TEE computations through event emissions
  */
-contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
+contract NoxCompute is Admin, ACL, Compute {
     /**
-     * @dev Set cuPerOperation to 0 to disable payment.
-     * @param cuPerOperation Number of Compute Units (CU) to charge per operation.
      * @custom:oz-upgrades-unsafe-allow constructor
      */
-    constructor(uint8 cuPerOperation) EIP712("NoxCompute", "1") Payment(cuPerOperation) {
+    constructor() EIP712("NoxCompute", "1") {
         _disableInitializers();
     }
 
@@ -31,23 +27,19 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
      * Initializes the proxy contract state for a fresh deployment.
      * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
      * @param upgrader Address granted `UPGRADER_ROLE`.
-     * @param paymentManager Address granted `PAYMENT_MANAGER_ROLE`.
      * @param kmsPublicKey_ KMS public key for ECIES encryption.
      */
     function initialize(
         address admin,
         address upgrader,
-        address paymentManager,
         bytes calldata kmsPublicKey_
     ) public initializer {
         require(admin != address(0), InvalidZeroAddress());
         require(upgrader != address(0), InvalidZeroAddress());
-        require(paymentManager != address(0), InvalidZeroAddress());
         require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
-        _grantRole(PAYMENT_MANAGER_ROLE, paymentManager);
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
         $.kmsPublicKey = kmsPublicKey_;
@@ -68,23 +60,16 @@ contract NoxCompute is Admin, ACL, Compute, Sponsorship, Payment {
     /**
      * @notice Initializer of 0.3.0 upgrade for already deployed proxies.
      * @notice Migrates the contract from `OwnableUpgradeable` to `AccessControlUpgradeable`:
-     * initializes AccessControl, grants the three roles, and clears the legacy Ownable storage slot.
+     * initializes AccessControl, grants the two roles, and clears the legacy Ownable storage slot.
      * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
      * @param upgrader Address granted `UPGRADER_ROLE`.
-     * @param paymentManager Address granted `PAYMENT_MANAGER_ROLE`.
      */
-    function initializeV3(
-        address admin,
-        address upgrader,
-        address paymentManager
-    ) public reinitializer(3) {
+    function initializeV3(address admin, address upgrader) public reinitializer(3) {
         require(admin != address(0), InvalidZeroAddress());
         require(upgrader != address(0), InvalidZeroAddress());
-        require(paymentManager != address(0), InvalidZeroAddress());
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
-        _grantRole(PAYMENT_MANAGER_ROLE, paymentManager);
         _clearOwnableStorage();
     }
 
