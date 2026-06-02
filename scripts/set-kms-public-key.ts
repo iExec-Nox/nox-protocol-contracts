@@ -16,7 +16,6 @@ export async function setKmsPublicKey(printLogs = true) {
     const publicClient = await viem.getPublicClient();
     const walletClients = await viem.getWalletClients();
 
-    // TODO Use upgrader wallet (first account when running with PRIVATE_KEY set to upgrader key)
     const upgraderClient = walletClients[0];
     if (!upgraderClient) {
         throw new Error("No upgrader wallet available. Set PRIVATE_KEY environment variable.");
