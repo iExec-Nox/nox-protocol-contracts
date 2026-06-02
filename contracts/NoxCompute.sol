@@ -41,7 +41,7 @@ contract NoxCompute is Admin, ACL, Compute {
         $.kmsPublicKey = kmsPublicKey_;
         // v0.2.0
         _emitZeroHandleSeeds();
-        // v0.2.1
+        // v0.2.3
         _initAccessControl(admin, upgrader);
     }
 
@@ -57,7 +57,7 @@ contract NoxCompute is Admin, ACL, Compute {
     }
 
     /**
-     * @notice Initializer of 0.2.1 upgrade for already deployed proxies.
+     * @notice Initializer of 0.2.3 upgrade for already deployed proxies.
      * @notice Migrates the contract from `OwnableUpgradeable` to `AccessControlUpgradeable`:
      * initializes AccessControl, grants the two roles, and clears the legacy Ownable storage slot.
      * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
