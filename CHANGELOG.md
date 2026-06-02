@@ -1,44 +1,35 @@
 # Changelog
 
-## [0.3.0](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.2...v0.3.0) (2026-06-02)
+## [0.2.3](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.2...v0.2.3) (2026-06-02)
 
-
-### ⚠ BREAKING CHANGES
-
-* Implement payment with license and usdc ([#142](https://github.com/iExec-Nox/nox-protocol-contracts/issues/142))
+This release introduces a significant refactoring of the NoxCompute contract, now split into focused sub-modules. It also marks the first deployment of the protocol on Ethereum Sepolia.
 
 ### 🚀 Added
 
-* add new networks ([#133](https://github.com/iExec-Nox/nox-protocol-contracts/issues/133)) ([cacdd9a](https://github.com/iExec-Nox/nox-protocol-contracts/commit/cacdd9a881c6878862c2f6583dd40d8d6c6e6918))
-* admin access control ([#141](https://github.com/iExec-Nox/nox-protocol-contracts/issues/141)) ([cf6885c](https://github.com/iExec-Nox/nox-protocol-contracts/commit/cf6885ca40f36e45dab0ba95ec4df7884be95d12))
-* Implement admin licensing functions ([#139](https://github.com/iExec-Nox/nox-protocol-contracts/issues/139)) ([cd80c33](https://github.com/iExec-Nox/nox-protocol-contracts/commit/cd80c33ef079a5aa1650d28163201017e5b3830f))
-* Implement payment with license and usdc ([#142](https://github.com/iExec-Nox/nox-protocol-contracts/issues/142)) ([9546429](https://github.com/iExec-Nox/nox-protocol-contracts/commit/95464297a2daf048a75045ed4044a06b2f081510))
-* Implement sponsorship management ([#140](https://github.com/iExec-Nox/nox-protocol-contracts/issues/140)) ([442caeb](https://github.com/iExec-Nox/nox-protocol-contracts/commit/442caeb057c2ce80825996d5a94b3529bf60b009))
-* Layout payment feature foundations ([#138](https://github.com/iExec-Nox/nox-protocol-contracts/issues/138)) ([0a40770](https://github.com/iExec-Nox/nox-protocol-contracts/commit/0a40770ba501a8ab9dc00fa7ca1f494f24fe206c))
-* use builtin `erc7201()` for storage slot computation ([#131](https://github.com/iExec-Nox/nox-protocol-contracts/issues/131)) ([b5ae509](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b5ae509bcd7182e2c815111029746b32193cbb45))
+* Use builtin `erc7201()` for storage slot computation ([#131](https://github.com/iExec-Nox/nox-protocol-contracts/issues/131)) ([b5ae509](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b5ae509bcd7182e2c815111029746b32193cbb45))
+* Add new networks (Sepolia) ([#133](https://github.com/iExec-Nox/nox-protocol-contracts/issues/133)) ([cacdd9a](https://github.com/iExec-Nox/nox-protocol-contracts/commit/cacdd9a881c6878862c2f6583dd40d8d6c6e6918))
+* Add admin access control ([#141](https://github.com/iExec-Nox/nox-protocol-contracts/issues/141)) ([cf6885c](https://github.com/iExec-Nox/nox-protocol-contracts/commit/cf6885ca40f36e45dab0ba95ec4df7884be95d12))
+* Deploy the protocol on Ethereum Sepolia ([#154](https://github.com/iExec-Nox/nox-protocol-contracts/issues/154)) ([b4e64b9](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b4e64b9e0bec91197d49b871d521bcc829a3dfd4))
 
 
 ### ✍️ Changed
 
-* **config:** split initialOwner into explicit per-role addresses ([#145](https://github.com/iExec-Nox/nox-protocol-contracts/issues/145)) ([015864d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/015864d6e4591afbc0a9207d7219afcde71255d5))
+* Split initialOwner into explicit per-role addresses ([#145](https://github.com/iExec-Nox/nox-protocol-contracts/issues/145)) ([015864d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/015864d6e4591afbc0a9207d7219afcde71255d5))
 * Fix KMS public key & prepare Ethereum Sepolia deployment ([#148](https://github.com/iExec-Nox/nox-protocol-contracts/issues/148)) ([d41bac5](https://github.com/iExec-Nox/nox-protocol-contracts/commit/d41bac58c561663a0a2e5969fef8a00353ff0db3))
 * Include `select` in operations' common workflow ([#135](https://github.com/iExec-Nox/nox-protocol-contracts/issues/135)) ([648e742](https://github.com/iExec-Nox/nox-protocol-contracts/commit/648e742276e5daec4e9274ee26be3898191b7dd4))
 * Make common checks as close as possible ([#130](https://github.com/iExec-Nox/nox-protocol-contracts/issues/130)) ([f936343](https://github.com/iExec-Nox/nox-protocol-contracts/commit/f93634377ce1ad3ea6769af6cc4514ffaa99ca5d))
 * Merge all execute functions into a single function ([#134](https://github.com/iExec-Nox/nox-protocol-contracts/issues/134)) ([26a316d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/26a316d3eaeba3187f452039ba3100b4837ddd3d))
 * Move safe functions and generate handles of all ops in the same function ([#132](https://github.com/iExec-Nox/nox-protocol-contracts/issues/132)) ([98744df](https://github.com/iExec-Nox/nox-protocol-contracts/commit/98744df0c3bdbfe9b5197cea629dd06d45e334e7))
-* remove monetization (Payment, Sponsorship, licensing, cuPerOperation) ([#147](https://github.com/iExec-Nox/nox-protocol-contracts/issues/147)) ([0b9bae7](https://github.com/iExec-Nox/nox-protocol-contracts/commit/0b9bae7f3af2e709f75cc4d153dac586754487a8))
 * Split and update tests ([#137](https://github.com/iExec-Nox/nox-protocol-contracts/issues/137)) ([ccfa375](https://github.com/iExec-Nox/nox-protocol-contracts/commit/ccfa375751079d080ae55c5f9072d2902d1128ee))
 * Split NoxCompute contract into sub-modules ([#136](https://github.com/iExec-Nox/nox-protocol-contracts/issues/136)) ([527cd47](https://github.com/iExec-Nox/nox-protocol-contracts/commit/527cd474e54e30150e4b72f43e95bc66e21a5d50))
-* use upgrader key ([#152](https://github.com/iExec-Nox/nox-protocol-contracts/issues/152)) ([a4d7e6a](https://github.com/iExec-Nox/nox-protocol-contracts/commit/a4d7e6ae37013b67505b5424654693514a82f540))
+* Use upgrader key ([#152](https://github.com/iExec-Nox/nox-protocol-contracts/issues/152)) ([a4d7e6a](https://github.com/iExec-Nox/nox-protocol-contracts/commit/a4d7e6ae37013b67505b5424654693514a82f540))
 
 
 ### 📋 Misc
 
+* Add Sepolia network to CI workflows ([#149](https://github.com/iExec-Nox/nox-protocol-contracts/issues/149)) ([170f05d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/170f05d5b8540242026383b57390c2fe0508f4b3))
 * Add Ethereum Sepolia proxy address to Nox.sol ([#155](https://github.com/iExec-Nox/nox-protocol-contracts/issues/155)) ([b97672b](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b97672b0ca274e74713cf611ddf442adaf79a8d9))
 * Add Sepolia network to CI workflows ([#149](https://github.com/iExec-Nox/nox-protocol-contracts/issues/149)) ([170f05d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/170f05d5b8540242026383b57390c2fe0508f4b3))
-* Fix KMS public key ([#153](https://github.com/iExec-Nox/nox-protocol-contracts/issues/153)) ([4d4f937](https://github.com/iExec-Nox/nox-protocol-contracts/commit/4d4f9377a60470222791be632d515ebf0225256e))
-* save deployment artifacts for sepolia (GitHub run id: 26823815277) ([#154](https://github.com/iExec-Nox/nox-protocol-contracts/issues/154)) ([b4e64b9](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b4e64b9e0bec91197d49b871d521bcc829a3dfd4))
-* update artifacts ([#127](https://github.com/iExec-Nox/nox-protocol-contracts/issues/127)) ([125481f](https://github.com/iExec-Nox/nox-protocol-contracts/commit/125481fcdfdcf5ba478f9687b3b80ce8bc4454bd))
 
 ## [0.2.2](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.1...v0.2.2) (2026-04-20)
 
