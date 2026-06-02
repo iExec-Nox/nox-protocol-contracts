@@ -43,7 +43,7 @@ const config: { [network: string]: ChainConfig } = {
         chainId: 11155111,
         initialAdmin: "0xD45e79Cd834427A8fE3f1Ed406C0781c17335eDb",
         initialUpgrader: "0xC0Ed057C8819b2b00e93B8b22Ff61b7e0269D6A5",
-        kmsPublicKey: "0x12e1b0794046ef04bfae49938c1293fabbd6614c04862a4059d5e8a0911635c2",
+        kmsPublicKey: "0x0212e1b0794046ef04bfae49938c1293fabbd6614c04862a4059d5e8a0911635c2",
         gateway: "0xE13191F53671957C8a48A7A3Ff15E16450a1552F",
     },
     ethereum: {
