@@ -1,13 +1,6 @@
 name: Set Gateway
 
 on:
-  workflow_call:
-    inputs:
-      network:
-        description: "Network where contracts are deployed"
-        required: true
-        type: string
-
   workflow_dispatch:
     inputs:
       network:
@@ -37,14 +30,6 @@ jobs:
 
       - name: Build contracts
         run: pnpm run build
-
-      # Download artifacts from deploy job (only needed when called from deploy workflow)
-      - name: Download deployment artifacts
-        if: github.workflow == 'Deploy contracts'
-        uses: actions/download-artifact@v6
-        with:
-          name: deployment-artifacts-${{ inputs.network }}
-          path: ignition/deployments/${{ inputs.network }}/
 
       - name: Set gateway address
         env:
