@@ -115,13 +115,11 @@ library TestHelper {
     function deploy(
         address admin,
         address upgrader,
-        address paymentManager,
-        address gateway,
-        uint8 cuPerOperation
+        address gateway
     ) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
         address noxComputeAddress = Nox.noxComputeContract();
-        address noxComputeImplementation = address(newImplementationInstance(cuPerOperation));
+        address noxComputeImplementation = address(newImplementationInstance());
 
         // Deploy a temporary proxy to get its runtime bytecode
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
@@ -129,7 +127,6 @@ library TestHelper {
             noxComputeImplementation,
             admin,
             upgrader,
-            paymentManager,
             kmsKey
         );
 
@@ -143,16 +140,13 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(noxComputeAddress);
-        noxCompute.initialize(admin, upgrader, paymentManager, kmsKey);
+        noxCompute.initialize(admin, upgrader, kmsKey);
         vm.prank(upgrader);
         noxCompute.setGateway(gateway);
 
         // Set labels
         vm.label(admin, "admin");
         if (upgrader != admin) vm.label(upgrader, "upgrader");
-        if (paymentManager != admin && paymentManager != upgrader) {
-            vm.label(paymentManager, "paymentManager");
-        }
         vm.label(gateway, "gateway");
         vm.label(noxComputeAddress, "noxCompute");
 
@@ -197,37 +191,31 @@ library TestHelper {
         address implementation,
         address admin,
         address upgrader,
-        address paymentManager,
         bytes memory kmsPublicKey
     ) internal returns (address) {
         bytes memory initData = abi.encodeCall(
             NoxCompute.initialize,
-            (admin, upgrader, paymentManager, kmsPublicKey)
+            (admin, upgrader, kmsPublicKey)
         );
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
     }
 
     /**
-     * Deploy a new instance of the NoxCompute implementation contract with payment disabled.
+     * Deploy a new instance of the NoxCompute implementation contract.
      */
     function newImplementationInstance() internal returns (NoxCompute) {
-        return new NoxCompute(0);
-    }
-
-    function newImplementationInstance(uint8 cuPerOperation) internal returns (NoxCompute) {
-        return new NoxCompute(cuPerOperation);
+        return new NoxCompute();
     }
 
     /**
-     * Deploys a new random proxy instance of NoxCompute with payment disabled.
+     * Deploys a new random proxy instance of NoxCompute.
      */
     function newProxyInstance() internal returns (NoxCompute proxy) {
         address implementation = address(newImplementationInstance());
         bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
         address proxyAddress = deployProxy(
             implementation,
-            address(this),
             address(this),
             address(this),
             kmsPublicKey

@@ -4,7 +4,6 @@ import { deploy } from "./deploy.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
-import config from "../config/config.ts";
 import { Address } from "viem";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
@@ -22,7 +21,7 @@ import { Address } from "viem";
  * @param printLogs whether to print logs or not
  * @param contractName the contract to deploy as new implementation (defaults to "NoxCompute")
  * @param initCall optional reinitializer to run atomically with the upgrade (e.g.
- *        `{ fn: "initializeV3", args: [admin, upgrader, paymentManager] }`)
+ *        `{ fn: "initializeV3", args: [admin, upgrader] }`)
  * @returns The new implementation address
  */
 export async function upgradeNoxCompute(
@@ -41,15 +40,6 @@ export async function upgradeNoxCompute(
     const noxComputeProxyAddress: Address = await _resolveProxyAddress(proxyAddress, _log);
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
 
-    const chainConfig = config[connection.networkName];
-    if (!chainConfig) {
-        throw new Error(`No chain config found for network: ${connection.networkName}`);
-    }
-
-    // CU_PER_OPERATION env var takes precedence, then falls back to the config value.
-    const cuPerOperation =
-        process.env.CU_PER_OPERATION !== undefined ? Number(process.env.CU_PER_OPERATION) : chainConfig.cuPerOperation;
-
     const api = await upgrades(hre, connection);
     const newImplFactory = await ethers.getContractFactory(contractName);
 
@@ -57,7 +47,6 @@ export async function upgradeNoxCompute(
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
-        constructorArgs: [cuPerOperation],
         ...(initCall ? { call: initCall } : {}),
     });
     await upgrade.waitForDeployment();

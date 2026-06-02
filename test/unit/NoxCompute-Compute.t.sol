@@ -47,7 +47,7 @@ contract NoxCompute_ComputeTest is Test {
     bytes4[] internal allOps;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, owner, owner, gateway, 0);
+        noxCompute = TestHelper.deploy(owner, owner, gateway);
         vm.label(caller, "caller");
         for (uint256 i = 0; i < arithmeticOps.length; i++) {
             allOps.push(arithmeticOps[i]);

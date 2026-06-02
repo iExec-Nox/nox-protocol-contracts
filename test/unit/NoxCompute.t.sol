@@ -16,7 +16,7 @@ contract NoxComputeTest is Test {
     NoxCompute noxCompute;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, owner, owner, gateway, 0);
+        noxCompute = TestHelper.deploy(owner, owner, gateway);
     }
 
     // ============ initialize ============
@@ -24,7 +24,6 @@ contract NoxComputeTest is Test {
     function test_Initialize() public view {
         assertTrue(noxCompute.hasRole(noxCompute.DEFAULT_ADMIN_ROLE(), owner));
         assertTrue(noxCompute.hasRole(noxCompute.UPGRADER_ROLE(), owner));
-        assertTrue(noxCompute.hasRole(noxCompute.PAYMENT_MANAGER_ROLE(), owner));
         assertEq(noxCompute.proofExpirationDuration(), 1 hours);
         (
             , // bytes1 fields
@@ -59,7 +58,6 @@ contract NoxComputeTest is Test {
         noxCompute.initialize(
             owner,
             owner,
-            owner,
             abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key"))
         );
     }
@@ -68,13 +66,7 @@ contract NoxComputeTest is Test {
         NoxCompute impl = TestHelper.newImplementationInstance();
         vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
         NoxCompute(
-            TestHelper.deployProxy(
-                address(impl),
-                address(this),
-                address(this),
-                address(this),
-                new bytes(0)
-            )
+            TestHelper.deployProxy(address(impl), address(this), address(this), new bytes(0))
         );
     }
 
