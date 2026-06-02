@@ -3,6 +3,7 @@ pragma solidity ^0.8.35;
 
 import {Test} from "forge-std/Test.sol";
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
+import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
@@ -53,6 +54,18 @@ contract NoxComputeTest is Test {
         TestHelper.newProxyInstance();
     }
 
+    function test_Initialize_ShouldEmitRoleGranted() public {
+        address admin = makeAddr("admin");
+        address upgrader = makeAddr("upgrader");
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
+        vm.expectEmit(true, true, false, true);
+        emit IAccessControl.RoleGranted(noxCompute.DEFAULT_ADMIN_ROLE(), admin, address(0));
+        vm.expectEmit(true, true, false, true);
+        emit IAccessControl.RoleGranted(noxCompute.UPGRADER_ROLE(), upgrader, address(0));
+        TestHelper.deployProxy(address(impl), admin, upgrader, kmsKey);
+    }
+
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         noxCompute.initialize(
@@ -68,6 +81,20 @@ contract NoxComputeTest is Test {
         NoxCompute(
             TestHelper.deployProxy(address(impl), address(this), address(this), new bytes(0))
         );
+    }
+
+    function test_RevertWhen_Initialize_ZeroAdmin() public {
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        TestHelper.deployProxy(address(impl), address(0), address(this), kmsKey);
+    }
+
+    function test_RevertWhen_Initialize_ZeroUpgrader() public {
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        TestHelper.deployProxy(address(impl), address(this), address(0), kmsKey);
     }
 
     // ============ initializeV2 ============
@@ -92,5 +119,45 @@ contract NoxComputeTest is Test {
         proxy.initializeV2();
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         proxy.initializeV2();
+    }
+
+    // ============ initializeV3 ============
+
+    function test_InitializeV3() public {
+        address admin = makeAddr("newAdmin");
+        address upgrader = makeAddr("newUpgrader");
+        NoxCompute proxy = TestHelper.newProxyInstance();
+        // Simulate legacy Ownable storage with a non-zero owner slot
+        // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
+        // slither-disable-next-line uninitialized-state
+        bytes32 ownableSlot = bytes32(erc7201("openzeppelin.storage.Ownable"));
+        vm.store(address(proxy), ownableSlot, bytes32(uint256(uint160(makeAddr("old-owner")))));
+        vm.expectEmit(true, true, false, true);
+        emit IAccessControl.RoleGranted(proxy.DEFAULT_ADMIN_ROLE(), admin, address(0));
+        vm.expectEmit(true, true, false, true);
+        emit IAccessControl.RoleGranted(proxy.UPGRADER_ROLE(), upgrader, address(0));
+        proxy.initializeV3(admin, upgrader);
+        assertTrue(proxy.hasRole(proxy.DEFAULT_ADMIN_ROLE(), admin));
+        assertTrue(proxy.hasRole(proxy.UPGRADER_ROLE(), upgrader));
+        assertEq(vm.load(address(proxy), ownableSlot), bytes32(0));
+    }
+
+    function test_RevertWhen_InitializeV3_AlreadyCalled() public {
+        NoxCompute proxy = TestHelper.newProxyInstance();
+        proxy.initializeV3(makeAddr("admin"), makeAddr("upgrader"));
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        proxy.initializeV3(makeAddr("admin"), makeAddr("upgrader"));
+    }
+
+    function test_RevertWhen_InitializeV3_ZeroAdmin() public {
+        NoxCompute proxy = TestHelper.newProxyInstance();
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        proxy.initializeV3(address(0), makeAddr("upgrader"));
+    }
+
+    function test_RevertWhen_InitializeV3_ZeroUpgrader() public {
+        NoxCompute proxy = TestHelper.newProxyInstance();
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        proxy.initializeV3(makeAddr("admin"), address(0));
     }
 }

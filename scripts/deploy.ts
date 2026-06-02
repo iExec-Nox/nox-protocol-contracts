@@ -1,7 +1,7 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
-import config from "../config/config.ts";
+import { getChainConfig } from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Deployment script for the Nox Contracts.
@@ -18,24 +18,11 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 export async function deploy(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
-    const chainConfig = config[connection.networkName];
-    if (!chainConfig) {
-        throw new Error(`No chain config found for network: ${connection.networkName}`);
-    }
+    const chainConfig = getChainConfig(connection.networkName);
 
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Chain config:`, chainConfig);
-    // All deploy parameters come from chain config (single source of truth).
     const { initialAdmin, initialUpgrader, kmsPublicKey } = chainConfig;
-    if (!initialAdmin || !initialUpgrader) {
-        throw new Error(
-            `Role addresses missing in chainConfig for network "${connection.networkName}": ` +
-                "initialAdmin and initialUpgrader are required.",
-        );
-    }
-    if (!kmsPublicKey) {
-        throw new Error(`kmsPublicKey missing in chainConfig for network "${connection.networkName}".`);
-    }
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
