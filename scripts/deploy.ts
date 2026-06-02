@@ -24,7 +24,7 @@ export async function deploy(printLogs = true) {
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
     _log(`Deployer address: ${deployerClient?.account.address}`);
     _log(`Chain config:`, chainConfig);
-    const { initialAdmin, initialUpgrader, kmsPublicKey } = chainConfig;
+    const { initialAdmin, initialUpgrader, kmsPublicKey, gateway } = chainConfig;
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
@@ -34,6 +34,7 @@ export async function deploy(printLogs = true) {
                 initialAdmin,
                 initialUpgrader,
                 kmsPublicKey,
+                gateway,
             },
         },
     });
