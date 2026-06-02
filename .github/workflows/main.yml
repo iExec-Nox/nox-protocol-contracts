@@ -57,7 +57,7 @@ jobs:
         run: echo "version=$(cat .solc.json | jq -r .version)" >> $GITHUB_OUTPUT
 
       - name: Run static analysis with Slither
-        uses: crytic/slither-action@v0.4.1
+        uses: crytic/slither-action@v0.4.2
         with:
           target: "contracts/"
           solc-version: ${{ steps.get-solc-version.outputs.version }}

@@ -20,15 +20,25 @@ import { Address } from "viem";
  * @param proxyAddress the NoxCompute proxy address to upgrade, resolved automatically if not provided
  * @param printLogs whether to print logs or not
  * @param contractName the contract to deploy as new implementation (defaults to "NoxCompute")
+ * @param initCall optional reinitializer to run atomically with the upgrade (e.g.
+ *        `{ fn: "initializeV3", args: [admin, upgrader] }`)
  * @returns The new implementation address
  */
-export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true, contractName = "NoxCompute") {
+// TODO use correct upgrader address
+export async function upgradeNoxCompute(
+    proxyAddress?: Address,
+    printLogs = true,
+    contractName = "NoxCompute",
+    initCall?: { fn: string; args: unknown[] },
+) {
     const _log = printLogs ? console.log : () => {};
     const { ethers } = connection;
+    const [upgrader] = await ethers.getSigners();
 
     _log(`Upgrading NoxCompute proxy`);
     _log(`New implementation contract: ${contractName}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _log(`Upgrader address: ${upgrader?.address}`);
 
     const noxComputeProxyAddress: Address = await _resolveProxyAddress(proxyAddress, _log);
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
@@ -40,7 +50,7 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
-        call: { fn: "initializeV2", args: [] },
+        ...(initCall ? { call: initCall } : {}),
     });
     await upgrade.waitForDeployment();
 

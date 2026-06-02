@@ -1,8 +1,8 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
-import {HandleUtils} from "../shared/HandleUtils.sol";
-import {TEEType, TypeUtils} from "../shared/TypeUtils.sol";
+import {HandleUtils} from "../utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import "encrypted-types/EncryptedTypes.sol";
 
@@ -19,58 +19,21 @@ library Nox {
 
     /**
      * @dev Returns the NoxCompute contract address for the current chain.
-     *      Supports Arbitrum Mainnet (42161), Arbitrum Sepolia (421614), and local dev chains (31337),
-     *      including local forks of each network.
+     * Supports:
+     * - Arbitrum Sepolia (421614)
+     * - Hardhat local development chain (31337)
+     * - Forks of listed networks
      */
     function noxComputeContract() internal view returns (address) {
-        // Arbitrum mainnet or its fork
-        if (block.chainid == 42161) {
-            // TODO: Update after mainnet deployment.
-            return address(0);
-        }
         // Arbitrum Sepolia or its fork
         if (block.chainid == 421614) {
             return 0xd464B198f06756a1d00be223634b85E0a731c229;
         }
         // Local development chain
         if (block.chainid == 31337) {
-            return 0x44C00793aD4975617b3B5Fc27D4FB78E772c8236;
+            return 0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685;
         }
         revert("Nox: Unsupported chain");
-    }
-
-    function _noxComputeContract() private view returns (INoxCompute) {
-        return INoxCompute(noxComputeContract());
-    }
-
-    /**
-     * @dev Calls allow on NoxCompute, silently skipping public handles.
-     * Public handles are already accessible by everyone and don't need ACL.
-     */
-    function _allowIfNotPublic(bytes32 handle, address account) private {
-        if (!HandleUtils.isPublicHandle(handle)) {
-            _noxComputeContract().allow(handle, account);
-        }
-    }
-
-    /**
-     * @dev Calls allowTransient on NoxCompute, silently skipping public handles.
-     * Public handles are already accessible by everyone and don't need ACL.
-     */
-    function _allowTransientIfNotPublic(bytes32 handle, address account) private {
-        if (!HandleUtils.isPublicHandle(handle)) {
-            _noxComputeContract().allowTransient(handle, account);
-        }
-    }
-
-    /**
-     * @dev Calls disallowTransient on NoxCompute, silently skipping public handles.
-     * Public handles are already accessible by everyone and don't need ACL.
-     */
-    function _disallowTransientIfNotPublic(bytes32 handle, address account) private {
-        if (!HandleUtils.isPublicHandle(handle)) {
-            _noxComputeContract().disallowTransient(handle, account);
-        }
     }
 
     // =========== Handle initialization checks ============
@@ -1294,6 +1257,10 @@ library Nox {
 
     // ============ Private helpers ============
 
+    function _noxComputeContract() private view returns (INoxCompute) {
+        return INoxCompute(noxComputeContract());
+    }
+
     /**
      * @dev Resolves an undefined (bytes32(0)) handle to the typed zero handle for the given type.
      * If the handle is already non-zero, returns it unchanged.
@@ -1303,5 +1270,35 @@ library Nox {
         TEEType teeType
     ) private view returns (bytes32) {
         return handle == bytes32(0) ? HandleUtils.zeroHandle(teeType) : handle;
+    }
+
+    /**
+     * @dev Calls allow on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need ACL.
+     */
+    function _allowIfNotPublic(bytes32 handle, address account) private {
+        if (!HandleUtils.isPublicHandle(handle)) {
+            _noxComputeContract().allow(handle, account);
+        }
+    }
+
+    /**
+     * @dev Calls allowTransient on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need ACL.
+     */
+    function _allowTransientIfNotPublic(bytes32 handle, address account) private {
+        if (!HandleUtils.isPublicHandle(handle)) {
+            _noxComputeContract().allowTransient(handle, account);
+        }
+    }
+
+    /**
+     * @dev Calls disallowTransient on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need ACL.
+     */
+    function _disallowTransientIfNotPublic(bytes32 handle, address account) private {
+        if (!HandleUtils.isPublicHandle(handle)) {
+            _noxComputeContract().disallowTransient(handle, account);
+        }
     }
 }

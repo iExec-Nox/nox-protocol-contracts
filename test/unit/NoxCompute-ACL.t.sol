@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
@@ -8,10 +8,10 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
-contract NoxComputeACLTest is Test {
+contract NoxCompute_ACLTest is Test {
     address internal owner = address(this);
     address internal user1 = makeAddr("user1");
     address internal user2 = makeAddr("user2");
@@ -23,7 +23,7 @@ contract NoxComputeACLTest is Test {
     NoxCompute internal noxCompute;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, makeAddr("gateway"));
+        noxCompute = TestHelper.deploy(owner, owner, makeAddr("gateway"));
         // Create handles with isUniqueHandle=1 so ACL operations work
         handle = TestHelper.createHandle(TEEType.Uint256);
         handle2 = TestHelper.createHandle(TEEType.Uint256);

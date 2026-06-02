@@ -8,9 +8,10 @@ on:
         required: true
         type: choice
         options:
-          - arbitrumSepolia
           - tenderlyArbitrumSepolia
-        default: "arbitrumSepolia"
+          - arbitrumSepolia
+          - sepolia
+        default: "tenderlyArbitrumSepolia"
 
 jobs:
   set-kms-public-key:
@@ -34,5 +35,4 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.OWNER_PRIVATE_KEY }}
-          KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
         run: pnpm run set-kms-public-key --network ${{ inputs.network }}

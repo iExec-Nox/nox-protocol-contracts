@@ -1,7 +1,7 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
-import config from "../config/config.ts";
+import { getChainConfig } from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 
 // Deployment script for the Nox Contracts.
@@ -18,32 +18,23 @@ import connection from "./utils/hardhat-connection-singleton.ts";
 export async function deploy(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
-    const chainConfig = config[connection.networkName];
-    if (!chainConfig) {
-        throw new Error(`No chain config found for network: ${connection.networkName}`);
-    }
+    const chainConfig = getChainConfig(connection.networkName);
+    const [deployerClient] = await viem.getWalletClients();
 
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _log(`Deployer address: ${deployerClient?.account.address}`);
     _log(`Chain config:`, chainConfig);
-    // Deploy NoxCompute.
-    // KMS_PUBLIC_KEY env var takes precedence, then falls back to the config value.
-    const kmsPublicKey = process.env.KMS_PUBLIC_KEY ?? chainConfig.kmsPublicKey;
-    if (!kmsPublicKey) {
-        throw new Error("KMS_PUBLIC_KEY environment variable is required");
-    }
-    // INITIAL_OWNER env var takes precedence, then falls back to the config value.
-    const initialOwner = process.env.INITIAL_OWNER ?? chainConfig.initialOwner;
-    if (!initialOwner) {
-        throw new Error("INITIAL_OWNER environment variable is required");
-    }
+    const { initialAdmin, initialUpgrader, kmsPublicKey, gateway } = chainConfig;
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
         deploymentId: connection.networkName,
         displayUi: printLogs,
         strategy: "create2",
         parameters: {
             NoxCompute: {
-                initialOwner,
+                initialAdmin,
+                initialUpgrader,
                 kmsPublicKey,
+                gateway,
             },
         },
     });

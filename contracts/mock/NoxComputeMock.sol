@@ -1,5 +1,5 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 
@@ -8,6 +8,8 @@ import {NoxCompute} from "../../contracts/NoxCompute.sol";
  * @dev Mock NoxCompute contract for testing ACL functionality with helper functions
  */
 contract NoxComputeMock is NoxCompute {
+    constructor() NoxCompute() {}
+
     /**
      * @dev Helper function to grant transient access and then persistent access in the same transaction.
      * This is useful for testing to demonstrate that persistent permissions survive while transient do not.

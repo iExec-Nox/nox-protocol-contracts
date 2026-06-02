@@ -1,12 +1,12 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {Vm} from "forge-std/src/Vm.sol";
 import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.sol";
 import {MessageHashUtils} from "@openzeppelin/contracts/utils/cryptography/MessageHashUtils.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType} from "../../contracts/shared/TypeUtils.sol";
+import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 library TestHelper {
@@ -16,8 +16,9 @@ library TestHelper {
     // ERC1967 implementation slot
     bytes32 private constant IMPLEMENTATION_SLOT =
         0x360894a13ba1a3210667c828492db98dca3e2076cc3735a920a3ca505d382bbc;
-    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION =
-        0x118a408ef9c0c38d6620cca4d300c2ce1c4f4cbcd93520940a6461e96acdcd00;
+    bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION = bytes32(
+        erc7201("nox.storage.NoxCompute")
+    );
 
     /**
      * Generates a deterministic unique handle with the given type.
@@ -111,15 +112,24 @@ library TestHelper {
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
      */
-    function deploy(address owner, address gateway) internal returns (NoxCompute noxCompute) {
+    function deploy(
+        address admin,
+        address upgrader,
+        address gateway
+    ) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
         address noxComputeAddress = Nox.noxComputeContract();
-        // Deploy NoxCompute implementation
-        address noxComputeImplementation = address(new NoxCompute());
+        address noxComputeImplementation = address(newImplementationInstance());
 
         // Deploy a temporary proxy to get its runtime bytecode
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
-        address noxComputeProxyTemp = deployProxy(noxComputeImplementation, owner, kmsKey);
+        address noxComputeProxyTemp = deployProxy(
+            noxComputeImplementation,
+            admin,
+            upgrader,
+            kmsKey,
+            gateway
+        );
 
         // Etch the proxy bytecode at the NoxCompute address resolved by Nox
         vm.etch(noxComputeAddress, noxComputeProxyTemp.code);
@@ -131,12 +141,11 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(noxComputeAddress);
-        noxCompute.initialize(owner, kmsKey);
-        vm.prank(owner);
-        noxCompute.setGateway(gateway);
+        noxCompute.initialize(admin, upgrader, kmsKey, gateway);
 
         // Set labels
-        vm.label(owner, "owner");
+        vm.label(admin, "admin");
+        if (upgrader != admin) vm.label(upgrader, "upgrader");
         vm.label(gateway, "gateway");
         vm.label(noxComputeAddress, "noxCompute");
 
@@ -179,21 +188,39 @@ library TestHelper {
 
     function deployProxy(
         address implementation,
-        address owner,
-        bytes memory kmsPublicKey
+        address admin,
+        address upgrader,
+        bytes memory kmsPublicKey,
+        address gateway
     ) internal returns (address) {
-        bytes memory initData = abi.encodeCall(NoxCompute.initialize, (owner, kmsPublicKey));
+        bytes memory initData = abi.encodeCall(
+            NoxCompute.initialize,
+            (admin, upgrader, kmsPublicKey, gateway)
+        );
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
+    }
+
+    /**
+     * Deploy a new instance of the NoxCompute implementation contract.
+     */
+    function newImplementationInstance() internal returns (NoxCompute) {
+        return new NoxCompute();
     }
 
     /**
      * Deploys a new random proxy instance of NoxCompute.
      */
     function newProxyInstance() internal returns (NoxCompute proxy) {
-        address implementation = address(new NoxCompute());
+        address implementation = address(newImplementationInstance());
         bytes memory kmsPublicKey = abi.encodePacked(bytes1(0x02), keccak256("kms-pub-key"));
-        address proxyAddress = deployProxy(implementation, address(this), kmsPublicKey);
+        address proxyAddress = deployProxy(
+            implementation,
+            address(this),
+            address(this),
+            kmsPublicKey,
+            address(1)
+        );
         proxy = NoxCompute(proxyAddress);
     }
 

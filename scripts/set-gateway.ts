@@ -1,9 +1,10 @@
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { getChainConfig } from "../config/config.ts";
 
 // Script to set the gateway address on the NoxCompute contract.
-// It reads the deployed contract address from ignition deployment artifacts.
-// Requires GATEWAY_ADDRESS environment variable to be set.
+// It reads the deployed contract address from ignition deployment artifacts
+// and the gateway address from `config/config.ts`.
 
 /**
  * Sets the gateway address on the NoxCompute contract.
@@ -15,19 +16,16 @@ export async function setGateway(printLogs = true) {
     const publicClient = await viem.getPublicClient();
     const walletClients = await viem.getWalletClients();
 
-    // Use owner wallet (first account when running with PRIVATE_KEY set to owner key)
-    const ownerClient = walletClients[0];
-    if (!ownerClient) {
-        throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
+    // TODO Use upgrader wallet (first account when running with PRIVATE_KEY set to upgrader key)
+    const upgraderClient = walletClients[0];
+    if (!upgraderClient) {
+        throw new Error("No upgrader wallet available. Set PRIVATE_KEY environment variable.");
     }
 
-    const gatewayAddress = process.env.GATEWAY_ADDRESS;
-    if (!gatewayAddress) {
-        throw new Error("GATEWAY_ADDRESS environment variable is required");
-    }
+    const { gateway: gatewayAddress } = getChainConfig(connection.networkName);
 
     _log(`Setting gateway address: ${gatewayAddress}`);
-    _log(`Using owner address: ${ownerClient.account.address}`);
+    _log(`Using upgrader address: ${upgraderClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
     // Read NoxCompute proxy address from ignition deployment artifacts
@@ -35,9 +33,9 @@ export async function setGateway(printLogs = true) {
 
     _log(`NoxCompute address: ${noxComputeAddress}`);
 
-    // Get NoxCompute contract instance with owner wallet
+    // Get NoxCompute contract instance with upgrader wallet
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeAddress, {
-        client: { wallet: ownerClient },
+        client: { wallet: upgraderClient },
     });
 
     // Set the gateway address

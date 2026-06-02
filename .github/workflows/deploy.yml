@@ -9,8 +9,9 @@ on:
         type: choice
         options:
           - hardhat
-          - arbitrumSepolia
           - tenderlyArbitrumSepolia
+          - arbitrumSepolia
+          - sepolia
         default: "hardhat"
       reset-artifacts:
         description: "Reset Ignition deployment artifacts before deploying (required when contract bytecode changes)"
@@ -53,17 +54,7 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
-          KMS_PUBLIC_KEY: ${{ vars.KMS_PUBLIC_KEY }}
         run: pnpm run deploy:production --network ${{ inputs.network }}
-
-      # Used in set-gateway job.
-      - name: Upload deployment artifacts
-        if: inputs.network != 'hardhat'
-        uses: actions/upload-artifact@v6
-        with:
-          name: deployment-artifacts-${{ inputs.network }}
-          path: ignition/deployments/${{ inputs.network }}/
-          retention-days: 1
 
       # Push artifacts to the current branch if it's not `main`.
       - name: Push artifacts to the current branch
@@ -104,11 +95,3 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.DEPLOYER_PRIVATE_KEY }}
         run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}
-
-  set-gateway:
-    needs: deploy
-    if: inputs.network != 'hardhat'
-    uses: ./.github/workflows/set-gateway.yml
-    with:
-      network: ${{ inputs.network }}
-    secrets: inherit

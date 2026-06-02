@@ -1,40 +1,49 @@
 // SPDX-License-Identifier: MIT
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
-import {TEEType} from "../shared/TypeUtils.sol";
+import {TEEType} from "../utils/TypeUtils.sol";
 
 /**
  * @title INoxCompute
  * @notice Interface for the Nox compute contract powered by TEE.
  */
 interface INoxCompute {
+    // ------------- General errors -------------
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
     /// Error thrown when bytes parameter is empty
     error InvalidEmptyBytes();
+
+    // ------------- ACL errors -------------
     /// Error thrown when sender doesn't have access to the handle
     error UnauthorizedSender(address sender);
     /// Error thrown when an account is not allowed to use a handle
     error NotAllowed(bytes32 handle, address account);
-    error InvalidProof(bytes proof, string reason);
-    error UnsupportedType();
-    error IncompatibleTypes();
+    /// Error thrown when a handle is not publicly decryptable
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();
+
+    // ------------- Compute errors -------------
+    /// Error thrown when the input proof is invalid
+    error InvalidProof(bytes proof, string reason);
     /// Error thrown when an operand is bytes32(0), indicating an undefined handle
     error UndefinedHandle();
 
+    // ------------- ACL events -------------
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
     /// Emitted when viewer role is granted
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
     /// Emitted when a handle is marked as publicly decryptable
     event MarkedAsPubliclyDecryptable(address indexed sender, bytes32 indexed handle);
+
+    // ------------- Protocol config events -------------
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
     event ProofExpirationDurationUpdated(uint256 newDuration);
 
+    // ------------- Compute events -------------
     event WrapAsPublicHandle(
         address indexed caller,
         bytes32 plaintext,
@@ -228,7 +237,7 @@ interface INoxCompute {
     function validateAllowedForAll(address account, bytes32[] calldata handles) external view;
 
     /**
-     * Add a viewer for a specific handle
+     * Adds a viewer for a specific handle
      * @dev Only an admin can add a viewer. The viewer address cannot be address(0).
      * @param handle The handle identifier
      * @param viewer The address to grant viewer role
@@ -561,6 +570,12 @@ interface INoxCompute {
         bytes32 totalSupply
     ) external returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply);
 
+    // ------------- Config getters -------------
+
+    function kmsPublicKey() external view returns (bytes memory);
+    function gateway() external view returns (address);
+    function proofExpirationDuration() external view returns (uint256);
+
     // ------------- Admin functions -------------
 
     /**
@@ -580,8 +595,4 @@ interface INoxCompute {
      * @param newDuration The new expiration duration in seconds
      */
     function setProofExpirationDuration(uint256 newDuration) external;
-
-    function kmsPublicKey() external view returns (bytes memory);
-    function gateway() external view returns (address);
-    function proofExpirationDuration() external view returns (uint256);
 }

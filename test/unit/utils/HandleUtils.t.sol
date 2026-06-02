@@ -1,9 +1,9 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {Test} from "forge-std/Test.sol";
-import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
-import {HandleUtils} from "../../../contracts/shared/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../../../contracts/utils/TypeUtils.sol";
+import {HandleUtils} from "../../../contracts/utils/HandleUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 
 contract HandleUtilsTest is Test {

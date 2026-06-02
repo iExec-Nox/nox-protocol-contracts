@@ -1,11 +1,11 @@
 // SPDX-License-Identifier: BUSL-1.1
-pragma solidity ^0.8.27;
+pragma solidity ^0.8.35;
 
 import {Test} from "forge-std/Test.sol";
 import {stdError} from "forge-std/StdError.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
-import {TEEType, TypeUtils} from "../../../contracts/shared/TypeUtils.sol";
+import {TEEType, TypeUtils} from "../../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
 import {NoxMock} from "../../../contracts/mock/NoxMock.sol";
@@ -47,7 +47,7 @@ contract NoxTest is Test {
     bytes32[] allHandles;
 
     function setUp() public {
-        noxComputeContract = TestHelper.deploy(owner, gateway);
+        noxComputeContract = TestHelper.deploy(owner, owner, gateway);
         noxCompute = address(noxComputeContract);
 
         noxMock = new NoxMock();
