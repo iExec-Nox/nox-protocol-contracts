@@ -24,6 +24,7 @@ import { Address } from "viem";
  *        `{ fn: "initializeV3", args: [admin, upgrader] }`)
  * @returns The new implementation address
  */
+// TODO use correct upgrader address
 export async function upgradeNoxCompute(
     proxyAddress?: Address,
     printLogs = true,
