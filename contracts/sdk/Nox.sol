@@ -25,13 +25,17 @@ library Nox {
      * - Forks of listed networks
      */
     function noxComputeContract() internal view returns (address) {
-        // Arbitrum Sepolia or its fork
+        // Local Hardhat development chain
+        if (block.chainid == 31337) {
+            return 0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685;
+        }
+        // Arbitrum Sepolia
         if (block.chainid == 421614) {
             return 0xd464B198f06756a1d00be223634b85E0a731c229;
         }
-        // Local development chain
-        if (block.chainid == 31337) {
-            return 0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685;
+        // Ethereum Sepolia
+        if (block.chainid == 11155111) {
+            return 0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF;
         }
         revert("Nox: Unsupported chain");
     }
