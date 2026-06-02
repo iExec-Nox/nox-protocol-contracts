@@ -99,6 +99,21 @@ contract NoxTest is Test {
         Nox.isAllowed(ebool.wrap(boolHandle), account);
     }
 
+    function test_ContractAddress_EthereumSepolia() public {
+        vm.chainId(11155111);
+        address ethereumSepoliaCompute = noxMock.noxComputeContract();
+        vm.mockCall(
+            ethereumSepoliaCompute,
+            abi.encodeCall(INoxCompute.isAllowed, (boolHandle, account)),
+            abi.encode(false)
+        );
+        vm.expectCall(
+            ethereumSepoliaCompute,
+            abi.encodeCall(INoxCompute.isAllowed, (boolHandle, account))
+        );
+        Nox.isAllowed(ebool.wrap(boolHandle), account);
+    }
+
     function test_RevertWhen_ContractAddress_UnsupportedChain() public {
         vm.chainId(9999);
         vm.expectRevert("Nox: Unsupported chain");
