@@ -12,7 +12,7 @@ import {NoxCompute} from "../NoxCompute.sol";
  *      new implementation rather than the previous one.
  */
 contract NoxComputeUpgradeMock is NoxCompute {
-    constructor(uint8 cuPerOperation) NoxCompute(cuPerOperation) {}
+    constructor() NoxCompute() {}
 
     /// @return Sentinel version number used by upgrade tests to detect the impl swap.
     /// @dev Bump this value whenever a new `initialize*` is added to `NoxCompute` so the
