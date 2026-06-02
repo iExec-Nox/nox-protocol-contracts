@@ -18,7 +18,7 @@ export async function setKmsPublicKey(printLogs = true) {
 
     const upgraderClient = walletClients[0];
     if (!upgraderClient) {
-        throw new Error("No upgrader wallet available. Set PRIVATE_KEY to the UPGRADER_ROLE key.");
+        throw new Error("No upgrader wallet available. Set PRIVATE_KEY environment variable.");
     }
 
     const { kmsPublicKey } = getChainConfig(connection.networkName);
