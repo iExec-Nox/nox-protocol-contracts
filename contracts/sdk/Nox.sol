@@ -20,12 +20,12 @@ library Nox {
     /**
      * @dev Returns the NoxCompute contract address for the current chain.
      * Supports:
-     * - Arbitrum Sepolia (421614)
      * - Hardhat local development chain (31337)
-     * - Forks of listed networks
+     * - Arbitrum Sepolia (421614)
+     * - Ethereum Sepolia (11155111)
      */
     function noxComputeContract() internal view returns (address) {
-        // Local Hardhat development chain
+        // Hardhat local development chain
         if (block.chainid == 31337) {
             return 0x75C6AF4430cc474b1bb9b8540b7E46D6f8e1C685;
         }
