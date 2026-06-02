@@ -1,3 +1,5 @@
+import { isAddress } from "viem";
+
 // CREATE2 deployment salt for deterministic addresses
 // TODO: For production deployment, replace with a carefully chosen and documented salt.
 // This salt is used by Ignition's create2 strategy to deploy contracts at deterministic addresses.
@@ -58,15 +60,25 @@ export function getChainConfig(networkName: string): ChainConfig {
     if (!chainConfig) {
         throw new Error(`No chain config found for network: ${networkName}`);
     }
-    const { initialAdmin, initialUpgrader, kmsPublicKey, gateway } = chainConfig;
-    if (!initialAdmin || !initialUpgrader) {
-        throw new Error(`Role addresses missing in config for network "${networkName}".`);
+    if (!isAddress(chainConfig.initialAdmin)) {
+        throw new Error(`Invalid initialAdmin address in config for network "${networkName}".`);
     }
-    if (!kmsPublicKey) {
-        throw new Error(`KMS public key missing in config for network "${networkName}".`);
+    if (!isAddress(chainConfig.initialUpgrader)) {
+        throw new Error(`Invalid initialUpgrader address in config for network "${networkName}".`);
     }
-    if (!gateway) {
-        throw new Error(`Gateway address missing in config for network "${networkName}".`);
+    if (!isAddress(chainConfig.gateway)) {
+        throw new Error(`Invalid gateway address in config for network "${networkName}".`);
+    }
+    if (!isValidKmsPublicKey(chainConfig.kmsPublicKey)) {
+        throw new Error(`Invalid kmsPublicKey in config for network "${networkName}".`);
     }
     return chainConfig;
+}
+
+/**
+ * A valid KMS public key is a 33-byte compressed secp256k1 key, represented as
+ * a hex string starting with 0x02 or 0x03, followed by 64 hex characters (32 bytes).
+ */
+function isValidKmsPublicKey(value: string): boolean {
+    return /^0x(02|03)[0-9a-fA-F]{64}$/.test(value);
 }
