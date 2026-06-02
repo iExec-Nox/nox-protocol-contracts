@@ -85,4 +85,15 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     function _authorizeUpgrade(
         address /*newImplementation*/
     ) internal override onlyRole(UPGRADER_ROLE) {}
+
+    /**
+     * @dev Initializes AccessControl and grants the defined roles.
+     */
+    function _initAccessControl(address admin, address upgrader) internal {
+        require(admin != address(0), InvalidZeroAddress());
+        require(upgrader != address(0), InvalidZeroAddress());
+        __AccessControl_init();
+        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        _grantRole(UPGRADER_ROLE, upgrader);
+    }
 }
