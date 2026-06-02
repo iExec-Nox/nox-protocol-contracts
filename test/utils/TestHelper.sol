@@ -127,7 +127,8 @@ library TestHelper {
             noxComputeImplementation,
             admin,
             upgrader,
-            kmsKey
+            kmsKey,
+            gateway
         );
 
         // Etch the proxy bytecode at the NoxCompute address resolved by Nox
@@ -140,9 +141,7 @@ library TestHelper {
         );
 
         noxCompute = NoxCompute(noxComputeAddress);
-        noxCompute.initialize(admin, upgrader, kmsKey);
-        vm.prank(upgrader);
-        noxCompute.setGateway(gateway);
+        noxCompute.initialize(admin, upgrader, kmsKey, gateway);
 
         // Set labels
         vm.label(admin, "admin");
@@ -191,11 +190,12 @@ library TestHelper {
         address implementation,
         address admin,
         address upgrader,
-        bytes memory kmsPublicKey
+        bytes memory kmsPublicKey,
+        address gateway
     ) internal returns (address) {
         bytes memory initData = abi.encodeCall(
             NoxCompute.initialize,
-            (admin, upgrader, kmsPublicKey)
+            (admin, upgrader, kmsPublicKey, gateway)
         );
         ERC1967Proxy proxy = new ERC1967Proxy(implementation, initData);
         return address(proxy);
@@ -218,7 +218,8 @@ library TestHelper {
             implementation,
             address(this),
             address(this),
-            kmsPublicKey
+            kmsPublicKey,
+            address(1)
         );
         proxy = NoxCompute(proxyAddress);
     }

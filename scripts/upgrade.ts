@@ -24,6 +24,7 @@ import { Address } from "viem";
  *        `{ fn: "initializeV3", args: [admin, upgrader] }`)
  * @returns The new implementation address
  */
+// TODO use correct upgrader address
 export async function upgradeNoxCompute(
     proxyAddress?: Address,
     printLogs = true,
@@ -32,10 +33,12 @@ export async function upgradeNoxCompute(
 ) {
     const _log = printLogs ? console.log : () => {};
     const { ethers } = connection;
+    const [upgrader] = await ethers.getSigners();
 
     _log(`Upgrading NoxCompute proxy`);
     _log(`New implementation contract: ${contractName}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _log(`Upgrader address: ${upgrader?.address}`);
 
     const noxComputeProxyAddress: Address = await _resolveProxyAddress(proxyAddress, _log);
     _log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);

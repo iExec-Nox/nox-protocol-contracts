@@ -63,7 +63,7 @@ contract NoxComputeTest is Test {
         emit IAccessControl.RoleGranted(noxCompute.DEFAULT_ADMIN_ROLE(), admin, address(0));
         vm.expectEmit(true, true, false, true);
         emit IAccessControl.RoleGranted(noxCompute.UPGRADER_ROLE(), upgrader, address(0));
-        TestHelper.deployProxy(address(impl), admin, upgrader, kmsKey);
+        TestHelper.deployProxy(address(impl), admin, upgrader, kmsKey, makeAddr("gateway"));
     }
 
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
@@ -71,15 +71,20 @@ contract NoxComputeTest is Test {
         noxCompute.initialize(
             owner,
             owner,
-            abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key"))
+            abi.encodePacked(bytes1(0x02), keccak256("reinit-kms-key")),
+            makeAddr("gateway")
         );
     }
 
     function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
         NoxCompute impl = TestHelper.newImplementationInstance();
         vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
-        NoxCompute(
-            TestHelper.deployProxy(address(impl), address(this), address(this), new bytes(0))
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            new bytes(0),
+            makeAddr("gateway")
         );
     }
 
@@ -87,14 +92,33 @@ contract NoxComputeTest is Test {
         NoxCompute impl = TestHelper.newImplementationInstance();
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
-        TestHelper.deployProxy(address(impl), address(0), address(this), kmsKey);
+        TestHelper.deployProxy(
+            address(impl),
+            address(0),
+            address(this),
+            kmsKey,
+            makeAddr("gateway")
+        );
     }
 
     function test_RevertWhen_Initialize_ZeroUpgrader() public {
         NoxCompute impl = TestHelper.newImplementationInstance();
         bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
-        TestHelper.deployProxy(address(impl), address(this), address(0), kmsKey);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(0),
+            kmsKey,
+            makeAddr("gateway")
+        );
+    }
+
+    function test_RevertWhen_Initialize_ZeroGateway() public {
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        TestHelper.deployProxy(address(impl), address(this), address(this), kmsKey, address(0));
     }
 
     // ============ initializeV2 ============

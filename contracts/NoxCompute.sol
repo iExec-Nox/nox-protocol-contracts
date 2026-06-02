@@ -27,18 +27,22 @@ contract NoxCompute is Admin, ACL, Compute {
      * Initializes the proxy contract state for a fresh deployment.
      * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
      * @param upgrader Address granted `UPGRADER_ROLE`.
-     * @param kmsPublicKey_ KMS public key for ECIES encryption.
+     * @param kmsPublicKey KMS public key for ECIES encryption.
+     * @param gateway Gateway wallet address.
      */
     function initialize(
         address admin,
         address upgrader,
-        bytes calldata kmsPublicKey_
+        bytes calldata kmsPublicKey,
+        address gateway
     ) public initializer {
         // v0.1.0
-        require(kmsPublicKey_.length != 0, InvalidEmptyBytes());
+        require(kmsPublicKey.length != 0, InvalidEmptyBytes());
+        require(gateway != address(0), InvalidZeroAddress());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.proofExpirationDuration = 1 hours;
-        $.kmsPublicKey = kmsPublicKey_;
+        $.kmsPublicKey = kmsPublicKey;
+        $.gateway = gateway;
         // v0.2.0
         _emitZeroHandleSeeds();
         // v0.2.3
