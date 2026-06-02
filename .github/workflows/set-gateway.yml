@@ -15,10 +15,10 @@ on:
         required: true
         type: choice
         options:
-          - arbitrumSepolia
           - tenderlyArbitrumSepolia
+          - arbitrumSepolia
           - sepolia
-        default: "arbitrumSepolia"
+        default: "tenderlyArbitrumSepolia"
 
 jobs:
   set-gateway:
