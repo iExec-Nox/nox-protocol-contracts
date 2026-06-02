@@ -16,16 +16,17 @@ export async function setKmsPublicKey(printLogs = true) {
     const publicClient = await viem.getPublicClient();
     const walletClients = await viem.getWalletClients();
 
-    // Use owner wallet (first account when running with PRIVATE_KEY set to owner key)
-    const ownerClient = walletClients[0];
-    if (!ownerClient) {
-        throw new Error("No owner wallet available. Set PRIVATE_KEY environment variable.");
+    // TODO upadate this to use the correct wallet
+    // Use upgrader wallet (first account when running with PRIVATE_KEY set to upgrader key)
+    const upgraderClient = walletClients[0];
+    if (!upgraderClient) {
+        throw new Error("No upgrader wallet available. Set PRIVATE_KEY environment variable.");
     }
 
     const { kmsPublicKey } = getChainConfig(connection.networkName);
 
     _log(`Setting KMS public key: ${kmsPublicKey}`);
-    _log(`Using owner address: ${ownerClient.account.address}`);
+    _log(`Using upgrader address: ${upgraderClient.account.address}`);
     _log(`Network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
 
     // Read NoxCompute proxy address from ignition deployment artifacts
@@ -33,9 +34,9 @@ export async function setKmsPublicKey(printLogs = true) {
 
     _log(`NoxCompute address: ${noxComputeAddress}`);
 
-    // Get NoxCompute contract instance with owner wallet
+    // Get NoxCompute contract instance with upgrader wallet
     const noxCompute = await viem.getContractAt("NoxCompute", noxComputeAddress, {
-        client: { wallet: ownerClient },
+        client: { wallet: upgraderClient },
     });
 
     // Set the KMS public key
