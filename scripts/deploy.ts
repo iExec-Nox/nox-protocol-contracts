@@ -19,8 +19,10 @@ export async function deploy(printLogs = true) {
     const _log = printLogs ? console.log : () => {};
     const { viem } = connection;
     const chainConfig = getChainConfig(connection.networkName);
+    const [deployerClient] = await viem.getWalletClients();
 
     _log(`Deploying to network: ${connection.networkName} (chainId: ${connection.networkConfig.chainId})`);
+    _log(`Deployer address: ${deployerClient?.account.address}`);
     _log(`Chain config:`, chainConfig);
     const { initialAdmin, initialUpgrader, kmsPublicKey } = chainConfig;
     const { proxy: noxComputeProxy } = await connection.ignition.deploy(NoxCompute, {
