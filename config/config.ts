@@ -29,8 +29,8 @@ const config: { [network: string]: ChainConfig } = {
         chainId: 421614,
         initialAdmin: "0x40D03906B889AbF57266C2433B0b200177D15664",
         initialUpgrader: "0x6148045F5281af51Dde61E9072bf8a53004a34c0",
-        kmsPublicKey: "0x02221f1baca89fd75ec26566b9c6003bc793b47affe171a7824279d973f54a2fd9",
-        gateway: "0xE13191F53671957C8a48A7A3Ff15E16450a1552F",
+        kmsPublicKey: "0x026f0005c5c3807e69dcbe52a97ca55aa26c8655999b5a81f5098666cd7dd5d1f6",
+        gateway: "0x209ec5303D3dD935d82dff29e4a74507A8def029",
     },
     arbitrumSepolia: {
         chainId: 421614,
