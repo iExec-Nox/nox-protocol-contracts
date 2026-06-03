@@ -1,0 +1,102 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1034" height="645" viewBox="0 0 414 258" font-family="Arial, sans-serif">
+  <defs>
+    <marker id="ah" viewBox="0 0 8 6" refX="8" refY="3"
+      markerWidth="4" markerHeight="3" orient="auto">
+      <path d="M0.5,0.5 L7,3 L0.5,5.5" fill="none" stroke="#94A3B8"
+        stroke-width="1.2" stroke-linejoin="round" stroke-linecap="round"/>
+    </marker>
+    <filter id="shadow" x="-6%" y="-8%" width="112%" height="128%">
+      <feDropShadow dx="0" dy="0.5" stdDeviation="0.8"
+        flood-color="#000" flood-opacity="0.05"/>
+    </filter>
+  </defs>
+  <rect width="414" height="258" fill="#F8F9FB" rx="3"/>
+  <text x="207" y="11" text-anchor="middle" font-size="6" font-weight="700" fill="#1E293B">Nox Protocol Architecture</text>
+  <rect x="132" y="16" width="150" height="10" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <rect x="137" y="18.5" width="5" height="5" rx="2.5" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <text x="145" y="22.5" font-size="3.5" fill="#1E293B">Actor</text>
+  <rect x="177" y="18.5" width="5" height="5" rx="1.5" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <rect x="178" y="19.5" width="0.8" height="3" rx="0.4" fill="#3B82F6"/>
+  <text x="185" y="22.5" font-size="3.5" fill="#1E293B">Protocol</text>
+  <rect x="225" y="18.5" width="5" height="5" rx="1.5" fill="#fff" stroke="#E2E5EA" stroke-width="0.4"/>
+  <rect x="226" y="19.5" width="0.8" height="3" rx="0.4" fill="#F59E0B"/>
+  <text x="233" y="22.5" font-size="3.5" fill="#1E293B">External</text>
+  <rect x="139.1" y="84.0" width="254.8" height="102.0" rx="5" fill="#EDEEF2"/>
+  <text x="390.9" y="89.0" text-anchor="end" font-size="3.5" fill="#94A3B8" font-weight="500">In-scope (NoxCompute + SDK + helpers)</text>
+  <path d="M68.2,46.0 C68.2,70.0 68.8,70.0 68.8,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M166.5,46.0 Q139.7,104.0 185.3,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M185.3,94.0 Q242.9,104.0 204.1,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M255.3,52.0 Q238.9,104.0 229.7,94.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M229.7,94.0 Q240.9,104.0 204.1,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M107.6,112.0 C120.2,134.0 137.0,134.0 149.7,114.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M190.3,114.0 C190.3,135.0 204.1,135.0 204.1,156.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M259.1,174.0 C265.7,192.0 274.5,192.0 281.1,176.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M204.1,176.0 C204.1,197.0 189.0,197.0 189.0,218.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <path d="M204.1,176.0 C204.1,197.0 292.2,197.0 292.2,218.0" fill="none" stroke="#94A3B8" stroke-width="0.5" marker-end="url(#ah)"/>
+  <g filter="url(#shadow)">
+    <rect x="31.2" y="32.0" width="74.0" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="68.2" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">User / EOA</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="138.5" y="32.0" width="56.0" height="14" rx="7" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <text x="166.5" y="40.8" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Owner</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="216.5" y="32.0" width="77.6" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="219.5" y="35.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="255.3" y="41.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Gateway</text>
+    <text x="255.3" y="46.5" text-anchor="middle" font-size="3.5" fill="#64748B">Off-chain signer</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="30.0" y="94.0" width="77.6" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="33.0" y="97.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="68.8" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">App Contract</text>
+    <text x="68.8" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">Integrator</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="149.7" y="94.0" width="81.2" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="152.7" y="97.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="190.3" y="103.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">Nox SDK</text>
+    <text x="190.3" y="108.5" text-anchor="middle" font-size="3.5" fill="#64748B">Library (inlined)</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="149.1" y="156.0" width="110.0" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="152.1" y="159.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="204.1" y="165.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">NoxCompute</text>
+    <text x="204.1" y="170.5" text-anchor="middle" font-size="3.5" fill="#64748B">ACL + Compute coordinator</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="281.1" y="156.0" width="102.8" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="284.1" y="159.0" width="1.4" height="14" rx="0.6" fill="#3B82F6"/>
+    <text x="332.5" y="165.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">shared/</text>
+    <text x="332.5" y="170.5" text-anchor="middle" font-size="3.5" fill="#64748B">HandleUtils / TypeUtils</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="148.4" y="218.0" width="81.2" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="151.4" y="221.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="189.0" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">TEE Workers</text>
+    <text x="189.0" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">Off-chain compute</text>
+  </g>
+  <g filter="url(#shadow)">
+    <rect x="251.6" y="218.0" width="81.2" height="20" rx="3" fill="#fff" stroke="#E2E5EA" stroke-width="0.5"/>
+    <rect x="254.6" y="221.0" width="1.4" height="14" rx="0.6" fill="#F59E0B"/>
+    <text x="292.2" y="227.5" text-anchor="middle" font-size="4.8" font-weight="600" fill="#1E293B">KMS</text>
+    <text x="292.2" y="232.5" text-anchor="middle" font-size="3.5" fill="#64748B">Decryption oracle</text>
+  </g>
+  <rect x="46.1" y="65.0" width="44.8" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="68.5" y="70.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">tx + handle proof</text>
+  <rect x="214.9" y="101.6" width="52.0" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="240.9" y="106.6" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">setGateway / upgrade</text>
+  <rect x="210.4" y="118.9" width="32.8" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="226.8" y="123.9" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">EIP-712 sigs</text>
+  <rect x="105.0" y="133.0" width="47.2" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="128.6" y="138.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">fromExternal / add</text>
+  <rect x="178.4" y="130.0" width="37.6" height="6.0" rx="1" fill="#EDEEF2"/>
+  <text x="197.2" y="135.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">external calls</text>
+  <rect x="252.5" y="191.0" width="35.2" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="270.1" y="196.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">type / handle</text>
+  <rect x="177.7" y="192.0" width="37.6" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="196.5" y="197.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">compute events</text>
+  <rect x="228.1" y="184.0" width="40.0" height="6.0" rx="1" fill="#F8F9FB"/>
+  <text x="248.1" y="189.0" font-size="4" fill="#1E293B" font-weight="500" text-anchor="middle">decrypt request</text>
+</svg>
