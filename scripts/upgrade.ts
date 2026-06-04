@@ -4,7 +4,6 @@ import { deploy } from "./deploy.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
-import { getChainConfig } from "../config/config.ts";
 import { Address } from "viem";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
@@ -28,7 +27,6 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     const _log = printLogs ? console.log : () => {};
     const { ethers } = connection;
     const [upgrader] = await ethers.getSigners();
-    const { initialAdmin, initialUpgrader } = getChainConfig(connection.networkName);
 
     _log(`Upgrading NoxCompute proxy`);
     _log(`New implementation contract: ${contractName}`);
@@ -45,12 +43,7 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
-        // OwnableUpgradeable was removed in this version. The plugin flags the deleted
-        // ERC-7201 namespace (`erc7201:openzeppelin.storage.Ownable`) as an incompatible
-        // storage change. Safe here because initializeV3 explicitly clears that slot.
-        // TODO: remove once all proxies are upgraded.
-        unsafeSkipStorageCheck: true,
-        call: { fn: "initializeV3", args: [initialAdmin, initialUpgrader] },
+        // TODO call: { fn: "initializeV4", args: [] },
     });
     await upgrade.waitForDeployment();
 
