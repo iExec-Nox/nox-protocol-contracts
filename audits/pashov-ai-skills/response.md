@@ -1,9 +1,8 @@
 # Audit Response — Pashov AI Skills Security Review
 
-**Audit date:** 2026-05-04  
-**Response date:** 2026-06-03  
-**Audited files:** `contracts/NoxCompute.sol`, `contracts/shared/TypeUtils.sol`, `contracts/shared/HandleUtils.sol`, `contracts/sdk/Nox.sol`  
-**Note:** Audit was performed on an older version of the codebase. Where findings no longer apply, the reason is documented below.
+**Audit date:** 2026-05-04
+**Response date:** 2026-06-03
+**Audited files:** `contracts/NoxCompute.sol`, `contracts/shared/TypeUtils.sol`, `contracts/shared/HandleUtils.sol`, `contracts/sdk/Nox.sol`
 
 ---
 
@@ -33,15 +32,7 @@ Transient access granting viewer rights is intentional (same trust level as pers
 
 ---
 
-### #4 [80] — SDK returns `address(0)` for Arbitrum mainnet, bricking integrators
-
-**Response: Out of date. Fixed.**
-
-The current `Nox.sol` does not return `address(0)` for any chain. Unknown chains — including Arbitrum mainnet (42161) — fall through to `revert("Nox: Unsupported chain")`, giving integrators a clear error. The `address(0)` path with the `// TODO` comment existed in an older version reviewed by the auditor.
-
----
-
-### #5 [75] — `disallowTransient` allows cross-party transient revocation (DoS)
+### #4 [75] — `disallowTransient` allows cross-party transient revocation (DoS)
 
 **Response: By design.**
 
@@ -49,15 +40,7 @@ The current `Nox.sol` does not return `address(0)` for any chain. Unknown chains
 
 ---
 
-### #6 [75] — Gateway address not set during `initialize`
-
-**Response: Out of date. Fixed.**
-
-`NoxCompute.initialize` explicitly accepts and sets `$.gateway` (`NoxCompute.sol:45`). The audited version predated the addition of the `gateway` parameter to the initializer.
-
----
-
-### #7 [75] — `validateDecryptionProof` has no on-chain ACL coupling
+### #5 [75] — `validateDecryptionProof` has no on-chain ACL coupling
 
 **Response: Acknowledged. By design, enhancement considered and rejected.**
 
@@ -91,15 +74,7 @@ Byte 6 (attrs) of the handle is not validated in `validateInputProof`. A public 
 
 ---
 
-### Lead #4 — Single-step ownership on UUPS proxy
-
-**Response: Out of date. Fixed.**
-
-The audit observed `OwnableUpgradeable`. Version 0.2.3 migrated to `AccessControlUpgradeable` (`initializeV3`). There is no `transferOwnership` function. `_authorizeUpgrade` is gated by `UPGRADER_ROLE`.
-
----
-
-### Lead #5 — `setKmsPublicKey` missing format/length check
+### Lead #4 — `setKmsPublicKey` missing format/length check
 
 **Response: Acknowledged. Fix planned.**
 
@@ -107,7 +82,7 @@ Only `length != 0` is currently enforced. The documented format is a compressed 
 
 ---
 
-### Lead #6 — `validateInputProof` replay within expiration window
+### Lead #5 — `validateInputProof` replay within expiration window
 
 **Response: Not a concern.**
 
@@ -115,7 +90,7 @@ Replay within the expiration window is idempotent on-chain — no state changes,
 
 ---
 
-### Lead #7 — Chain-ID truncated to 32 bits in handles
+### Lead #6 — Chain-ID truncated to 32 bits in handles
 
 **Response: Not a real concern.**
 
@@ -123,7 +98,7 @@ All current and foreseeable target chains have IDs well within uint32 range (max
 
 ---
 
-### Lead #8 — `Nox._resolveUndefinedHandle` silently substitutes the public zero handle
+### Lead #7 — `Nox._resolveUndefinedHandle` silently substitutes the public zero handle
 
 **Response: By design.**
 
@@ -131,7 +106,7 @@ Uninitialized handles resolve to the typed zero handle — analogous to default 
 
 ---
 
-### Lead #9 — `wrapAsPublicHandle` does not validate plaintext fits TEE type
+### Lead #8 — `wrapAsPublicHandle` does not validate plaintext fits TEE type
 
 **Response: Acknowledged. Fix planned for future release.**
 
@@ -139,7 +114,7 @@ No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF
 
 ---
 
-### Lead #10 — `wrapAsPublicHandle` calls `_allowTransient` on a public handle (dead code)
+### Lead #9 — `wrapAsPublicHandle` calls `_allowTransient` on a public handle (dead code)
 
 **Response: Acknowledged. Fix planned.**
 
@@ -147,7 +122,7 @@ No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF
 
 ---
 
-### Lead #11 — `HandleUtils.isPublicHandle` only masks bit 0 of byte 6
+### Lead #10 — `HandleUtils.isPublicHandle` only masks bit 0 of byte 6
 
 **Response: Not an issue.**
 
@@ -155,7 +130,7 @@ Bit 0 of the attrs byte is the sole public/unique discriminator by design. Bits 
 
 ---
 
-### Lead #12 — Nox SDK `addViewer`/`allowPublicDecryption` not consistent with `allow` for public handles
+### Lead #11 — Nox SDK `addViewer`/`allowPublicDecryption` not consistent with `allow` for public handles
 
 **Response: Acknowledged. Fix planned.**
 
@@ -163,7 +138,7 @@ Bit 0 of the attrs byte is the sole public/unique discriminator by design. Bits 
 
 ---
 
-### Lead #13 — `disallowTransient` reverts on public handles while `_allowTransient` silently skips
+### Lead #12 — `disallowTransient` reverts on public handles while `_allowTransient` silently skips
 
 **Response: Not valid.**
 
@@ -171,7 +146,7 @@ The auditor compared the external `disallowTransient` (has `notPublicHandle` mod
 
 ---
 
-### Lead #14 — `initializeV2` is permissionless
+### Lead #13 — `initializeV2` is permissionless
 
 **Response: Acknowledged. No action needed.**
 
@@ -179,7 +154,7 @@ The auditor compared the external `disallowTransient` (has `notPublicHandle` mod
 
 ---
 
-### Lead #15 — Front-run vulnerable initialization
+### Lead #14 — Front-run vulnerable initialization
 
 **Response: Not a concern.**
 
