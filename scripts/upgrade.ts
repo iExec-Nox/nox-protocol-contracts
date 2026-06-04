@@ -45,6 +45,11 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         unsafeAllow: ["constructor"],
+        // OwnableUpgradeable was removed in this version. The plugin flags the deleted
+        // ERC-7201 namespace (`erc7201:openzeppelin.storage.Ownable`) as an incompatible
+        // storage change. Safe here because initializeV3 explicitly clears that slot.
+        // TODO: remove once all proxies are upgraded.
+        unsafeSkipStorageCheck: true,
         call: { fn: "initializeV3", args: [initialAdmin, initialUpgrader] },
     });
     await upgrade.waitForDeployment();
