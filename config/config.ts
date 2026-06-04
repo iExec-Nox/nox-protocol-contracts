@@ -8,7 +8,6 @@ export const CREATE2_SALT = "0x0000000000000000000000000000000000000000000000000
 
 type ChainConfig = {
     chainId: number;
-    // Role addresses passed to `initialize` / `initializeV3`.
     initialAdmin: string;
     initialUpgrader: string;
     kmsPublicKey: string;
