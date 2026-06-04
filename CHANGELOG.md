@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.2.4](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.3...v0.2.4) (2026-06-04)
+
+
+### 📋 Misc
+
+* Fix Tenderly upgrade ([#159](https://github.com/iExec-Nox/nox-protocol-contracts/issues/159)) ([70f884f](https://github.com/iExec-Nox/nox-protocol-contracts/commit/70f884f0e90c98d0d8119152f55a186d98980a33))
+* Safely skip storage check for this upgrade ([#160](https://github.com/iExec-Nox/nox-protocol-contracts/issues/160)) ([19c40a6](https://github.com/iExec-Nox/nox-protocol-contracts/commit/19c40a6b6d29d927e211dc8a2d7f3aa65b3884e4))
+* save upgrade artifacts for arbitrumSepolia (GitHub run id: 26945906077) ([#162](https://github.com/iExec-Nox/nox-protocol-contracts/issues/162)) ([9e56b89](https://github.com/iExec-Nox/nox-protocol-contracts/commit/9e56b891f755ba0b3317256fe7e9f6f9758bf1ad))
+* save upgrade artifacts for tenderlyArbitrumSepolia (GitHub run id: 26944692394) ([#161](https://github.com/iExec-Nox/nox-protocol-contracts/issues/161)) ([dee65e1](https://github.com/iExec-Nox/nox-protocol-contracts/commit/dee65e12d5746b952f84ce552c466742c9f30e7c))
+* Update upgrade scripts ([#156](https://github.com/iExec-Nox/nox-protocol-contracts/issues/156)) ([a8fb650](https://github.com/iExec-Nox/nox-protocol-contracts/commit/a8fb650ed56fa722fe624eee9b0e3be2ce991b6f))
+
 ## [0.2.3](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.2...v0.2.3) (2026-06-02)
 
 This release introduces a significant refactoring of the NoxCompute contract, now split into focused sub-modules. It also marks the first deployment of the protocol on Ethereum Sepolia.
