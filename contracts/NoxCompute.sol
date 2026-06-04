@@ -50,33 +50,9 @@ contract NoxCompute is Admin, ACL, Compute {
     }
 
     /**
-     * @notice Initializer of 0.2.0 upgrade for already deployed proxies.
-     * @notice Emits zero handle seeds for existing proxies.
-     * @dev The same logic is also called in `initialize()` for fresh deployments.
-     * @dev The call to this function does not need to be protected because it does
-     * not do any critical operations.
+     * @notice Initializer of 0.X.Y upgrade for already deployed proxies.
      */
-    function initializeV2() public reinitializer(2) {
-        _emitZeroHandleSeeds();
-    }
-
-    /**
-     * @notice Initializer of 0.2.3 upgrade for already deployed proxies.
-     * @notice Migrates the contract from `OwnableUpgradeable` to `AccessControlUpgradeable`:
-     * initializes AccessControl, grants the two roles, and clears the legacy Ownable storage slot.
-     * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
-     * @param upgrader Address granted `UPGRADER_ROLE`.
-     */
-    function initializeV3(address admin, address upgrader) public reinitializer(3) {
-        _initAccessControl(admin, upgrader);
-        // Clear the slot where `OwnableUpgradeable` stored the previous `_owner`
-        // (ERC-7201 location for `openzeppelin.storage.Ownable`).
-        // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201`
-        // builtin (added in solc 0.8.35).
-        // slither-disable-next-line uninitialized-state
-        bytes32 slot = bytes32(erc7201("openzeppelin.storage.Ownable"));
-        assembly {
-            sstore(slot, 0)
-        }
+    function initializeV4() public reinitializer(4) {
+        // TODO
     }
 }
