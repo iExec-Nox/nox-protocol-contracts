@@ -37,7 +37,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle
-        // Generate a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00).
+        // Generate a public handle (outputIndex=0, uniqueSeed=0, attributes=0x00).
         // No ACL grant is needed: public handles are accessible to everyone.
         result = _generateHandle(
             Operator.WrapAsPublicHandle,
@@ -549,7 +549,7 @@ abstract contract Compute is Common, EIP712 {
                 resultType,
                 i,
                 uniqueSeed,
-                HandleUtils.ATTR_IS_UNIQUE_HANDLE
+                HandleUtils.UNIQUE_HANDLE_ATTRIBUTE
             );
             _allowTransient(results[i], msg.sender);
         }
@@ -560,7 +560,7 @@ abstract contract Compute is Common, EIP712 {
                 TEEType.Bool,
                 resultCount,
                 uniqueSeed,
-                HandleUtils.ATTR_IS_UNIQUE_HANDLE
+                HandleUtils.UNIQUE_HANDLE_ATTRIBUTE
             );
             _allowTransient(success, msg.sender);
         }
@@ -599,7 +599,7 @@ abstract contract Compute is Common, EIP712 {
      * @param handleType The TEE type to encode in the handle
      * @param outputIndex Index for operations returning multiple outputs
      * @param uniqueSeed Uniqueness seed (0 for wrapAsPublicHandle and unique operands)
-     * @param attrs Attributes byte (0x00 for public handle, 0x01 for confidential)
+     * @param attributes Attributes byte (0x00 for public handle, 0x01 for confidential)
      * @return result The complete handle with metadata appended
      */
     function _generateHandle(
@@ -608,7 +608,7 @@ abstract contract Compute is Common, EIP712 {
         TEEType handleType,
         uint8 outputIndex,
         uint256 uniqueSeed,
-        bytes1 attrs
+        bytes1 attributes
     ) private view returns (bytes32 result) {
         result = keccak256(abi.encode(operator, operands, address(this), uniqueSeed, outputIndex));
         // Shift hash to bytes 7-31 (truncate to 25 bytes), leaving bytes 0-6 free for metadata.
@@ -616,7 +616,7 @@ abstract contract Compute is Common, EIP712 {
         result = result | bytes32(bytes1(uint8(HANDLE_VERSION)));
         result = result | (bytes32(bytes4(uint32(block.chainid))) >> (1 * 8));
         result = result | (bytes32(bytes1(uint8(handleType))) >> (5 * 8));
-        result = result | (bytes32(attrs) >> (6 * 8));
+        result = result | (bytes32(attributes) >> (6 * 8));
     }
 
     /**
