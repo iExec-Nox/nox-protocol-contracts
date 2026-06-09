@@ -66,6 +66,20 @@ contract NoxComputeTest is Test {
         TestHelper.deployProxy(address(impl), admin, upgrader, kmsKey, makeAddr("gateway"));
     }
 
+    function test_Initialize_ShouldEmitKmsPublicKeyUpdated() public {
+        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        vm.expectEmit();
+        emit INoxCompute.KmsPublicKeyUpdated(kmsKey);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            kmsKey,
+            makeAddr("gateway")
+        );
+    }
+
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         noxCompute.initialize(
@@ -76,14 +90,45 @@ contract NoxComputeTest is Test {
         );
     }
 
-    function test_RevertWhen_Initialize_EmptyKmsPublicKey() public {
+    function test_RevertWhen_Initialize_InvalidKmsPublicKeyLength() public {
         NoxCompute impl = TestHelper.newImplementationInstance();
-        vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
+        // 0 bytes (empty)
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKeyLength.selector);
         TestHelper.deployProxy(
             address(impl),
             address(this),
             address(this),
             new bytes(0),
+            makeAddr("gateway")
+        );
+        // 32 bytes (too short)
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKeyLength.selector);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            new bytes(32),
+            makeAddr("gateway")
+        );
+        // 34 bytes (too long)
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKeyLength.selector);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            new bytes(34),
+            makeAddr("gateway")
+        );
+    }
+
+    function test_RevertWhen_Initialize_ZeroKmsPublicKey() public {
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            new bytes(33),
             makeAddr("gateway")
         );
     }

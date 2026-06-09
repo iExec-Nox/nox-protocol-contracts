@@ -24,10 +24,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     function setKmsPublicKey(
         bytes calldata newKmsPublicKey
     ) external override onlyRole(UPGRADER_ROLE) {
-        require(newKmsPublicKey.length != 0, InvalidEmptyBytes());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.kmsPublicKey = newKmsPublicKey;
-        emit KmsPublicKeyUpdated(newKmsPublicKey);
+        _setKmsPublicKey(newKmsPublicKey);
     }
 
     /**
@@ -95,5 +92,16 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
+    }
+
+    /**
+     * @dev Validates, stores, and emits for a KMS public key update.
+     */
+    function _setKmsPublicKey(bytes calldata key) internal {
+        require(key.length == 33, InvalidKmsPublicKeyLength());
+        require(keccak256(key) != keccak256(new bytes(33)), InvalidKmsPublicKey());
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.kmsPublicKey = key;
+        emit KmsPublicKeyUpdated(key);
     }
 }
