@@ -47,6 +47,9 @@ contract NoxTest is Test {
     // All handles for ACL tests (one per type)
     bytes32[] allHandles;
 
+    // Public handle per type
+    bytes32[] publicHandles;
+
     function setUp() public {
         noxComputeContract = TestHelper.deploy(owner, owner, gateway, kmsKey);
         noxCompute = address(noxComputeContract);
@@ -78,6 +81,12 @@ contract NoxTest is Test {
         allHandles.push(uint256HandleA);
         allHandles.push(int16HandleA);
         allHandles.push(int256HandleA);
+        // Build public handles: one per type
+        publicHandles.push(TestHelper.createPublicHandle(TEEType.Bool));
+        publicHandles.push(TestHelper.createPublicHandle(TEEType.Uint16));
+        publicHandles.push(TestHelper.createPublicHandle(TEEType.Uint256));
+        publicHandles.push(TestHelper.createPublicHandle(TEEType.Int16));
+        publicHandles.push(TestHelper.createPublicHandle(TEEType.Int256));
 
         vm.label(account, "account");
         vm.label(address(noxMock), "NoxMock");
@@ -515,6 +524,17 @@ contract NoxTest is Test {
         }
     }
 
+    function test_addViewer_SkipsPublicHandles() public {
+        for (uint256 i = 0; i < publicHandles.length; i++) {
+            vm.mockCallRevert(
+                noxCompute,
+                abi.encodeCall(INoxCompute.addViewer, (publicHandles[i], account)),
+                "addViewer must not be called for public handles"
+            );
+            _noxAddViewer(publicHandles[i], account);
+        }
+    }
+
     function test_isViewer() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(
@@ -532,6 +552,17 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.allowPublicDecryption, (allHandles[i]))
             );
             _noxAllowPublicDecryption(allHandles[i]);
+        }
+    }
+
+    function test_allowPublicDecryption_SkipsPublicHandles() public {
+        for (uint256 i = 0; i < publicHandles.length; i++) {
+            vm.mockCallRevert(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allowPublicDecryption, (publicHandles[i])),
+                "allowPublicDecryption must not be called for public handles"
+            );
+            _noxAllowPublicDecryption(publicHandles[i]);
         }
     }
 
