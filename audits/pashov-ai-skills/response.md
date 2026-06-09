@@ -76,9 +76,11 @@ Byte 6 (attrs) of the handle is not validated in `validateInputProof`. A public 
 
 ### Lead #4 — `setKmsPublicKey` missing format/length check
 
-**Response: Acknowledged. Fix planned.**
+**Response: Acknowledged. Fixed in [#167](https://github.com/iExec-Nox/nox-protocol-contracts/pull/167).**
 
 Only `length != 0` is currently enforced. The documented format is a compressed SEC1 secp256k1 public key (33 bytes). A `require(newKmsPublicKey.length == 33, ...)` check will be added to `setKmsPublicKey` to prevent silently malformed keys from causing off-chain encryption failures.
+
+`setKmsPublicKey` (and `initialize`) now enforce `length == 33` and reject all-zero keys via `InvalidKmsPublicKeyLength` and `InvalidKmsPublicKey` errors.
 
 ---
 
@@ -116,9 +118,9 @@ No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF
 
 ### Lead #9 — `wrapAsPublicHandle` calls `_allowTransient` on a public handle (dead code)
 
-**Response: Acknowledged. Fix planned.**
+**Response: Acknowledged. Fixed in [#166](https://github.com/iExec-Nox/nox-protocol-contracts/pull/166).**
 
-`_allowTransient` is called on the result of `wrapAsPublicHandle` but silently no-ops since the result is always a public handle. Dead code. Will be removed in a future cleanup.
+`_allowTransient` is called on the result of `wrapAsPublicHandle` but silently no-ops since the result is always a public handle. Dead code. The `_allowTransient` call has been removed from `wrapAsPublicHandle`.
 
 ---
 
