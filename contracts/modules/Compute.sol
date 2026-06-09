@@ -37,7 +37,8 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle
-        // Generate a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00)
+        // Generate a public handle (outputIndex=0, uniqueSeed=0, attrs=0x00).
+        // No ACL grant is needed: public handles are accessible to everyone.
         result = _generateHandle(
             Operator.WrapAsPublicHandle,
             operands,
@@ -46,7 +47,6 @@ abstract contract Compute is Common, EIP712 {
             0,
             bytes1(0x00)
         );
-        _allowTransient(result, msg.sender);
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 
