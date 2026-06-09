@@ -474,6 +474,17 @@ contract NoxTest is Test {
         }
     }
 
+    function test_allow_SkipsPublicHandles() public {
+        for (uint256 i = 0; i < publicHandles.length; i++) {
+            vm.mockCallRevert(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allow, (publicHandles[i], account)),
+                "allow must not be called for public handles"
+            );
+            _noxAllow(publicHandles[i], account);
+        }
+    }
+
     function test_allowThis() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(
@@ -481,6 +492,17 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.allow, (allHandles[i], address(this)))
             );
             _noxAllowThis(allHandles[i]);
+        }
+    }
+
+    function test_allowThis_SkipsPublicHandles() public {
+        for (uint256 i = 0; i < publicHandles.length; i++) {
+            vm.mockCallRevert(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allow, (publicHandles[i], address(this))),
+                "allow must not be called for public handles"
+            );
+            _noxAllowThis(publicHandles[i]);
         }
     }
 
@@ -494,6 +516,17 @@ contract NoxTest is Test {
         }
     }
 
+    function test_allowTransient_SkipsPublicHandles() public {
+        for (uint256 i = 0; i < publicHandles.length; i++) {
+            vm.mockCallRevert(
+                noxCompute,
+                abi.encodeCall(INoxCompute.allowTransient, (publicHandles[i], account)),
+                "allowTransient must not be called for public handles"
+            );
+            _noxAllowTransient(publicHandles[i], account);
+        }
+    }
+
     function test_disallowTransient() public {
         for (uint256 i = 0; i < allHandles.length; i++) {
             vm.expectCall(
@@ -501,6 +534,17 @@ contract NoxTest is Test {
                 abi.encodeCall(INoxCompute.disallowTransient, (allHandles[i], account))
             );
             _noxDisallowTransient(allHandles[i], account);
+        }
+    }
+
+    function test_disallowTransient_SkipsPublicHandles() public {
+        for (uint256 i = 0; i < publicHandles.length; i++) {
+            vm.mockCallRevert(
+                noxCompute,
+                abi.encodeCall(INoxCompute.disallowTransient, (publicHandles[i], account)),
+                "disallowTransient must not be called for public handles"
+            );
+            _noxDisallowTransient(publicHandles[i], account);
         }
     }
 
