@@ -34,6 +34,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 value,
         TEEType teeType
     ) external override returns (bytes32 result) {
+        TypeUtils.validateValueFitsType(value, teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle
