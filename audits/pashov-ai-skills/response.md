@@ -134,9 +134,9 @@ Bit 0 of the attrs byte is the sole public/unique discriminator by design. Bits 
 
 ### Lead #11 — Nox SDK `addViewer`/`allowPublicDecryption` not consistent with `allow` for public handles
 
-**Response: Acknowledged. Fix planned.**
+**Response: Acknowledged. Fixed in [#168](https://github.com/iExec-Nox/nox-protocol-contracts/pull/168).**
 
-`Nox.allow` silently skips public handles via `_allowIfNotPublic`, but `Nox.addViewer` and `Nox.allowPublicDecryption` call NoxCompute directly and revert via `notPublicHandle`. `Nox.addViewer` and `Nox.allowPublicDecryption` will be updated to silently skip public handles, consistent with `Nox.allow` behavior — public handles are already accessible by everyone and require no grant.
+`Nox.allow` silently skips public handles via `_allowIfNotPublic`, but `Nox.addViewer` and `Nox.allowPublicDecryption` call NoxCompute directly and revert via `notPublicHandle`. `Nox.addViewer` and `Nox.allowPublicDecryption` now silently skip public handles via `_addViewerIfNotPublic` and `_allowPublicDecryptionIfNotPublic`, consistent with `Nox.allow` behavior. Additionally, `isAllowed`, `isViewer`, and `isPubliclyDecryptable` short-circuit `true` for public handles without calling NoxCompute.
 
 ---
 

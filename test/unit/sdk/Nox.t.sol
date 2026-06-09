@@ -81,7 +81,7 @@ contract NoxTest is Test {
         allHandles.push(uint256HandleA);
         allHandles.push(int16HandleA);
         allHandles.push(int256HandleA);
-        // Build public handles: one per type
+        // Build public handles
         publicHandles.push(TestHelper.createPublicHandle(TEEType.Bool));
         publicHandles.push(TestHelper.createPublicHandle(TEEType.Uint16));
         publicHandles.push(TestHelper.createPublicHandle(TEEType.Uint256));
