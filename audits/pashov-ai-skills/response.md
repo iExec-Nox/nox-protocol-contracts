@@ -60,9 +60,9 @@ Transient access granting viewer rights is intentional (same trust level as pers
 
 ### Lead #2 — `validateInputProof` does not check attrs byte
 
-**Response: Acknowledged. Fix planned.**
+**Response: Acknowledged. Fixed in [#169](https://github.com/iExec-Nox/nox-protocol-contracts/pull/169).**
 
-Byte 6 (attrs) of the handle is not validated in `validateInputProof`. A public handle (attrs bit 0 = 0) passed to this function would cause `_allowTransient` to silently no-op, potentially allowing ACL bypass. A `require(!HandleUtils.isPublicHandle(handle), ...)` check will be added to `validateInputProof` — public handles are deterministic and do not require a gateway proof.
+Byte 6 (attrs) of the handle is not validated in `validateInputProof`. A public handle (attrs bit 0 = 0) passed to this function would cause `_allowTransient` to silently no-op, potentially allowing ACL bypass. A `require(!HandleUtils.isPublicHandle(handle), ...)` check has been added to `validateInputProof` — public handles are deterministic and do not require a gateway proof.
 
 ---
 
