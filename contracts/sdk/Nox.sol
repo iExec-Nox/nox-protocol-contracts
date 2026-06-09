@@ -1006,35 +1006,35 @@ library Nox {
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(ebool handle, address account) internal view returns (bool) {
-        return _noxComputeContract().isAllowed(ebool.unwrap(handle), account);
+        return _isAllowedOrPublic(ebool.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(euint16 handle, address account) internal view returns (bool) {
-        return _noxComputeContract().isAllowed(euint16.unwrap(handle), account);
+        return _isAllowedOrPublic(euint16.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(euint256 handle, address account) internal view returns (bool) {
-        return _noxComputeContract().isAllowed(euint256.unwrap(handle), account);
+        return _isAllowedOrPublic(euint256.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(eint16 handle, address account) internal view returns (bool) {
-        return _noxComputeContract().isAllowed(eint16.unwrap(handle), account);
+        return _isAllowedOrPublic(eint16.unwrap(handle), account);
     }
 
     /**
      * @dev Checks if the handle is allowed for the account.
      */
     function isAllowed(eint256 handle, address account) internal view returns (bool) {
-        return _noxComputeContract().isAllowed(eint256.unwrap(handle), account);
+        return _isAllowedOrPublic(eint256.unwrap(handle), account);
     }
 
     // ============ VIEWER MANAGEMENT ============
@@ -1043,70 +1043,70 @@ library Nox {
      * @dev Adds a viewer for an ebool handle.
      */
     function addViewer(ebool value, address viewer) internal {
-        _noxComputeContract().addViewer(ebool.unwrap(value), viewer);
+        _addViewerIfNotPublic(ebool.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an euint16 handle.
      */
     function addViewer(euint16 value, address viewer) internal {
-        _noxComputeContract().addViewer(euint16.unwrap(value), viewer);
+        _addViewerIfNotPublic(euint16.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an euint256 handle.
      */
     function addViewer(euint256 value, address viewer) internal {
-        _noxComputeContract().addViewer(euint256.unwrap(value), viewer);
+        _addViewerIfNotPublic(euint256.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an eint16 handle.
      */
     function addViewer(eint16 value, address viewer) internal {
-        _noxComputeContract().addViewer(eint16.unwrap(value), viewer);
+        _addViewerIfNotPublic(eint16.unwrap(value), viewer);
     }
 
     /**
      * @dev Adds a viewer for an eint256 handle.
      */
     function addViewer(eint256 value, address viewer) internal {
-        _noxComputeContract().addViewer(eint256.unwrap(value), viewer);
+        _addViewerIfNotPublic(eint256.unwrap(value), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(ebool handle, address viewer) internal view returns (bool) {
-        return _noxComputeContract().isViewer(ebool.unwrap(handle), viewer);
+        return _isViewerOrPublic(ebool.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(euint16 handle, address viewer) internal view returns (bool) {
-        return _noxComputeContract().isViewer(euint16.unwrap(handle), viewer);
+        return _isViewerOrPublic(euint16.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(euint256 handle, address viewer) internal view returns (bool) {
-        return _noxComputeContract().isViewer(euint256.unwrap(handle), viewer);
+        return _isViewerOrPublic(euint256.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(eint16 handle, address viewer) internal view returns (bool) {
-        return _noxComputeContract().isViewer(eint16.unwrap(handle), viewer);
+        return _isViewerOrPublic(eint16.unwrap(handle), viewer);
     }
 
     /**
      * @dev Checks if the viewer can view the handle.
      */
     function isViewer(eint256 handle, address viewer) internal view returns (bool) {
-        return _noxComputeContract().isViewer(eint256.unwrap(handle), viewer);
+        return _isViewerOrPublic(eint256.unwrap(handle), viewer);
     }
 
     // ============ PUBLIC DECRYPTION ============
@@ -1115,70 +1115,70 @@ library Nox {
      * @dev Marks an ebool handle as publicly decryptable.
      */
     function allowPublicDecryption(ebool value) internal {
-        _noxComputeContract().allowPublicDecryption(ebool.unwrap(value));
+        _allowPublicDecryptionIfNotPublic(ebool.unwrap(value));
     }
 
     /**
      * @dev Marks an euint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint16 value) internal {
-        _noxComputeContract().allowPublicDecryption(euint16.unwrap(value));
+        _allowPublicDecryptionIfNotPublic(euint16.unwrap(value));
     }
 
     /**
      * @dev Marks an euint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(euint256 value) internal {
-        _noxComputeContract().allowPublicDecryption(euint256.unwrap(value));
+        _allowPublicDecryptionIfNotPublic(euint256.unwrap(value));
     }
 
     /**
      * @dev Marks an eint16 handle as publicly decryptable.
      */
     function allowPublicDecryption(eint16 value) internal {
-        _noxComputeContract().allowPublicDecryption(eint16.unwrap(value));
+        _allowPublicDecryptionIfNotPublic(eint16.unwrap(value));
     }
 
     /**
      * @dev Marks an eint256 handle as publicly decryptable.
      */
     function allowPublicDecryption(eint256 value) internal {
-        _noxComputeContract().allowPublicDecryption(eint256.unwrap(value));
+        _allowPublicDecryptionIfNotPublic(eint256.unwrap(value));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(ebool handle) internal view returns (bool) {
-        return _noxComputeContract().isPubliclyDecryptable(ebool.unwrap(handle));
+        return _isPubliclyDecryptableOrPublic(ebool.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(euint16 handle) internal view returns (bool) {
-        return _noxComputeContract().isPubliclyDecryptable(euint16.unwrap(handle));
+        return _isPubliclyDecryptableOrPublic(euint16.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(euint256 handle) internal view returns (bool) {
-        return _noxComputeContract().isPubliclyDecryptable(euint256.unwrap(handle));
+        return _isPubliclyDecryptableOrPublic(euint256.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(eint16 handle) internal view returns (bool) {
-        return _noxComputeContract().isPubliclyDecryptable(eint16.unwrap(handle));
+        return _isPubliclyDecryptableOrPublic(eint16.unwrap(handle));
     }
 
     /**
      * @dev Checks if the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(eint256 handle) internal view returns (bool) {
-        return _noxComputeContract().isPubliclyDecryptable(eint256.unwrap(handle));
+        return _isPubliclyDecryptableOrPublic(eint256.unwrap(handle));
     }
 
     // ============ Public decryption proof verification ============
@@ -1304,5 +1304,49 @@ library Nox {
         if (!HandleUtils.isPublicHandle(handle)) {
             _noxComputeContract().disallowTransient(handle, account);
         }
+    }
+
+    /**
+     * @dev Calls addViewer on NoxCompute, silently skipping public handles.
+     * Public handles are already accessible by everyone and don't need viewer grants.
+     */
+    function _addViewerIfNotPublic(bytes32 handle, address viewer) private {
+        if (!HandleUtils.isPublicHandle(handle)) {
+            _noxComputeContract().addViewer(handle, viewer);
+        }
+    }
+
+    /**
+     * @dev Calls allowPublicDecryption on NoxCompute, silently skipping public handles.
+     * Public handles are already publicly decryptable by definition.
+     */
+    function _allowPublicDecryptionIfNotPublic(bytes32 handle) private {
+        if (!HandleUtils.isPublicHandle(handle)) {
+            _noxComputeContract().allowPublicDecryption(handle);
+        }
+    }
+
+    /**
+     * @dev Returns true for public handles without calling NoxCompute, sends the call otherwise.
+     */
+    function _isAllowedOrPublic(bytes32 handle, address account) private view returns (bool) {
+        return
+            HandleUtils.isPublicHandle(handle) || _noxComputeContract().isAllowed(handle, account);
+    }
+
+    /**
+     * @dev Returns true for public handles without calling NoxCompute, sends the call otherwise.
+     */
+    function _isViewerOrPublic(bytes32 handle, address viewer) private view returns (bool) {
+        return HandleUtils.isPublicHandle(handle) || _noxComputeContract().isViewer(handle, viewer);
+    }
+
+    /**
+     * @dev Returns true for public handles without calling NoxCompute, sends the call otherwise.
+     */
+    function _isPubliclyDecryptableOrPublic(bytes32 handle) private view returns (bool) {
+        return
+            HandleUtils.isPublicHandle(handle) ||
+            _noxComputeContract().isPubliclyDecryptable(handle);
     }
 }
