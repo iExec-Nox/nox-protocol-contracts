@@ -57,6 +57,7 @@ abstract contract Compute is Common, EIP712 {
         bytes calldata proof,
         TEEType teeType
     ) external override {
+        require(!HandleUtils.isPublicHandle(handle), InvalidProof(proof, "Not a unique handle"));
         bytes4 chainIdInHandle = bytes4(handle << (1 * 8));
         require(
             chainIdInHandle == bytes4(uint32(block.chainid)),
