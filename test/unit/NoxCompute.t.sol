@@ -80,6 +80,33 @@ contract NoxComputeTest is Test {
         );
     }
 
+    function test_Initialize_ShouldEmitGatewayUpdated() public {
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        address gw = makeAddr("gateway");
+        vm.expectEmit();
+        emit INoxCompute.GatewayUpdated(gw);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            abi.encodePacked(bytes1(0x02), keccak256("test-kms-key")),
+            gw
+        );
+    }
+
+    function test_Initialize_ShouldEmitProofExpirationDurationUpdated() public {
+        NoxCompute impl = TestHelper.newImplementationInstance();
+        vm.expectEmit();
+        emit INoxCompute.ProofExpirationDurationUpdated(1 hours);
+        TestHelper.deployProxy(
+            address(impl),
+            address(this),
+            address(this),
+            abi.encodePacked(bytes1(0x02), keccak256("test-kms-key")),
+            makeAddr("gateway")
+        );
+    }
+
     function test_RevertWhen_Initialize_AlreadyInitialized() public {
         vm.expectRevert(Initializable.InvalidInitialization.selector);
         noxCompute.initialize(
