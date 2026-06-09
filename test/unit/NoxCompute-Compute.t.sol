@@ -17,6 +17,7 @@ import {TestHelper} from "../utils/TestHelper.sol";
 contract NoxCompute_ComputeTest is Test {
     address owner = makeAddr("owner");
     address caller = makeAddr("caller");
+    bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
     NoxCompute noxCompute;
@@ -47,7 +48,7 @@ contract NoxCompute_ComputeTest is Test {
     bytes4[] internal allOps;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, owner, gateway);
+        noxCompute = TestHelper.deploy(owner, owner, gateway, kmsKey);
         vm.label(caller, "caller");
         for (uint256 i = 0; i < arithmeticOps.length; i++) {
             allOps.push(arithmeticOps[i]);

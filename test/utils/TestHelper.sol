@@ -115,14 +115,14 @@ library TestHelper {
     function deploy(
         address admin,
         address upgrader,
-        address gateway
+        address gateway,
+        bytes memory kmsKey
     ) internal returns (NoxCompute noxCompute) {
         Vm vm = getVm();
         address noxComputeAddress = Nox.noxComputeContract();
         address noxComputeImplementation = address(newImplementationInstance());
 
         // Deploy a temporary proxy to get its runtime bytecode
-        bytes memory kmsKey = abi.encodePacked(bytes1(0x02), keccak256("test-kms-key"));
         address noxComputeProxyTemp = deployProxy(
             noxComputeImplementation,
             admin,

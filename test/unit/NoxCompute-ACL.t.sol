@@ -20,10 +20,12 @@ contract NoxCompute_ACLTest is Test {
     bytes32 internal handle;
     bytes32 internal handle2;
     bytes32 internal handle3;
+    bytes internal kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
+    address internal gateway = makeAddr("gateway");
     NoxCompute internal noxCompute;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(owner, owner, makeAddr("gateway"));
+        noxCompute = TestHelper.deploy(owner, owner, gateway, kmsKey);
         // Create handles with isUniqueHandle=1 so ACL operations work
         handle = TestHelper.createHandle(TEEType.Uint256);
         handle2 = TestHelper.createHandle(TEEType.Uint256);

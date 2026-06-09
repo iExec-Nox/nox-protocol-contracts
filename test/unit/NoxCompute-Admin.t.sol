@@ -11,12 +11,13 @@ import {TestHelper} from "../utils/TestHelper.sol";
 contract NoxCompute_AdminTest is Test {
     address admin = makeAddr("admin");
     address upgrader = makeAddr("upgrader");
+    bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
     NoxCompute noxCompute;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(admin, upgrader, gateway);
+        noxCompute = TestHelper.deploy(admin, upgrader, gateway, kmsKey);
     }
 
     // ============ setKmsPublicKey ============

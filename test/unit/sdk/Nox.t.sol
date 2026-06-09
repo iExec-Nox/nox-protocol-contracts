@@ -21,6 +21,7 @@ contract NoxTest is Test {
 
     address owner = makeAddr("owner");
     address account = makeAddr("account");
+    bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
     INoxCompute noxComputeContract;
@@ -47,7 +48,7 @@ contract NoxTest is Test {
     bytes32[] allHandles;
 
     function setUp() public {
-        noxComputeContract = TestHelper.deploy(owner, owner, gateway);
+        noxComputeContract = TestHelper.deploy(owner, owner, gateway, kmsKey);
         noxCompute = address(noxComputeContract);
 
         noxMock = new NoxMock();
