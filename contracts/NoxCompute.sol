@@ -37,12 +37,9 @@ contract NoxCompute is Admin, ACL, Compute {
         address gateway
     ) public initializer {
         // v0.1.0
-        require(kmsPublicKey.length != 0, InvalidEmptyBytes());
-        require(gateway != address(0), InvalidZeroAddress());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.proofExpirationDuration = 1 hours;
-        $.kmsPublicKey = kmsPublicKey;
-        $.gateway = gateway;
+        _setKmsPublicKey(kmsPublicKey);
+        _setGateway(gateway);
+        _setProofExpirationDuration(1 hours);
         // v0.2.0
         _emitZeroHandleSeeds();
         // v0.2.3

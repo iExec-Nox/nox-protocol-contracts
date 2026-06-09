@@ -11,8 +11,10 @@ interface INoxCompute {
     // ------------- General errors -------------
     /// Error thrown when account address is zero
     error InvalidZeroAddress();
-    /// Error thrown when bytes parameter is empty
-    error InvalidEmptyBytes();
+    /// Error thrown when KMS public key is not 33 bytes (compressed SEC1 secp256k1)
+    error InvalidKmsPublicKeyLength();
+    /// Error thrown when KMS public key content is invalid (e.g. all zeros)
+    error InvalidKmsPublicKey();
 
     // ------------- ACL errors -------------
     /// Error thrown when sender doesn't have access to the handle

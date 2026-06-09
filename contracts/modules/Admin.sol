@@ -24,10 +24,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     function setKmsPublicKey(
         bytes calldata newKmsPublicKey
     ) external override onlyRole(UPGRADER_ROLE) {
-        require(newKmsPublicKey.length != 0, InvalidEmptyBytes());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.kmsPublicKey = newKmsPublicKey;
-        emit KmsPublicKeyUpdated(newKmsPublicKey);
+        _setKmsPublicKey(newKmsPublicKey);
     }
 
     /**
@@ -36,10 +33,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
      * @param gatewayAddress New Gateway wallet address
      */
     function setGateway(address gatewayAddress) external override onlyRole(UPGRADER_ROLE) {
-        require(gatewayAddress != address(0), InvalidZeroAddress());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.gateway = gatewayAddress;
-        emit GatewayUpdated(gatewayAddress);
+        _setGateway(gatewayAddress);
     }
 
     /**
@@ -50,9 +44,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     function setProofExpirationDuration(
         uint256 newDuration
     ) external override onlyRole(UPGRADER_ROLE) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.proofExpirationDuration = newDuration;
-        emit ProofExpirationDurationUpdated(newDuration);
+        _setProofExpirationDuration(newDuration);
     }
 
     /**
@@ -95,5 +87,35 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
         __AccessControl_init();
         _grantRole(DEFAULT_ADMIN_ROLE, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
+    }
+
+    /**
+     * @dev Validates, stores, and emits for a KMS public key update.
+     */
+    function _setKmsPublicKey(bytes calldata key) internal {
+        require(key.length == 33, InvalidKmsPublicKeyLength());
+        require(keccak256(key) != keccak256(new bytes(33)), InvalidKmsPublicKey());
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.kmsPublicKey = key;
+        emit KmsPublicKeyUpdated(key);
+    }
+
+    /**
+     * @dev Validates, stores, and emits for a gateway address update.
+     */
+    function _setGateway(address gatewayAddress) internal {
+        require(gatewayAddress != address(0), InvalidZeroAddress());
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.gateway = gatewayAddress;
+        emit GatewayUpdated(gatewayAddress);
+    }
+
+    /**
+     * @dev Stores and emits for a proof expiration duration update.
+     */
+    function _setProofExpirationDuration(uint256 newDuration) internal {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.proofExpirationDuration = newDuration;
+        emit ProofExpirationDurationUpdated(newDuration);
     }
 }

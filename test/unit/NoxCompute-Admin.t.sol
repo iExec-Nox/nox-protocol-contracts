@@ -11,12 +11,13 @@ import {TestHelper} from "../utils/TestHelper.sol";
 contract NoxCompute_AdminTest is Test {
     address admin = makeAddr("admin");
     address upgrader = makeAddr("upgrader");
+    bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
     NoxCompute noxCompute;
 
     function setUp() public {
-        noxCompute = TestHelper.deploy(admin, upgrader, gateway);
+        noxCompute = TestHelper.deploy(admin, upgrader, gateway, kmsKey);
     }
 
     // ============ setKmsPublicKey ============
@@ -39,10 +40,25 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.setKmsPublicKey(newKey);
     }
 
-    function test_RevertWhen_SetKmsPublicKey_EmptyKey() public {
-        vm.expectRevert(INoxCompute.InvalidEmptyBytes.selector);
+    function test_RevertWhen_SetKmsPublicKey_InvalidLength() public {
+        // 0 bytes (empty)
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKeyLength.selector);
         vm.prank(upgrader);
-        noxCompute.setKmsPublicKey("");
+        noxCompute.setKmsPublicKey(new bytes(0));
+        // 32 bytes (too short)
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKeyLength.selector);
+        vm.prank(upgrader);
+        noxCompute.setKmsPublicKey(new bytes(32));
+        // 34 bytes (too long)
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKeyLength.selector);
+        vm.prank(upgrader);
+        noxCompute.setKmsPublicKey(new bytes(34));
+    }
+
+    function test_RevertWhen_SetKmsPublicKey_ZeroKey() public {
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
+        vm.prank(upgrader);
+        noxCompute.setKmsPublicKey(new bytes(33));
     }
 
     // ============ setGateway ============
