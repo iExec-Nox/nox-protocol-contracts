@@ -120,7 +120,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Add,
             operands,
             operands[0].typeOf(), // Result type
@@ -140,7 +140,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Sub,
             operands,
             operands[0].typeOf(), // Result type
@@ -160,7 +160,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = numerator;
         operands[1] = denominator;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Div,
             operands,
             operands[0].typeOf(), // Result type
@@ -180,7 +180,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Mul,
             operands,
             operands[0].typeOf(), // Result type
@@ -201,7 +201,7 @@ abstract contract Compute is Common, EIP712 {
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.SafeAdd,
             operands,
             operands[0].typeOf(), // Result type
@@ -222,7 +222,7 @@ abstract contract Compute is Common, EIP712 {
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.SafeSub,
             operands,
             operands[0].typeOf(), // Result type
@@ -243,7 +243,7 @@ abstract contract Compute is Common, EIP712 {
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.SafeMul,
             operands,
             operands[0].typeOf(), // Result type
@@ -264,7 +264,7 @@ abstract contract Compute is Common, EIP712 {
         operands[0] = numerator;
         operands[1] = denominator;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.SafeDiv,
             operands,
             operands[0].typeOf(), // Result type
@@ -284,7 +284,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Eq,
             operands,
             TEEType.Bool, // Result type
@@ -304,7 +304,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Ne,
             operands,
             TEEType.Bool, // Result type
@@ -324,7 +324,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Lt,
             operands,
             TEEType.Bool, // Result type
@@ -344,7 +344,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Le,
             operands,
             TEEType.Bool, // Result type
@@ -364,7 +364,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Gt,
             operands,
             TEEType.Bool, // Result type
@@ -384,7 +384,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32[] memory operands = new bytes32[](2);
         operands[0] = leftHandOperand;
         operands[1] = rightHandOperand;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Ge,
             operands,
             TEEType.Bool, // Result type
@@ -407,7 +407,7 @@ abstract contract Compute is Common, EIP712 {
         operands[0] = condition;
         operands[1] = ifTrue;
         operands[2] = ifFalse;
-        (, bytes32[] memory results) = _executeOperation(
+        (, bytes32[] memory results) = _processOperation(
             Operator.Select,
             operands,
             operands[1].typeOf(), // Result type
@@ -430,7 +430,7 @@ abstract contract Compute is Common, EIP712 {
         operands[1] = balanceTo;
         operands[2] = amount;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.Transfer,
             operands,
             operands[0].typeOf(), // Result type
@@ -462,7 +462,7 @@ abstract contract Compute is Common, EIP712 {
         operands[1] = amount;
         operands[2] = totalSupply;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.Mint,
             operands,
             operands[0].typeOf(), // Result type
@@ -494,7 +494,7 @@ abstract contract Compute is Common, EIP712 {
         operands[1] = amount;
         operands[2] = totalSupply;
         bytes32[] memory results;
-        (success, results) = _executeOperation(
+        (success, results) = _processOperation(
             Operator.Burn,
             operands,
             operands[0].typeOf(), // Result type
@@ -528,8 +528,7 @@ abstract contract Compute is Common, EIP712 {
      * @return success The Bool success handle (bytes32(0) if withSuccess is false)
      * @return results Array of result handles
      */
-    // TODO rename to _processOperation.
-    function _executeOperation(
+    function _processOperation(
         Operator operator,
         bytes32[] memory operands,
         TEEType resultType,
