@@ -115,6 +115,7 @@ enum TEEType {
 error NonArithmeticType();
 error UnsupportedArithmeticType();
 error IncompatibleTypes();
+error ValueOutOfRange();
 
 library TypeUtils {
     /**
@@ -167,6 +168,21 @@ library TypeUtils {
      */
     function requireType(bytes32 handle, TEEType expected) internal pure {
         require(typeOf(handle) == expected, IncompatibleTypes());
+    }
+
+    /**
+     * @notice Validates that a plaintext value fits the given TEE type's range.
+     * Only enforced for currently supported types: Bool, Uint16, Int16.
+     * Uint256 and Int256 accept any bytes32.
+     * @param value The plaintext value to validate
+     * @param teeType The target TEE type
+     */
+    function validateValueFitsType(bytes32 value, TEEType teeType) internal pure {
+        if (teeType == TEEType.Bool) {
+            require(uint256(value) <= 1, ValueOutOfRange());
+        } else if (teeType == TEEType.Uint16 || teeType == TEEType.Int16) {
+            require(uint256(value) <= type(uint16).max, ValueOutOfRange());
+        }
     }
 
     /**

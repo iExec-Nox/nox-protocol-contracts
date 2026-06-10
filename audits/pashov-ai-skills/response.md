@@ -110,9 +110,9 @@ Uninitialized handles resolve to the typed zero handle — analogous to default 
 
 ### Lead #8 — `wrapAsPublicHandle` does not validate plaintext fits TEE type
 
-**Response: Acknowledged. Fix planned for future release.**
+**Response: Acknowledged. Fixed in [#170](https://github.com/iExec-Nox/nox-protocol-contracts/pull/170).**
 
-No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF`, a Uint16 can wrap a value exceeding 65535. A `validateValueFitsType` utility will be added to `TypeUtils` for currently supported types: Bool (0 or 1), Uint16/Int16 (fits uint16 range). Uint256/Int256 accept any bytes32. Other types remain TEE-side responsibility.
+No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF`, a Uint16 can wrap a value exceeding 65535. `TypeUtils.validateValueFitsType` has been added and is called at the top of `wrapAsPublicHandle`: Bool requires value in {0, 1}; Uint16/Int16 require the raw 16-bit representation fits in `[0, 65535]`; Uint256/Int256 accept any bytes32.
 
 ---
 
