@@ -27,7 +27,7 @@ library Nox {
     function noxComputeContract() internal view returns (address) {
         // Hardhat local development chain
         if (block.chainid == 31337) {
-            return 0xd41F151de89F836DcFCAa6E897cC8c9AFE4454E6;
+            return 0x4A2eB34Dd2624a2a84bD12B1bFdaBbc8e72b4995;
         }
         // Arbitrum Sepolia
         if (block.chainid == 421614) {
