@@ -2,7 +2,7 @@
 
 # Usage: bash scripts/upgrade.sh --some-option some-value --network <network-name>
 
-# This a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
+# This is a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
 # its forks (tenderlyArbitrumSepolia) as they both have the same chain id. Without
 # this fix, they both would conflict and use the same file .openzeppelin/arbitrumSepolia.json.
 
