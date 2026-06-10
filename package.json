@@ -25,7 +25,7 @@
     "build": "pnpm hardhat build",
     "test": "pnpm hardhat test",
     "test:gas": "pnpm hardhat test solidity --gas-stats",
-    "coverage": "pnpm hardhat test solidity --coverage",
+    "coverage": "pnpm hardhat test --coverage",
     "deploy": "pnpm hardhat run scripts/deploy.ts",
     "deploy:production": "pnpm hardhat run scripts/deploy.ts --build-profile production",
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
