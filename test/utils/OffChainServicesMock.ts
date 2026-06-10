@@ -87,9 +87,9 @@ export class OffChainServices {
         const versionByte = toHex(0, { size: 1 });
         const chainIdBytes = toHex(this.chainId, { size: 4 });
         const teeTypeByte = toHex(teeType, { size: 1 });
-        const attrsByte = toHex(0x01, { size: 1 }); // isUniqHandle=1
+        const attributesByte = toHex(0x01, { size: 1 }); // isUniqueHandle=1
         const preHandle = toHex(randomBytes(25));
-        const handle = concatHex([versionByte, chainIdBytes, teeTypeByte, attrsByte, preHandle]);
+        const handle = concatHex([versionByte, chainIdBytes, teeTypeByte, attributesByte, preHandle]);
         const createdAt = BigInt(Math.floor(Date.now() / 1000)); // in seconds
         const domain = {
             name: "NoxCompute",

@@ -58,11 +58,11 @@ Transient access granting viewer rights is intentional (same trust level as pers
 
 ---
 
-### Lead #2 — `validateInputProof` does not check attrs byte
+### Lead #2 — `validateInputProof` does not check attributes byte
 
-**Response: Acknowledged. Fix planned.**
+**Response: Acknowledged. Fixed in [#169](https://github.com/iExec-Nox/nox-protocol-contracts/pull/169).**
 
-Byte 6 (attrs) of the handle is not validated in `validateInputProof`. A public handle (attrs bit 0 = 0) passed to this function would cause `_allowTransient` to silently no-op, potentially allowing ACL bypass. A `require(!HandleUtils.isPublicHandle(handle), ...)` check will be added to `validateInputProof` — public handles are deterministic and do not require a gateway proof.
+Byte 6 (attributes) of the handle is not validated in `validateInputProof`. A public handle (attributes bit 0 = 0) passed to this function would cause `_allowTransient` to silently no-op, potentially allowing ACL bypass. A `require(!HandleUtils.isPublicHandle(handle), ...)` check has been added to `validateInputProof` — public handles are deterministic and do not require a gateway proof.
 
 ---
 
@@ -110,9 +110,9 @@ Uninitialized handles resolve to the typed zero handle — analogous to default 
 
 ### Lead #8 — `wrapAsPublicHandle` does not validate plaintext fits TEE type
 
-**Response: Acknowledged. Fix planned for future release.**
+**Response: Acknowledged. Fixed in [#170](https://github.com/iExec-Nox/nox-protocol-contracts/pull/170).**
 
-No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF`, a Uint16 can wrap a value exceeding 65535. A `validateValueFitsType` utility will be added to `TypeUtils` for currently supported types: Bool (0 or 1), Uint16/Int16 (fits uint16 range). Uint256/Int256 accept any bytes32. Other types remain TEE-side responsibility.
+No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF`, a Uint16 can wrap a value exceeding 65535. `TypeUtils.validateValueFitsType` has been added and is called at the top of `wrapAsPublicHandle`: Bool requires value in {0, 1}; Uint16/Int16 require the raw 16-bit representation fits in `[0, 65535]`; Uint256/Int256 accept any bytes32.
 
 ---
 
@@ -128,7 +128,7 @@ No bounds validation is performed on `value` vs `teeType`. A Bool can wrap `0xFF
 
 **Response: Not an issue.**
 
-Bit 0 of the attrs byte is the sole public/unique discriminator by design. Bits 1–7 are reserved for future attributes. Any future addition will be accompanied by updated validation logic at that time.
+Bit 0 of the attributes byte is the sole public/unique discriminator by design. Bits 1–7 are reserved for future attributes. Any future addition will be accompanied by updated validation logic at that time.
 
 ---
 

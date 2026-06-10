@@ -4,9 +4,8 @@ pragma solidity ^0.8.35;
 import {TEEType} from "./TypeUtils.sol";
 
 library HandleUtils {
-    /// @dev Bit 0 of the attrs byte. When set, the handle is guaranteed unique on-chain.
-    // TODO rename to IS_UNIQUE_HANDLE_ATTRIBUTE
-    bytes1 internal constant ATTR_IS_UNIQUE_HANDLE = 0x01;
+    /// @dev Bit 0 of the attributes byte. When set, the handle is guaranteed unique on-chain.
+    bytes1 internal constant UNIQUE_HANDLE_ATTRIBUTE = 0x01;
 
     /**
      * @notice Checks if a handle is a public handle (isUniqueHandle bit == 0).
@@ -27,14 +26,14 @@ library HandleUtils {
      * @return True if the handle is a public handle
      */
     function isPublicHandle(bytes32 handle) internal pure returns (bool) {
-        return (handle[6] & ATTR_IS_UNIQUE_HANDLE) == 0;
+        return (handle[6] & UNIQUE_HANDLE_ATTRIBUTE) == 0;
     }
 
     /**
      * @notice Returns the zero handle for the given TEE type on the current chain.
      * The zero handle represents the default zero value for a given type and is a public handle.
      * It follows the standard handle format but with a zeroed pre-handle:
-     *   [0]=version(0x00)  [1-4]=chainId  [5]=teeType  [6]=attrs(0x00)  [7-31]=0x00..00
+     *   [0]=version(0x00)  [1-4]=chainId  [5]=teeType  [6]=attributes(0x00)  [7-31]=0x00..00
      * @param teeType The TEE type to encode
      * @return The typed null handle
      */

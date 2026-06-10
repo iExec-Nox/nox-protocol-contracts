@@ -10,7 +10,8 @@ import {
     TypeUtils,
     NonArithmeticType,
     UnsupportedArithmeticType,
-    IncompatibleTypes
+    IncompatibleTypes,
+    ValueOutOfRange
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -71,6 +72,24 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidPublicHandle(result, TEEType.Bool);
     }
 
+    function test_WrapAsPublicHandle_Uint16() public {
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(type(uint16).max)),
+            TEEType.Uint16
+        );
+        _assertValidPublicHandle(result, TEEType.Uint16);
+    }
+
+    function test_WrapAsPublicHandle_Int16() public {
+        vm.prank(caller);
+        bytes32 result = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(type(uint16).max)),
+            TEEType.Int16
+        );
+        _assertValidPublicHandle(result, TEEType.Int16);
+    }
+
     function test_WrapAsPublicHandle_Uint256() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
@@ -106,6 +125,24 @@ contract NoxCompute_ComputeTest is Test {
         bytes32 result2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
 
         assertTrue(result1 != result2);
+    }
+
+    function test_RevertWhen_WrapAsPublicHandle_Bool_OutOfRange() public {
+        vm.prank(caller);
+        vm.expectRevert(ValueOutOfRange.selector);
+        noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Bool);
+    }
+
+    function test_RevertWhen_WrapAsPublicHandle_Uint16_OutOfRange() public {
+        vm.prank(caller);
+        vm.expectRevert(ValueOutOfRange.selector);
+        noxCompute.wrapAsPublicHandle(bytes32(uint256(type(uint16).max) + 1), TEEType.Uint16);
+    }
+
+    function test_RevertWhen_WrapAsPublicHandle_Int16_OutOfRange() public {
+        vm.prank(caller);
+        vm.expectRevert(ValueOutOfRange.selector);
+        noxCompute.wrapAsPublicHandle(bytes32(uint256(type(uint16).max) + 1), TEEType.Int16);
     }
 
     function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
@@ -154,6 +191,26 @@ contract NoxCompute_ComputeTest is Test {
         vm.prank(app);
         noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
         assertTrue(noxCompute.isAllowed(handle, app));
+    }
+
+    function test_RevertWhen_ValidateProof_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes memory proof = TestHelper.buildInputProof(
+            address(noxCompute),
+            publicHandle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                proof,
+                "Public handle does not need a proof"
+            )
+        );
+        noxCompute.validateInputProof(publicHandle, owner, proof, TEEType.Uint256);
     }
 
     function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
