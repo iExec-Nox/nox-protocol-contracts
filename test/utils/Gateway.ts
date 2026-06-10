@@ -9,11 +9,11 @@ const client = await connection.viem.getPublicClient();
 
 export class Gateway {
     private noxComputeAddress: `0x${string}`;
-    private gateway: PrivateKeyAccount;
+    private gatewayAccount: PrivateKeyAccount;
 
-    constructor(noxComputeAddress: `0x${string}`, gateway: PrivateKeyAccount) {
+    constructor(noxComputeAddress: `0x${string}`, gatewayAccount: PrivateKeyAccount) {
         this.noxComputeAddress = noxComputeAddress;
-        this.gateway = gateway;
+        this.gatewayAccount = gatewayAccount;
     }
 
     /**
@@ -52,7 +52,7 @@ export class Gateway {
             app: appAddress,
             createdAt,
         } as const;
-        const signature = await this.gateway.signTypedData({
+        const signature = await this.gatewayAccount.signTypedData({
             domain,
             types,
             primaryType: "HandleProof",
