@@ -296,9 +296,9 @@ interface INoxCompute {
      * or reverts otherwise.
      *
      * Handle format:
-     *  1 byte    4 bytes      1 byte  1 byte      25 bytes
-     *   [0]     [1------4]     [5]     [6]     [7-----------31]
-     * Version    ChainId       Type    Attrs      Pre-handle
+     *  1 byte    4 bytes      1 byte    1 byte          25 bytes
+     *   [0]     [1------4]     [5]       [6]        [7-----------31]
+     * Version    ChainId       Type   Attributes       Pre-handle
      *
      * Proof format:
      *  20 bytes       20 bytes        32 bytes            65 bytes

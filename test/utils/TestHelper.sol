@@ -42,7 +42,7 @@ library TestHelper {
                     bytes1(0x00), // Version
                     bytes4(uint32(chainId)), // ChainId
                     bytes1(uint8(teeType)), // Type
-                    bytes1(0x01), // Attrs
+                    bytes1(0x01), // Attributes
                     bytes25(_nextNonce()) // Pre-handle
                 )
             );
@@ -59,7 +59,7 @@ library TestHelper {
                     bytes1(0x00), // Version
                     bytes4(uint32(block.chainid)), // ChainId
                     bytes1(uint8(teeType)), // Type
-                    bytes1(0x00), // Attrs
+                    bytes1(0x00), // Attributes
                     bytes25(_nextNonce()) // Pre-handle
                 )
             );

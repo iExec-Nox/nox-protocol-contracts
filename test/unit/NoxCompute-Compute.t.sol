@@ -156,6 +156,26 @@ contract NoxCompute_ComputeTest is Test {
         assertTrue(noxCompute.isAllowed(handle, app));
     }
 
+    function test_RevertWhen_ValidateProof_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes memory proof = TestHelper.buildInputProof(
+            address(noxCompute),
+            publicHandle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                proof,
+                "Public handle does not need a proof"
+            )
+        );
+        noxCompute.validateInputProof(publicHandle, owner, proof, TEEType.Uint256);
+    }
+
     function test_ValidateProof_RevertWhen_ChainIdMismatch() public {
         uint256 wrongChainId = type(uint32).max;
         bytes32 badHandle = TestHelper.createHandle(wrongChainId, TEEType.Uint256);

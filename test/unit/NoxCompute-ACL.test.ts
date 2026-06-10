@@ -5,8 +5,8 @@ import { loadFixture } from "../utils/fixture.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 
 /**
- * Creates a confidential handle (isUniqHandle=1) with the correct byte layout.
- * [0] Version | [1-4] ChainId | [5] Type | [6] Attrs | [7-31] Pre-handle
+ * Creates a confidential handle (isUniqueHandle=1) with the correct byte layout.
+ * [0] Version | [1-4] ChainId | [5] Type | [6] Attributes | [7-31] Pre-handle
  */
 function createHandle(label: string): `0x${string}` {
     const preHandle = ("0x" + keccak256(toHex(label)).slice(2, 52)) as `0x${string}`; // 25 bytes
@@ -14,7 +14,7 @@ function createHandle(label: string): `0x${string}` {
         toHex(0, { size: 1 }), // Version
         toHex(31337, { size: 4 }), // ChainId
         toHex(4, { size: 1 }), // Type (Uint8)
-        toHex(0x01, { size: 1 }), // Attrs (isUniqHandle=1)
+        toHex(0x01, { size: 1 }), // Attributes (isUniqueHandle=1)
         preHandle,
     ]);
 }
