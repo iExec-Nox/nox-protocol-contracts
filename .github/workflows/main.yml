@@ -20,9 +20,7 @@ jobs:
       - uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
-          # cache: 'pnpm' TODO
-
-      - run: corepack enable # Use package manager defined in package.json
+          cache: "pnpm"
 
       - run: pnpm install --frozen-lockfile
 
