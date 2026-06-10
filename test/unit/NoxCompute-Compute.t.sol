@@ -204,7 +204,11 @@ contract NoxCompute_ComputeTest is Test {
             gatewayPrivateKey
         );
         vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.InvalidProof.selector, proof, "Not a unique handle")
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                proof,
+                "Public handle does not need a proof"
+            )
         );
         noxCompute.validateInputProof(publicHandle, owner, proof, TEEType.Uint256);
     }
