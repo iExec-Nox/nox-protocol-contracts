@@ -52,13 +52,12 @@ contract NoxTest is Test {
     bytes32[] publicHandles;
 
     bytes32 zeroBool = HandleUtils.zeroHandle(TEEType.Bool);
+    bytes32 zeroUint16 = HandleUtils.zeroHandle(TEEType.Uint16);
+    bytes32 zeroUint256 = HandleUtils.zeroHandle(TEEType.Uint256);
+    bytes32 zeroInt16 = HandleUtils.zeroHandle(TEEType.Int16);
+    bytes32 zeroInt256 = HandleUtils.zeroHandle(TEEType.Int256);
     // Zero handles indexed to match arithmeticA/B (Uint16, Uint256, Int16, Int256)
-    bytes32[4] internal zeros = [
-        HandleUtils.zeroHandle(TEEType.Uint16),
-        HandleUtils.zeroHandle(TEEType.Uint256),
-        HandleUtils.zeroHandle(TEEType.Int16),
-        HandleUtils.zeroHandle(TEEType.Int256)
-    ];
+    bytes32[4] internal zeros = [zeroUint16, zeroUint256, zeroInt16, zeroInt256];
 
     function setUp() public {
         noxComputeContract = TestHelper.deploy(owner, owner, gateway, kmsKey);
