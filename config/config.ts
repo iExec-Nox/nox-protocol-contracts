@@ -1,9 +1,6 @@
 import { isAddress } from "viem";
 
 // CREATE2 deployment salt for deterministic addresses
-// TODO: For production deployment, replace with a carefully chosen and documented salt.
-// This salt is used by Ignition's create2 strategy to deploy contracts at deterministic addresses.
-// TODO use salt config per chain.
 export const CREATE2_SALT = "0x0000000000000000000000000000000000000000000000000000000000000000" as const;
 
 type ChainConfig = {

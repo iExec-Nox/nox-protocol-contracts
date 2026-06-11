@@ -15,14 +15,14 @@ jobs:
   build-and-test:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
+
+      - uses: pnpm/action-setup@v6 # Reads `packageManager` from package.json.
 
       - uses: actions/setup-node@v6
         with:
           node-version-file: ".nvmrc"
-          # cache: 'pnpm' TODO
-
-      - run: corepack enable # Use package manager defined in package.json
+          cache: "pnpm"
 
       - run: pnpm install --frozen-lockfile
 
@@ -38,12 +38,7 @@ jobs:
       - name: Deployment dry-run
         run: pnpm run deploy
 
-      # TODO remove this when coverage is fixed to run with all tests (solidity + NodeJS).
-      - name: Run NodeJS tests
-        run: pnpm run test nodejs
-
       - name: Run coverage
-        # TODO remove "solidity" from coverage command to run all tests.
         run: pnpm run coverage --gas-stats
 
       - name: Upload coverage reports to Codecov
