@@ -1018,12 +1018,6 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     // ============ Test Helpers ============
-    /**
-     * TODO: Add tests for private helper functions:
-     *   - _executeArithmeticOperation
-     *   - _generateHandle
-     *
-     */
 
     function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
         _assertValidHandle(h, expectedType, false);
