@@ -647,7 +647,7 @@ abstract contract Compute is Common, EIP712 {
      */
     function _emitZeroHandleSeeds() internal {
         TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
-        for (uint i = 0; i < types.length; i++) {
+        for (uint256 i = 0; i < types.length; i++) {
             emit WrapAsPublicHandle(
                 address(this),
                 bytes32(0),
