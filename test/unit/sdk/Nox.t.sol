@@ -6,6 +6,7 @@ import {stdError} from "forge-std/StdError.sol";
 import "encrypted-types/EncryptedTypes.sol";
 import {INoxCompute} from "../../../contracts/interfaces/INoxCompute.sol";
 import {TEEType, TypeUtils} from "../../../contracts/utils/TypeUtils.sol";
+import {HandleUtils} from "../../../contracts/utils/HandleUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 import {Nox} from "../../../contracts/sdk/Nox.sol";
 import {NoxMock} from "../../../contracts/mock/NoxMock.sol";
@@ -49,6 +50,14 @@ contract NoxTest is Test {
 
     // Public handle per type
     bytes32[] publicHandles;
+
+    bytes32 zeroBool = HandleUtils.zeroHandle(TEEType.Bool);
+    bytes32 zeroUint16 = HandleUtils.zeroHandle(TEEType.Uint16);
+    bytes32 zeroUint256 = HandleUtils.zeroHandle(TEEType.Uint256);
+    bytes32 zeroInt16 = HandleUtils.zeroHandle(TEEType.Int16);
+    bytes32 zeroInt256 = HandleUtils.zeroHandle(TEEType.Int256);
+    // Zero handles indexed to match arithmeticA/B (Uint16, Uint256, Int16, Int256)
+    bytes32[4] internal zeros = [zeroUint16, zeroUint256, zeroInt16, zeroInt256];
 
     function setUp() public {
         noxComputeContract = TestHelper.deploy(owner, owner, gateway, kmsKey);
@@ -260,6 +269,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_add_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.add, (zeros[i], zeros[i])));
+            _noxAdd(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_sub() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -268,6 +285,14 @@ contract NoxTest is Test {
             );
             bytes32 result = _noxSub(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_sub_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.sub, (zeros[i], zeros[i])));
+            _noxSub(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -282,6 +307,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_mul_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.mul, (zeros[i], zeros[i])));
+            _noxMul(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_div() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -290,6 +323,14 @@ contract NoxTest is Test {
             );
             bytes32 result = _noxDiv(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
+        }
+    }
+
+    function test_div_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.div, (zeros[i], zeros[i])));
+            _noxDiv(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -305,6 +346,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_safeAdd_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.safeAdd, (zeros[i], zeros[i])));
+            _noxSafeAdd(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_safeSub() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -314,6 +363,14 @@ contract NoxTest is Test {
             (bytes32 success, bytes32 result) = _noxSafeSub(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
             _assertHandleType(success, TEEType.Bool);
+        }
+    }
+
+    function test_safeSub_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.safeSub, (zeros[i], zeros[i])));
+            _noxSafeSub(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -329,6 +386,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_safeMul_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.safeMul, (zeros[i], zeros[i])));
+            _noxSafeMul(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_safeDiv() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -338,6 +403,14 @@ contract NoxTest is Test {
             (bytes32 success, bytes32 result) = _noxSafeDiv(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, arithmeticA[i].typeOf());
             _assertHandleType(success, TEEType.Bool);
+        }
+    }
+
+    function test_safeDiv_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.safeDiv, (zeros[i], zeros[i])));
+            _noxSafeDiv(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -352,6 +425,17 @@ contract NoxTest is Test {
         }
     }
 
+    function test_select_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.select, (zeroBool, zeros[i], zeros[i]))
+            );
+            _noxSelect(t, bytes32(0), bytes32(0), bytes32(0));
+        }
+    }
+
     function test_eq() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -360,6 +444,14 @@ contract NoxTest is Test {
             );
             bytes32 result = _noxEq(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, TEEType.Bool);
+        }
+    }
+
+    function test_eq_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.eq, (zeros[i], zeros[i])));
+            _noxEq(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -374,6 +466,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_ne_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.ne, (zeros[i], zeros[i])));
+            _noxNe(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_lt() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -382,6 +482,14 @@ contract NoxTest is Test {
             );
             bytes32 result = _noxLt(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, TEEType.Bool);
+        }
+    }
+
+    function test_lt_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.lt, (zeros[i], zeros[i])));
+            _noxLt(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -396,6 +504,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_le_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.le, (zeros[i], zeros[i])));
+            _noxLe(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_gt() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -407,6 +523,14 @@ contract NoxTest is Test {
         }
     }
 
+    function test_gt_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.gt, (zeros[i], zeros[i])));
+            _noxGt(t, bytes32(0), bytes32(0));
+        }
+    }
+
     function test_ge() public {
         for (uint256 i = 0; i < arithmeticA.length; i++) {
             vm.expectCall(
@@ -415,6 +539,14 @@ contract NoxTest is Test {
             );
             bytes32 result = _noxGe(arithmeticA[i], arithmeticB[i]);
             _assertHandleType(result, TEEType.Bool);
+        }
+    }
+
+    function test_ge_NullHandleResolution() public {
+        for (uint256 i = 0; i < arithmeticA.length; i++) {
+            TEEType t = arithmeticA[i].typeOf();
+            vm.expectCall(noxCompute, abi.encodeCall(INoxCompute.ge, (zeros[i], zeros[i])));
+            _noxGe(t, bytes32(0), bytes32(0));
         }
     }
 
@@ -433,6 +565,14 @@ contract NoxTest is Test {
         _assertHandleType(euint256.unwrap(newBalanceTo), TEEType.Uint256);
     }
 
+    function test_Transfer_NullHandleResolution() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.transfer, (zeroUint256, zeroUint256, zeroUint256))
+        );
+        Nox.transfer(euint256.wrap(0), euint256.wrap(0), euint256.wrap(0));
+    }
+
     function test_Mint() public {
         vm.expectCall(
             noxCompute,
@@ -446,6 +586,14 @@ contract NoxTest is Test {
         _assertHandleType(ebool.unwrap(success), TEEType.Bool);
         _assertHandleType(euint256.unwrap(newBalanceTo), TEEType.Uint256);
         _assertHandleType(euint256.unwrap(newTotalSupply), TEEType.Uint256);
+    }
+
+    function test_Mint_NullHandleResolution() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.mint, (zeroUint256, zeroUint256, zeroUint256))
+        );
+        Nox.mint(euint256.wrap(0), euint256.wrap(0), euint256.wrap(0));
     }
 
     function test_Burn() public {
@@ -463,7 +611,13 @@ contract NoxTest is Test {
         _assertHandleType(euint256.unwrap(newTotalSupply), TEEType.Uint256);
     }
 
-    // TODO: Add null handle resolution tests (verify SDK resolves bytes32(0) to typed null handles)
+    function test_Burn_NullHandleResolution() public {
+        vm.expectCall(
+            noxCompute,
+            abi.encodeCall(INoxCompute.burn, (zeroUint256, zeroUint256, zeroUint256))
+        );
+        Nox.burn(euint256.wrap(0), euint256.wrap(0), euint256.wrap(0));
+    }
 
     // ============ ACL functions ============
 
@@ -811,7 +965,10 @@ contract NoxTest is Test {
     }
 
     function _noxAdd(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxAdd(a.typeOf(), a, b);
+    }
+
+    function _noxAdd(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.add(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -828,7 +985,10 @@ contract NoxTest is Test {
     }
 
     function _noxSub(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxSub(a.typeOf(), a, b);
+    }
+
+    function _noxSub(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.sub(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -845,7 +1005,10 @@ contract NoxTest is Test {
     }
 
     function _noxMul(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxMul(a.typeOf(), a, b);
+    }
+
+    function _noxMul(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.mul(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -862,7 +1025,10 @@ contract NoxTest is Test {
     }
 
     function _noxDiv(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxDiv(a.typeOf(), a, b);
+    }
+
+    function _noxDiv(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return euint16.unwrap(Nox.div(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -879,7 +1045,10 @@ contract NoxTest is Test {
     }
 
     function _noxSafeAdd(bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
-        TEEType t = a.typeOf();
+        return _noxSafeAdd(a.typeOf(), a, b);
+    }
+
+    function _noxSafeAdd(TEEType t, bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeAdd(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
@@ -900,7 +1069,10 @@ contract NoxTest is Test {
     }
 
     function _noxSafeSub(bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
-        TEEType t = a.typeOf();
+        return _noxSafeSub(a.typeOf(), a, b);
+    }
+
+    function _noxSafeSub(TEEType t, bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeSub(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
@@ -921,7 +1093,10 @@ contract NoxTest is Test {
     }
 
     function _noxSafeMul(bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
-        TEEType t = a.typeOf();
+        return _noxSafeMul(a.typeOf(), a, b);
+    }
+
+    function _noxSafeMul(TEEType t, bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeMul(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
@@ -942,7 +1117,10 @@ contract NoxTest is Test {
     }
 
     function _noxSafeDiv(bytes32 a, bytes32 b) internal returns (bytes32, bytes32) {
-        TEEType t = a.typeOf();
+        return _noxSafeDiv(a.typeOf(), a, b);
+    }
+
+    function _noxSafeDiv(TEEType t, bytes32 a, bytes32 b) private returns (bytes32, bytes32) {
         if (t == TEEType.Uint16) {
             (ebool s, euint16 r) = Nox.safeDiv(euint16.wrap(a), euint16.wrap(b));
             return (ebool.unwrap(s), euint16.unwrap(r));
@@ -967,7 +1145,15 @@ contract NoxTest is Test {
         bytes32 ifTrue,
         bytes32 ifFalse
     ) internal returns (bytes32) {
-        TEEType t = ifTrue.typeOf();
+        return _noxSelect(ifTrue.typeOf(), condition, ifTrue, ifFalse);
+    }
+
+    function _noxSelect(
+        TEEType t,
+        bytes32 condition,
+        bytes32 ifTrue,
+        bytes32 ifFalse
+    ) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return
                 euint16.unwrap(
@@ -996,7 +1182,10 @@ contract NoxTest is Test {
     }
 
     function _noxEq(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxEq(a.typeOf(), a, b);
+    }
+
+    function _noxEq(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.eq(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -1013,7 +1202,10 @@ contract NoxTest is Test {
     }
 
     function _noxNe(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxNe(a.typeOf(), a, b);
+    }
+
+    function _noxNe(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.ne(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -1030,7 +1222,10 @@ contract NoxTest is Test {
     }
 
     function _noxLt(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxLt(a.typeOf(), a, b);
+    }
+
+    function _noxLt(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.lt(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -1047,7 +1242,10 @@ contract NoxTest is Test {
     }
 
     function _noxLe(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxLe(a.typeOf(), a, b);
+    }
+
+    function _noxLe(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.le(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -1064,7 +1262,10 @@ contract NoxTest is Test {
     }
 
     function _noxGt(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxGt(a.typeOf(), a, b);
+    }
+
+    function _noxGt(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.gt(euint16.wrap(a), euint16.wrap(b)));
         }
@@ -1081,7 +1282,10 @@ contract NoxTest is Test {
     }
 
     function _noxGe(bytes32 a, bytes32 b) internal returns (bytes32) {
-        TEEType t = a.typeOf();
+        return _noxGe(a.typeOf(), a, b);
+    }
+
+    function _noxGe(TEEType t, bytes32 a, bytes32 b) private returns (bytes32) {
         if (t == TEEType.Uint16) {
             return ebool.unwrap(Nox.ge(euint16.wrap(a), euint16.wrap(b)));
         }

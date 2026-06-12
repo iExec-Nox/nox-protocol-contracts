@@ -1,6 +1,8 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
+import {SlotDerivation} from "@openzeppelin/contracts/utils/SlotDerivation.sol";
+import {TransientSlot} from "@openzeppelin/contracts/utils/TransientSlot.sol";
 import {HandleUtils} from "../utils/HandleUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
@@ -11,6 +13,14 @@ import {Common} from "./Common.sol";
  * plus viewer and public-decryption roles.
  */
 abstract contract ACL is Common {
+    using SlotDerivation for bytes32;
+    using TransientSlot for bytes32;
+    using TransientSlot for TransientSlot.BooleanSlot;
+
+    bytes32 private constant ACL_TRANSIENT_STORAGE_BASE_SLOT = keccak256(
+        "nox.storage.transient.ACL"
+    );
+
     modifier notZeroAddress(address account) {
         require(account != address(0), InvalidZeroAddress());
         _;
@@ -77,10 +87,11 @@ abstract contract ACL is Common {
         bytes32 handle,
         address account
     ) external override notZeroAddress(account) notPublicHandle(handle) onlyAllowed(handle) {
-        bytes32 key = keccak256(abi.encodePacked(handle, account));
-        assembly {
-            tstore(key, 0)
-        }
+        ACL_TRANSIENT_STORAGE_BASE_SLOT
+            .deriveMapping(handle)
+            .deriveMapping(account)
+            .asBoolean()
+            .tstore(false);
     }
 
     /// @inheritdoc INoxCompute
@@ -133,10 +144,11 @@ abstract contract ACL is Common {
         if (HandleUtils.isPublicHandle(handle)) {
             return;
         }
-        bytes32 key = keccak256(abi.encodePacked(handle, account));
-        assembly {
-            tstore(key, 1)
-        }
+        ACL_TRANSIENT_STORAGE_BASE_SLOT
+            .deriveMapping(handle)
+            .deriveMapping(account)
+            .asBoolean()
+            .tstore(true);
     }
 
     /**
@@ -171,12 +183,12 @@ abstract contract ACL is Common {
      * @return Returns `true` if the address has transient access to a handle and `false` otherwise.
      */
     function _isAllowedTransient(bytes32 handle, address account) private view returns (bool) {
-        bool isAllowedTransient_;
-        bytes32 key = keccak256(abi.encodePacked(handle, account));
-        assembly {
-            isAllowedTransient_ := tload(key)
-        }
-        return isAllowedTransient_;
+        return
+            ACL_TRANSIENT_STORAGE_BASE_SLOT
+                .deriveMapping(handle)
+                .deriveMapping(account)
+                .asBoolean()
+                .tload();
     }
 
     /**
