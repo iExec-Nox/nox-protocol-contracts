@@ -126,7 +126,7 @@ contract NoxTest is Test {
 
     function test_RevertWhen_ContractAddress_UnsupportedChain() public {
         vm.chainId(9999);
-        vm.expectRevert("Nox: Unsupported chain");
+        vm.expectRevert(Nox.UnsupportedChain.selector);
         noxMock.addEuint16(uint16HandleA, uint16HandleB);
     }
 
