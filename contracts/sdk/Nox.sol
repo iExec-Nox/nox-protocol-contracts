@@ -2,9 +2,20 @@
 pragma solidity ^0.8.35;
 
 import {HandleUtils} from "../utils/HandleUtils.sol";
-import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
+import {TEEType} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
-import "encrypted-types/EncryptedTypes.sol";
+import {
+    ebool,
+    euint16,
+    euint256,
+    eint16,
+    eint256,
+    externalEbool,
+    externalEuint16,
+    externalEuint256,
+    externalEint16,
+    externalEint256
+} from "encrypted-types/EncryptedTypes.sol";
 
 /**
  * @title Nox
