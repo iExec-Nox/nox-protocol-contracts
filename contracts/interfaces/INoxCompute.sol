@@ -43,7 +43,7 @@ interface INoxCompute {
     // ------------- Protocol config events -------------
     event KmsPublicKeyUpdated(bytes newKmsPublicKey);
     event GatewayUpdated(address indexed newGateway);
-    event ProofExpirationDurationUpdated(uint256 newDuration);
+    event ProofExpirationDurationUpdated(uint256 indexed newDuration);
 
     // ------------- Compute events -------------
     event WrapAsPublicHandle(
