@@ -25,6 +25,7 @@ library Nox {
     // ============ Errors ============
 
     error MalformedDecryptedData(bytes data);
+    error UnsupportedChain();
 
     // ============ Address resolution ============
 
@@ -48,7 +49,7 @@ library Nox {
         if (block.chainid == 11155111) {
             return 0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF;
         }
-        revert("Nox: Unsupported chain");
+        revert UnsupportedChain();
     }
 
     // =========== Handle initialization checks ============
