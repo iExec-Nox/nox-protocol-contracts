@@ -33,8 +33,8 @@
     "upgrade": "bash scripts/upgrade.sh",
     "upgrade:production": "bash scripts/upgrade.sh --build-profile production",
     "verify": "pnpm hardhat ignition verify",
-    "lint": "pnpm eslint --fix .",
-    "lint:check": "pnpm eslint .",
+    "lint": "pnpm eslint --fix . && pnpm solhint 'contracts/**/*.sol'",
+    "lint:check": "pnpm eslint . && pnpm solhint 'contracts/**/*.sol'",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check .",
     "update-local-proxy-address": "sh scripts/update-local-proxy-address.sh"
@@ -44,7 +44,11 @@
       "eslint --fix",
       "prettier --write"
     ],
-    "*.{sol,js,json,md,yml,yaml}": [
+    "*.sol": [
+      "solhint",
+      "prettier --write"
+    ],
+    "*.{js,json,md,yml,yaml}": [
       "prettier --write"
     ]
   },
@@ -68,6 +72,7 @@
     "lint-staged": "^17.0.7",
     "prettier": "^3.8.3",
     "prettier-plugin-solidity": "^2.3.1",
+    "solhint": "^6.2.1",
     "typescript": "^6.0.3",
     "typescript-eslint": "^8.61.0",
     "viem": "^2.52.2"
