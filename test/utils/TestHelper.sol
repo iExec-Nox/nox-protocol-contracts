@@ -108,7 +108,6 @@ library TestHelper {
 
     /**
      * @notice Deploys NoxCompute at the addresses resolved by Nox for the current chain.
-     * TODO: Use vm.broadcastRawTransaction(deployCreateXTx) to deploy CreateX in tests.
      * @dev Uses vm.etch to place proxy bytecode at the expected addresses, ensuring Nox
      *      library calls work correctly in tests.
      */

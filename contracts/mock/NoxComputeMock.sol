@@ -17,7 +17,6 @@ contract NoxComputeMock is NoxCompute {
      * @param handlePersistent Handle for which to grant persistent access
      * @param account Account to receive both transient and persistent access
      */
-    // TODO remove this if possible
     function grantTransientAndPersistent(
         bytes32 handleTransient,
         bytes32 handlePersistent,
