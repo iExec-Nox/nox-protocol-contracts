@@ -33,12 +33,18 @@
     "upgrade": "bash scripts/upgrade.sh",
     "upgrade:production": "bash scripts/upgrade.sh --build-profile production",
     "verify": "pnpm hardhat ignition verify",
+    "lint": "pnpm eslint --fix .",
+    "lint:check": "pnpm eslint .",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check .",
     "update-local-proxy-address": "sh scripts/update-local-proxy-address.sh"
   },
   "lint-staged": {
-    "*.{sol,js,ts,json,md,yml,yaml}": [
+    "*.ts": [
+      "eslint --fix",
+      "prettier --write"
+    ],
+    "*.{sol,js,json,md,yml,yaml}": [
       "prettier --write"
     ]
   },
@@ -53,6 +59,8 @@
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
     "@openzeppelin/hardhat-upgrades": "^4.0.1",
     "@types/node": "^25.9.2",
+    "eslint": "^10.4.1",
+    "eslint-plugin-simple-import-sort": "^13.0.0",
     "ethers": "^6.16.0",
     "forge-std": "github:foundry-rs/forge-std#v1.16.1",
     "hardhat": "^3.8.0",
@@ -61,6 +69,7 @@
     "prettier": "^3.8.3",
     "prettier-plugin-solidity": "^2.3.1",
     "typescript": "^6.0.3",
+    "typescript-eslint": "^8.61.0",
     "viem": "^2.52.2"
   },
   "homepage": "https://github.com/iExec-Nox/nox-protocol-contracts#readme",
