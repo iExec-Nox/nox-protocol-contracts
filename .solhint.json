@@ -4,6 +4,8 @@
     "func-visibility": ["warn", { "ignoreConstructors": true }],
     "no-inline-assembly": "off",
     "gas-small-strings": "off",
-    "use-natspec": "off"
+    "use-natspec": "off",
+    "gas-strict-inequalities": "off",
+    "no-empty-blocks": "off"
   }
 }
