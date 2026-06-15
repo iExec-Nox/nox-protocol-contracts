@@ -64,6 +64,156 @@ sequenceDiagram
 
 ---
 
+### 3. `add`, `sub` ... — Arithmetic, safe-arithmetic, and comparison operations
+
+Applies to all arithmetic and comparison operators: `add`, `sub`, ..., `safeAdd`, `select`, ..., `eq`, ... The contract does not compute the result — it validates access, generates a unique result handle, and emits an event that TEE workers pick up to perform the actual computation off-chain.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>app: doSomething()
+    app->>nox: add(a, b)
+    Note over nox: - Reject if any operand is bytes32(0) <br> - Verify both operands have same supported arithmetic type <br> - Verify msg.sender is allowed to use both operands <br> - Generate result handle and make it unique <br> (uniqueSeed counter if needed)
+    nox->>nox: Grant transient ACL on result to msg.sender
+    nox->>nox: emit Add(caller, a, b, result)
+    nox-->>app: result handle
+```
+
+---
+
+### 4. `transfer(/mint/burn)` — Optimized operations
+
+Unlike simple arithmetic ops, these return two result handles plus a Bool success handle. The TEE computes the operation off-chain and the success handle's decrypted value indicates whether the operation succeeded (e.g. sufficient balance for transfer).
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>app: doSomething()
+    app->>nox: transfer(balanceFrom, balanceTo, amount)
+    Note over nox: - Reject if any operand is bytes32(0) <br> - Verify all three operands have same supported arithmetic type <br> - Verify msg.sender is allowed to use all three operands <br> - Generate two result handles (newBalanceFrom, newBalanceTo) <br> - Generate one Bool success handle <br> - All three are unique handles (attributes=0x01)
+    nox->>nox: Grant transient ACL on all three handles to msg.sender
+    nox->>nox: emit Transfer(caller, balanceFrom, balanceTo, amount, success, newBalanceFrom, newBalanceTo)
+    nox-->>app: success, newBalanceFrom, newBalanceTo
+```
+
+---
+
+### 5. `allow` — Grant persistent access to a handle
+
+Grants another address permanent admin access to a handle. The caller must already have access (transient or persistent). Once granted, persistent access cannot be revoked.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>app: doSomething()
+    app->>nox: allow(handle, account)
+    Note over nox: - Reject if account is zero address <br> - Reject if handle is a public handle <br> - Verify msg.sender is allowed on handle (transient or persistent)
+    nox->>nox: Store admins[handle][account] = true
+    nox->>nox: emit Allowed(caller, account, handle)
+    nox-->>app: Ok
+```
+
+---
+
+### 6. `allowTransient` — Grant transient access to a handle
+
+Grants another address access to a handle for the current transaction only. Access is stored in EIP-1153 transient storage and is automatically cleared at the end of the transaction.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>app: doSomething()
+    app->>nox: allowTransient(handle, account)
+    Note over nox: - Reject if account is zero address <br> - Reject if handle is a public handle <br> - Verify msg.sender is allowed on handle (transient or persistent)
+    nox->>nox: tstore allowed[handle][account] = true
+    nox-->>app: Ok
+```
+
+---
+
+### 7. `addViewer` — Grant decryption-only access to a handle
+
+Grants an address viewer access to a handle. A viewer can request decryption off-chain from the TEE but cannot use the handle as a computation input. Persistent and irrevocable.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>app: doSomething()
+    app->>nox: addViewer(handle, viewer)
+    Note over nox: - Reject if viewer is zero address <br> - Reject if handle is a public handle <br> - Verify msg.sender is allowed on handle (transient or persistent)
+    nox->>nox: Store viewers[handle][viewer] = true
+    nox->>nox: emit ViewerAdded(caller, viewer, handle)
+    nox-->>app: Ok
+```
+
+---
+
+### 8. `allowPublicDecryption` — Make a handle publicly decryptable
+
+Marks a handle as publicly decryptable, allowing anyone to request its decryption from the TEE without any ACL entry. This is irreversible.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>app: doSomething()
+    app->>nox: allowPublicDecryption(handle)
+    Note over nox: - Reject if handle is a public handle <br> - Verify msg.sender is allowed on handle (transient or persistent)
+    nox->>nox: Store isPubliclyDecryptable[handle] = true
+    nox->>nox: emit MarkedAsPubliclyDecryptable(caller, handle)
+    nox-->>app: Ok
+```
+
+---
+
+### 9. `validateDecryptionProof` — Verify a TEE decryption result
+
+To read an encrypted value, a user requests decryption from the TEE off-chain. The TEE returns an EIP-712 signed proof binding the handle to the decrypted result. `validateDecryptionProof` verifies the proof on-chain and extracts the plaintext. This is a `view` function with no ACL check — access control for decryption is enforced the Gateway (running inside TEE) according to the on-chain state.
+
+```mermaid
+sequenceDiagram
+    autonumber
+    participant gateway as Gateway (off-chain)
+    actor user as User
+    participant app as App
+    participant nox as NoxCompute
+
+    user->>gateway: request decryption of handle
+    Note over gateway: Check caller is allowed onchain <br> (admin, viewer, or handle is publicly decryptable)
+    gateway-->>user: EIP-712 proof (signature | decryptedResult)
+
+    user->>app: doSomething(handle, decryptionProof)
+    app->>nox: validateDecryptionProof(handle, decryptionProof)
+    Note over nox: - Verify proof length <br> - Recover EIP-712 signature <br> - Verify signer == configured gateway
+    nox->>nox: Extract decrypted result value
+    nox-->>app: plaintext value
+```
+
+---
+
 ## Regenerate diagrams
 
 ```bash
