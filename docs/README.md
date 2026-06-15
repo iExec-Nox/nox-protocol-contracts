@@ -1,5 +1,7 @@
 # Documentation
 
+For a higher-level introduction to the protocol, see the [Nox documentation](https://docs.noxprotocol.io/getting-started/welcome).
+
 `NoxCompute` is the on-chain entry point of the Nox protocol. It coordinates confidential DeFi operations by managing an access control list (ACL) for encrypted handles, validating EIP-712 proofs issued by a trusted gateway, and emitting events that trigger off-chain TEE computations. This document covers the contract architecture, storage layout, and the flow of each key operation from a Solidity perspective.
 
 ## Diagrams

@@ -1,7 +1,7 @@
 # Nox · nox-protocol-contracts
 
 [![License](https://img.shields.io/badge/license-BUSL--1.1-blue)](./LICENSE)
-[![Docs](https://img.shields.io/badge/docs-nox--protocol-purple)](https://docs.iex.ec)
+[![Docs](https://img.shields.io/badge/docs-nox--protocol-purple)](https://docs.noxprotocol.io/getting-started/welcome)
 [![Discord](https://img.shields.io/badge/chat-Discord-5865F2)](https://discord.com/invite/5TewNUnJHN)
 [![Tag](https://img.shields.io/github/v/tag/iExec-Nox/nox-protocol-contracts?label=tag)](https://github.com/iExec-Nox/nox-protocol-contracts/releases)
 [![npm](https://img.shields.io/npm/v/@iexec-nox/nox-protocol-contracts?label=npm)](https://www.npmjs.com/package/@iexec-nox/nox-protocol-contracts)
