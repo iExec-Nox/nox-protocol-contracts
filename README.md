@@ -9,22 +9,19 @@
 
 > Solidity contracts for the Nox protocol: manage encrypted handles, validate proofs, and trigger confidential computations.
 
-## Table of Contents
-
-- [Nox · nox-protocol-contracts](#nox--nox-protocol-contracts)
-    - [Table of Contents](#table-of-contents)
-    - [Overview](#overview)
-    - [Prerequisites](#prerequisites)
-    - [Getting Started](#getting-started)
-    - [Environment Variables](#environment-variables)
-    - [Testing](#testing)
-    - [Deployment](#deployment)
-    - [Verification](#verification)
-    - [Configuration notes](#configuration-notes)
-    - [Related Repositories](#related-repositories)
-    - [Contributing](#contributing)
-        - [Code style](#code-style)
-    - [License](#license)
+- [Overview](#overview)
+- [Documentation](#documentation)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Verification](#verification)
+- [Configuration notes](#configuration-notes)
+- [Related Repositories](#related-repositories)
+- [Contributing](#contributing)
+    - [Code style](#code-style)
+- [License](#license)
 
 ## Overview
 
@@ -33,6 +30,10 @@
 - **NoxCompute**: the main UUPS-upgradeable contract that manages the Access Control List (ACL) for encrypted handles, validates handle proofs issued by a trusted gateway, facilitates plaintext-to-encrypted conversions, and triggers off-chain TEE computations through event emissions.
 - **INoxCompute**: the public interface consumed by application contracts and off-chain services.
 - **Nox SDK library** (`contracts/sdk/Nox.sol`): a convenience wrapper that resolves the NoxCompute proxy address per chain and exposes typed helper functions for application contracts.
+
+## Documentation
+
+Detailed documentation of the protocol contracts — inheritance diagram, storage layout, and sequence diagrams for all key operations — is available in [`docs/README.md`](./docs/README.md).
 
 ## Prerequisites
 
