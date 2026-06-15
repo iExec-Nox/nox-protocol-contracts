@@ -18,6 +18,7 @@
 - [Deployment](#deployment)
 - [Verification](#verification)
 - [Configuration notes](#configuration-notes)
+- [Auto-generated diagrams](#auto-generated-diagrams)
 - [Related Repositories](#related-repositories)
 - [Contributing](#contributing)
     - [Code style](#code-style)
@@ -107,6 +108,14 @@ pnpm run verify arbitrumSepolia --network arbitrumSepolia
 - Default owner addresses and KMS public keys per network are also defined in [`config/config.ts`](config/config.ts).
 - The SDK constants in [`contracts/sdk/Nox.sol`](contracts/sdk/Nox.sol) must match the deployed proxy addresses.
 - OpenZeppelin manifest files in `.openzeppelin/` track proxy deployments.
+
+## Auto-generated diagrams
+
+To regenerate storage and class diagrams:
+
+```bash
+pnpm run diagrams
+```
 
 ## Related Repositories
 
