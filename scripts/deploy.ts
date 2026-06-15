@@ -1,6 +1,5 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
-
 import { getChainConfig } from "../config/config.ts";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";

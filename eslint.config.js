@@ -8,7 +8,11 @@ export default tseslint.config(
         extends: [tseslint.configs.recommended],
         plugins: { "simple-import-sort": simpleImportSort },
         rules: {
-            "simple-import-sort/imports": "error",
+            // "^\\u0000"    side-effect imports (import "foo")
+            // "^node:"      Node builtins (node:fs, node:path)
+            // "^@?\\w"      npm packages (@openzeppelin/..., hardhat, ethers)
+            // "^"           absolute + relative imports (./foo, ../bar, src/foo)
+            "simple-import-sort/imports": ["error", { groups: [["^\\u0000", "^node:", "^@?\\w", "^"]] }],
             "simple-import-sort/exports": "error",
         },
         languageOptions: {

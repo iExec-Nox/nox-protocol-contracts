@@ -1,7 +1,6 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
 import { Address } from "viem";
-
 import { deploy } from "./deploy.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";

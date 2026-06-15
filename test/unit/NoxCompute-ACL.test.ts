@@ -1,8 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-
 import { concatHex, encodeAbiParameters, keccak256, padHex, toHex } from "viem";
-
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { loadFixture } from "../utils/fixture.ts";
 

@@ -2,7 +2,6 @@
 
 import { randomBytes } from "crypto";
 import { concatHex, PrivateKeyAccount, toHex } from "viem";
-
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { TEEType } from "./TEEType.ts";
 

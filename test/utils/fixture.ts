@@ -1,5 +1,4 @@
 import { generatePrivateKey, privateKeyToAccount } from "viem/accounts";
-
 import { deploy } from "../../scripts/deploy.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 

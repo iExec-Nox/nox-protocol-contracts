@@ -3,7 +3,6 @@ import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import openzeppelinUpgradesPlugin from "@openzeppelin/hardhat-upgrades";
 import { proxyFilesToBuild } from "@openzeppelin/hardhat-upgrades";
 import { configVariable, defineConfig } from "hardhat/config";
-
 import solc from "./.solc.json" with { type: "json" };
 import { CREATE2_SALT } from "./config/config.ts";
 

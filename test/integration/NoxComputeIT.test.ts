@@ -1,5 +1,4 @@
 import { describe, it } from "node:test";
-
 import { loadFixture } from "../utils/fixture.ts";
 import { Gateway } from "../utils/Gateway.ts";
 import { TEEType } from "../utils/TEEType.ts";

@@ -1,6 +1,5 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-
 import { upgradeNoxCompute } from "../../scripts/upgrade.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { loadFixture } from "../utils/fixture.ts";
