@@ -1,6 +1,6 @@
-import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
-import connection from "./utils/hardhat-connection-singleton.ts";
 import { getChainConfig } from "../config/config.ts";
+import connection from "./utils/hardhat-connection-singleton.ts";
+import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 
 // Script to set the KMS public key on the NoxCompute contract.
 // It reads the deployed contract address from ignition deployment artifacts

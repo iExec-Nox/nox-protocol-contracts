@@ -546,7 +546,7 @@ abstract contract Compute is Common, EIP712 {
         // they differ by outputIndex.
         uint256 uniqueSeed = _generateHandleUniqueSeed(operands);
         results = new bytes32[](resultCount);
-        for (uint8 i = 0; i < resultCount; i++) {
+        for (uint8 i = 0; i < resultCount; ++i) {
             results[i] = _generateHandle(
                 operator,
                 operands,
@@ -574,7 +574,7 @@ abstract contract Compute is Common, EIP712 {
      * Reverts if any operand is bytes32(0) (undefined handle).
      */
     function _requireDefinedHandles(bytes32[] memory operands) private pure {
-        for (uint256 i = 0; i < operands.length; i++) {
+        for (uint256 i = 0; i < operands.length; ++i) {
             require(operands[i] != bytes32(0), UndefinedHandle());
         }
     }
@@ -631,7 +631,7 @@ abstract contract Compute is Common, EIP712 {
      * @return The uniqueness seed
      */
     function _generateHandleUniqueSeed(bytes32[] memory operands) private returns (uint256) {
-        for (uint256 i = 0; i < operands.length; i++) {
+        for (uint256 i = 0; i < operands.length; ++i) {
             if (!HandleUtils.isPublicHandle(operands[i])) {
                 return 0;
             }
@@ -647,7 +647,7 @@ abstract contract Compute is Common, EIP712 {
      */
     function _emitZeroHandleSeeds() internal {
         TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
-        for (uint i = 0; i < types.length; i++) {
+        for (uint256 i = 0; i < types.length; ++i) {
             emit WrapAsPublicHandle(
                 address(this),
                 bytes32(0),

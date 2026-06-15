@@ -158,7 +158,7 @@ abstract contract ACL is Common {
         address account,
         bytes32[] memory handles
     ) internal view override {
-        for (uint256 i = 0; i < handles.length; i++) {
+        for (uint256 i = 0; i < handles.length; ++i) {
             if (!_isAllowed(handles[i], account)) {
                 revert NotAllowed(handles[i], account);
             }

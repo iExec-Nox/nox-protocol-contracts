@@ -2,9 +2,20 @@
 pragma solidity ^0.8.35;
 
 import {HandleUtils} from "../utils/HandleUtils.sol";
-import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
+import {TEEType} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
-import "encrypted-types/EncryptedTypes.sol";
+import {
+    ebool,
+    euint16,
+    euint256,
+    eint16,
+    eint256,
+    externalEbool,
+    externalEuint16,
+    externalEuint256,
+    externalEint16,
+    externalEint256
+} from "encrypted-types/EncryptedTypes.sol";
 
 /**
  * @title Nox
@@ -14,6 +25,7 @@ library Nox {
     // ============ Errors ============
 
     error MalformedDecryptedData(bytes data);
+    error UnsupportedChain();
 
     // ============ Address resolution ============
 
@@ -27,7 +39,7 @@ library Nox {
     function noxComputeContract() internal view returns (address) {
         // Hardhat local development chain
         if (block.chainid == 31337) {
-            return 0xBb5Eefe5FafBDa361A671b1e166F25D4DFF19CD8;
+            return 0x771fA8627BBBf7f143BdA9e153c06F2088D68F01;
         }
         // Arbitrum Sepolia
         if (block.chainid == 421614) {
@@ -37,7 +49,7 @@ library Nox {
         if (block.chainid == 11155111) {
             return 0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF;
         }
-        revert("Nox: Unsupported chain");
+        revert UnsupportedChain();
     }
 
     // =========== Handle initialization checks ============

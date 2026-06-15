@@ -1,10 +1,10 @@
-import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import hardhatEthersPlugin from "@nomicfoundation/hardhat-ethers"; // used by OpenZeppelin Upgrades plugin.
+import hardhatToolboxViemPlugin from "@nomicfoundation/hardhat-toolbox-viem";
 import openzeppelinUpgradesPlugin from "@openzeppelin/hardhat-upgrades";
 import { proxyFilesToBuild } from "@openzeppelin/hardhat-upgrades";
 import { configVariable, defineConfig } from "hardhat/config";
-import { CREATE2_SALT } from "./config/config.ts";
 import solc from "./.solc.json" with { type: "json" };
+import { CREATE2_SALT } from "./config/config.ts";
 
 const baseProfile = {
     version: solc.version,

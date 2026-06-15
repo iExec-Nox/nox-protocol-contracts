@@ -1,8 +1,8 @@
 // A stub to simulate the Gateway.
 
 import { randomBytes } from "crypto";
-import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { concatHex, PrivateKeyAccount, toHex } from "viem";
+import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { TEEType } from "./TEEType.ts";
 
 const client = await connection.viem.getPublicClient();

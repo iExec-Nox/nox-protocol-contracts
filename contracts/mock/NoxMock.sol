@@ -1,7 +1,18 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
-import "encrypted-types/EncryptedTypes.sol";
+import {
+    ebool,
+    euint16,
+    euint256,
+    eint16,
+    eint256,
+    externalEbool,
+    externalEuint16,
+    externalEuint256,
+    externalEint16,
+    externalEint256
+} from "encrypted-types/EncryptedTypes.sol";
 import {Nox} from "../../contracts/sdk/Nox.sol";
 
 /**

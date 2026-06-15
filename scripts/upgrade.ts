@@ -1,10 +1,10 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
+import { Address } from "viem";
 import { deploy } from "./deploy.ts";
+import connection from "./utils/hardhat-connection-singleton.ts";
 import { isFreshLocalNetwork } from "./utils/network.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
-import connection from "./utils/hardhat-connection-singleton.ts";
-import { Address } from "viem";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
 // Uses @openzeppelin/hardhat-upgrades for upgrade safety checks

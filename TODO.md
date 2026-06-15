@@ -1,4 +1,1 @@
-- TODO Linter: JS with imports sorting
-- TODO Linter: Sol with imports sorting if relevant
-- TODO Configure Solidity Solcover if required
 - TODO Remove Hardhat Ignition (does not integrate with OZ Upgrades; artifacts duplicated with `artifacts/`)
