@@ -2,14 +2,24 @@
 
 For a higher-level introduction to the protocol, see the [Nox documentation](https://docs.noxprotocol.io/getting-started/welcome).
 
-`NoxCompute` is the on-chain entry point of the Nox protocol. It coordinates confidential DeFi operations by managing an access control list (ACL) for encrypted handles, validating EIP-712 proofs issued by a trusted gateway, and emitting events that trigger off-chain TEE computations. This document covers the contract architecture, storage layout, and the flow of each key operation from a Solidity perspective.
+`NoxCompute` is the on-chain entry point of the Nox protocol. It coordinates confidential DeFi operations by managing an access control list (ACL) for encrypted handles, validating EIP-712 proofs issued by a trusted [gateway](https://docs.noxprotocol.io/protocol/handle-gateway), and emitting events that trigger off-chain TEE computations. This document covers the contract architecture, storage layout, and the flow of each key operation from a Solidity perspective.
+
+## Architecture Overview
+
+For a full description of the protocol architecture, see the [global architecture overview](https://docs.noxprotocol.io/protocol/global-architecture-overview).
+
+<!-- TODO: add architecture diagram -->
+
+## Handle Specifications
+
+Handles are the core primitive of the Nox protocol, 32-byte references to encrypted values. For a detailed description of the handle format and lifecycle, see [Handle structure](https://docs.noxprotocol.io/protocol/nox-smart-contracts#handle-structure).
 
 ## Roles
 
-| Role                 | Capabilities                                                                     |
-| -------------------- | -------------------------------------------------------------------------------- |
-| `DEFAULT_ADMIN_ROLE` | Grants and revokes other roles                                                   |
-| `UPGRADER_ROLE`      | Authorizes UUPS upgrades; sets gateway address, KMS public key, proof expiration |
+| Role                 | Capabilities                                                                                                                                                                        |
+| -------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `DEFAULT_ADMIN_ROLE` | Grants and revokes other roles                                                                                                                                                      |
+| `UPGRADER_ROLE`      | Authorizes UUPS upgrades; sets [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) address, [KMS public key](https://docs.noxprotocol.io/protocol/kms), proof expiration |
 
 Note: handle-level access is not role-based — it is managed per-handle via `allow`, `allowTransient`, `addViewer`, and `allowPublicDecryption`.
 
@@ -17,7 +27,8 @@ Note: handle-level access is not role-based — it is managed per-handle via `al
 
 ### Contract Inheritance
 
-`NoxCompute` is a concrete UUPS-upgradeable contract assembled from four abstract modules. `Common` is the shared base that defines the ERC7201 storage struct and virtual cross-module hooks. `Admin` handles role-based configuration (KMS public key, gateway address, proof expiration) guarded by `UPGRADER_ROLE`. `ACL` manages persistent and transient access to encrypted handles using EIP-1153 transient storage. It, also, implements EIP-712 proof validation and all TEE operation dispatch, emitting events consumed by off-chain TEE runners.
+`NoxCompute` is a concrete UUPS-upgradeable contract assembled from four abstract modules. `Common` is the shared base that defines the ERC7201 storage struct and virtual cross-module hooks. `Admin` handles role-based configuration ([KMS public key](https://docs.noxprotocol.io/protocol/kms), [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) address, proof expiration) guarded by `UPGRADER_ROLE`. `ACL` manages persistent and transient access to encrypted handles using EIP-1153 transient storage. It, also, implements EIP-712 proof validation and all TEE operation dispatch, emitting events consumed by off-chain TEE [runners](https://docs.noxprotocol.io/protocol/runner).
+The diagram is generated using [sol2uml](https://github.com/naddison36/sol2uml).
 
 <details>
 <summary><strong>Class diagram</strong></summary>
@@ -28,7 +39,7 @@ Note: handle-level access is not role-based — it is managed per-handle via `al
 
 ### Storage Layout
 
-`NoxComputeStorage` is stored at the ERC7201 namespaced slot derived from `"nox.storage.NoxCompute"` (`0x118a...cd00`). The struct holds the two-level ACL mappings (`admins`, `viewers`), the public-decryption flag, the KMS public key bytes, the gateway address, the proof expiration duration, and a counter used to guarantee handle uniqueness when all operands are public handles. The diagram is generated from `NoxComputeStorageStub`, a mock contract that mirrors the struct at sequential slots so sol2uml can render it.
+`NoxComputeStorage` is stored at the ERC7201 namespaced slot derived from `"nox.storage.NoxCompute"` (`0x118a...cd00`). The struct holds the two-level ACL mappings (`admins`, `viewers`), the public-decryption flag, the [KMS public key](https://docs.noxprotocol.io/protocol/kms), the [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) address, the proof expiration duration, and a counter used to guarantee handle uniqueness when all operands are public handles. The diagram is generated using [sol2uml](https://github.com/naddison36/sol2uml).
 
 <details>
 <summary><strong>Storage layout diagram</strong></summary>
@@ -37,9 +48,9 @@ Note: handle-level access is not role-based — it is managed per-handle via `al
 
 </details>
 
-## Sequence Diagrams
+### Sequence Diagrams
 
-### 1. `wrapAsPublicHandle` — Create a deterministic public handle
+#### 1. `wrapAsPublicHandle` — Create a deterministic public handle
 
 A public handle is a deterministic, globally accessible commitment to a plaintext value. The same `(value, teeType, chainId, NoxCompute address)` always produces the same handle, so no ACL entry is needed — anyone can use it as a computation input. The emitted event lets off-chain TEE workers learn the plaintext behind the handle.
 
@@ -62,9 +73,9 @@ sequenceDiagram
 
 </details>
 
-### 2. `validateInputProof` — Validate a gateway-issued handle proof
+#### 2. `validateInputProof` — Validate a gateway-issued handle proof
 
-Before an app can use a user-supplied encrypted handle as a computation input, it must prove the handle was legitimately issued by the gateway for that specific owner and app. The gateway signs an EIP-712 `HandleProof` off-chain binding the handle to an owner, an app, and a timestamp. `validateInputProof` verifies all fields and, on success, grants the calling app transient ACL on the handle for the current transaction.
+Before an app can use a user-supplied encrypted handle as a computation input, it must prove the handle was legitimately issued by the [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) for that specific owner and app. The [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) signs an EIP-712 `HandleProof` off-chain binding the handle to an owner, an app, and a timestamp. `validateInputProof` verifies all fields and, on success, grants the calling app transient ACL on the handle for the current transaction.
 
 <details>
 <summary><strong>Sequence diagram</strong></summary>
@@ -89,7 +100,7 @@ sequenceDiagram
 
 </details>
 
-### 3. `add`, `sub` ... — Arithmetic, safe-arithmetic, and comparison operations
+#### 3. `add`, `sub` ... — Arithmetic, safe-arithmetic, and comparison operations
 
 Applies to all arithmetic and comparison operators: `add`, `sub`, ..., `safeAdd`, `select`, ..., `eq`, ... The contract does not compute the result — it validates access, generates a unique result handle, and emits an event that TEE workers pick up to perform the actual computation off-chain.
 
@@ -113,7 +124,7 @@ sequenceDiagram
 
 </details>
 
-### 4. `transfer`, `mint`, `burn` — Optimized operations
+#### 4. `transfer`, `mint`, `burn` — Optimized operations
 
 Unlike simple arithmetic ops, these return two result handles plus a Bool success handle. The TEE computes the operation off-chain and the success handle's decrypted value indicates whether the operation succeeded (e.g. sufficient balance for transfer).
 
@@ -137,7 +148,7 @@ sequenceDiagram
 
 </details>
 
-### 5. `allow` — Grant persistent access to a handle
+#### 5. `allow` — Grant persistent access to a handle
 
 Grants another address permanent admin access to a handle. The caller must already have access (transient or persistent). Once granted, persistent access cannot be revoked.
 
@@ -161,7 +172,7 @@ sequenceDiagram
 
 </details>
 
-### 6. `allowTransient` — Grant transient access to a handle
+#### 6. `allowTransient` — Grant transient access to a handle
 
 Grants another address access to a handle for the current transaction only. Access is stored in EIP-1153 transient storage and is automatically cleared at the end of the transaction.
 
@@ -184,7 +195,7 @@ sequenceDiagram
 
 </details>
 
-### 7. `addViewer` — Grant decryption-only access to a handle
+#### 7. `addViewer` — Grant decryption-only access to a handle
 
 Grants an address viewer access to a handle. A viewer can request decryption off-chain from the TEE but cannot use the handle as a computation input. Persistent and irrevocable.
 
@@ -208,7 +219,7 @@ sequenceDiagram
 
 </details>
 
-### 8. `allowPublicDecryption` — Make a handle publicly decryptable
+#### 8. `allowPublicDecryption` — Make a handle publicly decryptable
 
 Marks a handle as publicly decryptable, allowing anyone to request its decryption from the TEE without any ACL entry. This is irreversible.
 
@@ -232,9 +243,9 @@ sequenceDiagram
 
 </details>
 
-### 9. `validateDecryptionProof` — Verify a TEE decryption result
+#### 9. `validateDecryptionProof` — Verify a TEE decryption result
 
-To read an encrypted value, a user requests decryption from the TEE off-chain. The TEE returns an EIP-712 signed proof binding the handle to the decrypted result. `validateDecryptionProof` verifies the proof on-chain and extracts the plaintext. This is a `view` function with no ACL check — access control for decryption is enforced by the Gateway (running inside TEE) according to the on-chain state.
+To read an encrypted value, a user requests decryption from the TEE off-chain. The TEE returns an EIP-712 signed proof binding the handle to the decrypted result. `validateDecryptionProof` verifies the proof on-chain and extracts the plaintext. This is a `view` function with no ACL check — access control for decryption is enforced by the [Gateway](https://docs.noxprotocol.io/protocol/handle-gateway) (running inside TEE) according to the on-chain state.
 
 <details>
 <summary><strong>Sequence diagram</strong></summary>
