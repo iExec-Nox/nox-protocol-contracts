@@ -1,7 +1,7 @@
 # Nox · nox-protocol-contracts
 
 [![License](https://img.shields.io/badge/license-BUSL--1.1-blue)](./LICENSE)
-[![Docs](https://img.shields.io/badge/docs-nox--protocol-purple)](https://docs.iex.ec)
+[![Docs](https://img.shields.io/badge/docs-nox--protocol-purple)](https://docs.noxprotocol.io/getting-started/welcome)
 [![Discord](https://img.shields.io/badge/chat-Discord-5865F2)](https://discord.com/invite/5TewNUnJHN)
 [![Tag](https://img.shields.io/github/v/tag/iExec-Nox/nox-protocol-contracts?label=tag)](https://github.com/iExec-Nox/nox-protocol-contracts/releases)
 [![npm](https://img.shields.io/npm/v/@iexec-nox/nox-protocol-contracts?label=npm)](https://www.npmjs.com/package/@iexec-nox/nox-protocol-contracts)
@@ -9,22 +9,20 @@
 
 > Solidity contracts for the Nox protocol: manage encrypted handles, validate proofs, and trigger confidential computations.
 
-## Table of Contents
-
-- [Nox · nox-protocol-contracts](#nox--nox-protocol-contracts)
-    - [Table of Contents](#table-of-contents)
-    - [Overview](#overview)
-    - [Prerequisites](#prerequisites)
-    - [Getting Started](#getting-started)
-    - [Environment Variables](#environment-variables)
-    - [Testing](#testing)
-    - [Deployment](#deployment)
-    - [Verification](#verification)
-    - [Configuration notes](#configuration-notes)
-    - [Related Repositories](#related-repositories)
-    - [Contributing](#contributing)
-        - [Code style](#code-style)
-    - [License](#license)
+- [Overview](#overview)
+- [Documentation](#documentation)
+- [Prerequisites](#prerequisites)
+- [Getting Started](#getting-started)
+- [Environment Variables](#environment-variables)
+- [Testing](#testing)
+- [Deployment](#deployment)
+- [Verification](#verification)
+- [Configuration notes](#configuration-notes)
+- [Auto-generated diagrams](#auto-generated-diagrams)
+- [Related Repositories](#related-repositories)
+- [Contributing](#contributing)
+    - [Code style](#code-style)
+- [License](#license)
 
 ## Overview
 
@@ -33,6 +31,10 @@
 - **NoxCompute**: the main UUPS-upgradeable contract that manages the Access Control List (ACL) for encrypted handles, validates handle proofs issued by a trusted gateway, facilitates plaintext-to-encrypted conversions, and triggers off-chain TEE computations through event emissions.
 - **INoxCompute**: the public interface consumed by application contracts and off-chain services.
 - **Nox SDK library** (`contracts/sdk/Nox.sol`): a convenience wrapper that resolves the NoxCompute proxy address per chain and exposes typed helper functions for application contracts.
+
+## Documentation
+
+Detailed documentation of the protocol contracts — inheritance diagram, storage layout, and sequence diagrams for all key operations — is available in [`docs/README.md`](./docs/README.md).
 
 ## Prerequisites
 
@@ -106,6 +108,14 @@ pnpm run verify arbitrumSepolia --network arbitrumSepolia
 - Default owner addresses and KMS public keys per network are also defined in [`config/config.ts`](config/config.ts).
 - The SDK constants in [`contracts/sdk/Nox.sol`](contracts/sdk/Nox.sol) must match the deployed proxy addresses.
 - OpenZeppelin manifest files in `.openzeppelin/` track proxy deployments.
+
+## Auto-generated diagrams
+
+To regenerate storage and class diagrams:
+
+```bash
+pnpm run diagrams
+```
 
 ## Related Repositories
 

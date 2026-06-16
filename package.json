@@ -37,7 +37,8 @@
     "lint:check": "pnpm eslint . && pnpm solhint 'contracts/**/*.sol' --max-warnings=0",
     "format": "pnpm prettier --write .",
     "format:check": "pnpm prettier --check .",
-    "update-local-proxy-address": "sh scripts/update-local-proxy-address.sh"
+    "update-local-proxy-address": "sh scripts/update-local-proxy-address.sh",
+    "diagrams": "sh scripts/generate-diagrams.sh"
   },
   "lint-staged": {
     "*.ts": [
