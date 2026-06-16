@@ -17,7 +17,7 @@ Note: handle-level access is not role-based — it is managed per-handle via `al
 
 ### Contract Inheritance
 
-`NoxCompute` is a concrete UUPS-upgradeable contract assembled from four abstract modules. `Common` is the shared base that defines the ERC7201 storage struct and virtual cross-module hooks. `Admin` handles role-based configuration (KMS public key, gateway address, proof expiration) guarded by `UPGRADER_ROLE`. `ACL` manages persistent and transient access to encrypted handles using EIP-1153 transient storage. `Compute` implements EIP-712 proof validation and all TEE operation dispatch, emitting events consumed by off-chain TEE workers.
+`NoxCompute` is a concrete UUPS-upgradeable contract assembled from four abstract modules. `Common` is the shared base that defines the ERC7201 storage struct and virtual cross-module hooks. `Admin` handles role-based configuration (KMS public key, gateway address, proof expiration) guarded by `UPGRADER_ROLE`. `ACL` manages persistent and transient access to encrypted handles using EIP-1153 transient storage. It, also, implements EIP-712 proof validation and all TEE operation dispatch, emitting events consumed by off-chain TEE runners.
 
 <details>
 <summary><strong>Class diagram</strong></summary>
@@ -55,7 +55,7 @@ sequenceDiagram
 
     user->>app: doSomething()
     app->>nox: wrapAsPublicHandle(value, teeType)
-    Note over nox: - Check value fits teeType range <br> - Generate a new handle <br> - No ACL needed is needed since the handle is public
+    Note over nox: - Check value fits teeType range <br> - Generate a new handle <br> - No ACL is needed since the handle is public
     nox->>nox: emit WrapAsPublicHandle(caller, plaintextValue, teeType, resultHandle)
     nox-->>app: result handle
 ```
