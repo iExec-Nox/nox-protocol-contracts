@@ -1,6 +1,7 @@
 # Audit Response — Pashov AI Skills Security Review
 
 **Audit date:** 2026-05-04
+**Audit version:** 2026-05-04
 **Response date:** 2026-06-03
 **Audited files:** `contracts/NoxCompute.sol`, `contracts/shared/TypeUtils.sol`, `contracts/shared/HandleUtils.sol`, `contracts/sdk/Nox.sol`
 
