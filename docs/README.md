@@ -8,7 +8,45 @@ For a higher-level introduction to the protocol, see the [Nox documentation](htt
 
 For a full description of the protocol architecture, see the [global architecture overview](https://docs.noxprotocol.io/protocol/global-architecture-overview).
 
-<!-- TODO: add architecture diagram -->
+### Handle creation and usage
+
+```mermaid
+flowchart TB
+    user(["User / dApp"])
+
+    subgraph onchain["On-chain"]
+        app["App Contract"]
+        nox["NoxCompute"]
+    end
+
+    subgraph offchain["Off-chain"]
+        subgraph Storage["Permanent storage"]
+            s3[(S3)]
+        end
+        subgraph tee["TEE services"]
+            gateway["Gateway\n(Handle management)"]
+            kms["KMS\n(key management)"]
+        end
+    end
+
+    %% Create a new handle
+    user -- "1.0 - Send data and request a new handle" --> gateway
+    gateway -- "1.1 - Get encryption key" --> kms
+    kms -. "1.2 - Provision encryption key" .-> gateway
+    gateway -- "1.3 - Encrypt and store ciphertext" --> s3
+    gateway -. "1.4 - Return handle + EIP-712 proof" .-> user
+
+    %% Send tx with handle
+    user -- "2.0 - Send tx + proof" --> app
+    app -- "2.1 - validateInputProof()" --> nox
+    app -- "2.2 - Compute op (add, …)" --> nox
+    nox -- "2.3 - Compute result handles and emit <br> compute event" --> nox
+    nox -. "2.4 - Return result handles" .-> app
+```
+
+### Off-chain processing
+
+Once step 2.3 emits the compute event, the off-chain [runner](https://docs.noxprotocol.io/protocol/runner) picks it up, performs the TEE computation using the ciphertexts stored in S3, and makes the encrypted result available for decryption — without writing anything back on-chain.
 
 ## Handle Specifications
 

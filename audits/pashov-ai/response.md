@@ -1,6 +1,7 @@
 # Audit Response — Pashov AI Skills Security Review
 
 **Audit date:** 2026-05-04
+**Audit version:** [v0.2.2](https://github.com/iExec-Nox/nox-protocol-contracts/releases/tag/v0.2.2)
 **Response date:** 2026-06-03
 **Audited files:** `contracts/NoxCompute.sol`, `contracts/shared/TypeUtils.sol`, `contracts/shared/HandleUtils.sol`, `contracts/sdk/Nox.sol`
 
@@ -28,7 +29,7 @@ Same reasoning as #1. Transient and persistent access are equal trust levels. A 
 
 **Response: By design.**
 
-Transient access granting viewer rights is intentional (same trust level as persistent). The absence of `removeViewer` is a deliberate design choice. Viewer expiration is on the roadmap as an optional future feature (tracked internally via the existing TODO in `Common.sol`).
+Transient access granting viewer rights is intentional (same trust level as persistent). The absence of `removeViewer` is a deliberate design choice. Viewer expiration is on the roadmap as an optional future feature (tracked internally).
 
 ---
 
