@@ -1,7 +1,10 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
-import {NoxCompute} from "../NoxCompute.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {Admin} from "../modules/Admin.sol";
+import {ACL} from "../modules/ACL.sol";
+import {Compute} from "../modules/Compute.sol";
 
 /**
  * @title NoxComputeUpgradeMock
@@ -11,8 +14,13 @@ import {NoxCompute} from "../NoxCompute.sol";
  *      Exposes a `version()` sentinel so tests can confirm calls land on this
  *      new implementation rather than the previous one.
  */
-contract NoxComputeUpgradeMock is NoxCompute {
-    constructor() NoxCompute() {}
+contract NoxComputeUpgradeMock is Admin, ACL, Compute layout at erc7201("nox.storage.NoxCompute") {
+    /**
+     * @custom:oz-upgrades-unsafe-allow constructor
+     */
+    constructor() EIP712("NoxCompute", "1") {
+        _disableInitializers();
+    }
 
     /// @return Sentinel version number used by upgrade tests to detect the impl swap.
     /// @dev Bump this value whenever a new `initialize*` is added to `NoxCompute` so the

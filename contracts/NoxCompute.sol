@@ -15,7 +15,7 @@ import {Compute} from "./modules/Compute.sol";
  * - Wrapping plaintext values into public handles
  * - Triggering off-chain TEE computations through event emissions
  */
-contract NoxCompute is Admin, ACL, Compute {
+contract NoxCompute is Admin, ACL, Compute layout at erc7201("nox.storage.NoxCompute") {
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */

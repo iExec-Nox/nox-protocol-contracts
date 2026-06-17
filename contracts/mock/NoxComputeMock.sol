@@ -1,14 +1,22 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
-import {NoxCompute} from "../../contracts/NoxCompute.sol";
+import {EIP712} from "@openzeppelin/contracts/utils/cryptography/EIP712.sol";
+import {Admin} from "../modules/Admin.sol";
+import {ACL} from "../modules/ACL.sol";
+import {Compute} from "../modules/Compute.sol";
 
 /**
  * @title NoxComputeMock
  * @dev Mock NoxCompute contract for testing ACL functionality with helper functions
  */
-contract NoxComputeMock is NoxCompute {
-    constructor() NoxCompute() {}
+contract NoxComputeMock is Admin, ACL, Compute layout at erc7201("nox.storage.NoxCompute") {
+    /**
+     * @custom:oz-upgrades-unsafe-allow constructor
+     */
+    constructor() EIP712("NoxCompute", "1") {
+        _disableInitializers();
+    }
 
     /**
      * @dev Helper function to grant transient access and then persistent access in the same transaction.

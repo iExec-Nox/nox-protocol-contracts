@@ -51,24 +51,21 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
      * Returns the KMS public key used for ECIES encryption.
      */
     function kmsPublicKey() external view override returns (bytes memory) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.kmsPublicKey;
+        return _kmsPublicKey;
     }
 
     /**
      * Returns the Gateway wallet address.
      */
     function gateway() external view override returns (address) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.gateway;
+        return _gateway;
     }
 
     /**
      * Returns the proof expiration duration in seconds.
      */
     function proofExpirationDuration() external view override returns (uint256) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.proofExpirationDuration;
+        return _proofExpirationDuration;
     }
 
     /**
@@ -95,8 +92,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     function _setKmsPublicKey(bytes calldata key) internal {
         require(key.length == 33, InvalidKmsPublicKeyLength());
         require(keccak256(key) != keccak256(new bytes(33)), InvalidKmsPublicKey());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.kmsPublicKey = key;
+        _kmsPublicKey = key;
         emit KmsPublicKeyUpdated(key);
     }
 
@@ -105,8 +101,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
      */
     function _setGateway(address gatewayAddress) internal {
         require(gatewayAddress != address(0), InvalidZeroAddress());
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.gateway = gatewayAddress;
+        _gateway = gatewayAddress;
         emit GatewayUpdated(gatewayAddress);
     }
 
@@ -114,8 +109,7 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
      * @dev Stores and emits for a proof expiration duration update.
      */
     function _setProofExpirationDuration(uint256 newDuration) internal {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.proofExpirationDuration = newDuration;
+        _proofExpirationDuration = newDuration;
         emit ProofExpirationDurationUpdated(newDuration);
     }
 }

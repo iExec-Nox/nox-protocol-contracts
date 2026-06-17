@@ -78,9 +78,8 @@ abstract contract Compute is Common, EIP712 {
             createdAt := calldataload(add(proof.offset, 40))
         }
         bytes calldata signature = proof[72:137];
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
         require(
-            block.timestamp <= createdAt + $.proofExpirationDuration,
+            block.timestamp <= createdAt + _proofExpirationDuration,
             InvalidProof(proof, "Proof expired")
         );
         require(appInProof == msg.sender, InvalidProof(proof, "App mismatch"));
@@ -91,7 +90,7 @@ abstract contract Compute is Common, EIP712 {
             )
         );
         require(
-            ECDSA.recover(eip712MessageHash, signature) == $.gateway,
+            ECDSA.recover(eip712MessageHash, signature) == _gateway,
             InvalidProof(proof, "Invalid signature")
         );
         // Give caller contract transient access to the handle.
@@ -103,14 +102,13 @@ abstract contract Compute is Common, EIP712 {
         bytes32 handle,
         bytes calldata decryptionProof
     ) external view override returns (bytes memory) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
         require(decryptionProof.length >= 65, InvalidProof(decryptionProof, "Proof too short"));
         bytes calldata decryptedResult = decryptionProof[65:];
         bytes32 eip712MessageHash = _hashTypedDataV4(
             keccak256(abi.encode(DECRYPTION_PROOF_TYPEHASH, handle, keccak256(decryptedResult)))
         );
         require(
-            ECDSA.recoverCalldata(eip712MessageHash, decryptionProof[:65]) == $.gateway,
+            ECDSA.recoverCalldata(eip712MessageHash, decryptionProof[:65]) == _gateway,
             InvalidProof(decryptionProof, "Invalid signature")
         );
         return decryptedResult;
@@ -637,8 +635,7 @@ abstract contract Compute is Common, EIP712 {
             }
         }
         // All operands are public handles: need storage counter for uniqueness
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return ++$.uniqueSeedCounter;
+        return ++_uniqueSeedCounter;
     }
 
     /**

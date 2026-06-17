@@ -63,8 +63,7 @@ abstract contract ACL is Common {
         bytes32 handle,
         address account
     ) external override notZeroAddress(account) notPublicHandle(handle) onlyAllowed(handle) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.admins[handle][account] = true;
+        _admins[handle][account] = true;
         emit Allowed(msg.sender, account, handle);
     }
 
@@ -99,34 +98,30 @@ abstract contract ACL is Common {
         bytes32 handle,
         address viewer
     ) external override notZeroAddress(viewer) notPublicHandle(handle) onlyAllowed(handle) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.viewers[handle][viewer] = true;
+        _viewers[handle][viewer] = true;
         emit ViewerAdded(msg.sender, viewer, handle);
     }
 
     /// @inheritdoc INoxCompute
     function isViewer(bytes32 handle, address viewer) external view override returns (bool) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
         return
             HandleUtils.isPublicHandle(handle) ||
-            $.isPubliclyDecryptable[handle] ||
-            $.viewers[handle][viewer] ||
-            $.admins[handle][viewer];
+            _isPubliclyDecryptable[handle] ||
+            _viewers[handle][viewer] ||
+            _admins[handle][viewer];
     }
 
     /// @inheritdoc INoxCompute
     function allowPublicDecryption(
         bytes32 handle
     ) external override notPublicHandle(handle) onlyAllowed(handle) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.isPubliclyDecryptable[handle] = true;
+        _isPubliclyDecryptable[handle] = true;
         emit MarkedAsPubliclyDecryptable(msg.sender, handle);
     }
 
     /// @inheritdoc INoxCompute
     function isPubliclyDecryptable(bytes32 handle) external view override returns (bool) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return HandleUtils.isPublicHandle(handle) || $.isPubliclyDecryptable[handle];
+        return HandleUtils.isPublicHandle(handle) || _isPubliclyDecryptable[handle];
     }
 
     /**
@@ -198,7 +193,6 @@ abstract contract ACL is Common {
      * @return Returns `true` if the address has persistent access to a handle and `false` otherwise.
      */
     function _isAllowedPersistent(bytes32 handle, address account) private view returns (bool) {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        return $.admins[handle][account];
+        return _admins[handle][account];
     }
 }
