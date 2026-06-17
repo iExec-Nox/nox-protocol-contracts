@@ -29,7 +29,7 @@ Same reasoning as #1. Transient and persistent access are equal trust levels. A 
 
 **Response: By design.**
 
-Transient access granting viewer rights is intentional (same trust level as persistent). The absence of `removeViewer` is a deliberate design choice. Viewer expiration is on the roadmap as an optional future feature (tracked internally via the existing TODO in `Common.sol`).
+Transient access granting viewer rights is intentional (same trust level as persistent). The absence of `removeViewer` is a deliberate design choice. Viewer expiration is on the roadmap as an optional future feature (tracked internally).
 
 ---
 

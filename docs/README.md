@@ -33,11 +33,11 @@ flowchart TB
     user -- "1.0 - Send data and request a new handle" --> gateway
     gateway -- "1.1 - Get encryption key" --> kms
     kms -. "1.2 - Provision encryption key" .-> gateway
-    gateway -- 1.3 - Encrypt and store ciphertext --> s3
+    gateway -- "1.3 - Encrypt and store ciphertext" --> s3
     gateway -. "1.4 - Return handle + EIP-712 proof" .-> user
 
     %% Send tx with handle
-    user -- "2.0 - Send tx + proof " --> app
+    user -- "2.0 - Send tx + proof" --> app
     app -- "2.1 - validateInputProof()" --> nox
     app -- "2.2 - Compute op (add, …)" --> nox
     nox -- "2.3 - Compute result handles and emit <br> compute event" --> nox
