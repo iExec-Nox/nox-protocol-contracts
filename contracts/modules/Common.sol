@@ -24,7 +24,6 @@ abstract contract Common is INoxCompute {
         //  - add other admins and viewers
         mapping(bytes32 handleId => mapping(address => bool)) admins;
         // A viewer of a handle can only decrypt its associated data off-chain.
-        //TODO: Make viewer expirable
         mapping(bytes32 handleId => mapping(address => bool)) viewers;
         // Handles that are publicly decryptable
         mapping(bytes32 handle => bool) isPubliclyDecryptable;
