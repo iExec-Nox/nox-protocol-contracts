@@ -6,9 +6,13 @@ For a higher-level introduction to the protocol, see the [Nox documentation](htt
 
 ## Architecture Overview
 
-For a full description of the protocol architecture, see the [global architecture overview](https://docs.noxprotocol.io/protocol/global-architecture-overview).
+> [!NOTE]
+> For an interactive high-level overview of the protocol, see https://interactive.noxprotocol.io/.
 
-### Handle creation and usage
+> [!NOTE]
+> For a full description of the protocol architecture, see the [Protocol](https://docs.noxprotocol.io/protocol/global-architecture-overview) section of the official documentation.
+
+### Handle Creation and Usage
 
 ```mermaid
 flowchart TB
@@ -44,7 +48,7 @@ flowchart TB
     nox -. "2.4 - Return result handles" .-> app
 ```
 
-### Off-chain processing
+### Off-chain Processing
 
 Once step 2.3 emits the compute event, the off-chain [runner](https://docs.noxprotocol.io/protocol/runner) picks it up, performs the TEE computation using the ciphertexts stored in S3, and makes the encrypted result available for decryption — without writing anything back on-chain.
 
