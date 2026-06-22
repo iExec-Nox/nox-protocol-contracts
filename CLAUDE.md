@@ -78,7 +78,7 @@ Contracts are deployed via deterministic CREATE2 using the CreateX factory. The 
 
 Key env vars for deployment: `RPC_URL`, `PRIVATE_KEY`, `INITIAL_OWNER`, `KMS_PUBLIC_KEY`, `ETHERSCAN_API_KEY`.
 
-Deployed proxy addresses live in `contracts/sdk/Nox.sol` per chainId (Arbitrum Sepolia: `0xd464B198f06756a1d00be223634b85E0a731c229`; local: `0xFe94304FE3E523b00d5dda6df153B6679DF333dD`).
+Deployed proxy addresses live in `contracts/sdk/Nox.sol` per chainId (Arbitrum Sepolia: `0xd464B198f06756a1d00be223634b85E0a731c229`; Ethereum Sepolia: `0x24Ef36Ec5b626D7DCD09a98F3083c2758F0F77bF`).
 
 ### Networks
 
