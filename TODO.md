@@ -1,1 +1,2 @@
-- TODO Remove Hardhat Ignition (does not integrate with OZ Upgrades; artifacts duplicated with `artifacts/`)
+- TODO Use pausable?
+- TODO Use Hardhat Ignition for upgrades to keep artifacts up to date or use `artifacts/`.

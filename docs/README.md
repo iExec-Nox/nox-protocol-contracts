@@ -1,8 +1,12 @@
-# Documentation
+# Technical Documentation
 
 For a higher-level introduction to the protocol, see the [Nox documentation](https://docs.noxprotocol.io/getting-started/welcome).
 
 `NoxCompute` is the on-chain entry point of the Nox protocol. It coordinates confidential DeFi operations by managing an access control list (ACL) for encrypted handles, validating EIP-712 proofs issued by a trusted [gateway](https://docs.noxprotocol.io/protocol/handle-gateway), and emitting events that trigger off-chain TEE computations. This document covers the contract architecture, storage layout, and the flow of each key operation from a Solidity perspective.
+
+## Protocol Usage Example
+
+[nox-confidential-contracts](https://github.com/iExec-Nox/nox-confidential-contracts) is the official repository implementing confidential contract ERCs (ERC7984, …). It demonstrates how application contracts integrate with `NoxCompute` and serves as the reference implementation for building confidential protocols on top of Nox.
 
 ## Architecture Overview
 
