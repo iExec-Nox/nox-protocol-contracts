@@ -1,8 +1,7 @@
 # Smart Contract Security Assessment
 
 - **Repository:** https://github.com/iExec-Nox/nox-protocol-contracts
-- **Tag:** [TODO](https://github.com/iExec-Nox/nox-protocol-contracts)
-- **Commit:** [TODO](https://github.com/iExec-Nox/nox-protocol-contracts)
+- **Commit:** [206b8caf5bc4683a3f1bba0f3ac7217c0d94f43b](https://github.com/iExec-Nox/nox-protocol-contracts/tree/206b8caf5bc4683a3f1bba0f3ac7217c0d94f43b)
 
 ## Technical documentation
 
