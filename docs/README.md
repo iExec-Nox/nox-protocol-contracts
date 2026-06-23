@@ -73,7 +73,7 @@ Note: handle-level access is not role-based — it is managed per-handle via `al
 
 ### Contract Inheritance
 
-`NoxCompute` is a concrete UUPS-upgradeable contract assembled from four abstract modules. `Common` is the shared base that defines the ERC7201 storage struct and virtual cross-module hooks. `Admin` handles role-based configuration ([KMS public key](https://docs.noxprotocol.io/protocol/kms), [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) address, proof expiration) guarded by `UPGRADER_ROLE`. `ACL` manages persistent and transient access to encrypted handles using EIP-1153 transient storage. It also implements EIP-712 proof validation and all TEE operation dispatch, emitting events consumed by off-chain TEE [runners](https://docs.noxprotocol.io/protocol/runner).
+`NoxCompute` is a concrete UUPS-upgradeable contract assembled from four abstract modules. `Common` is the shared base that defines the ERC7201 storage struct and virtual cross-module hooks. `Admin` handles role-based configuration ([KMS public key](https://docs.noxprotocol.io/protocol/kms), [gateway](https://docs.noxprotocol.io/protocol/handle-gateway) address, proof expiration) guarded by `UPGRADER_ROLE`. `ACL` manages persistent and transient access to encrypted handles using EIP-1153 transient storage. `Compute` implements EIP-712 proof validation (`validateInputProof`, `validateDecryptionProof`) and all TEE operation dispatch, emitting events consumed by off-chain TEE [runners](https://docs.noxprotocol.io/protocol/runner).
 The diagram is generated using [sol2uml](https://github.com/naddison36/sol2uml).
 
 <details>
