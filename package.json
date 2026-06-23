@@ -32,6 +32,7 @@
     "set-kms-public-key": "pnpm hardhat run scripts/set-kms-public-key.ts",
     "upgrade": "bash scripts/upgrade.sh",
     "upgrade:production": "bash scripts/upgrade.sh --build-profile production",
+    "prepare-upgrade:production": "pnpm hardhat run scripts/prepare-upgrade.ts --build-profile production",
     "verify": "pnpm hardhat ignition verify",
     "lint": "pnpm eslint --fix . && pnpm solhint 'contracts/**/*.sol' --max-warnings=0",
     "lint:check": "pnpm eslint . && pnpm solhint 'contracts/**/*.sol' --max-warnings=0",

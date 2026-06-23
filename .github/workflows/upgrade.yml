@@ -1,5 +1,13 @@
 name: Upgrade contracts
 
+# Two upgrade paths depending on the target network:
+#   - Testnets (tenderlyArbitrumSepolia, arbitrumSepolia, sepolia): the upgrade is executed
+#     directly by the upgrader EOA via `pnpm run upgrade:production`.
+#   - Ethereum mainnet: the `UPGRADER_ROLE` is held by a Safe multisig, so the upgrade is NOT
+#     executed here. Instead the new implementation is deployed, the `upgradeToAndCall` calldata
+#     is prepared, and the transaction is proposed to the Safe via the reusable
+#     `propose-safe-multisig-tx` workflow for the signers to approve and execute.
+
 on:
   workflow_dispatch:
     inputs:
@@ -11,14 +19,22 @@ on:
           - tenderlyArbitrumSepolia
           - arbitrumSepolia
           - sepolia
+          - ethereum
         default: "tenderlyArbitrumSepolia"
+      dry_run:
+        description: "Ethereum only: prepare and validate the Safe transaction without proposing it"
+        required: false
+        type: boolean
+        default: false
 
 jobs:
   pre-upgrade:
     uses: ./.github/workflows/main.yml
 
+  # ============ Testnet path: execute the upgrade directly ============
   upgrade:
     needs: pre-upgrade
+    if: inputs.network != 'ethereum'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -80,3 +96,53 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.UPGRADER_PRIVATE_KEY }}
         run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}
+
+  # ============ Ethereum mainnet path: deploy implementation + prepare Safe calldata ============
+  prepare-ethereum-upgrade:
+    needs: pre-upgrade
+    if: inputs.network == 'ethereum'
+    runs-on: ubuntu-latest
+    environment: ethereum
+    outputs:
+      transaction-to: ${{ steps.prepare.outputs.transaction-to }}
+      transaction-data: ${{ steps.prepare.outputs.transaction-data }}
+      new-implementation: ${{ steps.prepare.outputs.new-implementation }}
+      safe-address: ${{ vars.SAFE_ADDRESS }}
+      rpc-url: ${{ steps.expose-rpc.outputs.rpc-url }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Prepare upgrade
+        id: prepare
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          PRIVATE_KEY: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
+        run: pnpm run prepare-upgrade:production --network ethereum
+
+      - name: Expose RPC URL to the proposing job
+        id: expose-rpc
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+        run: echo "rpc-url=$RPC_URL" >> "$GITHUB_OUTPUT"
+
+  propose-safe-tx:
+    needs: prepare-ethereum-upgrade
+    if: inputs.network == 'ethereum'
+    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/propose-safe-multisig-tx.yml@main
+    with:
+      rpc-url: ${{ needs.prepare-ethereum-upgrade.outputs.rpc-url }}
+      safe-address: ${{ needs.prepare-ethereum-upgrade.outputs.safe-address }}
+      transaction-to: ${{ needs.prepare-ethereum-upgrade.outputs.transaction-to }}
+      transaction-data: ${{ needs.prepare-ethereum-upgrade.outputs.transaction-data }}
+      dry-run: ${{ inputs.dry_run }}
+    secrets:
+      safe-proposer-private-key: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
+      safe-api-key: ${{ secrets.SAFE_API_KEY }}
