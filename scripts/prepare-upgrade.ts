@@ -5,14 +5,6 @@ import { Address, Hex } from "viem";
 import connection from "./utils/hardhat-connection-singleton.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 
-/**
- * Prepares a NoxCompute proxy upgrade for a Safe multisig proposal.
- * Should be updated and adapted for each upgrade.
- * @param proxyAddress the NoxCompute proxy address to upgrade, resolved automatically if not provided
- * @param printLogs whether to print logs or not
- * @param contractName the contract to deploy as new implementation (defaults to "NoxCompute")
- * @returns The proxy address, the new implementation address and the `upgradeToAndCall` calldata
- */
 export async function prepareUpgradeNoxCompute(proxyAddress?: Address, printLogs = true, contractName = "NoxCompute") {
     const _log = printLogs ? console.log : () => {};
     const { ethers } = connection;
