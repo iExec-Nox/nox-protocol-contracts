@@ -1,8 +1,7 @@
 # Smart Contract Security Assessment
 
 - **Repository:** https://github.com/iExec-Nox/nox-protocol-contracts
-- **Tag:** [TODO](https://github.com/iExec-Nox/nox-protocol-contracts)
-- **Commit:** [TODO](https://github.com/iExec-Nox/nox-protocol-contracts)
+- **Commit:** [502c3968497cb4515325fd1305d9954e66a23edf](https://github.com/iExec-Nox/nox-protocol-contracts/tree/502c3968497cb4515325fd1305d9954e66a23edf)
 
 ## Technical documentation
 
@@ -13,18 +12,29 @@ can be found in [`docs/`](../../docs/README.md).
 
 ### In-scope files
 
-| File                                   | Lines    |
-| -------------------------------------- | -------- |
-| `contracts/NoxCompute.sol`             | 54       |
-| `contracts/interfaces/INoxCompute.sol` | 600      |
-| `contracts/modules/Common.sol`         | 54       |
-| `contracts/modules/Admin.sol`          | 121      |
-| `contracts/modules/ACL.sol`            | 204      |
-| `contracts/modules/Compute.sol`        | 659      |
-| `contracts/utils/HandleUtils.sol`      | 46       |
-| `contracts/utils/TypeUtils.sol`        | 203      |
-| `contracts/sdk/Nox.sol`                | 1364     |
-| **Total**                              | **3305** |
+```
+$ cloc --by-file --exclude-dir=mock contracts
+      12 text files.
+       9 unique files.
+       4 files ignored.
+
+github.com/AlDanial/cloc v 1.98  T=0.01 s (871.8 files/s, 320127.8 lines/s)
+---------------------------------------------------------------------------------------
+File                                                blank        comment           code
+---------------------------------------------------------------------------------------
+contracts/sdk/Nox.sol                                 153            290            921
+contracts/modules/Compute.sol                          30             94            535
+contracts/interfaces/INoxCompute.sol                   46            291            263
+contracts/utils/TypeUtils.sol                           9             46            148
+contracts/modules/ACL.sol                              20             60            124
+contracts/modules/Admin.sol                            13             48             60
+contracts/modules/Common.sol                            7             20             27
+contracts/NoxCompute.sol                                4             27             23
+contracts/utils/HandleUtils.sol                         4             29             13
+---------------------------------------------------------------------------------------
+SUM:                                                  286            905           2114
+---------------------------------------------------------------------------------------
+```
 
 ### Out of scope
 
