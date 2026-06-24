@@ -35,7 +35,6 @@ export async function prepareUpgradeNoxCompute(proxyAddress?: Address, printLogs
     return { proxyAddress: noxComputeProxyAddress, newImplementation, calldata };
 }
 
-// Execute the script only if run directly
 if (_isHardhatRunCommand()) {
     const { proxyAddress, newImplementation, calldata } = await prepareUpgradeNoxCompute();
 
