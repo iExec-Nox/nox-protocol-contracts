@@ -108,7 +108,6 @@ jobs:
       transaction-data: ${{ steps.prepare.outputs.transaction-data }}
       new-implementation: ${{ steps.prepare.outputs.new-implementation }}
       safe-address: ${{ vars.SAFE_ADDRESS }}
-      rpc-url: ${{ steps.expose-rpc.outputs.rpc-url }}
     steps:
       - uses: actions/checkout@v5
 
@@ -127,22 +126,16 @@ jobs:
           PRIVATE_KEY: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
         run: pnpm run prepare-upgrade:production --network ethereum
 
-      - name: Expose RPC URL to the proposing job
-        id: expose-rpc
-        env:
-          RPC_URL: ${{ secrets.RPC_URL }}
-        run: echo "rpc-url=$RPC_URL" >> "$GITHUB_OUTPUT"
-
   propose-safe-tx:
     needs: prepare-ethereum-upgrade
     if: inputs.network == 'ethereum'
-    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/propose-safe-multisig-tx.yml@main
+    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/propose-safe-multisig-tx.yml@propose-safe-multisig-tx-v1.1.0
     with:
-      rpc-url: ${{ needs.prepare-ethereum-upgrade.outputs.rpc-url }}
       safe-address: ${{ needs.prepare-ethereum-upgrade.outputs.safe-address }}
       transaction-to: ${{ needs.prepare-ethereum-upgrade.outputs.transaction-to }}
       transaction-data: ${{ needs.prepare-ethereum-upgrade.outputs.transaction-data }}
       dry-run: ${{ inputs.dry_run }}
     secrets:
+      rpc-url: ${{ secrets.RPC_URL }}
       safe-proposer-private-key: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
       safe-api-key: ${{ secrets.SAFE_API_KEY }}
