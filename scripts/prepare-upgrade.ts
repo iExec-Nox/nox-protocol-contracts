@@ -26,8 +26,6 @@ export async function prepareUpgradeNoxCompute(proxyAddress?: Address, printLogs
     })) as Address;
     _log(`New implementation deployed at: ${newImplementation}`);
 
-    // Encode the UUPS upgrade calldata: `upgradeToAndCall(newImplementation, data)`.
-    // `data` is empty unless a reinitializer must run atomically as part of the upgrade.
     const upgradeData = "0x";
     const proxy = await ethers.getContractAt(contractName, noxComputeProxyAddress);
     const calldata = proxy.interface.encodeFunctionData("upgradeToAndCall", [newImplementation, upgradeData]) as Hex;
