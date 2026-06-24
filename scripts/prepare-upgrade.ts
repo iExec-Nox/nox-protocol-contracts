@@ -1,7 +1,7 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import { appendFileSync } from "fs";
 import hre from "hardhat";
-import { Address } from "viem";
+import { Address, Hex } from "viem";
 import connection from "./utils/hardhat-connection-singleton.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 
@@ -38,10 +38,7 @@ export async function prepareUpgradeNoxCompute(proxyAddress?: Address, printLogs
     // `data` is empty unless a reinitializer must run atomically as part of the upgrade.
     const upgradeData = "0x";
     const proxy = await ethers.getContractAt(contractName, noxComputeProxyAddress);
-    const calldata = proxy.interface.encodeFunctionData("upgradeToAndCall", [
-        newImplementation,
-        upgradeData,
-    ]) as Address;
+    const calldata = proxy.interface.encodeFunctionData("upgradeToAndCall", [newImplementation, upgradeData]) as Hex;
     _log(`Upgrade calldata (upgradeToAndCall): ${calldata}`);
     _log("Submit this transaction to the Safe multisig: { to: proxy, value: 0, data: calldata }");
 

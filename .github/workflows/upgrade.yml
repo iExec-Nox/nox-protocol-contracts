@@ -103,6 +103,9 @@ jobs:
     if: inputs.network == 'ethereum'
     runs-on: ubuntu-latest
     environment: ethereum
+    permissions:
+      contents: write
+      pull-requests: write
     outputs:
       transaction-to: ${{ steps.prepare.outputs.transaction-to }}
       transaction-data: ${{ steps.prepare.outputs.transaction-data }}
@@ -125,6 +128,35 @@ jobs:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
         run: pnpm run prepare-upgrade:production --network ethereum
+
+      - name: Push artifacts to the current branch
+        if: github.ref != 'refs/heads/main'
+        uses: stefanzweifel/git-auto-commit-action@v5
+        with:
+          file_pattern: ".openzeppelin/"
+          commit_message: "chore: save upgrade artifacts for ethereum (GitHub run id: ${{ github.run_id }})"
+          commit_user_name: "GitHub Actions Bot"
+          commit_user_email: "github-actions[bot]@users.noreply.github.com"
+          commit_author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+
+      - name: Push artifacts through a pull request
+        if: github.ref == 'refs/heads/main'
+        uses: peter-evans/create-pull-request@v7
+        with:
+          add-paths: ".openzeppelin/"
+          commit-message: "chore: save upgrade artifacts for ethereum (GitHub run id: ${{ github.run_id }})"
+          committer: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+          author: "GitHub Actions Bot <github-actions[bot]@users.noreply.github.com>"
+          branch: chore/save-upgrade-artifacts-ethereum-${{ github.run_id }}
+          title: "chore: save upgrade artifacts for ethereum (GitHub run id: ${{ github.run_id }})"
+          body: |
+            🤖 This is an automated pull request created by `${{ github.workflow }}` GitHub Actions
+            workflow to save upgrade artifacts.
+            * Network: `ethereum`
+            * Run: [${{ github.run_id }}](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
+
+            **Note**: Verify deployment before merging this PR.
+          draft: true
 
   propose-safe-tx:
     needs: prepare-ethereum-upgrade
