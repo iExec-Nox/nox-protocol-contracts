@@ -31,7 +31,6 @@ jobs:
   pre-upgrade:
     uses: ./.github/workflows/main.yml
 
-  # ============ Testnet path: execute the upgrade directly ============
   upgrade:
     needs: pre-upgrade
     if: inputs.network != 'ethereum'
@@ -97,7 +96,6 @@ jobs:
           PRIVATE_KEY: ${{ secrets.UPGRADER_PRIVATE_KEY }}
         run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}
 
-  # ============ Ethereum mainnet path: deploy implementation + prepare Safe calldata ============
   prepare-ethereum-upgrade:
     needs: pre-upgrade
     if: inputs.network == 'ethereum'
