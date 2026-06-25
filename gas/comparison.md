@@ -12,7 +12,6 @@ fund-freeze vulnerability (Option 1: existence registry). Production optimizer o
 | ----------------------- | ------- | ------- | ------- | ---------------------------------------------------- |
 | `wrapAsPublicHandle`    | +67.6 % | +1.1 %  | +73.2 % | Cold wrap +20k SSTORE+LOG; repeat: warm SLOAD only   |
 | `initialize` (proxy)    | +48.6 % | +48.6 % | +48.6 % | 6 cold SSTOREs for zero handles                      |
-| `initialize` (impl)     | +55.4 % | +55.4 % | +55.4 % | Same reason, different measurement context           |
 | `isAllowed` (proxy)     | +23.0 % | −2.7 %  | −0.5 %  | +SLOAD on public path; unique-handle path is cheaper |
 | `validateAllowedForAll` | +9.9 %  | −2.5 %  | −0.8 %  | Additional SLOAD per public handle in array          |
 | `add`                   | +3.3 %  | +0.8 %  | +4.2 %  | One extra SLOAD per operand pair                     |
