@@ -2,6 +2,7 @@
 pragma solidity ^0.8.35;
 
 import {Test, Vm} from "forge-std/Test.sol";
+import {console} from "forge-std/console.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
@@ -24,6 +25,12 @@ contract NoxCompute_ComputeTest is Test {
     NoxCompute noxCompute;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+
+    // Handles pre-registered in setUp so their isKnownPublicHandle slots are COLD
+    // (written but not read) when first accessed inside a test function body.
+    bytes32 coldPubA; // wrapAsPublicHandle(100, Uint256)
+    bytes32 coldPubB; // wrapAsPublicHandle(200, Uint256)
+    bytes32 coldPriv; // unique handle with persistent access granted to caller
 
     bytes4[] arithmeticOps = [
         INoxCompute.add.selector,
@@ -60,6 +67,12 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < comparisonOps.length; i++) {
             allOps.push(comparisonOps[i]);
         }
+        // Pre-register handles so isKnownPublicHandle slots are written here (setUp call
+        // frame) and therefore COLD on first read inside each test function body.
+        coldPubA = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
+        coldPubB = noxCompute.wrapAsPublicHandle(bytes32(uint256(200)), TEEType.Uint256);
+        coldPriv = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(coldPriv, caller);
     }
 
     // ============ wrapAsPublicHandle ============
@@ -1104,6 +1117,36 @@ contract NoxCompute_ComputeTest is Test {
         bytes32 zh = HandleUtils.zeroHandle(TEEType.Uint256);
         address stranger = address(0xcafe);
         assertTrue(noxCompute.isAllowed(zh, stranger), "Zero handle must be allowed cold");
+    }
+
+    // ============ Cold public-handle SLOAD on add() ============
+    // coldPubA and coldPubB were registered in setUp (a separate call frame).
+    // Their isKnownPublicHandle slots are COLD on first access here, so _isAllowed
+    // pays the full cold SLOAD (~2,100 gas) for each public operand.
+
+    // add(public, public) — 2 cold SLOADs from the registry check.
+    // Uses the this.external() pattern so transient access granted by add() is visible
+    // to the isAllowed check inside _assertValidHandle (same tx, separate call frame).
+    function test_Add_ColdPublicPublic_Succeeds() public {
+        this._test_Add_ColdPublicPublic_Succeeds();
+    }
+
+    function _test_Add_ColdPublicPublic_Succeeds() external {
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(coldPubA, coldPubB);
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    // add(public, private) — 1 cold SLOAD from the registry + transient/persistent ACL
+    // for the private operand (unchanged by the fix).
+    function test_Add_ColdPublicPrivate_Succeeds() public {
+        this._test_Add_ColdPublicPrivate_Succeeds();
+    }
+
+    function _test_Add_ColdPublicPrivate_Succeeds() external {
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(coldPubA, coldPriv);
+        _assertValidHandle(result, TEEType.Uint256);
     }
 
     // ============ Test Helpers ============
