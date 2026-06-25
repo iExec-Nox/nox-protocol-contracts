@@ -8,18 +8,18 @@ fund-freeze vulnerability (Option 1: existence registry). Production optimizer o
 
 ## Summary (% deltas)
 
-| Function                | Avg Δ%  | Min Δ%  | Max Δ%  | Note                                                 |
-| ----------------------- | ------- | ------- | ------- | ---------------------------------------------------- |
-| `wrapAsPublicHandle`    | +67.6 % | +1.1 %  | +73.2 % | Cold wrap +20k SSTORE+LOG; repeat: warm SLOAD only   |
-| `initialize` (proxy)    | +48.6 % | +48.6 % | +48.6 % | 6 cold SSTOREs for zero handles                      |
-| `isAllowed` (proxy)     | +23.0 % | −2.7 %  | −0.5 %  | +SLOAD on public path; unique-handle path is cheaper |
-| `validateAllowedForAll` | +9.9 %  | −2.5 %  | −0.8 %  | Additional SLOAD per public handle in array          |
-| `add`                   | +3.3 %  | +0.8 %  | +4.2 %  | One extra SLOAD per operand pair                     |
-| `transfer`              | +2.3 %  | −0.3 %  | +4.2 %  | Same                                                 |
-| `mint`                  | +2.3 %  | −0.3 %  | +4.2 %  | Same                                                 |
-| `burn`                  | +2.3 %  | −0.3 %  | +4.2 %  | Same                                                 |
-| NoxCompute bytecode     | +1.4 %  | —       | —       | +239 bytes (16,516 → 16,755)                         |
-| NoxCompute deployment   | +1.4 %  | —       | —       | +51,541 gas (3,666,607 → 3,718,148)                  |
+| Function                | Avg Δ%  | Min Δ%  | Max Δ%  | Note                                                                            |
+| ----------------------- | ------- | ------- | ------- | ------------------------------------------------------------------------------- |
+| `wrapAsPublicHandle`    | +67.6 % | +1.1 %  | +73.2 % | Cold wrap +20k SSTORE+LOG; repeat: warm SLOAD only                              |
+| `initialize` (proxy)    | +48.6 % | +48.6 % | +48.6 % | 6 cold SSTOREs for zero handles                                                 |
+| `isAllowed` (proxy)     | +23.0 % | −2.7 %  | −0.5 %  | +SLOAD on public path; unique-handle path is cheaper                            |
+| `validateAllowedForAll` | +9.9 %  | −2.5 %  | −0.8 %  | Additional SLOAD per public handle in array                                     |
+| `add`                   | +3.3 %  | +0.8 %  | +4.2 %  | +1 SLOAD per public operand (cold ~2.1k / warm ~100); unique operands unchanged |
+| `transfer`              | +2.3 %  | −0.3 %  | +4.2 %  | +1 SLOAD per public operand (cold ~2.1k / warm ~100); unique operands unchanged |
+| `mint`                  | +2.3 %  | −0.3 %  | +4.2 %  | +1 SLOAD per public operand (cold ~2.1k / warm ~100); unique operands unchanged |
+| `burn`                  | +2.3 %  | −0.3 %  | +4.2 %  | +1 SLOAD per public operand (cold ~2.1k / warm ~100); unique operands unchanged |
+| NoxCompute bytecode     | +1.4 %  | —       | —       | +239 bytes (16,516 → 16,755)                                                    |
+| NoxCompute deployment   | +1.4 %  | —       | —       | +51,541 gas (3,666,607 → 3,718,148)                                             |
 
 **First wrap vs repeat wrap (`wrapAsPublicHandle`):**
 
@@ -40,15 +40,16 @@ fund-freeze vulnerability (Option 1: existence registry). Production optimizer o
 
 | Metric           | Before | After |
 | ---------------- | ------ | ----- |
-| Total passing    | 205    | 214   |
-| Solidity passing | 201    | 210   |
+| Total passing    | 205    | 216   |
+| Solidity passing | 201    | 212   |
 | Node.js passing  | 4      | 4     |
 | Failing          | 0      | 0     |
 
-9 additional tests: 3 new ACL tests (forged handle rejected, wrapped handle allowed,
-`validateAllowedForAll` reverts for forged), 6 new Compute tests (`add` forged lhs/rhs,
+11 additional tests: 3 new ACL tests (forged handle rejected, wrapped handle allowed,
+`validateAllowedForAll` reverts for forged), 8 new Compute tests (`add` forged lhs/rhs,
 `add` legitimate public handles, `transfer` forged amount, zero handles known after init,
-repeat-wrap idempotent with no-event assertion, zero-handle cold read).
+repeat-wrap idempotent with no-event assertion, zero-handle cold read, cold public+public
+`add` succeeds, cold public+private `add` succeeds).
 
 ---
 
@@ -118,6 +119,23 @@ path more heavily.
 | Avg    | 42,048 | 43,416 | +1,368 | +3.3% |
 | Median | 38,762 | 40,672 | +1,910 | +4.9% |
 | Max    | 56,017 | 58,349 | +2,332 | +4.2% |
+
+### Cold public-handle reads on `add`
+
+The Foundry gas table captures calls attributed to the `<UnrecognizedContract>` proxy address;
+`add()` calls from the test contract itself appear under a different bucket and are not
+reflected in the aggregate row above. To isolate the SLOAD cost on the public-handle path,
+gas was measured directly with `gasleft()` before/after the call, with handles pre-registered
+in `setUp()` (so their `isKnownPublicHandle` slot is written but cold for the test function body).
+
+| Scenario                              | Before (no SLOAD) | After (with SLOAD) | Δ      |
+| ------------------------------------- | ----------------- | ------------------ | ------ |
+| `add(public, public)` — 2 cold SLOADs | 43,341            | 47,723             | +4,382 |
+| `add(public, private)` — 1 cold SLOAD | 23,670            | 25,861             | +2,191 |
+
+Each cold `isKnownPublicHandle` SLOAD costs ~2,191 gas (close to EIP-2929's 2,100 + overhead).
+Once a handle's slot is warm (accessed earlier in the same transaction), the cost drops to
+~100 gas. In production, most operands will be warm by the time they reach `add()`.
 
 ### `transfer` (#calls: 2 → 2)
 
