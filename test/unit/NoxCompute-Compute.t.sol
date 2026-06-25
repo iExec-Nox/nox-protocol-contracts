@@ -1,7 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
-import {Test} from "forge-std/Test.sol";
+import {Test, Vm} from "forge-std/Test.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
@@ -1015,6 +1015,95 @@ contract NoxCompute_ComputeTest is Test {
         vm.prank(caller);
         vm.expectRevert(IncompatibleTypes.selector);
         noxCompute.burn(balanceFrom, amount, totalSupply);
+    }
+
+    // ============ Public Handle Existence Registry (Security) ============
+
+    // A forged public handle (public bit clear, but never registered) must be rejected
+    // by add() with NotAllowed. Before this fix, it was silently accepted, producing an
+    // undecryptable result handle that permanently freezes any funds it represents.
+    function test_RevertWhen_Add_ForgedPublicHandle_AsLhs() public {
+        bytes32 forgedPublic = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forgedPublic, caller)
+        );
+        noxCompute.add(forgedPublic, legitimate);
+    }
+
+    function test_RevertWhen_Add_ForgedPublicHandle_AsRhs() public {
+        bytes32 forgedPublic = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forgedPublic, caller)
+        );
+        noxCompute.add(legitimate, forgedPublic);
+    }
+
+    // A legitimately wrapped public handle must succeed as an operand.
+    function test_Add_WithLegitimatePublicHandles_Succeeds() public {
+        this._test_Add_WithLegitimatePublicHandles_Succeeds();
+    }
+    function _test_Add_WithLegitimatePublicHandles_Succeeds() external {
+        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(10)), TEEType.Uint256);
+        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(20)), TEEType.Uint256);
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(pub1, pub2);
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    // A forged public handle must be rejected by transfer() as the amount operand.
+    function test_RevertWhen_Transfer_ForgedPublicHandle_AsAmount() public {
+        this._test_RevertWhen_Transfer_ForgedPublicHandle_AsAmount();
+    }
+    function _test_RevertWhen_Transfer_ForgedPublicHandle_AsAmount() external {
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 forgedAmount = TestHelper.createPublicHandle(TEEType.Uint256);
+        TestHelper.forceAllowPersistent(balanceFrom, caller);
+        TestHelper.forceAllowPersistent(balanceTo, caller);
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forgedAmount, caller)
+        );
+        noxCompute.transfer(balanceFrom, balanceTo, forgedAmount);
+    }
+
+    // The zero handles seeded at initialization are registered and must pass isAllowed.
+    function test_ZeroHandles_AreKnown_AfterInitialization() public view {
+        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < types.length; ++i) {
+            bytes32 zh = HandleUtils.zeroHandle(types[i]);
+            assertTrue(
+                noxCompute.isAllowed(zh, address(0xdead)),
+                "Zero handle should be allowed after init"
+            );
+        }
+    }
+
+    // Wrapping the same (value, type) a second time must return the same handle and emit
+    // no event (off-chain already learned the preimage from the first emit). The second call
+    // skips both the SSTORE and the LOG opcodes — only a warm SLOAD for the guard check.
+    function test_WrapAsPublicHandle_RepeatWrap_IsIdempotent() public {
+        bytes32 value = bytes32(uint256(999));
+        bytes32 first = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
+        // Start fresh log capture for the second call only.
+        vm.recordLogs();
+        bytes32 second = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
+        Vm.Log[] memory logs = vm.getRecordedLogs();
+        assertEq(first, second, "Repeat wrap must return same handle");
+        assertEq(logs.length, 0, "Repeat wrap must not emit any event");
+        assertTrue(noxCompute.isAllowed(first, address(0xbeef)));
+    }
+
+    // Cold-read: a zero handle registered at initialization must pass isAllowed from
+    // an account that has never interacted with the handle (cold SLOAD path).
+    function test_ZeroHandle_ColdRead_IsAllowed() public view {
+        bytes32 zh = HandleUtils.zeroHandle(TEEType.Uint256);
+        address stranger = address(0xcafe);
+        assertTrue(noxCompute.isAllowed(zh, stranger), "Zero handle must be allowed cold");
     }
 
     // ============ Test Helpers ============

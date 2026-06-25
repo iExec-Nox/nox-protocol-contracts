@@ -37,9 +37,8 @@ abstract contract Compute is Common, EIP712 {
         TypeUtils.validateValueFitsType(value, teeType);
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
-        // Deterministic handle: same (value, type) always produces the same handle
+        // Deterministic handle: same (value, type) always produces the same handle.
         // Generate a public handle (outputIndex=0, uniqueSeed=0, attributes=0x00).
-        // No ACL grant is needed: public handles are accessible to everyone.
         result = _generateHandle(
             Operator.WrapAsPublicHandle,
             operands,
@@ -48,7 +47,12 @@ abstract contract Compute is Common, EIP712 {
             0,
             bytes1(0x00)
         );
-        emit WrapAsPublicHandle(msg.sender, value, teeType, result);
+        // If that handle does not exist yet, register it to make it known and legitimate.
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        if (!$.isKnownPublicHandle[result]) {
+            $.isKnownPublicHandle[result] = true;
+            emit WrapAsPublicHandle(msg.sender, value, teeType, result);
+        }
     }
 
     /// @inheritdoc INoxCompute
@@ -642,18 +646,20 @@ abstract contract Compute is Common, EIP712 {
     }
 
     /**
-     * Emits events to seed the zero handles for all supported types. This allows off-chain
-     * services to recognize the zero handle for each type without needing to hardcode them.
+     * Registers all zero handles for currently supported types into the known-public-handle
+     * registry and emits `WrapAsPublicHandle` events so off-chain services can index them.
+     * Safe to call on fresh deployments and on upgrades of existing proxies: the SSTORE is
+     * only executed when the slot is unset (idempotent, same guard as `wrapAsPublicHandle`).
      */
-    function _emitZeroHandleSeeds() internal {
+    function _registerZeroHandles() internal {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
         TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < types.length; ++i) {
-            emit WrapAsPublicHandle(
-                address(this),
-                bytes32(0),
-                types[i],
-                HandleUtils.zeroHandle(types[i])
-            );
+            bytes32 zh = HandleUtils.zeroHandle(types[i]);
+            if (!$.isKnownPublicHandle[zh]) {
+                $.isKnownPublicHandle[zh] = true;
+                emit WrapAsPublicHandle(address(this), bytes32(0), types[i], zh);
+            }
         }
     }
 }

@@ -166,14 +166,19 @@ abstract contract ACL is Common {
     }
 
     /**
-     * Checks if the handle is public, or if account has transient or persistent
-     * access to the handle.
+     * Checks if the account is allowed to access the handle.
+     * For public handles, access is granted only if the handle was legitimately created
+     * on-chain via `wrapAsPublicHandle` or seeded during initialization. This prevents
+     * forged public handles (crafted with the public bit clear but an unknown preimage)
+     * from being silently accepted, which would produce permanently undecryptable results.
+     * For unique handles, the standard transient or persistent ACL applies.
      */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
-        return
-            HandleUtils.isPublicHandle(handle) ||
-            _isAllowedTransient(handle, account) ||
-            _isAllowedPersistent(handle, account);
+        if (HandleUtils.isPublicHandle(handle)) {
+            NoxComputeStorage storage $ = _getNoxComputeStorage();
+            return $.isKnownPublicHandle[handle];
+        }
+        return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
     }
 
     /**

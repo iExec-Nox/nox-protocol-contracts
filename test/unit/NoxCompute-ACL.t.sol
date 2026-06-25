@@ -391,28 +391,52 @@ contract NoxCompute_ACLTest is Test {
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    function test_PublicHandle_IsAllowed_ReturnsTrue() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
+    // A forged/unknown public handle (never passed through wrapAsPublicHandle) must NOT be allowed.
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForForgedHandle() public {
+        bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertFalse(noxCompute.isAllowed(forgedHandle, address(0xdead)));
     }
 
+    // A legitimately wrapped public handle must be allowed for everyone.
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedHandle() public {
+        bytes32 wrappedHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        assertTrue(noxCompute.isAllowed(wrappedHandle, address(0xdead)));
+        assertTrue(noxCompute.isAllowed(wrappedHandle, user1));
+    }
+
+    // isViewer is a read hint and is not gated by the existence registry: any public handle
+    // is considered viewable regardless of whether it was created on-chain.
     function test_PublicHandle_IsViewer_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
     }
 
+    // isPubliclyDecryptable is a read hint and is not gated by the existence registry.
     function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public {
-        bytes32 pub1 = TestHelper.createPublicHandle(TEEType.Uint256);
-        bytes32 pub2 = TestHelper.createPublicHandle(TEEType.Uint256);
+    // validateAllowedForAll calls _isAllowed: only legitimately wrapped handles pass.
+    function test_PublicHandle_ValidateAllowedForAll_PassesForWrappedHandles() public {
+        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = pub1;
         handles[1] = pub2;
-        // Should not revert: public handles are allowed for everyone
+        // Should not revert: both handles were legitimately created on-chain
+        noxCompute.validateAllowedForAll(user1, handles);
+    }
+
+    // validateAllowedForAll must reject forged/unknown public handles.
+    function test_PublicHandle_ValidateAllowedForAll_RevertsForForgedHandle() public {
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = forged;
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, user1));
         noxCompute.validateAllowedForAll(user1, handles);
     }
 }
