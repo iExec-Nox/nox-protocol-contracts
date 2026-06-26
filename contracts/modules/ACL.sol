@@ -173,20 +173,20 @@ abstract contract ACL is Common {
     /**
      * Checks if the account is allowed to access the handle.
      * For public handles, access is granted if any of the following conditions are met:
-     *   - The handle equals the canonical zero handle for its type — always allowed
      *   - The handle was wrapped in the current transaction (transient registry)
      *   - The handle was previously persisted via persistTransientHandle (persistent registry)
-     * This prevents forged public handles (crafted with the public bit clear but an unknown
-     * preimage) from being silently accepted, which would produce permanently undecryptable results.
+     *   - The handle equals the canonical zero handle for its type
+     * Checks are ordered cheapest-first: transient tload short-circuits before the SLOAD, and both
+     * short-circuit before the _isZeroHandle loop.
      * For unique handles, the standard transient or persistent ACL applies.
      */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
         if (HandleUtils.isPublicHandle(handle)) {
             NoxComputeStorage storage $ = _getNoxComputeStorage();
             return
-                _isZeroHandle(handle) ||
                 _isKnownTransientPublicHandle(handle) ||
-                $.isKnownPublicHandle[handle];
+                $.isKnownPublicHandle[handle] ||
+                _isZeroHandle(handle);
         }
         return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
     }

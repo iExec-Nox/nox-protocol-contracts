@@ -398,11 +398,14 @@ contract NoxCompute_ACLTest is Test {
     }
 
     // A legitimately wrapped public handle must be allowed for everyone.
+    // Note: forceKnownPublicHandle is used instead of relying on transient storage because
+    // Hardhat EDR clears transient state between separate external calls from a Solidity test.
     function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedHandle() public {
         bytes32 wrappedHandle = noxCompute.wrapAsPublicHandle(
             bytes32(uint256(777)),
             TEEType.Uint256
         );
+        TestHelper.forceKnownPublicHandle(wrappedHandle);
         assertTrue(noxCompute.isAllowed(wrappedHandle, address(0xdead)));
         assertTrue(noxCompute.isAllowed(wrappedHandle, user1));
     }
@@ -421,9 +424,13 @@ contract NoxCompute_ACLTest is Test {
     }
 
     // validateAllowedForAll calls _isAllowed: only legitimately wrapped handles pass.
+    // Note: forceKnownPublicHandle is used instead of relying on transient storage because
+    // Hardhat EDR clears transient state between separate external calls from a Solidity test.
     function test_PublicHandle_ValidateAllowedForAll_PassesForWrappedHandles() public {
         bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        TestHelper.forceKnownPublicHandle(pub1);
         bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
+        TestHelper.forceKnownPublicHandle(pub2);
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = pub1;
         handles[1] = pub2;

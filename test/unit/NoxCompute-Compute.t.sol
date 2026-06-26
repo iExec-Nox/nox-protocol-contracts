@@ -26,9 +26,9 @@ contract NoxCompute_ComputeTest is Test {
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
 
-    // Public handles persisted and accessible across test bodies.
-    bytes32 pubA = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
-    bytes32 pubB = noxCompute.wrapAsPublicHandle(bytes32(uint256(200)), TEEType.Uint256);
+    // Public handles wrapped in setUp, persisted, and accessible across test bodies.
+    bytes32 pubA;
+    bytes32 pubB;
 
     bytes4[] arithmeticOps = [
         INoxCompute.add.selector,
@@ -65,8 +65,10 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < comparisonOps.length; i++) {
             allOps.push(comparisonOps[i]);
         }
-        noxCompute.persistTransientHandle(pubA);
-        noxCompute.persistTransientHandle(pubB);
+        pubA = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
+        TestHelper.forceKnownPublicHandle(pubA);
+        pubB = noxCompute.wrapAsPublicHandle(bytes32(uint256(200)), TEEType.Uint256);
+        TestHelper.forceKnownPublicHandle(pubB);
     }
 
     // ============ wrapAsPublicHandle ============
@@ -1177,7 +1179,13 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     // persistTransientHandle succeeds for a handle wrapped this tx and emits the event.
+    // Uses the this.external() pattern so wrap + persist execute in the same EVM transaction,
+    // allowing the transient-slot check inside persistTransientHandle to succeed.
     function test_PersistTransientHandle_Succeeds() public {
+        this._test_PersistTransientHandle_Succeeds();
+    }
+
+    function _test_PersistTransientHandle_Succeeds() external {
         bytes32 pub = noxCompute.wrapAsPublicHandle(bytes32(uint256(111)), TEEType.Uint256);
         vm.expectEmit(true, true, false, false);
         emit INoxCompute.PublicHandlePersisted(address(this), pub);

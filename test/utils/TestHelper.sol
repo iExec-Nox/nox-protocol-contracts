@@ -160,6 +160,17 @@ library TestHelper {
     }
 
     /**
+     * Override storage to mark a public handle as persistently known (isKnownPublicHandle = true).
+     * Use this in tests instead of wrapAsPublicHandle + persistTransientHandle when the two calls
+     * cannot be batched into the same transaction (e.g., Hardhat EDR clears transient storage
+     * between separate external calls from a Solidity test function).
+     */
+    function forceKnownPublicHandle(bytes32 handle) internal {
+        bytes32 slotLocation = _getKnownPublicHandleStorageSlot(handle);
+        getVm().store(Nox.noxComputeContract(), slotLocation, bytes32(uint256(1)));
+    }
+
+    /**
      * Override storage to force disallow the given account for the given handle.
      */
     function forceDisallowPersistent(bytes32 handle, address account) internal {
@@ -275,5 +286,14 @@ library TestHelper {
             abi.encode(handle, adminsMappingStorageLocation)
         );
         return keccak256(abi.encode(account, outerKeyStorageLocation));
+    }
+
+    function _getKnownPublicHandleStorageSlot(bytes32 handle) private pure returns (bytes32) {
+        // isKnownPublicHandle is the 8th field (index 7) in NoxComputeStorage:
+        //   0: admins, 1: viewers, 2: isPubliclyDecryptable, 3: kmsPublicKey,
+        //   4: gateway, 5: proofExpirationDuration, 6: uniqueSeedCounter, 7: isKnownPublicHandle
+        // mapping(bytes32 handle => bool) map at struct base + 7
+        // slot = keccak256(abi.encode(handle, struct_base + 7))
+        return keccak256(abi.encode(handle, bytes32(uint256(NOX_COMPUTE_STORAGE_LOCATION) + 7)));
     }
 }
