@@ -107,9 +107,11 @@ library Nox {
     // ============ Trivial Encryption Functions ============
 
     /**
-     * @dev Converts a plaintext boolean to an encrypted boolean.
+     * @dev Converts a plaintext boolean to a transient encrypted boolean.
+     * The resulting handle is accessible within the current transaction only.
+     * Call persistTransientHandle to promote it to permanent storage if needed.
      */
-    function toEbool(bool value) internal returns (ebool) {
+    function toTransientEbool(bool value) internal returns (ebool) {
         return
             ebool.wrap(
                 _noxComputeContract().wrapAsPublicHandle(
@@ -120,9 +122,11 @@ library Nox {
     }
 
     /**
-     * @dev Convert a plaintext value to an encrypted euint16 integer.
+     * @dev Converts a plaintext uint16 to a transient encrypted euint16.
+     * The resulting handle is accessible within the current transaction only.
+     * Call persistTransientHandle to promote it to permanent storage if needed.
      */
-    function toEuint16(uint16 value) internal returns (euint16) {
+    function toTransientEuint16(uint16 value) internal returns (euint16) {
         return
             euint16.wrap(
                 _noxComputeContract().wrapAsPublicHandle(bytes32(uint256(value)), TEEType.Uint16)
@@ -130,9 +134,11 @@ library Nox {
     }
 
     /**
-     * @dev Convert a plaintext value to an encrypted euint256 integer.
+     * @dev Converts a plaintext uint256 to a transient encrypted euint256.
+     * The resulting handle is accessible within the current transaction only.
+     * Call persistTransientHandle to promote it to permanent storage if needed.
      */
-    function toEuint256(uint256 value) internal returns (euint256) {
+    function toTransientEuint256(uint256 value) internal returns (euint256) {
         return
             euint256.wrap(
                 _noxComputeContract().wrapAsPublicHandle(bytes32(value), TEEType.Uint256)
@@ -140,9 +146,11 @@ library Nox {
     }
 
     /**
-     * @dev Convert a plaintext value to an encrypted eint16 integer.
+     * @dev Converts a plaintext int16 to a transient encrypted eint16.
+     * The resulting handle is accessible within the current transaction only.
+     * Call persistTransientHandle to promote it to permanent storage if needed.
      */
-    function toEint16(int16 value) internal returns (eint16) {
+    function toTransientEint16(int16 value) internal returns (eint16) {
         return
             eint16.wrap(
                 _noxComputeContract().wrapAsPublicHandle(
@@ -153,13 +161,55 @@ library Nox {
     }
 
     /**
-     * @dev Convert a plaintext value to an encrypted eint256 integer.
+     * @dev Converts a plaintext int256 to a transient encrypted eint256.
+     * The resulting handle is accessible within the current transaction only.
+     * Call persistTransientHandle to promote it to permanent storage if needed.
      */
-    function toEint256(int256 value) internal returns (eint256) {
+    function toTransientEint256(int256 value) internal returns (eint256) {
         return
             eint256.wrap(
                 _noxComputeContract().wrapAsPublicHandle(bytes32(uint256(value)), TEEType.Int256)
             );
+    }
+
+    /**
+     * @dev Persists a transient ebool public handle to permanent storage.
+     * The handle must have been wrapped via toTransientEbool in the current transaction.
+     */
+    function persistTransientHandle(ebool handle) internal {
+        _noxComputeContract().persistTransientHandle(ebool.unwrap(handle));
+    }
+
+    /**
+     * @dev Persists a transient euint16 public handle to permanent storage.
+     * The handle must have been wrapped via toTransientEuint16 in the current transaction.
+     */
+    function persistTransientHandle(euint16 handle) internal {
+        _noxComputeContract().persistTransientHandle(euint16.unwrap(handle));
+    }
+
+    /**
+     * @dev Persists a transient euint256 public handle to permanent storage.
+     * The handle must have been wrapped via toTransientEuint256 in the current transaction.
+     */
+    function persistTransientHandle(euint256 handle) internal {
+        _noxComputeContract().persistTransientHandle(euint256.unwrap(handle));
+    }
+
+    /**
+     * @dev Persists a transient eint16 public handle to permanent storage.
+     * The handle must have been wrapped via toTransientEint16 in the current transaction.
+     */
+    function persistTransientHandle(eint16 handle) internal {
+        _noxComputeContract().persistTransientHandle(eint16.unwrap(handle));
+    }
+
+    /**
+     * @dev Persists a transient eint256 public handle to permanent storage.
+     * The handle must have been wrapped via toTransientEint256 in the current transaction.
+     */
+    function persistTransientHandle(eint256 handle) internal {
+        _noxComputeContract().persistTransientHandle(eint256.unwrap(handle));
     }
 
     // ============ Handle validation ============

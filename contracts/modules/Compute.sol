@@ -47,12 +47,9 @@ abstract contract Compute is Common, EIP712 {
             0,
             bytes1(0x00)
         );
-        // If that handle does not exist yet, register it to make it known and legitimate.
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
-        if (!$.isKnownPublicHandle[result]) {
-            $.isKnownPublicHandle[result] = true;
-            emit WrapAsPublicHandle(msg.sender, value, teeType, result);
-        }
+        // Register transiently so the handle is accessible within this transaction.
+        _registerTransientPublicHandle(result);
+        emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 
     /// @inheritdoc INoxCompute
@@ -646,20 +643,21 @@ abstract contract Compute is Common, EIP712 {
     }
 
     /**
-     * Registers all zero handles for currently supported types into the known-public-handle
-     * registry and emits `WrapAsPublicHandle` events so off-chain services can index them.
-     * Safe to call on fresh deployments and on upgrades of existing proxies: the SSTORE is
-     * only executed when the slot is unset (idempotent, same guard as `wrapAsPublicHandle`).
+     * Emits `WrapAsPublicHandle` events for all zero handles of currently supported types
+     * so off-chain services can index them. Zero handles are always accessible via the
+     * _isZeroHandle carve-out and do not need persistent storage registration.
+     * Safe to call on fresh deployments and on upgrades: duplicate events are acceptable
+     * and harmless for off-chain indexers.
      */
-    function _registerZeroHandles() internal {
-        NoxComputeStorage storage $ = _getNoxComputeStorage();
+    function _emitZeroHandleSeeds() internal {
         TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < types.length; ++i) {
-            bytes32 zh = HandleUtils.zeroHandle(types[i]);
-            if (!$.isKnownPublicHandle[zh]) {
-                $.isKnownPublicHandle[zh] = true;
-                emit WrapAsPublicHandle(address(this), bytes32(0), types[i], zh);
-            }
+            emit WrapAsPublicHandle(
+                address(this),
+                bytes32(0),
+                types[i],
+                HandleUtils.zeroHandle(types[i])
+            );
         }
     }
 }

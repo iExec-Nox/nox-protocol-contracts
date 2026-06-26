@@ -41,20 +41,10 @@ contract NoxCompute is Admin, ACL, Compute {
         _setGateway(gateway);
         _setProofExpirationDuration(1 hours);
         // v0.2.0
-        // _emitZeroHandleSeeds();
+        _emitZeroHandleSeeds();
         // v0.2.3
         _initAccessControl(admin, upgrader);
-        // v0.3.0
-        _registerZeroHandles();
     }
 
-    /**
-     * @notice Initializer for the v0.3.0 upgrade that introduces the public-handle existence registry.
-     * Backfills `isKnownPublicHandle` for all zero handles on existing proxies and re-emits
-     * their `WrapAsPublicHandle` events so indexers can pick up the registry entries.
-     * @custom:oz-upgrades-validate-as-initializer
-     */
-    function initializeV4() public reinitializer(4) {
-        _registerZeroHandles();
-    }
+    function initializeV4() public reinitializer(4) {}
 }

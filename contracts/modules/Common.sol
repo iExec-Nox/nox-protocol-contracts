@@ -54,4 +54,10 @@ abstract contract Common is INoxCompute {
         address account,
         bytes32[] memory handles
     ) internal view virtual;
+
+    // Implemented by ACL, called by Compute.
+    function _registerTransientPublicHandle(bytes32 handle) internal virtual;
+
+    // Implemented by ACL, called by Compute.
+    function _isKnownTransientPublicHandle(bytes32 handle) internal view virtual returns (bool);
 }

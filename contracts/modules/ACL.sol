@@ -4,6 +4,7 @@ pragma solidity ^0.8.35;
 import {SlotDerivation} from "@openzeppelin/contracts/utils/SlotDerivation.sol";
 import {TransientSlot} from "@openzeppelin/contracts/utils/TransientSlot.sol";
 import {HandleUtils} from "../utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 
@@ -19,6 +20,10 @@ abstract contract ACL is Common {
 
     bytes32 private constant ACL_TRANSIENT_STORAGE_BASE_SLOT = keccak256(
         "nox.storage.transient.ACL"
+    );
+
+    bytes32 private constant PUBLIC_HANDLE_TRANSIENT_BASE_SLOT = keccak256(
+        "nox.storage.transient.PublicHandle"
     );
 
     modifier notZeroAddress(address account) {
@@ -167,18 +172,64 @@ abstract contract ACL is Common {
 
     /**
      * Checks if the account is allowed to access the handle.
-     * For public handles, access is granted only if the handle was legitimately created
-     * on-chain via `wrapAsPublicHandle` or seeded during initialization. This prevents
-     * forged public handles (crafted with the public bit clear but an unknown preimage)
-     * from being silently accepted, which would produce permanently undecryptable results.
+     * For public handles, access is granted if any of the following conditions are met:
+     *   - The handle equals the canonical zero handle for its type — always allowed
+     *   - The handle was wrapped in the current transaction (transient registry)
+     *   - The handle was previously persisted via persistTransientHandle (persistent registry)
+     * This prevents forged public handles (crafted with the public bit clear but an unknown
+     * preimage) from being silently accepted, which would produce permanently undecryptable results.
      * For unique handles, the standard transient or persistent ACL applies.
      */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
         if (HandleUtils.isPublicHandle(handle)) {
             NoxComputeStorage storage $ = _getNoxComputeStorage();
-            return $.isKnownPublicHandle[handle];
+            return
+                _isZeroHandle(handle) ||
+                _isKnownTransientPublicHandle(handle) ||
+                $.isKnownPublicHandle[handle];
         }
         return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
+    }
+
+    /**
+     * Registers a public handle in transient storage so it is accessible within the
+     * current transaction without a persistent SSTORE.
+     * @param handle The public handle to register transiently
+     */
+    function _registerTransientPublicHandle(bytes32 handle) internal override {
+        PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tstore(true);
+    }
+
+    /**
+     * Returns true if the public handle was registered transiently in the current transaction.
+     * @param handle The public handle to check
+     */
+    function _isKnownTransientPublicHandle(bytes32 handle) internal view override returns (bool) {
+        return PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tload();
+    }
+
+    /**
+     * Returns true if `handle` exactly equals the canonical zero handle for any of the
+     * currently supported TEE types.
+     * @param handle The handle to check
+     */
+    function _isZeroHandle(bytes32 handle) internal view returns (bool) {
+        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < supportedTypes.length; ++i) {
+            if (handle == HandleUtils.zeroHandle(supportedTypes[i])) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /// @inheritdoc INoxCompute
+    function persistTransientHandle(bytes32 handle) external override {
+        require(HandleUtils.isPublicHandle(handle), NotPublicHandle());
+        require(_isKnownTransientPublicHandle(handle), UnknownPublicHandle(handle));
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.isKnownPublicHandle[handle] = true;
+        emit PublicHandlePersisted(msg.sender, handle);
     }
 
     /**
