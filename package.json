@@ -32,7 +32,7 @@
     "set-kms-public-key": "pnpm hardhat run scripts/set-kms-public-key.ts",
     "upgrade": "bash scripts/upgrade.sh",
     "upgrade:production": "bash scripts/upgrade.sh --build-profile production",
-    "prepare-upgrade:production": "pnpm hardhat run scripts/prepare-upgrade.ts --build-profile production",
+    "prepare-upgrade:production": "UPGRADE_ACTION=prepare bash scripts/upgrade.sh --build-profile production",
     "verify": "pnpm hardhat ignition verify",
     "lint": "pnpm eslint --fix . && pnpm solhint 'contracts/**/*.sol' --max-warnings=0",
     "lint:check": "pnpm eslint . && pnpm solhint 'contracts/**/*.sol' --max-warnings=0",
@@ -56,6 +56,7 @@
     "encrypted-types": "^0.0.4"
   },
   "devDependencies": {
+    "@actions/core": "^3.0.1",
     "@nomicfoundation/hardhat-ethers": "^4.0.13",
     "@nomicfoundation/hardhat-ignition": "^3.1.7",
     "@nomicfoundation/hardhat-toolbox-viem": "^5.0.7",
