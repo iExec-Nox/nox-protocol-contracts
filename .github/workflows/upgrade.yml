@@ -31,7 +31,7 @@ jobs:
   pre-upgrade:
     uses: ./.github/workflows/main.yml
 
-  upgrade:
+  testnet-upgrade:
     needs: pre-upgrade
     if: inputs.network != 'ethereum'
     runs-on: ubuntu-latest
@@ -96,7 +96,7 @@ jobs:
           PRIVATE_KEY: ${{ secrets.UPGRADER_PRIVATE_KEY }}
         run: pnpm run verify ${{ inputs.network }} --network ${{ inputs.network }}
 
-  prepare-ethereum-upgrade:
+  prepare-mainnet-upgrade:
     needs: pre-upgrade
     if: inputs.network == 'ethereum'
     runs-on: ubuntu-latest
@@ -156,14 +156,14 @@ jobs:
             **Note**: Verify deployment before merging this PR.
           draft: true
 
-  propose-safe-tx:
-    needs: prepare-ethereum-upgrade
+  propose-multisig-tx:
+    needs: prepare-mainnet-upgrade
     if: inputs.network == 'ethereum'
     uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/propose-safe-multisig-tx.yml@propose-safe-multisig-tx-v1.1.0
     with:
-      safe-address: ${{ needs.prepare-ethereum-upgrade.outputs.safe-address }}
-      transaction-to: ${{ needs.prepare-ethereum-upgrade.outputs.transaction-to }}
-      transaction-data: ${{ needs.prepare-ethereum-upgrade.outputs.transaction-data }}
+      safe-address: ${{ needs.prepare-mainnet-upgrade.outputs.safe-address }}
+      transaction-to: ${{ needs.prepare-mainnet-upgrade.outputs.transaction-to }}
+      transaction-data: ${{ needs.prepare-mainnet-upgrade.outputs.transaction-data }}
       dry-run: ${{ inputs.dry_run }}
     secrets:
       rpc-url: ${{ secrets.RPC_URL }}
