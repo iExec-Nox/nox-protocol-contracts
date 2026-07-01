@@ -33,6 +33,15 @@ importers:
       '@openzeppelin/hardhat-upgrades':
         specifier: ^4.0.1
         version: 4.0.1(@nomicfoundation/hardhat-ethers@4.0.13(hardhat@3.8.0))(@nomicfoundation/hardhat-verify@3.0.12(hardhat@3.8.0))(ethers@6.16.0)(hardhat@3.8.0)
+      '@safe-global/api-kit':
+        specifier: ^5.0.1
+        version: 5.0.1(typescript@6.0.3)(zod@3.25.76)
+      '@safe-global/protocol-kit':
+        specifier: ^8.0.1
+        version: 8.0.1(typescript@6.0.3)(zod@3.25.76)
+      '@safe-global/types-kit':
+        specifier: ^4.0.1
+        version: 4.0.1(typescript@6.0.3)(zod@3.25.76)
       '@types/node':
         specifier: ^25.9.2
         version: 25.9.2
@@ -734,6 +743,12 @@ packages:
     resolution: {integrity: sha512-UFSeO/4r8eeXj0C/HAwV+J4b72sE1HX0aALQFs5S2RBOsfXvKweyjQf35vrK32LQiyHdP6IPShAsEBVvpSEgGQ==}
     hasBin: true
 
+  '@peculiar/asn1-schema@2.8.0':
+    resolution: {integrity: sha512-7YT0U/ze0tF2QOBbE15gKZwy5tvgGyLRiRHLzhlbOpf7BT032oBSd0haZqXn5W6l26WLlu3dyxzjM+2638/z2Q==}
+
+  '@peculiar/utils@2.0.3':
+    resolution: {integrity: sha512-+oL3HPFRIZ1St2K50lWCXiioIgSoxzz7R1J3uF6neO2yl1sgmpgY6XXJH4BdpoDkMWznQTeYF6oWNDZLCdQ4eQ==}
+
   '@pnpm/config.env-replace@1.1.0':
     resolution: {integrity: sha512-htyl8TWnKL7K/ESFa1oW2UB5lVDxuF5DpM7tBi6Hu2LNL3mWkIzNLG6N4zoCUP1lCKNxWy/3iu8mS8MvToGd6w==}
     engines: {node: '>=12.22.0'}
@@ -745,6 +760,22 @@ packages:
   '@pnpm/npm-conf@3.0.2':
     resolution: {integrity: sha512-h104Kh26rR8tm+a3Qkc5S4VLYint3FE48as7+/5oCEcKR2idC/pF1G6AhIXKI+eHPJa/3J9i5z0Al47IeGHPkA==}
     engines: {node: '>=12'}
+
+  '@safe-global/api-kit@5.0.1':
+    resolution: {integrity: sha512-nbkSjrRTZh+LlD7e0A4fujKgLZnU5262e1iYTWsGx4ft6oo5kTAxc5pY0icls5PjmZI0UkMhYIv5izeBP7bcWg==}
+
+  '@safe-global/protocol-kit@8.0.1':
+    resolution: {integrity: sha512-clKJ4V3gDEQ8zUEulMfNh91v2isUL4TjjTrcTLOXhhQ7VPDx1+vYdVmxUT4dNM7yAZ0VrQRlKjfJrbJavYe6Lg==}
+
+  '@safe-global/safe-deployments@1.37.57':
+    resolution: {integrity: sha512-Wt6/ewNbibalOAe90ZOg7F4AQTgs52xcw7ZYuw3iGY8+UIbwsFUT5Bp9A1HOrTm2c5aB1hLt7GOTbdy5G2ulAA==}
+    engines: {node: '>=22.0.0', pnpm: '>=10.16.0'}
+
+  '@safe-global/safe-modules-deployments@3.0.5':
+    resolution: {integrity: sha512-MycyPiwAwjitVSWnO3nFyfCTXei07RosuACprMVpc0at0gKX1bRIaazWpdLwFSI1FUA6+0o1LbQPGNWjMqq9Zg==}
+
+  '@safe-global/types-kit@4.0.1':
+    resolution: {integrity: sha512-zmIYyAH9mcBcqHszPgcfNjOJYuPSvWCcc/f8zeznh7N1HSA7jEoFErO06O4QDfwAAS4aEyoyjhPyfHbVYRheZg==}
 
   '@scure/base@1.1.9':
     resolution: {integrity: sha512-8YKhl8GHiNI/pU2VMaofa2Tor7PJRAjwQLBBuilkJ9L5+13yVbC7JO/wS7piioAvPSwR3JKM1IJ/u4xQzbcXKg==}
@@ -986,6 +1017,10 @@ packages:
 
   argparse@2.0.1:
     resolution: {integrity: sha512-8+9WqebbFzpX9OR+Wa6O29asIogeRMzcGtAINdpMHHyAg10f05aSFVBbcEqGf/PXw1EjAZ+q2/bEBg3DvurK3Q==}
+
+  asn1js@3.0.10:
+    resolution: {integrity: sha512-S2s3aOytiKdFRdulw2qPE51MzjzVOisppcVv7jVFR+Kw0kxwvFrDcYA0h7Ndqbmj0HkMIXYWaoj7fli8kgx1eg==}
+    engines: {node: '>=12.0.0'}
 
   ast-parents@0.0.1:
     resolution: {integrity: sha512-XHusKxKz3zoYk1ic8Un640joHbFMhbqneyoZfoKnEGtf2ey9Uh/IdpcQplODdO/kENaMIWsD0nJm4+wX3UNLHA==}
@@ -1888,6 +1923,13 @@ packages:
   punycode@2.3.1:
     resolution: {integrity: sha512-vYt7UD1U9Wg6138shLtLOvdAu+8DsC/ilFtEVHcH+wydcSpNE20AfSOduf6MkRFahL5FY7X1oU7nKVZFtfq8Fg==}
     engines: {node: '>=6'}
+
+  pvtsutils@1.3.6:
+    resolution: {integrity: sha512-PLgQXQ6H2FWCaeRak8vvk1GW462lMxB5s3Jm673N82zI4vqtVUPuZdffdZbPDFRoU8kAhItWFtPCWiPpp4/EDg==}
+
+  pvutils@1.1.5:
+    resolution: {integrity: sha512-KTqnxsgGiQ6ZAzZCVlJH5eOjSnvlyEgx1m8bkRJfOhmGRqfo5KLvmAlACQkrjEtOQ4B7wF9TdSLIs9O90MX9xA==}
+    engines: {node: '>=16.0.0'}
 
   quick-lru@5.1.1:
     resolution: {integrity: sha512-WuyALRjWPDGtt/wzJiadO5AXY+8hZ80hVpe6MyivgraREW751X3SbhRvG3eLKOYN+8VEvqLcf3wdnt44Z4S4SA==}
@@ -3116,6 +3158,18 @@ snapshots:
     transitivePeerDependencies:
       - supports-color
 
+  '@peculiar/asn1-schema@2.8.0':
+    dependencies:
+      '@peculiar/utils': 2.0.3
+      asn1js: 3.0.10
+      tslib: 2.8.1
+    optional: true
+
+  '@peculiar/utils@2.0.3':
+    dependencies:
+      tslib: 2.8.1
+    optional: true
+
   '@pnpm/config.env-replace@1.1.0': {}
 
   '@pnpm/network.ca-file@1.0.2':
@@ -3127,6 +3181,49 @@ snapshots:
       '@pnpm/config.env-replace': 1.1.0
       '@pnpm/network.ca-file': 1.0.2
       config-chain: 1.1.13
+
+  '@safe-global/api-kit@5.0.1(typescript@6.0.3)(zod@3.25.76)':
+    dependencies:
+      '@safe-global/protocol-kit': 8.0.1(typescript@6.0.3)(zod@3.25.76)
+      '@safe-global/types-kit': 4.0.1(typescript@6.0.3)(zod@3.25.76)
+      node-fetch: 2.7.0
+      viem: 2.52.2(typescript@6.0.3)(zod@3.25.76)
+    transitivePeerDependencies:
+      - bufferutil
+      - encoding
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@safe-global/protocol-kit@8.0.1(typescript@6.0.3)(zod@3.25.76)':
+    dependencies:
+      '@safe-global/safe-deployments': 1.37.57
+      '@safe-global/safe-modules-deployments': 3.0.5
+      '@safe-global/types-kit': 4.0.1(typescript@6.0.3)(zod@3.25.76)
+      abitype: 1.2.3(typescript@6.0.3)(zod@3.25.76)
+      semver: 7.8.2
+      viem: 2.52.2(typescript@6.0.3)(zod@3.25.76)
+    optionalDependencies:
+      '@noble/curves': 1.9.1
+      '@peculiar/asn1-schema': 2.8.0
+    transitivePeerDependencies:
+      - bufferutil
+      - typescript
+      - utf-8-validate
+      - zod
+
+  '@safe-global/safe-deployments@1.37.57':
+    dependencies:
+      semver: 7.8.2
+
+  '@safe-global/safe-modules-deployments@3.0.5': {}
+
+  '@safe-global/types-kit@4.0.1(typescript@6.0.3)(zod@3.25.76)':
+    dependencies:
+      abitype: 1.2.3(typescript@6.0.3)(zod@3.25.76)
+    transitivePeerDependencies:
+      - typescript
+      - zod
 
   '@scure/base@1.1.9': {}
 
@@ -3407,6 +3504,13 @@ snapshots:
   ansi-styles@6.2.3: {}
 
   argparse@2.0.1: {}
+
+  asn1js@3.0.10:
+    dependencies:
+      pvtsutils: 1.3.6
+      pvutils: 1.1.5
+      tslib: 2.8.1
+    optional: true
 
   ast-parents@0.0.1: {}
 
@@ -4381,6 +4485,14 @@ snapshots:
   proxy-from-env@2.1.0: {}
 
   punycode@2.3.1: {}
+
+  pvtsutils@1.3.6:
+    dependencies:
+      tslib: 2.8.1
+    optional: true
+
+  pvutils@1.1.5:
+    optional: true
 
   quick-lru@5.1.1: {}
 

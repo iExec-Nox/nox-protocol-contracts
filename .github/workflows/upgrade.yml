@@ -156,16 +156,31 @@ jobs:
             **Note**: Verify deployment before merging this PR.
           draft: true
 
+  # Propose the prepared `upgradeToAndCall` transaction to the Safe multisig. This runs in the
+  # `ethereum` environment so it reads the Safe credentials directly from the environment secrets.
   propose-multisig-tx:
     needs: prepare-mainnet-upgrade
     if: inputs.network == 'ethereum'
-    uses: iExecBlockchainComputing/github-actions-workflows/.github/workflows/propose-safe-multisig-tx.yml@propose-safe-multisig-tx-v1.1.0
-    with:
-      safe-address: ${{ needs.prepare-mainnet-upgrade.outputs.safe-address }}
-      transaction-to: ${{ needs.prepare-mainnet-upgrade.outputs.transaction-to }}
-      transaction-data: ${{ needs.prepare-mainnet-upgrade.outputs.transaction-data }}
-      dry-run: ${{ inputs.dry_run }}
-    secrets:
-      rpc-url: ${{ secrets.RPC_URL }}
-      safe-proposer-private-key: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
-      safe-api-key: ${{ secrets.SAFE_API_KEY }}
+    runs-on: ubuntu-latest
+    environment: ethereum
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: actions/setup-node@v6
+        with:
+          node-version-file: ".nvmrc"
+
+      - run: corepack enable
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Propose Safe multisig transaction
+        env:
+          RPC_URL: ${{ secrets.RPC_URL }}
+          SAFE_ADDRESS: ${{ vars.SAFE_ADDRESS }}
+          TRANSACTION_TO: ${{ needs.prepare-mainnet-upgrade.outputs.transaction-to }}
+          TRANSACTION_DATA: ${{ needs.prepare-mainnet-upgrade.outputs.transaction-data }}
+          SAFE_PROPOSER_PRIVATE_KEY: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
+          SAFE_API_KEY: ${{ secrets.SAFE_API_KEY }}
+          DRY_RUN: ${{ inputs.dry_run }}
+        run: pnpm run propose-safe-tx
