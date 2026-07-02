@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-# Usage: bash scripts/upgrade.sh --some-option some-value --network <network-name>
+# Usage: bash scripts/upgrade/upgrade.sh --some-option some-value --network <network-name>
 
 # This is a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
 # its forks (tenderlyArbitrumSepolia) as they both have the same chain id. Without
@@ -9,7 +9,7 @@
 set -euo pipefail
 
 if [[ "$#" -lt 2 ]]; then
-    echo "Usage: bash scripts/upgrade.sh --some-option some-value --network <network-name>"
+    echo "Usage: bash scripts/upgrade/upgrade.sh --some-option some-value --network <network-name>"
     exit 1
 fi
 
@@ -43,4 +43,4 @@ if [[ "$network_name" == "arbitrumSepolia" || "$network_name" == "tenderlyArbitr
     export MANIFEST_DEFAULT_DIR="./.openzeppelin/${network_name}"
 fi
 
-pnpm hardhat run scripts/upgrade.ts "${args[@]}"
+pnpm hardhat run scripts/upgrade/upgrade.ts "${args[@]}"

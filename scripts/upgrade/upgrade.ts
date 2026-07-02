@@ -1,10 +1,10 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
 import { Address } from "viem";
-import { deploy } from "./deploy.ts";
-import connection from "./utils/hardhat-connection-singleton.ts";
-import { isFreshLocalNetwork } from "./utils/network.ts";
-import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
+import { deploy } from "../deploy.ts";
+import connection from "../utils/hardhat-connection-singleton.ts";
+import { isFreshLocalNetwork } from "../utils/network.ts";
+import { readDeployedAddress } from "../utils/read-deployed-addresses.ts";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
 // Uses @openzeppelin/hardhat-upgrades for upgrade safety checks
@@ -13,7 +13,7 @@ import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 // When running on a local (edr-simulated) network, a fresh deployment is performed first
 // since each `hardhat run` starts a clean chain.
 //
-// Usage: `hardhat run scripts/upgrade.ts --network <network-name>`
+// Usage: `hardhat run scripts/upgrade/upgrade.ts --network <network-name>`
 
 /**
  * Upgrades the NoxCompute proxy to a new implementation.
@@ -86,5 +86,7 @@ if (_isHardhatRunCommand()) {
 }
 
 function _isHardhatRunCommand() {
-    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/upgrade.ts");
+    return (
+        process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/upgrade/upgrade.ts")
+    );
 }
