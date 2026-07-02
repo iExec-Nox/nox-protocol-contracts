@@ -125,7 +125,7 @@ jobs:
         env:
           RPC_URL: ${{ secrets.RPC_URL }}
           PRIVATE_KEY: ${{ secrets.SAFE_PROPOSER_PRIVATE_KEY }}
-        run: pnpm run prepare-upgrade:production --network ethereum
+        run: pnpm run prepare-upgrade:production --network sepolia
 
       - name: Push artifacts to the current branch
         if: github.ref != 'refs/heads/main'
