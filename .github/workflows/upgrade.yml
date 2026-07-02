@@ -156,13 +156,11 @@ jobs:
             **Note**: Verify deployment before merging this PR.
           draft: true
 
-  # Propose the prepared `upgradeToAndCall` transaction to the Safe multisig. This runs in the
-  # `ethereum` environment so it reads the Safe credentials directly from the environment secrets.
   propose-multisig-tx:
     needs: prepare-mainnet-upgrade
     if: inputs.network == 'ethereum'
     runs-on: ubuntu-latest
-    environment: ethereum
+    # TODO: Change it when support for other environments is added to the workflow    environment: ethereum
     steps:
       - uses: actions/checkout@v5
 
