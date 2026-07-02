@@ -11,6 +11,10 @@ import {TEEType, TypeUtils} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxComputeTest is Test {
+    // ERC-7201 storage location of OZ `Initializable`; low 8 bytes hold `_initialized`.
+    bytes32 constant _INITIALIZABLE_SLOT =
+        0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00;
+
     address admin = makeAddr("admin");
     address upgrader = makeAddr("upgrader");
     bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
@@ -54,6 +58,18 @@ contract NoxComputeTest is Test {
         noxCompute.initialize(admin, upgrader, kmsKey, gateway);
     }
 
+    function test_Initialize_LandsAtLatestVersion() public view {
+        // A fresh deploy must consume every version up to the latest initializer version
+        // so no migration hatch stays open.
+        // The expected version is hardcoded (not read from the contract) on purpose: it
+        // forces whoever bumps `INITIALIZER_VERSION` to revisit the initializers and this
+        // invariant, instead of the assertion silently tracking the constant.
+        uint64 initializedVersion = uint64(
+            uint256(vm.load(address(noxCompute), _INITIALIZABLE_SLOT))
+        );
+        assertEq(initializedVersion, 4);
+    }
+
     function test_RevertWhen_Initialize_InvalidKmsPublicKeyLength() public {
         NoxCompute impl = TestHelper.newImplementationInstance();
         // 0 bytes (empty)
@@ -89,6 +105,43 @@ contract NoxComputeTest is Test {
         NoxCompute impl = TestHelper.newImplementationInstance();
         vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
         TestHelper.deployProxy(address(impl), admin, upgrader, kmsKey, address(0));
+    }
+
+    function test_Reinitialize_ByUpgrader() public {
+        // With a version gap, the upgrader can run the reinitializer and it lands at
+        // the latest version.
+        vm.store(address(noxCompute), _INITIALIZABLE_SLOT, bytes32(uint256(3)));
+        vm.prank(upgrader);
+        noxCompute.reinitialize();
+        uint64 initializedVersion = uint64(
+            uint256(vm.load(address(noxCompute), _INITIALIZABLE_SLOT))
+        );
+        assertEq(initializedVersion, 4);
+    }
+
+    function test_RevertWhen_Reinitialize_AfterFreshDeploy() public {
+        // A fresh deploy lands at the latest reinitializer version, so the migration
+        // hatch `reinitialize` must be already consumed and uncallable by anyone.
+        vm.prank(makeAddr("attacker"));
+        vm.expectRevert(Initializable.InvalidInitialization.selector);
+        noxCompute.reinitialize();
+    }
+
+    function test_RevertWhen_Reinitialize_NotUpgrader() public {
+        // Force a version gap so the reinitializer version check passes and the
+        // `onlyRole` guard is reached.
+        vm.store(address(noxCompute), _INITIALIZABLE_SLOT, bytes32(uint256(3)));
+        address notUpgrader = makeAddr("notUpgrader");
+        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                notUpgrader,
+                upgraderRole
+            )
+        );
+        vm.prank(notUpgrader);
+        noxCompute.reinitialize();
     }
 
     // ============ Helpers ============
