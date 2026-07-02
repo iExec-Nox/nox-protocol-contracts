@@ -260,9 +260,7 @@
           ]
         }
       },
-      "allAddresses": [
-        "0xc9B5D2e99e45dc652b3B90bA5FA79667ACFEb819"
-      ]
+      "allAddresses": ["0xc9B5D2e99e45dc652b3B90bA5FA79667ACFEb819"]
     }
   }
 }
