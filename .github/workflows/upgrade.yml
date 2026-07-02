@@ -160,7 +160,8 @@ jobs:
     needs: prepare-mainnet-upgrade
     if: inputs.network == 'ethereum'
     runs-on: ubuntu-latest
-    # TODO: Change it when support for other environments is added to the workflow    environment: ethereum
+    # TODO: Change it when support for other environments is added to the workflow
+    environment: ethereum
     steps:
       - uses: actions/checkout@v5
 
