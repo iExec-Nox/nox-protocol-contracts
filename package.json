@@ -30,6 +30,7 @@
     "deploy:production": "pnpm hardhat run scripts/deploy.ts --build-profile production",
     "set-gateway": "pnpm hardhat run scripts/set-gateway.ts",
     "set-kms-public-key": "pnpm hardhat run scripts/set-kms-public-key.ts",
+    "import-proxy-manifest": "pnpm hardhat run scripts/import-proxy-manifest.ts",
     "upgrade": "bash scripts/upgrade/upgrade.sh",
     "upgrade:production": "bash scripts/upgrade/upgrade.sh --build-profile production",
     "verify": "pnpm hardhat ignition verify",
