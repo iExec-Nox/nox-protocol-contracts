@@ -91,7 +91,7 @@ The default network is a local EDR simulation. For external networks, set `RPC_U
 pnpm run deploy
 
 # Production deploy (optimizer + viaIR)
-pnpm run deploy:production --network <name>
+pnpm run deploy:production
 ```
 
 ## Upgrade
