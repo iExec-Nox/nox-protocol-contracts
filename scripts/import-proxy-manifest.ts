@@ -27,6 +27,7 @@ export async function importProxyManifest() {
     console.log(`NoxCompute proxy address: ${noxComputeProxyAddress}`);
 
     console.log("Importing proxy into the OpenZeppelin upgrades manifest...");
+    console.warn("⚠️ Make sure you are on the correct commit that matches the deployed implementation contract.");
     const api = await upgrades(hre, connection);
     const noxComputeFactory = await connection.ethers.getContractFactory("NoxCompute");
     await api.forceImport(noxComputeProxyAddress, noxComputeFactory, { kind: "uups" });

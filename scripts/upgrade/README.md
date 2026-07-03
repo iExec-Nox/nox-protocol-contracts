@@ -6,8 +6,8 @@ Upgrades are authorized by `UPGRADER_ROLE`.
 Tooling:
 
 - `pnpm run upgrade[:production]`: upgrade entry points.
-- `scripts/upgrade.sh`: a wrapper that sets the per-network OZ manifest dir, then runs the TS script.
-- `scripts/upgrade.ts`: runs `@openzeppelin/hardhat-upgrades` to check storage-layout safety and, atomically,
+- `scripts/upgrade/upgrade.sh`: a wrapper that sets the per-network OZ manifest dir, then runs the TS script.
+- `scripts/upgrade/upgrade.ts`: runs `@openzeppelin/hardhat-upgrades` to check storage-layout safety and, atomically,
   calls `reinitialize()` via `upgradeToAndCall`.
 
 ## Initializer version

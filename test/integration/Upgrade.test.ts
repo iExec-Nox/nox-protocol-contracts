@@ -55,5 +55,6 @@ async function _decrementInitializedVersion(proxyAddress: Address): Promise<void
     const current = BigInt(
         (await publicClient.getStorageAt({ address: proxyAddress, slot: INITIALIZABLE_SLOT })) ?? "0x0",
     );
+    assert.ok(current > 0n, "Expected proxy to be initialized (initialized version > 0)");
     await connection.networkHelpers.setStorageAt(proxyAddress, INITIALIZABLE_SLOT, current - 1n);
 }
