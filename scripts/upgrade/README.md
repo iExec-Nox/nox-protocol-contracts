@@ -10,14 +10,18 @@ Tooling:
 - `scripts/upgrade/upgrade.ts`: runs `@openzeppelin/hardhat-upgrades` to check storage-layout safety and, atomically,
   calls `reinitialize()` via `upgradeToAndCall`.
 
-## Initializer version
+## Initializers
 
 > [!NOTE]
-> There is **one** version counter, `NoxCompute.INITIALIZER_VERSION`, shared by `initialize(...)` (new proxies)
-> and `reinitialize(...)` (existing proxies).
+> Two entry points:
 >
-> A fresh deploy runs `initialize`, landing **directly** at `INITIALIZER_VERSION`, so the
-> `reinitialize` hatch is consumed at birth and can never be called on a fresh proxy.
+> - `initialize(...)` — **fresh proxies only**. Uses the `initializer` modifier, so it is callable
+>   exactly once, on a proxy that has never been initialized. It is unguarded and grants roles from
+>   its arguments — hence it must NOT be a `reinitializer` (that would leave it callable on any proxy
+>   below the target version and turn an upgrade without `upgradeToAndCall` into a takeover).
+> - `reinitialize()` — **existing proxies, during upgrades**. `reinitializer(N) onlyRole(UPGRADER_ROLE)`;
+>   run atomically via `upgradeToAndCall`. The `onlyRole` guard protects the migration hatch.
+>   `N` should be bumped on each upgrade.
 
 ## Pre-upgrade checklist
 
@@ -30,10 +34,9 @@ Tooling:
 - [ ] `TEEType` enum changes are append-only (never reorder/remove).
 - [ ] Breaking changes are identified and clearly documented, with a migration strategy
       specified for existing apps.
-- [ ] If the upgrade needs migration logic, put it in `reinitialize()` and **bump
-      `INITIALIZER_VERSION`** by one. If not, leave `reinitialize()` empty but still bumped
-      so the version advances.
-- [ ] Update `initializer` tests to expect the new version number.
+- [ ] If the upgrade needs migration logic, put it in `reinitialize()` and **bump its
+      `reinitializer(N)` literal** by one. If not, leave `reinitialize()` empty or remove it.
+- [ ] Update the reinitializer tests to expect the new version number.
 - [ ] OZ manifest for the target network exists under `.openzeppelin/` and matches the
       currently-deployed implementation (registered via `forceImport` in `deploy.ts`).
 - [ ] Confirm the caller key (`PRIVATE_KEY`) holds `UPGRADER_ROLE` on the target proxy (command below).
@@ -59,7 +62,6 @@ network uses the default `.openzeppelin/`. Always go through `pnpm run upgrade`,
       expected values.
 - [ ] Verify the new implementation on the explorer: `pnpm run verify <network> --network <network>`.
 - [ ] Merge the artifacts-update PR opened by the GHA run.
-- [ ] All live networks are upgraded to the same `INITIALIZER_VERSION`.
 - [ ] Publish a GitHub release for the new version.
 - [ ] Update the dependent projects (`nox-confidential-contracts`, ...) to the new release if needed.
 

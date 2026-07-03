@@ -58,16 +58,14 @@ contract NoxComputeTest is Test {
         noxCompute.initialize(admin, upgrader, kmsKey, gateway);
     }
 
-    function test_Initialize_LandsAtLatestVersion() public view {
-        // A fresh deploy must consume every version up to the latest initializer version
-        // so no migration hatch stays open.
-        // The expected version is hardcoded (not read from the contract) on purpose: it
-        // forces whoever bumps `INITIALIZER_VERSION` to revisit the initializers and this
-        // invariant, instead of the assertion silently tracking the constant.
+    function test_Initialize_UsesOneShotInitializer() public view {
+        // `initialize` must use the `initializer` modifier (landing at version 1), NOT a
+        // `reinitializer`. It is unguarded and grants roles, so it must be callable only on a
+        // truly fresh proxy.
         uint64 initializedVersion = uint64(
             uint256(vm.load(address(noxCompute), _INITIALIZABLE_SLOT))
         );
-        assertEq(initializedVersion, 4);
+        assertEq(initializedVersion, 1);
     }
 
     function test_RevertWhen_Initialize_InvalidKmsPublicKeyLength() public {
@@ -108,9 +106,6 @@ contract NoxComputeTest is Test {
     }
 
     function test_Reinitialize_ByUpgrader() public {
-        // With a version gap, the upgrader can run the reinitializer and it lands at
-        // the latest version.
-        vm.store(address(noxCompute), _INITIALIZABLE_SLOT, bytes32(uint256(3)));
         vm.prank(upgrader);
         noxCompute.reinitialize();
         uint64 initializedVersion = uint64(
@@ -119,18 +114,7 @@ contract NoxComputeTest is Test {
         assertEq(initializedVersion, 4);
     }
 
-    function test_RevertWhen_Reinitialize_AfterFreshDeploy() public {
-        // A fresh deploy lands at the latest reinitializer version, so the migration
-        // hatch `reinitialize` must be already consumed and uncallable by anyone.
-        vm.prank(makeAddr("attacker"));
-        vm.expectRevert(Initializable.InvalidInitialization.selector);
-        noxCompute.reinitialize();
-    }
-
     function test_RevertWhen_Reinitialize_NotUpgrader() public {
-        // Force a version gap so the reinitializer version check passes and the
-        // `onlyRole` guard is reached.
-        vm.store(address(noxCompute), _INITIALIZABLE_SLOT, bytes32(uint256(3)));
         address notUpgrader = makeAddr("notUpgrader");
         bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
         vm.expectRevert(

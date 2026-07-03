@@ -16,8 +16,6 @@ import {Compute} from "./modules/Compute.sol";
  * - Triggering off-chain TEE computations through event emissions
  */
 contract NoxCompute is Admin, ACL, Compute {
-    uint8 private constant INITIALIZER_VERSION = 4;
-
     /**
      * @custom:oz-upgrades-unsafe-allow constructor
      */
@@ -27,8 +25,6 @@ contract NoxCompute is Admin, ACL, Compute {
 
     /**
      * Initializes the proxy contract state for a fresh deployment.
-     * @dev Uses the same `INITIALIZER_VERSION` for all initializers to close the migration hatch
-     * even for freshly deployed proxies.
      * @param admin Address granted `DEFAULT_ADMIN_ROLE`.
      * @param upgrader Address granted `UPGRADER_ROLE`.
      * @param kmsPublicKey KMS public key for ECIES encryption.
@@ -39,7 +35,7 @@ contract NoxCompute is Admin, ACL, Compute {
         address upgrader,
         bytes calldata kmsPublicKey,
         address gateway
-    ) public reinitializer(INITIALIZER_VERSION) {
+    ) public initializer {
         // v0.1.0
         _setKmsPublicKey(kmsPublicKey);
         _setGateway(gateway);
@@ -54,5 +50,5 @@ contract NoxCompute is Admin, ACL, Compute {
      * @notice Reinitializer for already deployed proxies, runs atomically during upgrades.
      * @custom:oz-upgrades-validate-as-initializer
      */
-    function reinitialize() public reinitializer(INITIALIZER_VERSION) onlyRole(UPGRADER_ROLE) {}
+    function reinitialize() public reinitializer(4) onlyRole(UPGRADER_ROLE) {}
 }
