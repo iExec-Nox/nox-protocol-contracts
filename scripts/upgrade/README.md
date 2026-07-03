@@ -44,9 +44,10 @@ Tooling:
 - [ ] The workflow is always triggered from the `main` branch.
 - [ ] Roll out in order: Tenderly environment first, then testnets, then mainnets.
 
-Networks sharing a chainId (`arbitrumSepolia` and its Tenderly fork
-`tenderlyArbitrumSepolia`, both `421614`) use separate manifest dirs; `upgrade.sh` sets
-`MANIFEST_DEFAULT_DIR` automatically — always go through `pnpm run upgrade`, not the raw
+`arbitrumSepolia` and its Tenderly fork `tenderlyArbitrumSepolia` share the same chainId (`421614`),
+so their OZ manifests would collide in the default `.openzeppelin/` directory. `upgrade.sh`
+gives only the Tenderly fork a dedicated manifest dir (via `MANIFEST_DEFAULT_DIR`); every other
+network uses the default `.openzeppelin/`. Always go through `pnpm run upgrade`, not the raw
 `hardhat run`.
 
 ## Post-upgrade checklist

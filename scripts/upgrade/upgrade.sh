@@ -2,9 +2,9 @@
 
 # Usage: bash scripts/upgrade/upgrade.sh --some-option some-value --network <network-name>
 
-# This is a fix to use different .openzeppelin manifest files for Arbitrum Sepolia and
-# its forks (tenderlyArbitrumSepolia) as they both have the same chain id. Without
-# this fix, they both would conflict and use the same file .openzeppelin/arbitrumSepolia.json.
+# Arbitrum Sepolia and its Tenderly fork (tenderlyArbitrumSepolia) share the same chain id,
+# so their OZ manifests would collide in the default .openzeppelin/ directory. To avoid this,
+# the Tenderly fork uses a dedicated manifest directory; all other networks use the default .openzeppelin/ directory.
 
 set -euo pipefail
 
@@ -37,9 +37,9 @@ if [[ -z "$network_name" ]]; then
     exit 1
 fi
 
-# Use a different .openzeppelin manifest directory for Arbitrum Sepolia and its Tenderly fork.
-# For other networks, the default .openzeppelin manifest directory will be used.
-if [[ "$network_name" == "arbitrumSepolia" || "$network_name" == "tenderlyArbitrumSepolia" ]]; then
+# Use a dedicated .openzeppelin manifest directory only for the Tenderly fork.
+# For all other networks, the default .openzeppelin manifest directory will be used.
+if [[ "$network_name" == "tenderlyArbitrumSepolia" ]]; then
     export MANIFEST_DEFAULT_DIR="./.openzeppelin/${network_name}"
 fi
 
