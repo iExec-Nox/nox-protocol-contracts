@@ -3,6 +3,7 @@ import hre from "hardhat";
 import { getChainConfig } from "../config/config.ts";
 import NoxCompute from "../ignition/modules/NoxCompute.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { isHardhatRunCommand } from "./utils/helpers.ts";
 
 // Deployment script for the Nox Contracts.
 // Uses deterministic CREATE2 deployment via CreateX factory.
@@ -56,12 +57,6 @@ export async function deploy(printLogs = true) {
 
 // Execute the deployment only if the script is run directly.
 // This disables execution when the file is imported as a module.
-if (_isHardhatRunCommand()) {
+if (isHardhatRunCommand("scripts/deploy.ts")) {
     await deploy();
-}
-
-function _isHardhatRunCommand() {
-    // When running `hardhat run scripts/deploy.ts`, the argv looks like:
-    // [ "/.../bin/node", "/.../cli.js", "run", "scripts/deploy.ts"];
-    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/deploy.ts");
 }

@@ -3,7 +3,7 @@ import hre from "hardhat";
 import { Address } from "viem";
 import { deploy } from "../deploy.ts";
 import connection from "../utils/hardhat-connection-singleton.ts";
-import { isFreshLocalNetwork } from "../utils/network.ts";
+import { isFreshLocalNetwork, isHardhatRunCommand } from "../utils/helpers.ts";
 import { readDeployedAddress } from "../utils/read-deployed-addresses.ts";
 
 // Script to upgrade the NoxCompute proxy to a new implementation.
@@ -81,12 +81,6 @@ async function _resolveProxyAddress(
 }
 
 // Execute the script only if run directly
-if (_isHardhatRunCommand()) {
+if (isHardhatRunCommand("scripts/upgrade/upgrade.ts")) {
     await upgradeNoxCompute();
-}
-
-function _isHardhatRunCommand() {
-    return (
-        process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/upgrade/upgrade.ts")
-    );
 }
