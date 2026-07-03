@@ -74,5 +74,7 @@ network uses the default `.openzeppelin/`. Always go through `pnpm run upgrade`,
 
 ## Gotchas
 
+- There is a bug that prints the old implementation address instead of the new one, get the correct
+  address from the manifest file.
 - **`waitForTransactionReceipt` does not throw on revert**, always assert tx status
   before declaring success.
