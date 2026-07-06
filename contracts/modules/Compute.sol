@@ -77,6 +77,7 @@ abstract contract Compute is Common, EIP712 {
             appInProof := shr(96, calldataload(add(proof.offset, 20)))
             createdAt := calldataload(add(proof.offset, 40))
         }
+        require(createdAt <= block.timestamp, InvalidProof(proof, "Proof created in the future"));
         bytes calldata signature = proof[72:137];
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         require(
