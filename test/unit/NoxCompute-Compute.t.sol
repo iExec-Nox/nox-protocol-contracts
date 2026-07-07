@@ -106,6 +106,20 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidPublicHandle(result, TEEType.Int256);
     }
 
+    function test_WrapAsPublicHandle_ZeroValue_ReturnsCanonicalZeroHandle() public {
+        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < types.length; i++) {
+            vm.recordLogs();
+            vm.prank(caller);
+            bytes32 result = noxCompute.wrapAsPublicHandle(bytes32(0), types[i]);
+            // Single canonical representation for each type's zero value
+            assertEq(result, HandleUtils.zeroHandle(types[i]));
+            _assertValidPublicHandle(result, types[i]);
+            // No event: the zero handle is already known by the off-chain stack
+            assertEq(vm.getRecordedLogs().length, 0, "Should not emit any event for zero value");
+        }
+    }
+
     function test_WrapAsPublicHandle_Deterministic() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
