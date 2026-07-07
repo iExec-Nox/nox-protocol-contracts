@@ -47,8 +47,8 @@ contract NoxCompute is Admin, ACL, Compute {
     }
 
     /**
-     * @notice Initializer of 0.X.Y upgrade for already deployed proxies.
+     * @notice Reinitializer for already deployed proxies, runs atomically during upgrades.
      * @custom:oz-upgrades-validate-as-initializer
      */
-    function initializeV4() public reinitializer(4) {}
+    function reinitialize() public reinitializer(4) onlyRole(UPGRADER_ROLE) {}
 }

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, it } from "node:test";
-import { upgradeNoxCompute } from "../../scripts/upgrade.ts";
+import { upgradeNoxCompute } from "../../scripts/upgrade/upgrade.ts";
 import connection from "../../scripts/utils/hardhat-connection-singleton.ts";
 import { loadFixture } from "../utils/fixture.ts";
 
@@ -12,8 +12,8 @@ describe("[IT] Upgrade", function () {
 
             await upgradeNoxCompute(noxCompute.address, false, "NoxComputeUpgradeMock");
             const upgraded = await viem.getContractAt("NoxComputeUpgradeMock", noxCompute.address);
-            const version = await upgraded.read.version();
-            assert.strictEqual(version, 3n, "Sentinel version should be readable after upgrade");
+            const isUpgradeMock = await upgraded.read.isUpgradeMock();
+            assert.strictEqual(isUpgradeMock, true, "Proxy should delegate to the upgraded implementation");
 
             // Verify existing state is preserved
             const currentGateway = await upgraded.read.gateway();

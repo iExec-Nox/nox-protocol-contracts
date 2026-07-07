@@ -1,5 +1,6 @@
 import { readFile } from "fs/promises";
 import { join } from "path";
+import { Address } from "viem";
 import connection from "./hardhat-connection-singleton.ts";
 
 /**
@@ -31,11 +32,11 @@ export async function readDeployedAddresses(): Promise<Record<string, string>> {
  * @param key The contract key (e.g., "NoxCompute#proxy")
  * @returns The deployed address
  */
-export async function readDeployedAddress(key: string): Promise<string> {
+export async function readDeployedAddress(key: string): Promise<Address> {
     const deployedAddresses = await readDeployedAddresses();
     const address = deployedAddresses[key];
     if (!address) {
         throw new Error(`${key} not found in deployment artifacts`);
     }
-    return address;
+    return address as Address;
 }
