@@ -11,7 +11,8 @@ import {
     NonArithmeticType,
     UnsupportedArithmeticType,
     IncompatibleTypes,
-    ValueOutOfRange
+    ValueOutOfRange,
+    UnsupportedType
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -245,6 +246,30 @@ contract NoxCompute_ComputeTest is Test {
                 "Handle chain id mismatch"
             )
         );
+        noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_ValidateProof_UnsupportedHandleType() public {
+        // Unique handle with a type byte beyond the TEEType enum range
+        bytes32 badHandle = bytes32(
+            abi.encodePacked(
+                bytes1(0x00), // Version
+                bytes4(uint32(block.chainid)), // ChainId
+                bytes1(uint8(type(TEEType).max) + 1), // Out-of-range type
+                bytes1(0x01), // Attributes (isUniqueHandle=1)
+                bytes25(uint200(1)) // Pre-handle
+            )
+        );
+        bytes memory proof = TestHelper.buildInputProof(
+            address(noxCompute),
+            badHandle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
+        uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
+        vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, badTypeIndex));
         noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
 

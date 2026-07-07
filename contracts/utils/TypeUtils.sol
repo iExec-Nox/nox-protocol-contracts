@@ -116,6 +116,7 @@ error NonArithmeticType();
 error UnsupportedArithmeticType();
 error IncompatibleTypes();
 error ValueOutOfRange();
+error UnsupportedType(uint8 typeIndex);
 
 library TypeUtils {
     /**
@@ -138,7 +139,9 @@ library TypeUtils {
      * @return The TEEType encoded in the handle
      */
     function typeOf(bytes32 handle) internal pure returns (TEEType) {
-        return TEEType(uint8(handle[5]));
+        uint8 typeIndex = uint8(handle[5]);
+        require(typeIndex <= uint8(type(TEEType).max), UnsupportedType(typeIndex));
+        return TEEType(typeIndex);
     }
 
     /**
