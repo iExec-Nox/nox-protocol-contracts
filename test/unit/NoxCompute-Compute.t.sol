@@ -397,6 +397,32 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
     }
 
+    function test_RevertWhen_ValidateProof_CreatedInFuture() public {
+        // Warp to a realistic timestamp
+        vm.warp(1700000000);
+
+        address app = makeAddr("app");
+        uint256 proofCreatedAt = block.timestamp + 1;
+        bytes memory proof = TestHelper.buildInputProof(
+            address(noxCompute),
+            handle,
+            owner,
+            app,
+            proofCreatedAt,
+            gatewayPrivateKey
+        );
+
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                INoxCompute.InvalidProof.selector,
+                proof,
+                "Proof created in the future"
+            )
+        );
+        vm.prank(app);
+        noxCompute.validateInputProof(handle, owner, proof, TEEType.Uint256);
+    }
+
     // ============ validateDecryptionProof ============
 
     function test_ValidateDecryptionProof_With32Bytes() public {

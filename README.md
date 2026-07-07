@@ -81,6 +81,9 @@ pnpm run coverage
 
 ## Deployment
 
+> [!NOTE]
+> On production, always deploy using GHA workflows.
+
 The default network is a local EDR simulation. For external networks, set `RPC_URL` and `PRIVATE_KEY`:
 
 ```bash
@@ -89,8 +92,14 @@ pnpm run deploy
 
 # Production deploy (optimizer + viaIR)
 pnpm run deploy:production
+```
 
-# Upgrade an existing proxy
+## Upgrade
+
+For upgrades, follow the [Upgrade Guide](scripts/upgrade/README.md) checklists.
+
+```bash
+# Local upgrade
 pnpm run upgrade
 ```
 

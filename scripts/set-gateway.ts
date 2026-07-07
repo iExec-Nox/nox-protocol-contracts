@@ -1,5 +1,6 @@
 import { getChainConfig } from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { isHardhatRunCommand } from "./utils/helpers.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 
 // Script to set the gateway address on the NoxCompute contract.
@@ -54,10 +55,6 @@ export async function setGateway(printLogs = true) {
 }
 
 // Execute the script only if run directly
-if (_isHardhatRunCommand()) {
+if (isHardhatRunCommand("scripts/set-gateway.ts")) {
     await setGateway();
-}
-
-function _isHardhatRunCommand() {
-    return process.argv.length >= 4 && process.argv[2] === "run" && process.argv[3].includes("scripts/set-gateway.ts");
 }

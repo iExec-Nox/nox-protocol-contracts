@@ -1,5 +1,6 @@
 import { getChainConfig } from "../config/config.ts";
 import connection from "./utils/hardhat-connection-singleton.ts";
+import { isHardhatRunCommand } from "./utils/helpers.ts";
 import { readDeployedAddress } from "./utils/read-deployed-addresses.ts";
 
 // Script to set the KMS public key on the NoxCompute contract.
@@ -54,14 +55,6 @@ export async function setKmsPublicKey(printLogs = true) {
 }
 
 // Execute the script only if run directly
-if (_isHardhatRunCommand()) {
+if (isHardhatRunCommand("scripts/set-kms-public-key.ts")) {
     await setKmsPublicKey();
-}
-
-function _isHardhatRunCommand() {
-    return (
-        process.argv.length >= 4 &&
-        process.argv[2] === "run" &&
-        process.argv[3].includes("scripts/set-kms-public-key.ts")
-    );
 }
