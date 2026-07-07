@@ -108,6 +108,23 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.setProofExpirationDuration(2 hours);
     }
 
+    // ============ renounceRole ============
+
+    function test_RenounceRole_UpgraderRole() public {
+        bytes32 upgraderRole = noxCompute.UPGRADER_ROLE();
+        assertTrue(noxCompute.hasRole(upgraderRole, upgrader));
+        vm.prank(upgrader);
+        noxCompute.renounceRole(upgraderRole, upgrader);
+        assertFalse(noxCompute.hasRole(upgraderRole, upgrader));
+    }
+
+    function test_RevertWhen_RenounceRole_AdminRole() public {
+        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
+        vm.expectRevert(INoxCompute.AdminRoleRenouncementForbidden.selector);
+        vm.prank(admin);
+        noxCompute.renounceRole(adminRole, admin);
+    }
+
     // ============ _authorizeUpgrade ============
 
     function test_AuthorizeUpgrade() public {
