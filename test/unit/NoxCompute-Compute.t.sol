@@ -255,7 +255,7 @@ contract NoxCompute_ComputeTest is Test {
             abi.encodePacked(
                 bytes1(0x00), // Version
                 bytes4(uint32(block.chainid)), // ChainId
-                bytes1(uint8(type(TEEType).max) + 1), // Out-of-range type
+                bytes1(badTypeIndex), // Out-of-range type
                 bytes1(0x01), // Attributes (isUniqueHandle=1)
                 bytes25(uint200(1)) // Pre-handle
             )
