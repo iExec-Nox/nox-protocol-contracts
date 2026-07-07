@@ -37,23 +37,23 @@ abstract contract Compute is Common, EIP712 {
         TypeUtils.validateValueFitsType(value, teeType);
         if (value == bytes32(0)) {
             // Canonical zero: always return the zero handle so a single handle
-            // representation exists for each type's zero value.
-            result = HandleUtils.zeroHandle(teeType);
-        } else {
-            bytes32[] memory operands = new bytes32[](1);
-            operands[0] = value;
-            // Deterministic handle: same (value, type) always produces the same handle
-            // Generate a public handle (outputIndex=0, uniqueSeed=0, attributes=0x00).
-            // No ACL grant is needed: public handles are accessible to everyone.
-            result = _generateHandle(
-                Operator.WrapAsPublicHandle,
-                operands,
-                teeType,
-                0,
-                0,
-                bytes1(0x00)
-            );
+            // representation exists for each type's zero value. No event is emitted:
+            // the zero handle is already known by the off-chain stack.
+            return HandleUtils.zeroHandle(teeType);
         }
+        bytes32[] memory operands = new bytes32[](1);
+        operands[0] = value;
+        // Deterministic handle: same (value, type) always produces the same handle
+        // Generate a public handle (outputIndex=0, uniqueSeed=0, attributes=0x00).
+        // No ACL grant is needed: public handles are accessible to everyone.
+        result = _generateHandle(
+            Operator.WrapAsPublicHandle,
+            operands,
+            teeType,
+            0,
+            0,
+            bytes1(0x00)
+        );
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 
