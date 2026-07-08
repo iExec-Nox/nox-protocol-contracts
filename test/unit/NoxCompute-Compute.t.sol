@@ -11,7 +11,8 @@ import {
     NonArithmeticType,
     UnsupportedArithmeticType,
     IncompatibleTypes,
-    ValueOutOfRange
+    ValueOutOfRange,
+    UnsupportedType
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -24,6 +25,8 @@ contract NoxCompute_ComputeTest is Test {
     NoxCompute noxCompute;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+    // Type byte beyond the TEEType enum range
+    uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
 
     bytes4[] arithmeticOps = [
         INoxCompute.add.selector,
@@ -164,11 +167,7 @@ contract NoxCompute_ComputeTest is Test {
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
-            abi.encodeWithSelector(
-                INoxCompute.wrapAsPublicHandle.selector,
-                value,
-                uint8(type(TEEType).max) + 1
-            )
+            abi.encodeWithSelector(INoxCompute.wrapAsPublicHandle.selector, value, badTypeIndex)
         );
         assertFalse(success);
     }
@@ -245,6 +244,29 @@ contract NoxCompute_ComputeTest is Test {
                 "Handle chain id mismatch"
             )
         );
+        noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_ValidateProof_UnsupportedHandleType() public {
+        // Unique handle with a type byte beyond the TEEType enum range
+        bytes32 badHandle = bytes32(
+            abi.encodePacked(
+                bytes1(0x00), // Version
+                bytes4(uint32(block.chainid)), // ChainId
+                bytes1(badTypeIndex), // Out-of-range type
+                bytes1(0x01), // Attributes (isUniqueHandle=1)
+                bytes25(uint200(1)) // Pre-handle
+            )
+        );
+        bytes memory proof = TestHelper.buildInputProof(
+            address(noxCompute),
+            badHandle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
+        vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, badTypeIndex));
         noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
