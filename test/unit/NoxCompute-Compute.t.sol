@@ -25,6 +25,8 @@ contract NoxCompute_ComputeTest is Test {
     NoxCompute noxCompute;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+    // Type byte beyond the TEEType enum range
+    uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
 
     bytes4[] arithmeticOps = [
         INoxCompute.add.selector,
@@ -165,11 +167,7 @@ contract NoxCompute_ComputeTest is Test {
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
-            abi.encodeWithSelector(
-                INoxCompute.wrapAsPublicHandle.selector,
-                value,
-                uint8(type(TEEType).max) + 1
-            )
+            abi.encodeWithSelector(INoxCompute.wrapAsPublicHandle.selector, value, badTypeIndex)
         );
         assertFalse(success);
     }
@@ -268,7 +266,6 @@ contract NoxCompute_ComputeTest is Test {
             createdAt,
             gatewayPrivateKey
         );
-        uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
         vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, badTypeIndex));
         noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
