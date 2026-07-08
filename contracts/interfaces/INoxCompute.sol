@@ -15,6 +15,8 @@ interface INoxCompute {
     error InvalidKmsPublicKeyLength();
     /// Error thrown when KMS public key content is invalid (e.g. all zeros)
     error InvalidKmsPublicKey();
+    /// Error thrown when attempting to renounce DEFAULT_ADMIN_ROLE
+    error AdminRoleRenouncementForbidden();
 
     // ------------- ACL errors -------------
     /// Error thrown when sender doesn't have access to the handle

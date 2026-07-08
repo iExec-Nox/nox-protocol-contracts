@@ -72,6 +72,19 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     }
 
     /**
+     * @notice Renounces a role, except DEFAULT_ADMIN_ROLE.
+     * @dev Renouncing DEFAULT_ADMIN_ROLE is forbidden: with no admin left, roles could
+     * never be granted or revoked again, permanently freezing role management and,
+     * once no UPGRADER_ROLE holder remains, protocol upgrades and infrastructure config.
+     * @param role The role to renounce
+     * @param callerConfirmation The caller address, as a confirmation
+     */
+    function renounceRole(bytes32 role, address callerConfirmation) public override {
+        require(role != DEFAULT_ADMIN_ROLE, AdminRoleRenouncementForbidden());
+        super.renounceRole(role, callerConfirmation);
+    }
+
+    /**
      * Authorizes contract upgrades only by an UPGRADER_ROLE holder.
      */
     function _authorizeUpgrade(
