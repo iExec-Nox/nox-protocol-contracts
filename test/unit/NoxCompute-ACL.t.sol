@@ -391,21 +391,21 @@ contract NoxCompute_ACLTest is Test {
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    // A forged/unknown public handle (never passed through wrapAsPublicHandle) must NOT be allowed.
+    // A forged/unregistered public handle (never passed through wrapAsPublicHandle) must NOT be allowed.
     function test_PublicHandle_IsAllowed_ReturnsFalse_ForForgedHandle() public {
         bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertFalse(noxCompute.isAllowed(forgedHandle, address(0xdead)));
     }
 
     // A legitimately wrapped public handle must be allowed for everyone.
-    // Note: forceKnownPublicHandle is used instead of relying on transient storage because
+    // Note: forceRegisteredPublicHandle is used instead of relying on transient storage because
     // Hardhat EDR clears transient state between separate external calls from a Solidity test.
     function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedHandle() public {
         bytes32 wrappedHandle = noxCompute.wrapAsPublicHandle(
             bytes32(uint256(777)),
             TEEType.Uint256
         );
-        TestHelper.forceKnownPublicHandle(wrappedHandle);
+        TestHelper.forceRegisteredPublicHandle(wrappedHandle);
         assertTrue(noxCompute.isAllowed(wrappedHandle, address(0xdead)));
         assertTrue(noxCompute.isAllowed(wrappedHandle, user1));
     }
@@ -424,13 +424,13 @@ contract NoxCompute_ACLTest is Test {
     }
 
     // validateAllowedForAll calls _isAllowed: only legitimately wrapped handles pass.
-    // Note: forceKnownPublicHandle is used instead of relying on transient storage because
+    // Note: forceRegisteredPublicHandle is used instead of relying on transient storage because
     // Hardhat EDR clears transient state between separate external calls from a Solidity test.
     function test_PublicHandle_ValidateAllowedForAll_PassesForWrappedHandles() public {
         bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
-        TestHelper.forceKnownPublicHandle(pub1);
+        TestHelper.forceRegisteredPublicHandle(pub1);
         bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
-        TestHelper.forceKnownPublicHandle(pub2);
+        TestHelper.forceRegisteredPublicHandle(pub2);
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = pub1;
         handles[1] = pub2;
@@ -438,7 +438,7 @@ contract NoxCompute_ACLTest is Test {
         noxCompute.validateAllowedForAll(user1, handles);
     }
 
-    // validateAllowedForAll must reject forged/unknown public handles.
+    // validateAllowedForAll must reject forged/unregistered public handles.
     function test_PublicHandle_ValidateAllowedForAll_RevertsForForgedHandle() public {
         bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](1);

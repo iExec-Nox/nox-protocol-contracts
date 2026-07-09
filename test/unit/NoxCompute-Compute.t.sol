@@ -69,9 +69,9 @@ contract NoxCompute_ComputeTest is Test {
             allOps.push(comparisonOps[i]);
         }
         pubA = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
-        TestHelper.forceKnownPublicHandle(pubA);
+        TestHelper.forceRegisteredPublicHandle(pubA);
         pubB = noxCompute.wrapAsPublicHandle(bytes32(uint256(200)), TEEType.Uint256);
-        TestHelper.forceKnownPublicHandle(pubB);
+        TestHelper.forceRegisteredPublicHandle(pubB);
     }
 
     // ============ wrapAsPublicHandle ============
@@ -127,7 +127,7 @@ contract NoxCompute_ComputeTest is Test {
             // Single canonical representation for each type's zero value
             assertEq(result, HandleUtils.zeroHandle(types[i]));
             _assertValidPublicHandle(result, types[i]);
-            // No event: the zero handle is already known by the off-chain stack
+            // No event: the zero handle is already registered by the off-chain stack
             assertEq(vm.getRecordedLogs().length, 0, "Should not emit any event for zero value");
         }
     }
@@ -1143,7 +1143,7 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     // The zero handles seeded at initialization are registered and must pass isAllowed.
-    function test_ZeroHandles_AreKnown_AfterInitialization() public view {
+    function test_ZeroHandles_AreRegistered_AfterInitialization() public view {
         TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < supportedTypes.length; ++i) {
             bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
@@ -1263,9 +1263,11 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     // persistTransientHandle reverts for a forged public handle not wrapped this tx.
-    function test_RevertWhen_PersistTransientHandle_NotKnownThisTx() public {
+    function test_RevertWhen_PersistTransientHandle_NotRegisteredThisTx() public {
         bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
-        vm.expectRevert(abi.encodeWithSelector(INoxCompute.UnknownPublicHandle.selector, forged));
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, forged)
+        );
         noxCompute.persistTransientHandle(forged);
     }
 
@@ -1274,7 +1276,7 @@ contract NoxCompute_ComputeTest is Test {
     function test_RevertWhen_PersistTransientHandle_ZeroHandle() public {
         bytes32 zeroHandle = HandleUtils.zeroHandle(TEEType.Uint256);
         vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.UnknownPublicHandle.selector, zeroHandle)
+            abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, zeroHandle)
         );
         noxCompute.persistTransientHandle(zeroHandle);
     }

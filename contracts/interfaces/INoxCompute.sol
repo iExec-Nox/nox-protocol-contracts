@@ -29,8 +29,8 @@ interface INoxCompute {
     error PublicHandleACLForbidden();
     /// Error thrown when handle is not a public handle
     error NotPublicHandle();
-    /// Error thrown when attempting to persist a public handle not known in this tx
-    error UnknownPublicHandle(bytes32 handle);
+    /// Error thrown when attempting to persist a public handle not registered in this tx
+    error UnregisteredPublicHandle(bytes32 handle);
 
     // ------------- Compute errors -------------
     /// Error thrown when the input proof is invalid

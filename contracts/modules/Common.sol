@@ -34,7 +34,7 @@ abstract contract Common is INoxCompute {
         uint256 uniqueSeedCounter;
         // Public handles created on-chain via wrapAsPublicHandle (or seeded zero handles).
         // Used to reject forged public handles whose preimage the gateway never witnessed.
-        mapping(bytes32 handle => bool) isKnownPublicHandle;
+        mapping(bytes32 handle => bool) isRegisteredPublicHandle;
     }
 
     function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
@@ -59,5 +59,7 @@ abstract contract Common is INoxCompute {
     function _registerTransientPublicHandle(bytes32 handle) internal virtual;
 
     // Implemented by ACL, called by Compute.
-    function _isKnownTransientPublicHandle(bytes32 handle) internal view virtual returns (bool);
+    function _isRegisteredTransientPublicHandle(
+        bytes32 handle
+    ) internal view virtual returns (bool);
 }

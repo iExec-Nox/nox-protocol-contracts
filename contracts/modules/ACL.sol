@@ -184,8 +184,8 @@ abstract contract ACL is Common {
         if (HandleUtils.isPublicHandle(handle)) {
             NoxComputeStorage storage $ = _getNoxComputeStorage();
             return
-                _isKnownTransientPublicHandle(handle) ||
-                $.isKnownPublicHandle[handle] ||
+                _isRegisteredTransientPublicHandle(handle) ||
+                $.isRegisteredPublicHandle[handle] ||
                 _isZeroHandle(handle);
         }
         return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
@@ -204,7 +204,9 @@ abstract contract ACL is Common {
      * Returns true if the public handle was registered transiently in the current transaction.
      * @param handle The public handle to check
      */
-    function _isKnownTransientPublicHandle(bytes32 handle) internal view override returns (bool) {
+    function _isRegisteredTransientPublicHandle(
+        bytes32 handle
+    ) internal view override returns (bool) {
         return PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tload();
     }
 
@@ -226,9 +228,9 @@ abstract contract ACL is Common {
     /// @inheritdoc INoxCompute
     function persistTransientHandle(bytes32 handle) external override {
         require(HandleUtils.isPublicHandle(handle), NotPublicHandle());
-        require(_isKnownTransientPublicHandle(handle), UnknownPublicHandle(handle));
+        require(_isRegisteredTransientPublicHandle(handle), UnregisteredPublicHandle(handle));
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.isKnownPublicHandle[handle] = true;
+        $.isRegisteredPublicHandle[handle] = true;
         emit PublicHandlePersisted(msg.sender, handle);
     }
 
