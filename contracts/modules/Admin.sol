@@ -2,18 +2,21 @@
 pragma solidity ^0.8.35;
 
 import {UUPSUpgradeable} from "@openzeppelin/contracts/proxy/utils/UUPSUpgradeable.sol";
-import {AccessControlUpgradeable} from "@openzeppelin/contracts-upgradeable/access/AccessControlUpgradeable.sol";
+import {AccessControlDefaultAdminRulesUpgradeable} from "@openzeppelin/contracts-upgradeable/access/extensions/AccessControlDefaultAdminRulesUpgradeable.sol";
 import {Common} from "./Common.sol";
 
 /**
  * @title Admin
  * @notice Role-based admin layer for NoxCompute.
  * @dev Two roles drive privileged actions:
- *      - DEFAULT_ADMIN_ROLE: grants/revokes other roles.
+ *      - DEFAULT_ADMIN_ROLE: grants/revokes other roles. Follows OZ AccessControlDefaultAdminRules:
+ *        single holder, transferable only through the two-step beginDefaultAdminTransfer/
+ *        acceptDefaultAdminTransfer flow, not grantable/revocable directly, and never
+ *        renounceable (transfers to address(0) are blocked).
  *      - UPGRADER_ROLE: authorizes UUPS upgrades AND updates infrastructure config
  *        (KMS public key, gateway address, proof expiration duration).
  */
-abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
+abstract contract Admin is Common, AccessControlDefaultAdminRulesUpgradeable, UUPSUpgradeable {
     bytes32 public constant UPGRADER_ROLE = keccak256("UPGRADER_ROLE");
 
     /**
@@ -72,16 +75,17 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     }
 
     /**
-     * @notice Renounces a role, except DEFAULT_ADMIN_ROLE.
-     * @dev Renouncing DEFAULT_ADMIN_ROLE is forbidden: with no admin left, roles could
-     * never be granted or revoked again, permanently freezing role management and,
-     * once no UPGRADER_ROLE holder remains, protocol upgrades and infrastructure config.
-     * @param role The role to renounce
-     * @param callerConfirmation The caller address, as a confirmation
+     * @notice Begins the two-step transfer of DEFAULT_ADMIN_ROLE to a new admin.
+     * @dev Transferring to address(0) is forbidden: it is the only path through which
+     * DEFAULT_ADMIN_ROLE could be renounced (OZ only allows renouncement as the completion
+     * of a pending transfer to address(0)). With no admin left, roles could never be granted
+     * or revoked again, permanently freezing role management and, once no UPGRADER_ROLE
+     * holder remains, protocol upgrades and infrastructure config.
+     * @param newAdmin The new admin address
      */
-    function renounceRole(bytes32 role, address callerConfirmation) public override {
-        require(role != DEFAULT_ADMIN_ROLE, AdminRoleRenouncementForbidden());
-        super.renounceRole(role, callerConfirmation);
+    function beginDefaultAdminTransfer(address newAdmin) public override {
+        require(newAdmin != address(0), AdminRoleRenouncementForbidden());
+        super.beginDefaultAdminTransfer(newAdmin);
     }
 
     /**
@@ -92,13 +96,13 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
     ) internal override onlyRole(UPGRADER_ROLE) {}
 
     /**
-     * @dev Initializes AccessControl and grants the defined roles.
+     * @dev Initializes AccessControlDefaultAdminRules (no transfer delay) and grants
+     * the defined roles.
      */
     function _initAccessControl(address admin, address upgrader) internal {
         require(admin != address(0), InvalidZeroAddress());
         require(upgrader != address(0), InvalidZeroAddress());
-        __AccessControl_init();
-        _grantRole(DEFAULT_ADMIN_ROLE, admin);
+        __AccessControlDefaultAdminRules_init(0, admin);
         _grantRole(UPGRADER_ROLE, upgrader);
     }
 
