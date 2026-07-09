@@ -391,16 +391,14 @@ contract NoxCompute_ACLTest is Test {
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    // A forged/unregistered public handle (never passed through wrapAsPublicHandle) must NOT be allowed.
     function test_PublicHandle_IsAllowed_ReturnsFalse_ForUnregisteredHandle() public {
         bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertFalse(noxCompute.isAllowed(forgedHandle, address(0xdead)));
     }
 
-    // A legitimately wrapped public handle must be allowed for everyone.
     // Note: forceRegisteredPublicHandle is used instead of relying on transient storage because
     // Hardhat EDR clears transient state between separate external calls from a Solidity test.
-    function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedHandle() public {
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle() public {
         bytes32 wrappedHandle = noxCompute.wrapAsPublicHandle(
             bytes32(uint256(777)),
             TEEType.Uint256
