@@ -160,7 +160,7 @@ library TestHelper {
     }
 
     /**
-     * Override storage to mark a public handle as persistently registered (isRegisteredPublicHandle = true).
+     * Override storage to mark a public handle as persistently registered (registeredPublicHandles = true).
      * Use this in tests instead of wrapAsPublicHandle + persistTransientHandle when the two calls
      * cannot be batched into the same transaction (e.g., Hardhat EDR clears transient storage
      * between separate external calls from a Solidity test function).
@@ -289,9 +289,9 @@ library TestHelper {
     }
 
     function _getRegisteredPublicHandleStorageSlot(bytes32 handle) private pure returns (bytes32) {
-        // isRegisteredPublicHandle is the 8th field (index 7) in NoxComputeStorage:
+        // registeredPublicHandles is the 8th field (index 7) in NoxComputeStorage:
         //   0: admins, 1: viewers, 2: isPubliclyDecryptable, 3: kmsPublicKey,
-        //   4: gateway, 5: proofExpirationDuration, 6: uniqueSeedCounter, 7: isRegisteredPublicHandle
+        //   4: gateway, 5: proofExpirationDuration, 6: uniqueSeedCounter, 7: registeredPublicHandles
         // mapping(bytes32 handle => bool) map at struct base + 7
         // slot = keccak256(abi.encode(handle, struct_base + 7))
         return keccak256(abi.encode(handle, bytes32(uint256(NOX_COMPUTE_STORAGE_LOCATION) + 7)));

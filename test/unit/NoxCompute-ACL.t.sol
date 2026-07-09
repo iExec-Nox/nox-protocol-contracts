@@ -392,7 +392,7 @@ contract NoxCompute_ACLTest is Test {
     }
 
     // A forged/unregistered public handle (never passed through wrapAsPublicHandle) must NOT be allowed.
-    function test_PublicHandle_IsAllowed_ReturnsFalse_ForForgedHandle() public {
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForUnregisteredHandle() public {
         bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertFalse(noxCompute.isAllowed(forgedHandle, address(0xdead)));
     }

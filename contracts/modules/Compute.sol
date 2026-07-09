@@ -56,7 +56,7 @@ abstract contract Compute is Common, EIP712 {
             bytes1(0x00)
         );
         // Register transiently so the handle is accessible within this transaction.
-        _registerTransientPublicHandle(result);
+        _registerTransient(result);
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 

@@ -182,10 +182,9 @@ abstract contract ACL is Common {
      */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
         if (HandleUtils.isPublicHandle(handle)) {
-            NoxComputeStorage storage $ = _getNoxComputeStorage();
             return
-                _isRegisteredTransientPublicHandle(handle) ||
-                $.isRegisteredPublicHandle[handle] ||
+                _isTransientlyRegistered(handle) ||
+                _isPersistentlyRegistered(handle) ||
                 _isZeroHandle(handle);
         }
         return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
@@ -196,7 +195,7 @@ abstract contract ACL is Common {
      * current transaction without a persistent SSTORE.
      * @param handle The public handle to register transiently
      */
-    function _registerTransientPublicHandle(bytes32 handle) internal override {
+    function _registerTransient(bytes32 handle) internal override {
         PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tstore(true);
     }
 
@@ -204,10 +203,16 @@ abstract contract ACL is Common {
      * Returns true if the public handle was registered transiently in the current transaction.
      * @param handle The public handle to check
      */
-    function _isRegisteredTransientPublicHandle(
-        bytes32 handle
-    ) internal view override returns (bool) {
+    function _isTransientlyRegistered(bytes32 handle) internal view override returns (bool) {
         return PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tload();
+    }
+
+    /**
+     * Returns true if the public handle was persistently registered via persistTransientHandle.
+     * @param handle The public handle to check
+     */
+    function _isPersistentlyRegistered(bytes32 handle) private view returns (bool) {
+        return _getNoxComputeStorage().registeredPublicHandles[handle];
     }
 
     /**
@@ -228,9 +233,9 @@ abstract contract ACL is Common {
     /// @inheritdoc INoxCompute
     function persistTransientHandle(bytes32 handle) external override {
         require(HandleUtils.isPublicHandle(handle), NotPublicHandle());
-        require(_isRegisteredTransientPublicHandle(handle), UnregisteredPublicHandle(handle));
+        require(_isTransientlyRegistered(handle), UnregisteredPublicHandle(handle));
         NoxComputeStorage storage $ = _getNoxComputeStorage();
-        $.isRegisteredPublicHandle[handle] = true;
+        $.registeredPublicHandles[handle] = true;
         emit PublicHandlePersisted(msg.sender, handle);
     }
 
