@@ -45,6 +45,8 @@ abstract contract Compute is Common, EIP712 {
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle.
         // Generate a public handle (outputIndex=0, uniqueSeed=0, attributes=0x00).
+        // No ACL grant is needed: public handles are accessible to everyone but they
+        // must be registered in the same tx.
         result = _generateHandle(
             Operator.WrapAsPublicHandle,
             operands,
