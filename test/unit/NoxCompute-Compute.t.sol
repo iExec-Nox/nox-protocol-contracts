@@ -12,7 +12,8 @@ import {
     NonArithmeticType,
     UnsupportedArithmeticType,
     IncompatibleTypes,
-    ValueOutOfRange
+    ValueOutOfRange,
+    UnsupportedType
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -25,6 +26,8 @@ contract NoxCompute_ComputeTest is Test {
     NoxCompute noxCompute;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+    // Type byte beyond the TEEType enum range
+    uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
 
     // Public handles wrapped in setUp, persisted, and accessible across test bodies.
     bytes32 pubA;
@@ -115,6 +118,20 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidPublicHandle(result, TEEType.Int256);
     }
 
+    function test_WrapAsPublicHandle_ZeroValue_ReturnsCanonicalZeroHandle() public {
+        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < types.length; i++) {
+            vm.recordLogs();
+            vm.prank(caller);
+            bytes32 result = noxCompute.wrapAsPublicHandle(bytes32(0), types[i]);
+            // Single canonical representation for each type's zero value
+            assertEq(result, HandleUtils.zeroHandle(types[i]));
+            _assertValidPublicHandle(result, types[i]);
+            // No event: the zero handle is already known by the off-chain stack
+            assertEq(vm.getRecordedLogs().length, 0, "Should not emit any event for zero value");
+        }
+    }
+
     function test_WrapAsPublicHandle_Deterministic() public {
         bytes32 value = bytes32(uint256(42));
         vm.prank(caller);
@@ -159,11 +176,7 @@ contract NoxCompute_ComputeTest is Test {
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
         (bool success, ) = address(noxCompute).call(
-            abi.encodeWithSelector(
-                INoxCompute.wrapAsPublicHandle.selector,
-                value,
-                uint8(type(TEEType).max) + 1
-            )
+            abi.encodeWithSelector(INoxCompute.wrapAsPublicHandle.selector, value, badTypeIndex)
         );
         assertFalse(success);
     }
@@ -240,6 +253,29 @@ contract NoxCompute_ComputeTest is Test {
                 "Handle chain id mismatch"
             )
         );
+        noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_ValidateProof_UnsupportedHandleType() public {
+        // Unique handle with a type byte beyond the TEEType enum range
+        bytes32 badHandle = bytes32(
+            abi.encodePacked(
+                bytes1(0x00), // Version
+                bytes4(uint32(block.chainid)), // ChainId
+                bytes1(badTypeIndex), // Out-of-range type
+                bytes1(0x01), // Attributes (isUniqueHandle=1)
+                bytes25(uint200(1)) // Pre-handle
+            )
+        );
+        bytes memory proof = TestHelper.buildInputProof(
+            address(noxCompute),
+            badHandle,
+            owner,
+            address(this),
+            createdAt,
+            gatewayPrivateKey
+        );
+        vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, badTypeIndex));
         noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
 

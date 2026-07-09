@@ -35,6 +35,12 @@ abstract contract Compute is Common, EIP712 {
         TEEType teeType
     ) external override returns (bytes32 result) {
         TypeUtils.validateValueFitsType(value, teeType);
+        if (value == bytes32(0)) {
+            // Canonical zero: always return the zero handle so a single handle
+            // representation exists for each type's zero value. No event is emitted:
+            // the zero handle is already known by the off-chain stack.
+            return HandleUtils.zeroHandle(teeType);
+        }
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
         // Deterministic handle: same (value, type) always produces the same handle.
