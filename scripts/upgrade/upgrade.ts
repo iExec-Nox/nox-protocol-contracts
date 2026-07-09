@@ -44,7 +44,8 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
     const chainConfig = getChainConfig(connection.networkName);
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
-        unsafeAllow: ["constructor"],
+        // The flags are needed here because coverage-instrumented builds lose NatSpec annotations.
+        unsafeAllow: ["constructor", "missing-initializer", "missing-initializer-call"],
         call: { fn: "reinitialize", args: [chainConfig.initialAdmin] },
     });
     await upgrade.waitForDeployment();
