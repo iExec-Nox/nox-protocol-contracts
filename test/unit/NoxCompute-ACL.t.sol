@@ -8,8 +8,9 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
+import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../../contracts/utils/TypeUtils.sol";
 import {NoxTransientTestHarness} from "../../contracts/mock/NoxTransientTestHarness.sol";
-import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxCompute_ACLTest is Test {
@@ -298,6 +299,17 @@ contract NoxCompute_ACLTest is Test {
         assertFalse(noxCompute.isAllowed(handle, user1));
     }
 
+    function test_IsAllowed_ZeroHandlesAreAllowedByDefault() public view {
+        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < supportedTypes.length; ++i) {
+            bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
+            assertTrue(
+                noxCompute.isAllowed(zeroHandle, anyone),
+                "Zero handle should be allowed after init"
+            );
+        }
+    }
+
     // ============ validateAllowedForAll ============
 
     function test_ValidateAllowedForAll() public {
@@ -418,7 +430,7 @@ contract NoxCompute_ACLTest is Test {
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    function test_PublicHandle_ValidateAllowedForAll_PassesForWrappedAndRegisteredHandles() public {
+    function test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() public {
         NoxTransientTestHarness caller = new NoxTransientTestHarness();
         caller.wrapAsPublicHandleAndValidateAllowedForAll(
             bytes32(uint256(1)),

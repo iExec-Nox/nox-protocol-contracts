@@ -32,7 +32,7 @@ abstract contract Common is INoxCompute {
         uint256 proofExpirationDuration;
         // Counter used to guarantee handle uniqueness when all operands are public handles
         uint256 uniqueSeedCounter;
-        // Public handles created on-chain via wrapAsPublicHandle (or seeded zero handles).
+        // Public handles created on-chain via wrapAsPublicHandle.
         // Used to reject forged public handles whose preimage the gateway never witnessed.
         mapping(bytes32 handle => bool) registeredPublicHandles;
     }
@@ -57,7 +57,4 @@ abstract contract Common is INoxCompute {
 
     // Implemented by ACL, called by Compute.
     function _registerTransient(bytes32 handle) internal virtual;
-
-    // Implemented by ACL, called by Compute.
-    function _isTransientlyRegistered(bytes32 handle) internal view virtual returns (bool);
 }

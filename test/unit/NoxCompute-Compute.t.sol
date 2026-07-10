@@ -20,6 +20,7 @@ import {TestHelper} from "../utils/TestHelper.sol";
 contract NoxCompute_ComputeTest is Test {
     address owner = makeAddr("owner");
     address caller = makeAddr("caller");
+    address anyone = makeAddr("anyone");
     bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
@@ -127,7 +128,7 @@ contract NoxCompute_ComputeTest is Test {
             // Single canonical representation for each type's zero value
             assertEq(result, HandleUtils.zeroHandle(types[i]));
             _assertValidPublicHandle(result, types[i]);
-            // No event: the zero handle is already registered by the off-chain stack
+            // No event: the zero handle is already known by the off-chain stack
             assertEq(vm.getRecordedLogs().length, 0, "Should not emit any event for zero value");
         }
     }
@@ -1088,120 +1089,36 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.burn(balanceFrom, amount, totalSupply);
     }
 
-    // ============ Public Handle Existence Registry (Security) ============
+    // ============ Public Handle ============
 
-    // A forged public handle (public bit clear, but never registered) must be rejected
-    // by add() with NotAllowed. Before this fix, it was silently accepted, producing an
-    // undecryptable result handle that permanently freezes any funds it represents.
-    function test_RevertWhen_Add_ForgedPublicHandle_AsLhs() public {
-        bytes32 forgedPublic = TestHelper.createPublicHandle(TEEType.Uint256);
-        bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
-        vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forgedPublic, caller)
-        );
-        noxCompute.add(forgedPublic, legitimate);
-    }
-
-    function test_RevertWhen_Add_ForgedPublicHandle_AsRhs() public {
-        bytes32 forgedPublic = TestHelper.createPublicHandle(TEEType.Uint256);
-        bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
-        vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forgedPublic, caller)
-        );
-        noxCompute.add(legitimate, forgedPublic);
-    }
-
-    // A legitimately wrapped public handle must succeed as an operand.
-    function test_Add_WithLegitimatePublicHandles_Succeeds() public {
-        this._test_Add_WithLegitimatePublicHandles_Succeeds();
-    }
-    function _test_Add_WithLegitimatePublicHandles_Succeeds() external {
-        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(10)), TEEType.Uint256);
-        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(20)), TEEType.Uint256);
-        vm.prank(caller);
-        bytes32 result = noxCompute.add(pub1, pub2);
-        _assertValidHandle(result, TEEType.Uint256);
-    }
-
-    // A forged public handle must be rejected by transfer() as the amount operand.
-    function test_RevertWhen_Transfer_ForgedPublicHandle_AsAmount() public {
-        this._test_RevertWhen_Transfer_ForgedPublicHandle_AsAmount();
-    }
-    function _test_RevertWhen_Transfer_ForgedPublicHandle_AsAmount() external {
-        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
-        bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
-        bytes32 forgedAmount = TestHelper.createPublicHandle(TEEType.Uint256);
-        TestHelper.forceAllowPersistent(balanceFrom, caller);
-        TestHelper.forceAllowPersistent(balanceTo, caller);
-        vm.prank(caller);
-        vm.expectRevert(
-            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forgedAmount, caller)
-        );
-        noxCompute.transfer(balanceFrom, balanceTo, forgedAmount);
-    }
-
-    // The zero handles seeded at initialization are registered and must pass isAllowed.
-    function test_ZeroHandles_AreRegistered_AfterInitialization() public view {
-        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
-        for (uint256 i = 0; i < supportedTypes.length; ++i) {
-            bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
-            assertTrue(
-                noxCompute.isAllowed(zeroHandle, address(0xdead)),
-                "Zero handle should be allowed after init"
-            );
-        }
-    }
-
-    // Wrapping the same (value, type) twice always returns the same deterministic handle
-    // and always emits the WrapAsPublicHandle event (no idempotency guard).
-    function test_WrapAsPublicHandle_RepeatWrap_ReturnsSameHandle() public {
-        bytes32 value = bytes32(uint256(999));
-        bytes32 first = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
-        vm.expectEmit(true, false, false, true);
-        emit INoxCompute.WrapAsPublicHandle(address(this), value, TEEType.Uint256, first);
-        bytes32 second = noxCompute.wrapAsPublicHandle(value, TEEType.Uint256);
-        assertEq(first, second, "Repeat wrap must return same handle");
-        assertTrue(noxCompute.isAllowed(first, address(0xbeef)));
-    }
-
-    // Every canonical zero handle (one per supported type) passes isAllowed without wrapping.
-    function test_ZeroHandle_IsAllowed() public view {
-        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
-        address account = address(0xcafe);
-        for (uint256 i = 0; i < supportedTypes.length; ++i) {
-            bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
-            assertTrue(noxCompute.isAllowed(zeroHandle, account), "Zero handle must be allowed");
-        }
-    }
-
-    // ============ add() with persisted public handles ============
-    // pubA and pubB were wrapped in setUp and persisted so they are accessible here.
-
-    // add(public, public) — both handles persisted in setUp.
-    // Uses the this.external() pattern so transient access granted by add() is visible
-    // to the isAllowed check inside _assertValidHandle (same tx, separate call frame).
-    function test_Add_PublicPublic_Succeeds() public {
-        this._test_Add_PublicPublic_Succeeds();
-    }
-
-    function _test_Add_PublicPublic_Succeeds() external {
+    function test_PublicHandle_AddLegitimatePublicHandlesSucceeds() public {
         vm.prank(caller);
         bytes32 result = noxCompute.add(pubA, pubB);
         _assertValidHandle(result, TEEType.Uint256);
     }
 
-    // add(public, private) — public handle persisted in setUp, private handle has persistent ACL.
-    function test_Add_PublicPrivate_Succeeds() public {
-        this._test_Add_PublicPrivate_Succeeds();
-    }
-
-    function _test_Add_PublicPrivate_Succeeds() external {
+    function test_PublicHandle_AddWithConfidentialHandleSucceeds() public {
         TestHelper.forceAllowPersistent(handle, caller);
         vm.prank(caller);
         bytes32 result = noxCompute.add(pubA, handle);
         _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    // TODO add tests of add(a, b) where a and b are public transient.
+
+    function test_RevertWhen_Add_ForgedPublicHandleAsLhs() public {
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertFalse(noxCompute.isAllowed(forged, anyone));
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, caller));
+        noxCompute.add(forged, pubB);
+    }
+
+    function test_RevertWhen_Add_ForgedPublicHandleAsRhs() public {
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, caller));
+        noxCompute.add(pubA, forged);
     }
 
     // ============ Transient public-handle semantics ============
@@ -1213,32 +1130,14 @@ contract NoxCompute_ComputeTest is Test {
 
     function _test_PublicHandle_WrapAndUse_SameTx_Succeeds() external {
         bytes32 pub = noxCompute.wrapAsPublicHandle(bytes32(uint256(42)), TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(pub, address(0xdead)));
+        assertTrue(noxCompute.isAllowed(pub, anyone));
         bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(43)), TEEType.Uint256);
         vm.prank(caller);
         bytes32 result = noxCompute.add(pub, pub2);
         _assertValidHandle(result, TEEType.Uint256);
     }
 
-    // A forged public handle (not wrapped this tx, not persisted) must be rejected.
-    function test_PublicHandle_Forged_IsRejected() public {
-        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertFalse(noxCompute.isAllowed(forged, address(0xdead)));
-        vm.prank(caller);
-        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, caller));
-        noxCompute.add(forged, forged);
-    }
-
-    function test_PersistTransientHandle_EnablesCrossTxReuse() public view {
-        assertTrue(noxCompute.isAllowed(pubA, address(0xdead)));
-        assertTrue(noxCompute.isAllowed(pubB, address(0xdead)));
-    }
-
-    // Zero handles are always accessible without being wrapped (carve-out).
-    function test_ZeroHandle_CarveOut_AllowedWithoutWrapping() public view {
-        bytes32 zeroHandle = HandleUtils.zeroHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(zeroHandle, address(0xcafe)));
-    }
+    // ============ Public Handle ============
 
     // persistTransientHandle succeeds for a handle wrapped this tx and emits the event.
     // Uses the this.external() pattern so wrap + persist execute in the same EVM transaction,
@@ -1255,14 +1154,17 @@ contract NoxCompute_ComputeTest is Test {
         assertTrue(noxCompute.isAllowed(pub, address(0)));
     }
 
-    // persistTransientHandle reverts when called with a unique (non-public) handle.
+    function test_PersistTransientHandle_EnablesCrossTxReuse() public view {
+        assertTrue(noxCompute.isAllowed(pubA, anyone));
+        assertTrue(noxCompute.isAllowed(pubB, anyone));
+    }
+
     function test_RevertWhen_PersistTransientHandle_NotPublicHandle() public {
         bytes32 uniqueHandle = TestHelper.createHandle(TEEType.Uint256);
         vm.expectRevert(INoxCompute.NotPublicHandle.selector);
         noxCompute.persistTransientHandle(uniqueHandle);
     }
 
-    // persistTransientHandle reverts for a forged public handle not wrapped this tx.
     function test_RevertWhen_PersistTransientHandle_NotRegisteredThisTx() public {
         bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
         vm.expectRevert(
@@ -1271,8 +1173,7 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.persistTransientHandle(forged);
     }
 
-    // Zero handles are always allowed via the _isZeroHandle carve-out and never need persisting.
-    // persistTransientHandle reverts for a zero handle since it was not wrapped this tx.
+    // Reverts for a zero handle since it was not wrapped in this tx.
     function test_RevertWhen_PersistTransientHandle_ZeroHandle() public {
         bytes32 zeroHandle = HandleUtils.zeroHandle(TEEType.Uint256);
         vm.expectRevert(

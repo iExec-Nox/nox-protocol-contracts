@@ -203,7 +203,7 @@ abstract contract ACL is Common {
      * Returns true if the public handle was registered transiently in the current transaction.
      * @param handle The public handle to check
      */
-    function _isTransientlyRegistered(bytes32 handle) internal view override returns (bool) {
+    function _isTransientlyRegistered(bytes32 handle) internal view returns (bool) {
         return PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tload();
     }
 
@@ -212,7 +212,8 @@ abstract contract ACL is Common {
      * @param handle The public handle to check
      */
     function _isPersistentlyRegistered(bytes32 handle) private view returns (bool) {
-        return _getNoxComputeStorage().registeredPublicHandles[handle];
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.registeredPublicHandles[handle];
     }
 
     /**
