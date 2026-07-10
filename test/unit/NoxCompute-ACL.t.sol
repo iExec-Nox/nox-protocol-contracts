@@ -8,6 +8,7 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
+import {NoxTransientTestHarness} from "../../contracts/mock/NoxTransientTestHarness.sol";
 import {TEEType} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -17,6 +18,7 @@ contract NoxCompute_ACLTest is Test {
     address internal user2 = makeAddr("user2");
     address internal viewer1 = makeAddr("viewer1");
     address internal viewer2 = makeAddr("viewer2");
+    address internal anyone = makeAddr("anyone");
     bytes32 internal handle;
     bytes32 internal handle2;
     bytes32 internal handle3;
@@ -274,7 +276,6 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_IsViewer_ByAnyoneWhenPubliclyDecryptable() public {
-        address anyone = makeAddr("anyone");
         assertFalse(noxCompute.isViewer(handle, anyone));
 
         TestHelper.forceAllowPersistent(handle, owner);
@@ -393,51 +394,41 @@ contract NoxCompute_ACLTest is Test {
 
     function test_PublicHandle_IsAllowed_ReturnsFalse_ForUnregisteredHandle() public {
         bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertFalse(noxCompute.isAllowed(forgedHandle, address(0xdead)));
+        assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
     }
 
-    // Note: forceRegisteredPublicHandle is used instead of relying on transient storage because
-    // Hardhat EDR clears transient state between separate external calls from a Solidity test.
     function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle() public {
-        bytes32 wrappedHandle = noxCompute.wrapAsPublicHandle(
-            bytes32(uint256(777)),
-            TEEType.Uint256
+        NoxTransientTestHarness caller = new NoxTransientTestHarness();
+        assertTrue(
+            caller.wrapAsPublicHandleAndCheckIsAllowed(
+                bytes32(uint256(777)),
+                TEEType.Uint256,
+                anyone
+            )
         );
-        TestHelper.forceRegisteredPublicHandle(wrappedHandle);
-        assertTrue(noxCompute.isAllowed(wrappedHandle, address(0xdead)));
-        assertTrue(noxCompute.isAllowed(wrappedHandle, user1));
     }
 
-    // isViewer is a read hint and is not gated by the existence registry: any public handle
-    // is considered viewable regardless of whether it was created on-chain.
     function test_PublicHandle_IsViewer_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
+        assertTrue(noxCompute.isViewer(publicHandle, anyone));
     }
 
-    // isPubliclyDecryptable is a read hint and is not gated by the existence registry.
     function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    // validateAllowedForAll calls _isAllowed: only legitimately wrapped handles pass.
-    // Note: forceRegisteredPublicHandle is used instead of relying on transient storage because
-    // Hardhat EDR clears transient state between separate external calls from a Solidity test.
-    function test_PublicHandle_ValidateAllowedForAll_PassesForWrappedHandles() public {
-        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
-        TestHelper.forceRegisteredPublicHandle(pub1);
-        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
-        TestHelper.forceRegisteredPublicHandle(pub2);
-        bytes32[] memory handles = new bytes32[](2);
-        handles[0] = pub1;
-        handles[1] = pub2;
-        // Should not revert: both handles were legitimately created on-chain
-        noxCompute.validateAllowedForAll(user1, handles);
+    function test_PublicHandle_ValidateAllowedForAll_PassesForWrappedAndRegisteredHandles() public {
+        NoxTransientTestHarness caller = new NoxTransientTestHarness();
+        caller.wrapAsPublicHandleAndValidateAllowedForAll(
+            bytes32(uint256(1)),
+            bytes32(uint256(2)),
+            TEEType.Uint256,
+            user1
+        );
     }
 
-    // validateAllowedForAll must reject forged/unregistered public handles.
-    function test_PublicHandle_ValidateAllowedForAll_RevertsForForgedHandle() public {
+    function test_PublicHandle_ValidateAllowedForAll_RevertsForUnregisteredHandles() public {
         bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](1);
         handles[0] = forged;
