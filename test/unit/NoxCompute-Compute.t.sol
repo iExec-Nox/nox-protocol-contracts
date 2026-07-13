@@ -68,11 +68,21 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < comparisonOps.length; i++) {
             allOps.push(comparisonOps[i]);
         }
-        persistantPublicHandle = noxCompute.wrapAsPublicHandle(
+        persistantPublicHandle = this._wrapAndPersistPublicHandle(
             bytes32(uint256(999)),
             TEEType.Uint256
         );
-        noxCompute.persistTransientHandle(persistantPublicHandle);
+    }
+
+    // Wraps a public handle and persists it within a single transaction. persistTransientHandle
+    // requires the handle to be transiently registered in the same tx as the wrap, so both calls
+    // must run inside one external call (they would be separate top-level txs in gas-stats mode).
+    function _wrapAndPersistPublicHandle(
+        bytes32 value,
+        TEEType teeType
+    ) external returns (bytes32 handle) {
+        handle = noxCompute.wrapAsPublicHandle(value, teeType);
+        noxCompute.persistTransientHandle(handle);
     }
 
     // ============ wrapAsPublicHandle ============
