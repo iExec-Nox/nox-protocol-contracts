@@ -29,7 +29,10 @@ contract NoxCompute_ComputeTest is Test {
     // Type byte beyond the TEEType enum range
     uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
 
-    // Public handle wrapped in setUp, persisted, and accessible across test txs.
+    // Public handle wrapped but NOT persisted in setUp used to assert
+    // a public handle is not useable cross-txs by default.
+    bytes32 transientPublicHandle;
+    // Public handle wrapped and persisted in setUp, useable across test txs.
     bytes32 persistantPublicHandle;
 
     bytes4[] arithmeticOps = [
@@ -67,8 +70,12 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < comparisonOps.length; i++) {
             allOps.push(comparisonOps[i]);
         }
+        transientPublicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(88888)),
+            TEEType.Uint256
+        );
         persistantPublicHandle = this._wrapAndPersistPublicHandle(
-            bytes32(uint256(999)),
+            bytes32(uint256(99999)),
             TEEType.Uint256
         );
     }
@@ -1100,6 +1107,15 @@ contract NoxCompute_ComputeTest is Test {
 
     // ============ Public Handle ============
 
+    function test_PublicHandle_UnuseableCrossTxs() public {
+        assertFalse(noxCompute.isAllowed(transientPublicHandle, anyone));
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, transientPublicHandle, caller)
+        );
+        noxCompute.add(transientPublicHandle, handle);
+    }
+
     function test_PublicHandle_WrapAndUseInSameTxSucceeds() public {
         this._test_PublicHandle_WrapAndUseInSameTxSucceeds();
     }
@@ -1197,7 +1213,7 @@ contract NoxCompute_ComputeTest is Test {
         assertTrue(noxCompute.isAllowed(pub, address(0)));
     }
 
-    function test_PersistTransientHandle_EnablesCrossTxReuse() public view {
+    function test_PersistTransientHandle_ReuseableCrossTxs() public view {
         // Create in `setUp` tx and accessible in this test's tx.
         assertTrue(noxCompute.isAllowed(persistantPublicHandle, anyone));
     }
