@@ -1208,7 +1208,7 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.persistTransientHandle(uniqueHandle);
     }
 
-    function test_RevertWhen_PersistTransientHandle_NotRegisteredThisTx() public {
+    function test_RevertWhen_PersistTransientHandle_NotRegisteredInThisTx() public {
         bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
         vm.expectRevert(
             abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, forged)

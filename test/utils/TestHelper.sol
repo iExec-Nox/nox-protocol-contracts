@@ -276,13 +276,4 @@ library TestHelper {
         );
         return keccak256(abi.encode(account, outerKeyStorageLocation));
     }
-
-    function _getRegisteredPublicHandleStorageSlot(bytes32 handle) private pure returns (bytes32) {
-        // registeredPublicHandles is the 8th field (index 7) in NoxComputeStorage:
-        //   0: admins, 1: viewers, 2: isPubliclyDecryptable, 3: kmsPublicKey,
-        //   4: gateway, 5: proofExpirationDuration, 6: uniqueSeedCounter, 7: registeredPublicHandles
-        // mapping(bytes32 handle => bool) map at struct base + 7
-        // slot = keccak256(abi.encode(handle, struct_base + 7))
-        return keccak256(abi.encode(handle, bytes32(uint256(NOX_COMPUTE_STORAGE_LOCATION) + 7)));
-    }
 }
