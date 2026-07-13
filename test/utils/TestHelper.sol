@@ -160,17 +160,6 @@ library TestHelper {
     }
 
     /**
-     * Override storage to mark a public handle as persistently registered (registeredPublicHandles = true).
-     * Use this in tests instead of wrapAsPublicHandle + persistTransientHandle when the two calls
-     * cannot be batched into the same transaction (e.g., Hardhat EDR clears transient storage
-     * between separate external calls from a Solidity test function).
-     */
-    function forceRegisteredPublicHandle(bytes32 handle) internal {
-        bytes32 slotLocation = _getRegisteredPublicHandleStorageSlot(handle);
-        getVm().store(Nox.noxComputeContract(), slotLocation, bytes32(uint256(1)));
-    }
-
-    /**
      * Override storage to force disallow the given account for the given handle.
      */
     function forceDisallowPersistent(bytes32 handle, address account) internal {

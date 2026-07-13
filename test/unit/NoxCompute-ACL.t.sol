@@ -10,7 +10,6 @@ import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
 import {TEEType, TypeUtils} from "../../contracts/utils/TypeUtils.sol";
-import {NoxTransientTestHarness} from "../../contracts/mock/NoxTransientTestHarness.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxCompute_ACLTest is Test {
@@ -410,14 +409,11 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle() public {
-        NoxTransientTestHarness caller = new NoxTransientTestHarness();
-        assertTrue(
-            caller.wrapAsPublicHandleAndCheckIsAllowed(
-                bytes32(uint256(777)),
-                TEEType.Uint256,
-                anyone
-            )
-        );
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle();
+    }
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle() external {
+        bytes32 pub = noxCompute.wrapAsPublicHandle(bytes32(uint256(777)), TEEType.Uint256);
+        assertTrue(noxCompute.isAllowed(pub, anyone));
     }
 
     function test_PublicHandle_IsViewer_ReturnsTrue() public {
@@ -431,13 +427,15 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() public {
-        NoxTransientTestHarness caller = new NoxTransientTestHarness();
-        caller.wrapAsPublicHandleAndValidateAllowedForAll(
-            bytes32(uint256(1)),
-            bytes32(uint256(2)),
-            TEEType.Uint256,
-            user1
-        );
+        this._test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles();
+    }
+    function _test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() external {
+        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
+        bytes32[] memory handles = new bytes32[](2);
+        handles[0] = pub1;
+        handles[1] = pub2;
+        noxCompute.validateAllowedForAll(user1, handles);
     }
 
     function test_PublicHandle_ValidateAllowedForAll_RevertsForUnregisteredHandles() public {
