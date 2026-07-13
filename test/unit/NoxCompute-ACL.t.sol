@@ -408,12 +408,27 @@ contract NoxCompute_ACLTest is Test {
         assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
     }
 
-    function test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle() public {
-        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle();
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle() public {
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle();
     }
-    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForWrappedAndRegisteredHandle() external {
-        bytes32 pub = noxCompute.wrapAsPublicHandle(bytes32(uint256(777)), TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(pub, anyone));
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle() external {
+        bytes32 publicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        assertTrue(noxCompute.isAllowed(publicHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle() public {
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle();
+    }
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle() external {
+        bytes32 publicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        noxCompute.persistTransientHandle(publicHandle);
+        assertTrue(noxCompute.isAllowed(publicHandle, anyone));
     }
 
     function test_PublicHandle_IsViewer_ReturnsTrue() public {

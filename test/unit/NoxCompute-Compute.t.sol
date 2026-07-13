@@ -1,8 +1,7 @@
 // SPDX-License-Identifier: BUSL-1.1
 pragma solidity ^0.8.35;
 
-import {Test, Vm} from "forge-std/Test.sol";
-import {console} from "forge-std/console.sol";
+import {Test} from "forge-std/Test.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
@@ -1121,6 +1120,10 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_PublicHandle_AddWithPersistantPublicHandleSucceeds() public {
+        this._test_PublicHandle_AddWithPersistantPublicHandleSucceeds();
+    }
+
+    function _test_PublicHandle_AddWithPersistantPublicHandleSucceeds() external {
         TestHelper.forceAllowPersistent(handle, caller);
         vm.prank(caller);
         bytes32 result = noxCompute.add(persistantPublicHandle, handle);
@@ -1128,6 +1131,10 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_PublicHandle_AddWithConfidentialHandleRhsSucceeds() public {
+        this._test_PublicHandle_AddWithConfidentialHandleRhsSucceeds();
+    }
+
+    function _test_PublicHandle_AddWithConfidentialHandleRhsSucceeds() external {
         TestHelper.forceAllowPersistent(handle, caller);
         bytes32 publicHandle1 = noxCompute.wrapAsPublicHandle(
             bytes32(uint256(100)),
@@ -1139,6 +1146,10 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_PublicHandle_AddWithConfidentialHandleLhsSucceeds() public {
+        this._test_PublicHandle_AddWithConfidentialHandleLhsSucceeds();
+    }
+
+    function _test_PublicHandle_AddWithConfidentialHandleLhsSucceeds() external {
         TestHelper.forceAllowPersistent(handle, caller);
         bytes32 publicHandle1 = noxCompute.wrapAsPublicHandle(
             bytes32(uint256(100)),
@@ -1159,6 +1170,10 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_RevertWhen_Add_ForgedPublicHandleAsRhs() public {
+        this._test_RevertWhen_Add_ForgedPublicHandleAsRhs();
+    }
+
+    function _test_RevertWhen_Add_ForgedPublicHandleAsRhs() external {
         bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
         bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
         vm.prank(caller);
