@@ -217,18 +217,17 @@ abstract contract ACL is Common {
     }
 
     /**
-     * Returns true if `handle` exactly equals the canonical zero handle for any of the
-     * currently supported TEE types.
+     * Returns true if `handle` exactly equals the canonical zero handle for the type it encodes.
      * @param handle The handle to check
      */
     function _isZeroHandle(bytes32 handle) internal view returns (bool) {
-        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
-        for (uint256 i = 0; i < supportedTypes.length; ++i) {
-            if (handle == HandleUtils.zeroHandle(supportedTypes[i])) {
-                return true;
-            }
+        // A type byte outside the enum range cannot be a canonical zero handle.
+        // This check guards against the panic that TypeUtils.typeOf would raise
+        // on an out-of-range enum cast.
+        if (uint8(handle[5]) > uint8(type(TEEType).max)) {
+            return false;
         }
-        return false;
+        return handle == HandleUtils.zeroHandle(TypeUtils.typeOf(handle));
     }
 
     /// @inheritdoc INoxCompute
