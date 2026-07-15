@@ -26,6 +26,9 @@ contract NoxCompute_ComputeTest is Test {
     NoxCompute noxCompute;
     uint256 createdAt = block.timestamp;
     bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+    bytes32 handleUint16 = TestHelper.createHandle(TEEType.Uint16);
+    bytes32 handleInt16 = TestHelper.createHandle(TEEType.Int16);
+    bytes32 handleInt256 = TestHelper.createHandle(TEEType.Int256);
     // Type byte beyond the TEEType enum range
     uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
 
@@ -868,6 +871,17 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidHandle(newBalanceTo, TEEType.Uint256);
     }
 
+    function test_RevertWhen_Transfer_NotEuint256Type() public {
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.transfer(handleUint16, handleUint16, handleUint16);
+
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.transfer(handleInt16, handleInt16, handleInt16);
+
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.transfer(handleInt256, handleInt256, handleInt256);
+    }
+
     function test_RevertWhen_Transfer_BalanceFromNotAllowed() public {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 balanceTo = TestHelper.createHandle(TEEType.Uint256);
@@ -952,6 +966,17 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidHandle(success, TEEType.Bool);
         _assertValidHandle(newBalanceTo, TEEType.Uint256);
         _assertValidHandle(newTotalSupply, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_Mint_NotEuint256Type() public {
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.mint(handleUint16, handleUint16, handleUint16);
+
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.mint(handleInt16, handleInt16, handleInt16);
+
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.mint(handleInt256, handleInt256, handleInt256);
     }
 
     function test_RevertWhen_Mint_BalanceToNotAllowed() public {
@@ -1040,6 +1065,17 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidHandle(newTotalSupply, TEEType.Uint256);
     }
 
+    function test_RevertWhen_Burn_NotEuint256Type() public {
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.burn(handleUint16, handleUint16, handleUint16);
+
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.burn(handleInt16, handleInt16, handleInt16);
+
+        vm.expectRevert(INoxCompute.OnlyEuint256TypeIsSupportedForThisOperation.selector);
+        noxCompute.burn(handleInt256, handleInt256, handleInt256);
+    }
+
     function test_RevertWhen_Burn_BalanceFromNotAllowed() public {
         bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
@@ -1081,9 +1117,9 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_RevertWhen_Burn_IncompatibleTypes() public {
-        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Int256);
+        bytes32 balanceFrom = TestHelper.createHandle(TEEType.Uint256);
         bytes32 amount = TestHelper.createHandle(TEEType.Uint256);
-        bytes32 totalSupply = TestHelper.createHandle(TEEType.Uint256);
+        bytes32 totalSupply = TestHelper.createHandle(TEEType.Int256);
         TestHelper.forceAllowPersistent(balanceFrom, caller);
         TestHelper.forceAllowPersistent(amount, caller);
         TestHelper.forceAllowPersistent(totalSupply, caller);
