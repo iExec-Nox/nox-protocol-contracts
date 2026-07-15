@@ -5,9 +5,12 @@ import {Test} from "forge-std/Test.sol";
 import {
     TEEType,
     TypeUtils,
+    InvalidType,
     NonArithmeticType,
     UnsupportedArithmeticType,
-    UnsupportedType
+    UnsupportedType,
+    IncompatibleTypes,
+    ValueOutOfRange
 } from "../../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../../utils/TestHelper.sol";
 
@@ -98,6 +101,68 @@ contract TypeUtilsTest is Test {
         }
     }
 
+    // ============ requireType ============
+
+    function test_RequireType() public {
+        bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+        typeUtilsMock.requireType(handle, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_RequireType_IncompatibleTypes() public {
+        bytes32 handle = TestHelper.createHandle(TEEType.Uint256);
+        vm.expectRevert(IncompatibleTypes.selector);
+        typeUtilsMock.requireType(handle, TEEType.Int16);
+    }
+
+    function test_RevertWhen_RequireType_InvalidHandleType() public {
+        uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
+        bytes32 badHandle = bytes32(
+            abi.encodePacked(
+                bytes1(0x00), // Version
+                bytes4(uint32(block.chainid)), // ChainId
+                bytes1(badTypeIndex), // Out-of-range type
+                bytes1(0x01), // Attributes (isUniqueHandle=1)
+                bytes25(uint200(1)) // Pre-handle
+            )
+        );
+        vm.expectRevert(abi.encodeWithSelector(InvalidType.selector, badTypeIndex));
+        typeUtilsMock.requireType(badHandle, TEEType.Uint256);
+    }
+
+    // ============ validateValueFitsType ============
+
+    function test_ValidateValueFitsType() public view {
+        // Bool
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(0)), TEEType.Bool);
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(1)), TEEType.Bool);
+        // uint16
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(type(uint16).max)), TEEType.Uint16);
+        // int16
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(type(uint16).max)), TEEType.Int16);
+        // uint256
+        typeUtilsMock.validateValueFitsType(bytes32(type(uint256).max), TEEType.Uint256);
+        // int256
+        typeUtilsMock.validateValueFitsType(bytes32(type(uint256).max), TEEType.Int256);
+    }
+
+    function test_RevertWhen_ValidateValueFitsType_InvalidValue() public {
+        // Bool
+        vm.expectRevert(ValueOutOfRange.selector);
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(2)), TEEType.Bool);
+        // uint16
+        vm.expectRevert(ValueOutOfRange.selector);
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(type(uint16).max) + 1), TEEType.Uint16);
+        // int16
+        vm.expectRevert(ValueOutOfRange.selector);
+        typeUtilsMock.validateValueFitsType(bytes32(uint256(type(uint16).max) + 1), TEEType.Int16);
+        // uint256 and int256 don't revert.
+    }
+
+    function test_ValidateValueFitsType_RevertWhen_UnsupportedType() public {
+        vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, TEEType.Uint8));
+        typeUtilsMock.validateValueFitsType(bytes32((uint256(3))), TEEType.Uint8);
+    }
+
     // TODO rename to `_supportedArithmeticType`
     function _supportedType(TEEType teeType) private view returns (bool) {
         for (uint256 i = 0; i < supportedTypes.length; i++) {
@@ -140,5 +205,13 @@ contract TypeUtilsMock {
 
     function validateSupportedType(TEEType teeType) public pure {
         TypeUtils.validateSupportedType(teeType);
+    }
+
+    function requireType(bytes32 handle, TEEType expected) public pure {
+        TypeUtils.requireType(handle, expected);
+    }
+
+    function validateValueFitsType(bytes32 value, TEEType teeType) public pure {
+        TypeUtils.validateValueFitsType(value, teeType);
     }
 }

@@ -188,16 +188,20 @@ library TypeUtils {
 
     /**
      * @notice Validates that a plaintext value fits the given TEE type's range.
-     * Only enforced for currently supported types: Bool, Uint16, Int16.
+     * Enforced for currently supported types: Bool, Uint16, Int16.
      * Uint256 and Int256 accept any bytes32.
+     * Reverts for unsupported types.
      * @param value The plaintext value to validate
      * @param teeType The target TEE type
      */
     function validateValueFitsType(bytes32 value, TEEType teeType) internal pure {
+        validateSupportedType(teeType);
         if (teeType == TEEType.Bool) {
             require(uint256(value) <= 1, ValueOutOfRange());
         } else if (teeType == TEEType.Uint16 || teeType == TEEType.Int16) {
             require(uint256(value) <= type(uint16).max, ValueOutOfRange());
+        } else if (teeType == TEEType.Uint256 || teeType == TEEType.Int256) {
+            // Do nothing.
         }
     }
 
