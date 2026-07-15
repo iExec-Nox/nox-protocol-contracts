@@ -379,6 +379,8 @@ contract NoxCompute_ACLTest is Test {
 
     // ============ Public handle ACL tests ============
 
+    // TODO dispatch these public handle tests in allow, allowTransient, ...
+
     function test_PublicHandle_Allow_RevertWhen_PublicHandle() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
@@ -405,6 +407,15 @@ contract NoxCompute_ACLTest is Test {
 
     function test_PublicHandle_IsAllowed_ReturnsFalse_ForUnregisteredHandle() public {
         bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForForgedHandleWithBadType() public {
+        bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        // Overwrite the type byte (index 5) with a value outside the TEEType enum range.
+        bytes32 badType = bytes32(bytes1(uint8(type(TEEType).max) + 1)) >> (5 * 8);
+        bytes32 forgedHandleWithoutType = forgedHandle & ~(bytes32(bytes1(0xff)) >> (5 * 8));
+        forgedHandle = forgedHandleWithoutType | badType;
         assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
     }
 

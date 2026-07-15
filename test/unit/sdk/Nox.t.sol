@@ -22,6 +22,7 @@ contract NoxTest is Test {
 
     address owner = makeAddr("owner");
     address account = makeAddr("account");
+    address anyone = makeAddr("anyone");
     bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
@@ -224,6 +225,17 @@ contract NoxTest is Test {
         );
         eint256 result = Nox.toTransientEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
+    }
+
+    // ============ persistTransientHandle ============
+
+    function test_persistTransientHandle() public {
+        (ebool b, euint16 u16, euint256 u256, eint16 i16, eint256 i256) = this._wrapAndPersist();
+        assertTrue(Nox.isAllowed(b, anyone));
+        assertTrue(Nox.isAllowed(u16, anyone));
+        assertTrue(Nox.isAllowed(u256, anyone));
+        assertTrue(Nox.isAllowed(i16, anyone));
+        assertTrue(Nox.isAllowed(i256, anyone));
     }
 
     // ============ fromExternal ============
@@ -951,6 +963,23 @@ contract NoxTest is Test {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxComputeContract.allowPublicDecryption(handle);
+    }
+
+    // Use with `this.` to run wrap + persist in the same tx.
+    function _wrapAndPersist()
+        external
+        returns (ebool b, euint16 u16, euint256 u256, eint16 i16, eint256 i256)
+    {
+        b = Nox.toTransientEbool(true);
+        Nox.persistTransientHandle(b);
+        u16 = Nox.toTransientEuint16(1);
+        Nox.persistTransientHandle(u16);
+        u256 = Nox.toTransientEuint256(2);
+        Nox.persistTransientHandle(u256);
+        i16 = Nox.toTransientEint16(-1);
+        Nox.persistTransientHandle(i16);
+        i256 = Nox.toTransientEint256(-2);
+        Nox.persistTransientHandle(i256);
     }
 
     function _noxFromExternal(bytes32 handle, bytes memory proof) internal returns (bytes32) {
