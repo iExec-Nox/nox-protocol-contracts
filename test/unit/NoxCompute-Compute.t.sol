@@ -80,17 +80,6 @@ contract NoxCompute_ComputeTest is Test {
         );
     }
 
-    // Wraps a public handle and persists it within a single transaction. persistTransientHandle
-    // requires the handle to be transiently registered in the same tx as the wrap, so both calls
-    // must run inside one external call (they would be separate top-level txs in gas-stats mode).
-    function _wrapAndPersistPublicHandle(
-        bytes32 value,
-        TEEType teeType
-    ) external returns (bytes32 handle) {
-        handle = noxCompute.wrapAsPublicHandle(value, teeType);
-        noxCompute.persistTransientHandle(handle);
-    }
-
     // ============ wrapAsPublicHandle ============
 
     function test_WrapAsPublicHandle_Bool() public {
@@ -1242,6 +1231,17 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     // ============ Test Helpers ============
+
+    // Wraps a public handle and persists it within a single transaction. persistTransientHandle
+    // requires the handle to be transiently registered in the same tx as the wrap, so both calls
+    // must run inside one external call (they would be separate top-level txs in gas-stats mode).
+    function _wrapAndPersistPublicHandle(
+        bytes32 value,
+        TEEType teeType
+    ) external returns (bytes32 handle) {
+        handle = noxCompute.wrapAsPublicHandle(value, teeType);
+        noxCompute.persistTransientHandle(handle);
+    }
 
     function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
         _assertValidHandle(h, expectedType, false);
