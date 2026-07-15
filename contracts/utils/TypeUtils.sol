@@ -113,6 +113,7 @@ enum TEEType {
 }
 
 error InvalidType(uint8 typeIndex);
+error UnsupportedType(uint8 typeIndex);
 error NonArithmeticType();
 error UnsupportedArithmeticType();
 error IncompatibleTypes();
@@ -133,6 +134,26 @@ library TypeUtils {
     }
 
     /**
+     * @notice Returns whether a TEE type is currently supported.
+     * @param teeType The TEE type to check
+     */
+    function isSupportedType(TEEType teeType) internal pure returns (bool) {
+        return teeType == TEEType.Bool || isSupportedArithmeticType(teeType);
+    }
+
+    /**
+     * @notice Returns whether a TEE type is a supported arithmetic type.
+     * @param teeType The TEE type to check
+     */
+    function isSupportedArithmeticType(TEEType teeType) internal pure returns (bool) {
+        return
+            teeType == TEEType.Uint16 ||
+            teeType == TEEType.Uint256 ||
+            teeType == TEEType.Int16 ||
+            teeType == TEEType.Int256;
+    }
+
+    /**
      * @notice Extracts the TEE type from a handle.
      * The type is stored at byte position 5 in the handle.
      * @param handle The handle to extract the type from
@@ -142,6 +163,16 @@ library TypeUtils {
         uint8 typeIndex = uint8(handle[5]);
         require(typeIndex <= uint8(type(TEEType).max), InvalidType(typeIndex));
         return TEEType(typeIndex);
+    }
+
+    /**
+     * @notice Validates that a TEE type is currently supported.
+     * Supported types: Bool, Uint16, Uint256, Int16, Int256.
+     * @param teeType The TEE type to validate
+     * @dev Reverts with UnsupportedType when the type is a valid enum member but not supported.
+     */
+    function validateSupportedType(TEEType teeType) internal pure {
+        require(isSupportedType(teeType), UnsupportedType(uint8(teeType)));
     }
 
     /**
@@ -158,12 +189,7 @@ library TypeUtils {
     function validateArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
         require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
-        bool supportedType =
-            teeType == TEEType.Uint16 ||
-                teeType == TEEType.Uint256 ||
-                teeType == TEEType.Int16 ||
-                teeType == TEEType.Int256;
-        require(supportedType, UnsupportedArithmeticType());
+        require(isSupportedArithmeticType(teeType), UnsupportedArithmeticType());
     }
 
     /**

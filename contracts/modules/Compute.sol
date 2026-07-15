@@ -34,6 +34,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 value,
         TEEType teeType
     ) external override returns (bytes32 result) {
+        TypeUtils.validateSupportedType(teeType);
         TypeUtils.validateValueFitsType(value, teeType);
         if (value == bytes32(0)) {
             // Canonical zero: always return the zero handle so a single handle

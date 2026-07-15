@@ -12,7 +12,8 @@ import {
     UnsupportedArithmeticType,
     IncompatibleTypes,
     ValueOutOfRange,
-    InvalidType
+    InvalidType,
+    UnsupportedType
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
@@ -170,6 +171,19 @@ contract NoxCompute_ComputeTest is Test {
             abi.encodeWithSelector(INoxCompute.wrapAsPublicHandle.selector, value, badTypeIndex)
         );
         assertFalse(success);
+    }
+
+    function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
+        bytes32 value = bytes32(uint256(42));
+        // Every valid enum member that is not a supported type must revert.
+        for (uint8 i = 0; i <= uint8(type(TEEType).max); i++) {
+            if (TypeUtils.isSupportedType(TEEType(i))) {
+                continue;
+            }
+            vm.prank(caller);
+            vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, i));
+            noxCompute.wrapAsPublicHandle(value, TEEType(i));
+        }
     }
 
     // ============ Handle uniqueness seed ============
