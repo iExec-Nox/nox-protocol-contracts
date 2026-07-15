@@ -186,7 +186,7 @@ library TypeUtils {
      * @dev Reverts with NonArithmeticType when the type is not an arithmetic type.
      * @dev Reverts with UnsupportedArithmeticType when the type is not supported.
      */
-    function validateArithmeticType(TEEType teeType) internal pure {
+    function validateSupportedArithmeticType(TEEType teeType) internal pure {
         uint8 t = uint8(teeType);
         require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
         require(isSupportedArithmeticType(teeType), UnsupportedArithmeticType());
@@ -218,7 +218,7 @@ library TypeUtils {
      * Validates that first and second have the same supported arithmetic type.
      */
     function validateOperationTypes(bytes32 first, bytes32 second) internal pure {
-        validateArithmeticType(typeOf(first));
+        validateSupportedArithmeticType(typeOf(first));
         requireType(second, typeOf(first));
     }
 

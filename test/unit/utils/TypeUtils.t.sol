@@ -25,32 +25,32 @@ contract TypeUtilsTest is Test {
         assertEq(uint8(typeUtilsMock.typeOf(handle)), uint8(TEEType.Uint256));
     }
 
-    // ============ validateArithmeticType ============
+    // ============ validateSupportedArithmeticType ============
 
-    function test_ValidateArithmeticType() public view {
+    function test_ValidateSupportedArithmeticType() public view {
         for (uint256 i = 0; i < supportedTypes.length; i++) {
-            typeUtilsMock.validateArithmeticType(supportedTypes[i]);
+            typeUtilsMock.validateSupportedArithmeticType(supportedTypes[i]);
         }
     }
 
-    function test_RevertWhen_ValidateArithmeticType_NonArithmeticType() public {
+    function test_RevertWhen_ValidateSupportedArithmeticType_NonArithmeticType() public {
         for (uint8 i = 0; i < uint8(TEEType.Uint8); i++) {
             vm.expectRevert(NonArithmeticType.selector);
-            typeUtilsMock.validateArithmeticType(TEEType(i));
+            typeUtilsMock.validateSupportedArithmeticType(TEEType(i));
         }
         for (uint8 i = uint8(TEEType.Bytes1); i <= uint8(type(TEEType).max); i++) {
             vm.expectRevert(NonArithmeticType.selector);
-            typeUtilsMock.validateArithmeticType(TEEType(i));
+            typeUtilsMock.validateSupportedArithmeticType(TEEType(i));
         }
     }
 
-    function test_RevertWhen_ValidateArithmeticType_UnsupportedArithmeticType() public {
+    function test_RevertWhen_ValidateSupportedArithmeticType_UnsupportedArithmeticType() public {
         for (uint8 i = uint8(TEEType.Uint8); i <= uint8(TEEType.Int256); i++) {
             if (_supportedType(TEEType(i))) {
                 continue;
             }
             vm.expectRevert(UnsupportedArithmeticType.selector);
-            typeUtilsMock.validateArithmeticType(TEEType(i));
+            typeUtilsMock.validateSupportedArithmeticType(TEEType(i));
         }
     }
 
@@ -72,7 +72,7 @@ contract TypeUtilsMock {
         return TypeUtils.typeOf(handle);
     }
 
-    function validateArithmeticType(TEEType teeType) public pure {
-        TypeUtils.validateArithmeticType(teeType);
+    function validateSupportedArithmeticType(TEEType teeType) public pure {
+        TypeUtils.validateSupportedArithmeticType(teeType);
     }
 }
