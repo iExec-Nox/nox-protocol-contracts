@@ -164,11 +164,6 @@ library TypeUtils {
 
     /**
      * @notice Validates that a TEE type is supported for arithmetic operations.
-     * Only the following arithmetic types are supported:
-     *  - uint16
-     *  - uint256
-     *  - int16
-     *  - int256
      * @param teeType The TEE type to validate
      * @dev Reverts with NonArithmeticType when the type is not an arithmetic type.
      * @dev Reverts with UnsupportedArithmeticType when the type is not supported.
