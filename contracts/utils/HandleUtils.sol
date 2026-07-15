@@ -20,9 +20,9 @@ library HandleUtils {
      *   - `allow`, `addViewer`...    → ACL mutations are blocked to prevent confusion
      *   - `isViewer`                 → always returns true for public handles
      *   - `isPubliclyDecryptable`    → always returns true for public handles
-     * Public handles contain no secret; their plaintext is deterministically derivable
-     * from the handle. The existence check prevents forged public handles (with an
-     * unregistered preimage) from producing permanently undecryptable computation results.
+     * Public handles carry no secret, they are deterministically derived from their plaintext.
+     * The registration check prevents forged public handles (with an unregistered preimage) from
+     * producing permanently undecryptable computation results.
      *
      * @param handle The handle to check
      * @return True if the handle is a public handle

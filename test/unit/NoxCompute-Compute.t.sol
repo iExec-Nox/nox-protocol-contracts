@@ -30,10 +30,10 @@ contract NoxCompute_ComputeTest is Test {
     uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
 
     // Public handle wrapped but NOT persisted in setUp used to assert
-    // a public handle is not useable cross-txs by default.
+    // a public handle is not usable cross-txs by default.
     bytes32 transientPublicHandle;
-    // Public handle wrapped and persisted in setUp, useable across test txs.
-    bytes32 persistantPublicHandle;
+    // Public handle wrapped and persisted in setUp, usable across test txs.
+    bytes32 persistentPublicHandle;
 
     bytes4[] arithmeticOps = [
         INoxCompute.add.selector,
@@ -74,7 +74,7 @@ contract NoxCompute_ComputeTest is Test {
             bytes32(uint256(88888)),
             TEEType.Uint256
         );
-        persistantPublicHandle = this._wrapAndPersistPublicHandle(
+        persistentPublicHandle = this._wrapAndPersistPublicHandle(
             bytes32(uint256(99999)),
             TEEType.Uint256
         );
@@ -1107,7 +1107,7 @@ contract NoxCompute_ComputeTest is Test {
 
     // ============ Public Handle ============
 
-    function test_PublicHandle_UnuseableCrossTxs() public {
+    function test_PublicHandle_UnusableCrossTxs() public {
         assertFalse(noxCompute.isAllowed(transientPublicHandle, anyone));
         vm.prank(caller);
         vm.expectRevert(
@@ -1135,14 +1135,14 @@ contract NoxCompute_ComputeTest is Test {
         _assertValidHandle(result, TEEType.Uint256);
     }
 
-    function test_PublicHandle_AddWithPersistantPublicHandleSucceeds() public {
-        this._test_PublicHandle_AddWithPersistantPublicHandleSucceeds();
+    function test_PublicHandle_AddWithPersistentPublicHandleSucceeds() public {
+        this._test_PublicHandle_AddWithPersistentPublicHandleSucceeds();
     }
 
-    function _test_PublicHandle_AddWithPersistantPublicHandleSucceeds() external {
+    function _test_PublicHandle_AddWithPersistentPublicHandleSucceeds() external {
         TestHelper.forceAllowPersistent(handle, caller);
         vm.prank(caller);
-        bytes32 result = noxCompute.add(persistantPublicHandle, handle);
+        bytes32 result = noxCompute.add(persistentPublicHandle, handle);
         _assertValidHandle(result, TEEType.Uint256);
     }
 
@@ -1213,9 +1213,9 @@ contract NoxCompute_ComputeTest is Test {
         assertTrue(noxCompute.isAllowed(pub, address(0)));
     }
 
-    function test_PersistTransientHandle_ReuseableCrossTxs() public view {
+    function test_PersistTransientHandle_ReusableCrossTxs() public view {
         // Create in `setUp` tx and accessible in this test's tx.
-        assertTrue(noxCompute.isAllowed(persistantPublicHandle, anyone));
+        assertTrue(noxCompute.isAllowed(persistentPublicHandle, anyone));
     }
 
     function test_RevertWhen_PersistTransientHandle_NotPublicHandle() public {
