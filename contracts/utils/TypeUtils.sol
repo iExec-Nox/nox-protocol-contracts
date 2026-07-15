@@ -121,6 +121,18 @@ error ValueOutOfRange();
 
 library TypeUtils {
     /**
+     * @notice Extracts the TEE type from a handle.
+     * The type is stored at byte position 5 in the handle.
+     * @param handle The handle to extract the type from
+     * @return The TEEType encoded in the handle
+     */
+    function typeOf(bytes32 handle) internal pure returns (TEEType) {
+        uint8 typeIndex = uint8(handle[5]);
+        require(typeIndex <= uint8(type(TEEType).max), InvalidType(typeIndex));
+        return TEEType(typeIndex);
+    }
+
+    /**
      * @notice Returns whether a TEE type is currently supported.
      * @param teeType The TEE type to check
      */
@@ -138,18 +150,6 @@ library TypeUtils {
             teeType == TEEType.Uint256 ||
             teeType == TEEType.Int16 ||
             teeType == TEEType.Int256;
-    }
-
-    /**
-     * @notice Extracts the TEE type from a handle.
-     * The type is stored at byte position 5 in the handle.
-     * @param handle The handle to extract the type from
-     * @return The TEEType encoded in the handle
-     */
-    function typeOf(bytes32 handle) internal pure returns (TEEType) {
-        uint8 typeIndex = uint8(handle[5]);
-        require(typeIndex <= uint8(type(TEEType).max), InvalidType(typeIndex));
-        return TEEType(typeIndex);
     }
 
     /**
