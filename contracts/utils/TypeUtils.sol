@@ -121,19 +121,6 @@ error ValueOutOfRange();
 
 library TypeUtils {
     /**
-     * Returns the list of all currently supported TEE types.
-     * @dev Update this list when new types are supported.
-     */
-    function allCurrentlySupportedTypes() internal pure returns (TEEType[] memory types) {
-        types = new TEEType[](5);
-        types[0] = TEEType.Bool;
-        types[1] = TEEType.Uint16;
-        types[2] = TEEType.Uint256;
-        types[3] = TEEType.Int16;
-        types[4] = TEEType.Int256;
-    }
-
-    /**
      * @notice Returns whether a TEE type is currently supported.
      * @param teeType The TEE type to check
      */

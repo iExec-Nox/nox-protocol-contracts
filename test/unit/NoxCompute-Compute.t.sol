@@ -111,7 +111,7 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_WrapAsPublicHandle_ZeroValue_ReturnsCanonicalZeroHandle() public {
-        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        TEEType[] memory types = TestHelper.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < types.length; i++) {
             vm.recordLogs();
             vm.prank(caller);
@@ -174,10 +174,10 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
-        bytes32 value = bytes32(uint256(42));
+        bytes32 value = bytes32(uint256(1));
         // Every valid enum member that is not a supported type must revert.
         for (uint8 i = 0; i <= uint8(type(TEEType).max); i++) {
-            if (TypeUtils.isSupportedType(TEEType(i))) {
+            if (TestHelper.isCurrentlySupportedType(TEEType(i))) {
                 continue;
             }
             vm.prank(caller);

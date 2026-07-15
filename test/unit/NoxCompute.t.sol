@@ -152,7 +152,7 @@ contract NoxComputeTest is Test {
     }
 
     function _checkEmitZeroHandleSeeds() private {
-        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        TEEType[] memory types = TestHelper.allCurrentlySupportedTypes();
         for (uint i = 0; i < types.length; i++) {
             vm.expectEmit(false, false, false, true);
             emit INoxCompute.WrapAsPublicHandle(
