@@ -770,16 +770,12 @@ contract NoxTest is Test {
         }
     }
 
-    function test_isViewer_DelegatesToNoxComputeForPublicHandles() public {
+    function test_isViewer_ReturnsTrueForPublicHandlesWithoutCallingNoxCompute() public {
         for (uint256 i = 0; i < publicHandles.length; i++) {
-            vm.mockCall(
+            vm.mockCallRevert(
                 noxCompute,
                 abi.encodeCall(INoxCompute.isViewer, (publicHandles[i], account)),
-                abi.encode(true)
-            );
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.isViewer, (publicHandles[i], account))
+                "isViewer must not be called for public handles"
             );
             assertTrue(_noxIsViewer(publicHandles[i], account));
         }
@@ -816,16 +812,14 @@ contract NoxTest is Test {
         }
     }
 
-    function test_isPubliclyDecryptable_DelegatesToNoxComputeForPublicHandles() public {
+    function test_isPubliclyDecryptable_ReturnsTrueForPublicHandlesWithoutCallingNoxCompute()
+        public
+    {
         for (uint256 i = 0; i < publicHandles.length; i++) {
-            vm.mockCall(
+            vm.mockCallRevert(
                 noxCompute,
                 abi.encodeCall(INoxCompute.isPubliclyDecryptable, (publicHandles[i])),
-                abi.encode(true)
-            );
-            vm.expectCall(
-                noxCompute,
-                abi.encodeCall(INoxCompute.isPubliclyDecryptable, (publicHandles[i]))
+                "isPubliclyDecryptable must not be called for public handles"
             );
             assertTrue(_noxIsPubliclyDecryptable(publicHandles[i]));
         }
