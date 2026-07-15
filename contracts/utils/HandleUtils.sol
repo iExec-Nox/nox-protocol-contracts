@@ -14,7 +14,8 @@ library HandleUtils {
      *
      * @dev **Security invariant — public handles are gated by the existence registry.**
      * Every access-control gate in the system routes through this predicate:
-     *   - `_isAllowed`               → returns true only if the handle is in `registeredPublicHandles`
+     *   - `_isAllowed`               → true only if the handle is registered transiently (this tx)
+     *                                  or persistently, or is a canonical zero handle
      *   - `_allowTransient`          → silently skips (no tstore needed)
      *   - `allow`, `addViewer`...    → ACL mutations are blocked to prevent confusion
      *   - `isViewer`                 → always returns true for public handles
