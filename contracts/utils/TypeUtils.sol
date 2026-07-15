@@ -112,11 +112,11 @@ enum TEEType {
     Bytes32 // 99
 }
 
+error InvalidType(uint8 typeIndex);
 error NonArithmeticType();
 error UnsupportedArithmeticType();
 error IncompatibleTypes();
 error ValueOutOfRange();
-error UnsupportedType(uint8 typeIndex);
 
 library TypeUtils {
     /**
@@ -140,7 +140,7 @@ library TypeUtils {
      */
     function typeOf(bytes32 handle) internal pure returns (TEEType) {
         uint8 typeIndex = uint8(handle[5]);
-        require(typeIndex <= uint8(type(TEEType).max), UnsupportedType(typeIndex));
+        require(typeIndex <= uint8(type(TEEType).max), InvalidType(typeIndex));
         return TEEType(typeIndex);
     }
 
