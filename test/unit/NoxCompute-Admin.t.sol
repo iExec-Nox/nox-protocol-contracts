@@ -9,6 +9,9 @@ import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxCompute_AdminTest is Test {
+    uint256 constant SECP256K1_FIELD_PRIME =
+        0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
+
     address admin = makeAddr("admin");
     address upgrader = makeAddr("upgrader");
     bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
@@ -59,6 +62,49 @@ contract NoxCompute_AdminTest is Test {
         vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
         vm.prank(upgrader);
         noxCompute.setKmsPublicKey(new bytes(33));
+    }
+
+    function test_RevertWhen_SetKmsPublicKey_InvalidPrefix() public {
+        bytes1[3] memory invalidPrefixes = [bytes1(0x00), bytes1(0x01), bytes1(0x04)];
+        for (uint256 i = 0; i < invalidPrefixes.length; i++) {
+            bytes memory newKey = abi.encodePacked(invalidPrefixes[i], keccak256("kms-key"));
+            vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
+            vm.prank(upgrader);
+            noxCompute.setKmsPublicKey(newKey);
+        }
+    }
+
+    function test_SetKmsPublicKey_AcceptsBothValidPrefixes() public {
+        bytes1[2] memory validPrefixes = [bytes1(0x02), bytes1(0x03)];
+        for (uint256 i = 0; i < validPrefixes.length; i++) {
+            bytes memory newKey = abi.encodePacked(validPrefixes[i], keccak256("kms-key"));
+            vm.prank(upgrader);
+            noxCompute.setKmsPublicKey(newKey);
+            assertEq(noxCompute.kmsPublicKey(), newKey);
+        }
+    }
+
+    function test_RevertWhen_SetKmsPublicKey_XCoordinateNotBelowFieldPrime() public {
+        // X-coordinate == p (not strictly below the field prime)
+        bytes memory keyAtPrime = abi.encodePacked(bytes1(0x02), bytes32(SECP256K1_FIELD_PRIME));
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
+        vm.prank(upgrader);
+        noxCompute.setKmsPublicKey(keyAtPrime);
+
+        // X-coordinate == p + 1
+        bytes memory keyAbovePrime = abi.encodePacked(
+            bytes1(0x03),
+            bytes32(SECP256K1_FIELD_PRIME + 1)
+        );
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
+        vm.prank(upgrader);
+        noxCompute.setKmsPublicKey(keyAbovePrime);
+
+        // X-coordinate == all 0xff bytes (max uint256, far above the field prime)
+        bytes memory keyAllFf = abi.encodePacked(bytes1(0x02), bytes32(type(uint256).max));
+        vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
+        vm.prank(upgrader);
+        noxCompute.setKmsPublicKey(keyAllFf);
     }
 
     // ============ setGateway ============
