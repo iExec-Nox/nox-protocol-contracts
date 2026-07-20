@@ -176,18 +176,17 @@ abstract contract ACL is Common {
      * Checks if the account is allowed to access the handle.
      * For public handles, access is granted if any of the following conditions are met:
      *   - The handle was wrapped in the current transaction (transient registry)
-     *   - The handle was previously persisted via persistTransientHandle (persistent registry)
      *   - The handle equals the canonical zero handle for its type
-     * Checks are ordered cheapest-first: transient tload short-circuits before the SLOAD, and both
-     * short-circuit before the _isZeroHandle loop.
+     *   - The handle was previously persisted via persistTransientHandle (persistent registry)
+     * The three checks are ordered cheapest-first.
      * For unique handles, the standard transient or persistent ACL applies.
      */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
         if (HandleUtils.isPublicHandle(handle)) {
             return
                 _isTransientlyRegistered(handle) ||
-                _isPersistentlyRegistered(handle) ||
-                _isZeroHandle(handle);
+                _isZeroHandle(handle) ||
+                _isPersistentlyRegistered(handle);
         }
         return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
     }
