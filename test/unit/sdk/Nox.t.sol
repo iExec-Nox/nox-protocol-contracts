@@ -22,6 +22,7 @@ contract NoxTest is Test {
 
     address owner = makeAddr("owner");
     address account = makeAddr("account");
+    address anyone = makeAddr("anyone");
     bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
@@ -157,27 +158,27 @@ contract NoxTest is Test {
         assertFalse(Nox.isInitialized(eint256.wrap(0)));
     }
 
-    // ============ to<Type> ============
+    // ============ toTransient<Type> ============
 
-    function test_toEbool_True() public {
+    function test_toTransientEbool_True() public {
         vm.expectCall(
             noxCompute,
             abi.encodeCall(INoxCompute.wrapAsPublicHandle, (bytes32(uint256(1)), TEEType.Bool))
         );
-        ebool result = Nox.toEbool(true);
+        ebool result = Nox.toTransientEbool(true);
         assertNotEq(ebool.unwrap(result), 0);
     }
 
-    function test_toEbool_False() public {
+    function test_toTransientEbool_False() public {
         vm.expectCall(
             noxCompute,
             abi.encodeCall(INoxCompute.wrapAsPublicHandle, (bytes32(uint256(0)), TEEType.Bool))
         );
-        ebool result = Nox.toEbool(false);
+        ebool result = Nox.toTransientEbool(false);
         assertNotEq(ebool.unwrap(result), 0);
     }
 
-    function test_toEuint16() public {
+    function test_toTransientEuint16() public {
         uint16 value = 42;
         vm.expectCall(
             noxCompute,
@@ -186,21 +187,21 @@ contract NoxTest is Test {
                 (bytes32(uint256(value)), TEEType.Uint16)
             )
         );
-        euint16 result = Nox.toEuint16(value);
+        euint16 result = Nox.toTransientEuint16(value);
         assertNotEq(euint16.unwrap(result), 0);
     }
 
-    function test_toEuint256() public {
+    function test_toTransientEuint256() public {
         uint256 value = 12345;
         vm.expectCall(
             noxCompute,
             abi.encodeCall(INoxCompute.wrapAsPublicHandle, (bytes32(value), TEEType.Uint256))
         );
-        euint256 result = Nox.toEuint256(value);
+        euint256 result = Nox.toTransientEuint256(value);
         assertNotEq(euint256.unwrap(result), 0);
     }
 
-    function test_toEint16() public {
+    function test_toTransientEint16() public {
         int16 value = -42;
         vm.expectCall(
             noxCompute,
@@ -209,11 +210,11 @@ contract NoxTest is Test {
                 (bytes32(uint256(uint16(value))), TEEType.Int16)
             )
         );
-        eint16 result = Nox.toEint16(value);
+        eint16 result = Nox.toTransientEint16(value);
         assertNotEq(eint16.unwrap(result), 0);
     }
 
-    function test_toEint256() public {
+    function test_toTransientEint256() public {
         int256 value = -12345;
         vm.expectCall(
             noxCompute,
@@ -222,8 +223,19 @@ contract NoxTest is Test {
                 (bytes32(uint256(value)), TEEType.Int256)
             )
         );
-        eint256 result = Nox.toEint256(value);
+        eint256 result = Nox.toTransientEint256(value);
         assertNotEq(eint256.unwrap(result), 0);
+    }
+
+    // ============ persistTransientHandle ============
+
+    function test_persistTransientHandle() public {
+        (ebool b, euint16 u16, euint256 u256, eint16 i16, eint256 i256) = this._wrapAndPersist();
+        assertTrue(Nox.isAllowed(b, anyone));
+        assertTrue(Nox.isAllowed(u16, anyone));
+        assertTrue(Nox.isAllowed(u256, anyone));
+        assertTrue(Nox.isAllowed(i16, anyone));
+        assertTrue(Nox.isAllowed(i256, anyone));
     }
 
     // ============ fromExternal ============
@@ -712,12 +724,16 @@ contract NoxTest is Test {
         }
     }
 
-    function test_isAllowed_ReturnsTrueForPublicHandlesWithoutCallingNoxCompute() public {
+    function test_isAllowed_DelegatesToNoxComputeForPublicHandles() public {
         for (uint256 i = 0; i < publicHandles.length; i++) {
-            vm.mockCallRevert(
+            vm.mockCall(
                 noxCompute,
                 abi.encodeCall(INoxCompute.isAllowed, (publicHandles[i], account)),
-                "isAllowed must not be called for public handles"
+                abi.encode(true)
+            );
+            vm.expectCall(
+                noxCompute,
+                abi.encodeCall(INoxCompute.isAllowed, (publicHandles[i], account))
             );
             assertTrue(_noxIsAllowed(publicHandles[i], account));
         }
@@ -941,6 +957,23 @@ contract NoxTest is Test {
         TestHelper.forceAllowPersistent(handle, owner);
         vm.prank(owner);
         noxComputeContract.allowPublicDecryption(handle);
+    }
+
+    // Use with `this.` to run wrap + persist in the same tx.
+    function _wrapAndPersist()
+        external
+        returns (ebool b, euint16 u16, euint256 u256, eint16 i16, eint256 i256)
+    {
+        b = Nox.toTransientEbool(true);
+        Nox.persistTransientHandle(b);
+        u16 = Nox.toTransientEuint16(1);
+        Nox.persistTransientHandle(u16);
+        u256 = Nox.toTransientEuint256(2);
+        Nox.persistTransientHandle(u256);
+        i16 = Nox.toTransientEint16(-1);
+        Nox.persistTransientHandle(i16);
+        i256 = Nox.toTransientEint256(-2);
+        Nox.persistTransientHandle(i256);
     }
 
     function _noxFromExternal(bytes32 handle, bytes memory proof) internal returns (bytes32) {

@@ -4,6 +4,7 @@ pragma solidity ^0.8.35;
 import {SlotDerivation} from "@openzeppelin/contracts/utils/SlotDerivation.sol";
 import {TransientSlot} from "@openzeppelin/contracts/utils/TransientSlot.sol";
 import {HandleUtils} from "../utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../utils/TypeUtils.sol";
 import {INoxCompute} from "../interfaces/INoxCompute.sol";
 import {Common} from "./Common.sol";
 
@@ -17,8 +18,14 @@ abstract contract ACL is Common {
     using TransientSlot for bytes32;
     using TransientSlot for TransientSlot.BooleanSlot;
 
-    bytes32 private constant ACL_TRANSIENT_STORAGE_BASE_SLOT = keccak256(
-        "nox.storage.transient.ACL"
+    // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
+    // slither-disable-next-line uninitialized-state
+    bytes32 private constant ACL_TRANSIENT_STORAGE_BASE_SLOT = bytes32(
+        erc7201("nox.storage.transient.ACL")
+    );
+    // slither-disable-next-line uninitialized-state
+    bytes32 private constant PUBLIC_HANDLE_TRANSIENT_BASE_SLOT = bytes32(
+        erc7201("nox.storage.transient.PublicHandle")
     );
 
     modifier notZeroAddress(address account) {
@@ -166,14 +173,70 @@ abstract contract ACL is Common {
     }
 
     /**
-     * Checks if the handle is public, or if account has transient or persistent
-     * access to the handle.
+     * Checks if the account is allowed to access the handle.
+     * For public handles, access is granted if any of the following conditions are met:
+     *   - The handle was wrapped in the current transaction (transient registry)
+     *   - The handle equals the canonical zero handle for its type
+     *   - The handle was previously persisted via persistTransientHandle (persistent registry)
+     * The three checks are ordered cheapest-first.
+     * For unique handles, the standard transient or persistent ACL applies.
      */
     function _isAllowed(bytes32 handle, address account) private view returns (bool) {
-        return
-            HandleUtils.isPublicHandle(handle) ||
-            _isAllowedTransient(handle, account) ||
-            _isAllowedPersistent(handle, account);
+        if (HandleUtils.isPublicHandle(handle)) {
+            return
+                _isTransientlyRegistered(handle) ||
+                _isZeroHandle(handle) ||
+                _isPersistentlyRegistered(handle);
+        }
+        return _isAllowedTransient(handle, account) || _isAllowedPersistent(handle, account);
+    }
+
+    /**
+     * Registers a public handle in transient storage so it is accessible within the
+     * current transaction without a persistent SSTORE.
+     * @param handle The public handle to register transiently
+     */
+    function _registerTransient(bytes32 handle) internal override {
+        PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tstore(true);
+    }
+
+    /**
+     * Returns true if the public handle was registered transiently in the current transaction.
+     * @param handle The public handle to check
+     */
+    function _isTransientlyRegistered(bytes32 handle) internal view returns (bool) {
+        return PUBLIC_HANDLE_TRANSIENT_BASE_SLOT.deriveMapping(handle).asBoolean().tload();
+    }
+
+    /**
+     * Returns true if the public handle was persistently registered via persistTransientHandle.
+     * @param handle The public handle to check
+     */
+    function _isPersistentlyRegistered(bytes32 handle) private view returns (bool) {
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        return $.registeredPublicHandles[handle];
+    }
+
+    /**
+     * Returns true if `handle` exactly equals the canonical zero handle for the type it encodes.
+     * @param handle The handle to check
+     */
+    function _isZeroHandle(bytes32 handle) internal view returns (bool) {
+        // A type byte outside the enum range cannot be a canonical zero handle.
+        // This check guards against the panic that TypeUtils.typeOf would raise
+        // on an out-of-range enum cast.
+        if (uint8(handle[5]) > uint8(type(TEEType).max)) {
+            return false;
+        }
+        return handle == HandleUtils.zeroHandle(TypeUtils.typeOf(handle));
+    }
+
+    /// @inheritdoc INoxCompute
+    function persistTransientHandle(bytes32 handle) external override {
+        require(_isTransientlyRegistered(handle), UnregisteredPublicHandle(handle));
+        NoxComputeStorage storage $ = _getNoxComputeStorage();
+        $.registeredPublicHandles[handle] = true;
+        emit PublicHandlePersisted(msg.sender, handle);
     }
 
     /**

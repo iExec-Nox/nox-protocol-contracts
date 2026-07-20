@@ -8,7 +8,8 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType} from "../../contracts/utils/TypeUtils.sol";
+import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxCompute_ACLTest is Test {
@@ -17,6 +18,7 @@ contract NoxCompute_ACLTest is Test {
     address internal user2 = makeAddr("user2");
     address internal viewer1 = makeAddr("viewer1");
     address internal viewer2 = makeAddr("viewer2");
+    address internal anyone = makeAddr("anyone");
     bytes32 internal handle;
     bytes32 internal handle2;
     bytes32 internal handle3;
@@ -317,7 +319,6 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_IsViewer_ByAnyoneWhenPubliclyDecryptable() public {
-        address anyone = makeAddr("anyone");
         assertFalse(noxCompute.isViewer(handle, anyone));
 
         TestHelper.forceAllowPersistent(handle, owner);
@@ -338,6 +339,17 @@ contract NoxCompute_ACLTest is Test {
 
     function test_IsAllowed_ReturnsFalseByDefault() public view {
         assertFalse(noxCompute.isAllowed(handle, user1));
+    }
+
+    function test_IsAllowed_ZeroHandlesAreAllowedByDefault() public view {
+        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < supportedTypes.length; ++i) {
+            bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
+            assertTrue(
+                noxCompute.isAllowed(zeroHandle, anyone),
+                "Zero handle should be allowed after init"
+            );
+        }
     }
 
     // ============ validateAllowedForAll ============
@@ -410,6 +422,8 @@ contract NoxCompute_ACLTest is Test {
 
     // ============ Public handle ACL tests ============
 
+    // TODO dispatch these public handle tests in allow, allowTransient, ...
+
     function test_PublicHandle_Allow_RevertWhen_PublicHandle() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
@@ -434,14 +448,46 @@ contract NoxCompute_ACLTest is Test {
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    function test_PublicHandle_IsAllowed_ReturnsTrue() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForUnregisteredHandle() public {
+        bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForForgedHandleWithBadType() public {
+        bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        // Overwrite the type byte (index 5) with a value outside the TEEType enum range.
+        bytes32 badType = bytes32(bytes1(uint8(type(TEEType).max) + 1)) >> (5 * 8);
+        bytes32 forgedHandleWithoutType = forgedHandle & ~(bytes32(bytes1(0xff)) >> (5 * 8));
+        forgedHandle = forgedHandleWithoutType | badType;
+        assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle() public {
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle();
+    }
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle() external {
+        bytes32 publicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        assertTrue(noxCompute.isAllowed(publicHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle() public {
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle();
+    }
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle() external {
+        bytes32 publicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        noxCompute.persistTransientHandle(publicHandle);
+        assertTrue(noxCompute.isAllowed(publicHandle, anyone));
     }
 
     function test_PublicHandle_IsViewer_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
+        assertTrue(noxCompute.isViewer(publicHandle, anyone));
     }
 
     function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public {
@@ -449,13 +495,23 @@ contract NoxCompute_ACLTest is Test {
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public {
-        bytes32 pub1 = TestHelper.createPublicHandle(TEEType.Uint256);
-        bytes32 pub2 = TestHelper.createPublicHandle(TEEType.Uint256);
+    function test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() public {
+        this._test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles();
+    }
+    function _test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() external {
+        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = pub1;
         handles[1] = pub2;
-        // Should not revert: public handles are allowed for everyone
+        noxCompute.validateAllowedForAll(user1, handles);
+    }
+
+    function test_PublicHandle_ValidateAllowedForAll_RevertsForUnregisteredHandles() public {
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = forged;
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, user1));
         noxCompute.validateAllowedForAll(user1, handles);
     }
 

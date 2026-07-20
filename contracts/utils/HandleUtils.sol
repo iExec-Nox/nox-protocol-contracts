@@ -9,18 +9,20 @@ library HandleUtils {
 
     /**
      * @notice Checks if a handle is a public handle (isUniqueHandle bit == 0).
-     * A public handle wraps a plaintext value known on-chain, has no ACL,
+     * A public handle wraps a plaintext value registered on-chain, has no ACL,
      * and is accessible by everyone.
      *
-     * @dev **Security invariant — public handles bypass all ACL checks.**
-     * Every access-control gate in the system short-circuits on this predicate:
-     *   - `_isAllowed`               → always returns true for public handles
+     * @dev **Security invariant — public handles are gated by the existence registry.**
+     * Every access-control gate in the system routes through this predicate:
+     *   - `_isAllowed`               → true only if the handle is registered transiently (this tx)
+     *                                  or persistently, or is a canonical zero handle
      *   - `_allowTransient`          → silently skips (no tstore needed)
      *   - `allow`, `addViewer`...    → ACL mutations are blocked to prevent confusion
      *   - `isViewer`                 → always returns true for public handles
      *   - `isPubliclyDecryptable`    → always returns true for public handles
-     * This is intentional: public handles contain no secret, their plaintext
-     * is deterministically derivable from the handle itself.
+     * Public handles carry no secret, they are deterministically derived from their plaintext.
+     * The registration check prevents forged public handles (with an unregistered preimage) from
+     * producing permanently undecryptable computation results.
      *
      * @param handle The handle to check
      * @return True if the handle is a public handle
