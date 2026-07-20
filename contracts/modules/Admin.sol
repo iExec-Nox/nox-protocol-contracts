@@ -104,10 +104,18 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
 
     /**
      * @dev Validates, stores, and emits for a KMS public key update.
+     * Validates the key is a well-formed compressed SEC1 secp256k1 public key:
+     * - 33 bytes
+     * - prefix byte is `0x02` or `0x03`
+     * - X-coordinate below the field prime.
+     * Note: this does not verify the X-coordinate has a corresponding point on the curve.
      */
     function _setKmsPublicKey(bytes calldata key) internal {
         require(key.length == 33, InvalidKmsPublicKeyLength());
-        require(keccak256(key) != keccak256(new bytes(33)), InvalidKmsPublicKey());
+        require(key[0] == 0x02 || key[0] == 0x03, InvalidKmsPublicKey());
+        uint256 fieldPrime = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
+        uint256 xCoord = uint256(bytes32(key[1:33]));
+        require(xCoord < fieldPrime, InvalidKmsPublicKey());
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.kmsPublicKey = key;
         emit KmsPublicKeyUpdated(key);
