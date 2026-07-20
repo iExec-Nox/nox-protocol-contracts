@@ -27,8 +27,6 @@ interface INoxCompute {
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();
-    /// Error thrown when handle is not a public handle
-    error NotPublicHandle();
     /// Error thrown when attempting to persist a public handle not registered in this tx
     error UnregisteredPublicHandle(bytes32 handle);
 

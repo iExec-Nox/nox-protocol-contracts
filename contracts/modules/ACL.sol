@@ -234,7 +234,6 @@ abstract contract ACL is Common {
 
     /// @inheritdoc INoxCompute
     function persistTransientHandle(bytes32 handle) external override {
-        require(HandleUtils.isPublicHandle(handle), NotPublicHandle());
         require(_isTransientlyRegistered(handle), UnregisteredPublicHandle(handle));
         NoxComputeStorage storage $ = _getNoxComputeStorage();
         $.registeredPublicHandles[handle] = true;

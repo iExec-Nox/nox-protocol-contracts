@@ -1207,9 +1207,11 @@ contract NoxCompute_ComputeTest is Test {
         assertTrue(noxCompute.isAllowed(persistentPublicHandle, anyone));
     }
 
-    function test_RevertWhen_PersistTransientHandle_NotPublicHandle() public {
+    function test_RevertWhen_PersistTransientHandle_UniqueHandle() public {
         bytes32 uniqueHandle = TestHelper.createHandle(TEEType.Uint256);
-        vm.expectRevert(INoxCompute.NotPublicHandle.selector);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, uniqueHandle)
+        );
         noxCompute.persistTransientHandle(uniqueHandle);
     }
 
