@@ -27,6 +27,8 @@ interface INoxCompute {
     error NotPubliclyDecryptable(bytes32 handle);
     /// Error thrown when attempting an ACL mutation on a public handle
     error PublicHandleACLForbidden();
+    /// Error thrown when attempting to persist a public handle not registered in this tx
+    error UnregisteredPublicHandle(bytes32 handle);
 
     // ------------- Compute errors -------------
     /// Error thrown when the input proof is invalid
@@ -37,6 +39,8 @@ interface INoxCompute {
     // ------------- ACL events -------------
     /// Emitted when admin role is granted
     event Allowed(address indexed sender, address indexed account, bytes32 indexed handle);
+    /// Emitted when a transient public handle registration is persisted to permanent storage
+    event PublicHandlePersisted(address indexed caller, bytes32 indexed handle);
     /// Emitted when viewer role is granted
     event ViewerAdded(address indexed sender, address indexed viewer, bytes32 indexed handle);
     /// Emitted when a handle is marked as publicly decryptable
@@ -274,6 +278,15 @@ interface INoxCompute {
      * @return Whether the handle is publicly decryptable.
      */
     function isPubliclyDecryptable(bytes32 handle) external view returns (bool);
+
+    /**
+     * @notice Persists a transient public handle registration to permanent storage.
+     * Only a public handle that was wrapped in the current transaction (via wrapAsPublicHandle)
+     * may be persisted. Zero handles are always allowed via the zero-handle carve-out and
+     * never need persisting.
+     * @param handle The public handle to persist
+     */
+    function persistTransientHandle(bytes32 handle) external;
 
     // ------------- Compute functions -------------
 
