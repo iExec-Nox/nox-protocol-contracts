@@ -18,12 +18,14 @@ abstract contract ACL is Common {
     using TransientSlot for bytes32;
     using TransientSlot for TransientSlot.BooleanSlot;
 
-    bytes32 private constant ACL_TRANSIENT_STORAGE_BASE_SLOT = keccak256(
-        "nox.storage.transient.ACL"
+    // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
+    // slither-disable-next-line uninitialized-state
+    bytes32 private constant ACL_TRANSIENT_STORAGE_BASE_SLOT = bytes32(
+        erc7201("nox.storage.transient.ACL")
     );
-
-    bytes32 private constant PUBLIC_HANDLE_TRANSIENT_BASE_SLOT = keccak256(
-        "nox.storage.transient.PublicHandle"
+    // slither-disable-next-line uninitialized-state
+    bytes32 private constant PUBLIC_HANDLE_TRANSIENT_BASE_SLOT = bytes32(
+        erc7201("nox.storage.transient.PublicHandle")
     );
 
     modifier notZeroAddress(address account) {
