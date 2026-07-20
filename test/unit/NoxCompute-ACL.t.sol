@@ -342,7 +342,7 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_IsAllowed_ZeroHandlesAreAllowedByDefault() public view {
-        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
+        TEEType[] memory supportedTypes = TestHelper.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < supportedTypes.length; ++i) {
             bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
             assertTrue(
