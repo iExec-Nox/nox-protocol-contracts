@@ -58,12 +58,6 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.setKmsPublicKey(new bytes(34));
     }
 
-    function test_RevertWhen_SetKmsPublicKey_ZeroKey() public {
-        vm.expectRevert(INoxCompute.InvalidKmsPublicKey.selector);
-        vm.prank(upgrader);
-        noxCompute.setKmsPublicKey(new bytes(33));
-    }
-
     function test_RevertWhen_SetKmsPublicKey_InvalidPrefix() public {
         bytes1[3] memory invalidPrefixes = [bytes1(0x00), bytes1(0x01), bytes1(0x04)];
         for (uint256 i = 0; i < invalidPrefixes.length; i++) {

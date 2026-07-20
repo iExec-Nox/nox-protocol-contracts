@@ -112,7 +112,6 @@ abstract contract Admin is Common, AccessControlUpgradeable, UUPSUpgradeable {
      */
     function _setKmsPublicKey(bytes calldata key) internal {
         require(key.length == 33, InvalidKmsPublicKeyLength());
-        require(keccak256(key) != keccak256(new bytes(33)), InvalidKmsPublicKey());
         require(key[0] == 0x02 || key[0] == 0x03, InvalidKmsPublicKey());
         uint256 fieldPrime = 0xFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFFEFFFFFC2F;
         uint256 xCoord = uint256(bytes32(key[1:33]));
