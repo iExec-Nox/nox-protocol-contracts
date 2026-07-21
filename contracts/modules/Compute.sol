@@ -659,14 +659,16 @@ abstract contract Compute is Common, EIP712 {
      * and harmless for off-chain indexers.
      */
     function _emitZeroHandleSeeds() internal {
-        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
-        for (uint256 i = 0; i < types.length; ++i) {
-            emit WrapAsPublicHandle(
-                address(this),
-                bytes32(0),
-                types[i],
-                HandleUtils.zeroHandle(types[i])
-            );
+        for (uint8 i = 0; i <= uint8(type(TEEType).max); ++i) {
+            TEEType teeType = TEEType(i);
+            if (TypeUtils.isSupportedType(teeType)) {
+                emit WrapAsPublicHandle(
+                    address(this),
+                    bytes32(0),
+                    teeType,
+                    HandleUtils.zeroHandle(teeType)
+                );
+            }
         }
     }
 }

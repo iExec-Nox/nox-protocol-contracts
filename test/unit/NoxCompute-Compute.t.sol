@@ -8,10 +8,10 @@ import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
 import {
     TEEType,
     TypeUtils,
-    NonArithmeticType,
     UnsupportedArithmeticType,
     IncompatibleTypes,
     ValueOutOfRange,
+    InvalidType,
     UnsupportedType
 } from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
@@ -125,7 +125,7 @@ contract NoxCompute_ComputeTest is Test {
     }
 
     function test_WrapAsPublicHandle_ZeroValue_ReturnsCanonicalZeroHandle() public {
-        TEEType[] memory types = TypeUtils.allCurrentlySupportedTypes();
+        TEEType[] memory types = TestHelper.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < types.length; i++) {
             vm.recordLogs();
             vm.prank(caller);
@@ -177,7 +177,7 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.wrapAsPublicHandle(bytes32(uint256(type(uint16).max) + 1), TEEType.Int16);
     }
 
-    function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
+    function test_RevertWhen_WrapAsPublicHandle_InvalidType() public {
         bytes32 value = bytes32(uint256(42));
         // Use low-level call to pass invalid TEEType value: size of TEEType + 1
         vm.prank(caller);
@@ -185,6 +185,19 @@ contract NoxCompute_ComputeTest is Test {
             abi.encodeWithSelector(INoxCompute.wrapAsPublicHandle.selector, value, badTypeIndex)
         );
         assertFalse(success);
+    }
+
+    function test_RevertWhen_WrapAsPublicHandle_UnsupportedType() public {
+        bytes32 value = bytes32(uint256(1));
+        // Every valid enum member that is not a supported type must revert.
+        for (uint8 i = 0; i <= uint8(type(TEEType).max); i++) {
+            if (TestHelper.isCurrentlySupportedType(TEEType(i))) {
+                continue;
+            }
+            vm.prank(caller);
+            vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, i));
+            noxCompute.wrapAsPublicHandle(value, TEEType(i));
+        }
     }
 
     // ============ Handle uniqueness seed ============
@@ -262,7 +275,7 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
-    function test_RevertWhen_ValidateProof_UnsupportedHandleType() public {
+    function test_RevertWhen_ValidateProof_InvalidHandleType() public {
         // Unique handle with a type byte beyond the TEEType enum range
         bytes32 badHandle = bytes32(
             abi.encodePacked(
@@ -281,7 +294,7 @@ contract NoxCompute_ComputeTest is Test {
             createdAt,
             gatewayPrivateKey
         );
-        vm.expectRevert(abi.encodeWithSelector(UnsupportedType.selector, badTypeIndex));
+        vm.expectRevert(abi.encodeWithSelector(InvalidType.selector, badTypeIndex));
         noxCompute.validateInputProof(badHandle, owner, proof, TEEType.Uint256);
     }
 
@@ -721,19 +734,6 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(IncompatibleTypes.selector);
-            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_AllOperations_NonArithmeticType() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Bool);
-        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Bool);
-        TestHelper.forceAllowPersistent(leftHandOperand, caller);
-        TestHelper.forceAllowPersistent(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < allOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(NonArithmeticType.selector);
             _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }

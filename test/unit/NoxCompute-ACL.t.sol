@@ -22,6 +22,8 @@ contract NoxCompute_ACLTest is Test {
     bytes32 internal handle;
     bytes32 internal handle2;
     bytes32 internal handle3;
+    bytes32 internal transientAclHandle;
+    bytes32 internal persistentAclHandle;
     bytes internal kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     address internal gateway = makeAddr("gateway");
     NoxCompute internal noxCompute;
@@ -32,11 +34,17 @@ contract NoxCompute_ACLTest is Test {
         handle = TestHelper.createHandle(TEEType.Uint256);
         handle2 = TestHelper.createHandle(TEEType.Uint256);
         handle3 = TestHelper.createHandle(TEEType.Uint256);
+        // Create transient and persistent ACLs in this tx to check
+        // them in a different tx (test function).
+        (transientAclHandle, persistentAclHandle) = this
+            ._createHandlesWithTransientAndPersistentAcls();
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
         vm.label(viewer2, "Viewer2");
     }
+
+    // TODO reorder test functions to match source contract.
 
     // ============ allowPublicDecryption ============
 
@@ -213,10 +221,45 @@ contract NoxCompute_ACLTest is Test {
 
     // ============ allowTransient ============
 
+    function test_AllowTransient() public {
+        this._test_AllowTransient();
+    }
+    function _test_AllowTransient() external {
+        TestHelper.forceAllowPersistent(handle, user1);
+        TestHelper.forceAllowTransient(handle, user1);
+        TestHelper.forceDisallowPersistent(handle, user1);
+        assertTrue(noxCompute.isAllowed(handle, user1));
+    }
+
+    function test_AllowTransient_ClearsAfterTxAndPersistentRemains() public view {
+        // setUp() ran as a separate transaction from this test function to setup transient
+        // and persistent ACLs.
+        assertFalse(
+            noxCompute.isAllowed(transientAclHandle, user1),
+            "Transient permission should be cleared after tx"
+        );
+        assertTrue(
+            noxCompute.isAllowed(persistentAclHandle, user1),
+            "Persistent permission should remain"
+        );
+    }
+
     function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, user1));
         noxCompute.allowTransient(handle, user2);
+    }
+
+    function test_RevertWhen_AllowTransient_ZeroAddress() public {
+        vm.prank(user1);
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        noxCompute.allowTransient(handle, address(0));
+    }
+
+    function test_RevertWhen_AllowTransient_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.allowTransient(publicHandle, user1);
     }
 
     // ============ disallowTransient ============
@@ -299,7 +342,7 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_IsAllowed_ZeroHandlesAreAllowedByDefault() public view {
-        TEEType[] memory supportedTypes = TypeUtils.allCurrentlySupportedTypes();
+        TEEType[] memory supportedTypes = TestHelper.allCurrentlySupportedTypes();
         for (uint256 i = 0; i < supportedTypes.length; ++i) {
             bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
             assertTrue(
@@ -470,5 +513,19 @@ contract NoxCompute_ACLTest is Test {
         handles[0] = forged;
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, user1));
         noxCompute.validateAllowedForAll(user1, handles);
+    }
+
+    // =============== Helpers ===============
+
+    function _createHandlesWithTransientAndPersistentAcls()
+        external
+        returns (bytes32 transientAclHandle, bytes32 persistentAclHandle)
+    {
+        transientAclHandle = TestHelper.createHandle(TEEType.Uint256);
+        persistentAclHandle = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowTransient(transientAclHandle, user1);
+        TestHelper.forceAllowPersistent(persistentAclHandle, user1);
+        assertTrue(noxCompute.isAllowed(transientAclHandle, user1));
+        assertTrue(noxCompute.isAllowed(persistentAclHandle, user1));
     }
 }
