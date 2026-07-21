@@ -6,7 +6,6 @@ import {
     TEEType,
     TypeUtils,
     InvalidType,
-    NonArithmeticType,
     UnsupportedArithmeticType,
     UnsupportedType,
     IncompatibleTypes,
@@ -80,19 +79,8 @@ contract TypeUtilsTest is Test {
         }
     }
 
-    function test_RevertWhen_ValidateSupportedArithmeticType_NonArithmeticType() public {
-        for (uint8 i = 0; i < uint8(TEEType.Uint8); i++) {
-            vm.expectRevert(NonArithmeticType.selector);
-            typeUtilsMock.validateSupportedArithmeticType(TEEType(i));
-        }
-        for (uint8 i = uint8(TEEType.Bytes1); i <= uint8(type(TEEType).max); i++) {
-            vm.expectRevert(NonArithmeticType.selector);
-            typeUtilsMock.validateSupportedArithmeticType(TEEType(i));
-        }
-    }
-
     function test_RevertWhen_ValidateSupportedArithmeticType_UnsupportedArithmeticType() public {
-        for (uint8 i = uint8(TEEType.Uint8); i <= uint8(TEEType.Int256); i++) {
+        for (uint8 i = 0; i <= uint8(type(TEEType).max); i++) {
             if (_supportedType(TEEType(i))) {
                 continue;
             }

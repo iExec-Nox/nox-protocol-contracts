@@ -8,7 +8,6 @@ import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
 import {
     TEEType,
     TypeUtils,
-    NonArithmeticType,
     UnsupportedArithmeticType,
     IncompatibleTypes,
     ValueOutOfRange,
@@ -735,19 +734,6 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < allOps.length; i++) {
             vm.prank(caller);
             vm.expectRevert(IncompatibleTypes.selector);
-            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
-    function test_RevertWhen_AllOperations_NonArithmeticType() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Bool);
-        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Bool);
-        TestHelper.forceAllowPersistent(leftHandOperand, caller);
-        TestHelper.forceAllowPersistent(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < allOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(NonArithmeticType.selector);
             _callOperation(allOps[i], leftHandOperand, rightHandOperand);
         }
     }

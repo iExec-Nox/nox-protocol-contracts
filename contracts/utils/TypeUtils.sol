@@ -114,7 +114,6 @@ enum TEEType {
 
 error InvalidType(uint8 typeIndex);
 error UnsupportedType(uint8 typeIndex);
-error NonArithmeticType();
 error UnsupportedArithmeticType();
 error IncompatibleTypes();
 error ValueOutOfRange();
@@ -165,12 +164,9 @@ library TypeUtils {
     /**
      * @notice Validates that a TEE type is supported for arithmetic operations.
      * @param teeType The TEE type to validate
-     * @dev Reverts with NonArithmeticType when the type is not an arithmetic type.
      * @dev Reverts with UnsupportedArithmeticType when the type is not supported.
      */
     function validateSupportedArithmeticType(TEEType teeType) internal pure {
-        uint8 t = uint8(teeType);
-        require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
         require(isSupportedArithmeticType(teeType), UnsupportedArithmeticType());
     }
 
@@ -195,8 +191,6 @@ library TypeUtils {
             require(uint256(value) <= 1, ValueOutOfRange());
         } else if (teeType == TEEType.Uint16 || teeType == TEEType.Int16) {
             require(uint256(value) <= type(uint16).max, ValueOutOfRange());
-        } else if (teeType == TEEType.Uint256 || teeType == TEEType.Int256) {
-            // Do nothing.
         }
     }
 
