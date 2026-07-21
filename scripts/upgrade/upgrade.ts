@@ -45,7 +45,12 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
     const chainConfig = getChainConfig(connection.networkName);
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
         // The flags are needed here because coverage-instrumented builds lose NatSpec annotations.
-        unsafeAllow: ["constructor", "missing-initializer", "missing-initializer-call"],
+        // `missing-initializer` is only needed for the test-only NoxComputeUpgradeMock, which
+        // inherits its initializers from NoxCompute; real upgrades keep the strict checks.
+        unsafeAllow:
+            contractName === "NoxCompute"
+                ? ["constructor", "missing-initializer-call"]
+                : ["constructor", "missing-initializer", "missing-initializer-call"],
         call: { fn: "reinitialize", args: [chainConfig.initialAdmin] },
     });
     await upgrade.waitForDeployment();

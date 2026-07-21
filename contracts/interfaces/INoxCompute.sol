@@ -17,7 +17,7 @@ interface INoxCompute {
     error InvalidKmsPublicKey();
     /// Error thrown when attempting to transfer DEFAULT_ADMIN_ROLE to address(0),
     /// which is the only path through which the role could be renounced
-    error AdminRoleRenouncementForbidden();
+    error DefaultAdminRoleRenouncementForbidden();
 
     // ------------- ACL errors -------------
     /// Error thrown when sender doesn't have access to the handle

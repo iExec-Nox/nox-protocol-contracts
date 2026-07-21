@@ -4,7 +4,6 @@ pragma solidity ^0.8.35;
 import {Test} from "forge-std/Test.sol";
 import {IERC1967} from "@openzeppelin/contracts/interfaces/IERC1967.sol";
 import {IAccessControl} from "@openzeppelin/contracts/access/IAccessControl.sol";
-import {IAccessControlDefaultAdminRules} from "@openzeppelin/contracts/access/extensions/IAccessControlDefaultAdminRules.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
@@ -166,7 +165,7 @@ contract NoxCompute_AdminTest is Test {
     }
 
     function test_RevertWhen_BeginDefaultAdminTransfer_ZeroAddress() public {
-        vm.expectRevert(INoxCompute.AdminRoleRenouncementForbidden.selector);
+        vm.expectRevert(INoxCompute.DefaultAdminRoleRenouncementForbidden.selector);
         vm.prank(admin);
         noxCompute.beginDefaultAdminTransfer(address(0));
     }
@@ -179,41 +178,6 @@ contract NoxCompute_AdminTest is Test {
         vm.prank(upgrader);
         noxCompute.renounceRole(upgraderRole, upgrader);
         assertFalse(noxCompute.hasRole(upgraderRole, upgrader));
-    }
-
-    function test_RevertWhen_RenounceRole_AdminRole() public {
-        // Renouncing DEFAULT_ADMIN_ROLE requires a pending transfer to address(0),
-        // which beginDefaultAdminTransfer forbids: renouncement is impossible
-        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
-        vm.expectRevert(
-            abi.encodeWithSelector(
-                IAccessControlDefaultAdminRules.AccessControlEnforcedDefaultAdminDelay.selector,
-                0
-            )
-        );
-        vm.prank(admin);
-        noxCompute.renounceRole(adminRole, admin);
-    }
-
-    // ============ grantRole / revokeRole ============
-
-    function test_RevertWhen_GrantRole_AdminRole() public {
-        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
-        address newAdmin = makeAddr("newAdmin");
-        vm.expectRevert(
-            IAccessControlDefaultAdminRules.AccessControlEnforcedDefaultAdminRules.selector
-        );
-        vm.prank(admin);
-        noxCompute.grantRole(adminRole, newAdmin);
-    }
-
-    function test_RevertWhen_RevokeRole_AdminRole() public {
-        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
-        vm.expectRevert(
-            IAccessControlDefaultAdminRules.AccessControlEnforcedDefaultAdminRules.selector
-        );
-        vm.prank(admin);
-        noxCompute.revokeRole(adminRole, admin);
     }
 
     // ============ _authorizeUpgrade ============

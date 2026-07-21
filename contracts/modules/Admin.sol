@@ -84,7 +84,7 @@ abstract contract Admin is Common, AccessControlDefaultAdminRulesUpgradeable, UU
      * @param newAdmin The new admin address
      */
     function beginDefaultAdminTransfer(address newAdmin) public override {
-        require(newAdmin != address(0), AdminRoleRenouncementForbidden());
+        require(newAdmin != address(0), DefaultAdminRoleRenouncementForbidden());
         super.beginDefaultAdminTransfer(newAdmin);
     }
 
