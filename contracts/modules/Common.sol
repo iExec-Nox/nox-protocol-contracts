@@ -32,6 +32,9 @@ abstract contract Common is INoxCompute {
         uint256 proofExpirationDuration;
         // Counter used to guarantee handle uniqueness when all operands are public handles
         uint256 uniqueSeedCounter;
+        // Public handles created on-chain via wrapAsPublicHandle.
+        // Used to reject forged public handles whose preimage the gateway never witnessed.
+        mapping(bytes32 handle => bool) registeredPublicHandles;
     }
 
     function _getNoxComputeStorage() internal pure returns (NoxComputeStorage storage $) {
@@ -51,4 +54,7 @@ abstract contract Common is INoxCompute {
         address account,
         bytes32[] memory handles
     ) internal view virtual;
+
+    // Implemented by ACL, called by Compute.
+    function _registerTransient(bytes32 handle) internal virtual;
 }

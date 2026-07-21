@@ -44,9 +44,10 @@ abstract contract Compute is Common, EIP712 {
         }
         bytes32[] memory operands = new bytes32[](1);
         operands[0] = value;
-        // Deterministic handle: same (value, type) always produces the same handle
+        // Deterministic handle: same (value, type) always produces the same handle.
         // Generate a public handle (outputIndex=0, uniqueSeed=0, attributes=0x00).
-        // No ACL grant is needed: public handles are accessible to everyone.
+        // No ACL grant is needed: public handles are accessible to everyone
+        // but they must be registered in the same tx.
         result = _generateHandle(
             Operator.WrapAsPublicHandle,
             operands,
@@ -55,6 +56,8 @@ abstract contract Compute is Common, EIP712 {
             0,
             bytes1(0x00)
         );
+        // Register transiently so the handle is accessible within this transaction.
+        _registerTransient(result);
         emit WrapAsPublicHandle(msg.sender, value, teeType, result);
     }
 
@@ -668,8 +671,11 @@ abstract contract Compute is Common, EIP712 {
     }
 
     /**
-     * Emits events to seed the zero handles for all supported types. This allows off-chain
-     * services to recognize the zero handle for each type without needing to hardcode them.
+     * Emits `WrapAsPublicHandle` events for all zero handles of currently supported types
+     * so off-chain services can index them. Zero handles are always accessible via the
+     * _isZeroHandle carve-out and do not need persistent storage registration.
+     * Safe to call on fresh deployments and on upgrades: duplicate events are acceptable
+     * and harmless for off-chain indexers.
      */
     function _emitZeroHandleSeeds() internal {
         for (uint8 i = 0; i <= uint8(type(TEEType).max); ++i) {

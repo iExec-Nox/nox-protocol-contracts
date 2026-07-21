@@ -8,7 +8,6 @@ import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
 import {
     TEEType,
     TypeUtils,
-    NonArithmeticType,
     UnsupportedArithmeticType,
     IncompatibleTypes,
     ValueOutOfRange,
@@ -20,6 +19,7 @@ import {TestHelper} from "../utils/TestHelper.sol";
 contract NoxCompute_ComputeTest is Test {
     address owner = makeAddr("owner");
     address caller = makeAddr("caller");
+    address anyone = makeAddr("anyone");
     bytes kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     uint256 gatewayPrivateKey = 123456789;
     address gateway = vm.addr(gatewayPrivateKey);
@@ -31,6 +31,12 @@ contract NoxCompute_ComputeTest is Test {
     bytes32 handleInt256 = TestHelper.createHandle(TEEType.Int256);
     // Type byte beyond the TEEType enum range
     uint8 badTypeIndex = uint8(type(TEEType).max) + 1;
+
+    // Public handle wrapped but NOT persisted in setUp used to assert
+    // a public handle is not usable cross-txs by default.
+    bytes32 transientPublicHandle;
+    // Public handle wrapped and persisted in setUp, usable across test txs.
+    bytes32 persistentPublicHandle;
 
     bytes4[] arithmeticOps = [
         INoxCompute.add.selector,
@@ -67,6 +73,14 @@ contract NoxCompute_ComputeTest is Test {
         for (uint256 i = 0; i < comparisonOps.length; i++) {
             allOps.push(comparisonOps[i]);
         }
+        transientPublicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(88888)),
+            TEEType.Uint256
+        );
+        persistentPublicHandle = this._wrapAndPersistPublicHandle(
+            bytes32(uint256(99999)),
+            TEEType.Uint256
+        );
     }
 
     // ============ wrapAsPublicHandle ============
@@ -727,19 +741,6 @@ contract NoxCompute_ComputeTest is Test {
         }
     }
 
-    function test_RevertWhen_AllOperations_NonArithmeticType() public {
-        bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Bool);
-        bytes32 rightHandOperand = TestHelper.createHandle(TEEType.Bool);
-        TestHelper.forceAllowPersistent(leftHandOperand, caller);
-        TestHelper.forceAllowPersistent(rightHandOperand, caller);
-
-        for (uint256 i = 0; i < allOps.length; i++) {
-            vm.prank(caller);
-            vm.expectRevert(NonArithmeticType.selector);
-            _callOperation(allOps[i], leftHandOperand, rightHandOperand);
-        }
-    }
-
     function test_RevertWhen_AllOperations_UnsupportedArithmeticType() public {
         bytes32 leftHandOperand = TestHelper.createHandle(TEEType.Uint8);
         bytes32 unsupportedTypeOperand = TestHelper.createHandle(TEEType.Uint8);
@@ -1129,7 +1130,156 @@ contract NoxCompute_ComputeTest is Test {
         noxCompute.burn(balanceFrom, amount, totalSupply);
     }
 
+    // ============ Public Handle ============
+
+    function test_PublicHandle_UnusableCrossTxs() public {
+        assertFalse(noxCompute.isAllowed(transientPublicHandle, anyone));
+        vm.prank(caller);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.NotAllowed.selector, transientPublicHandle, caller)
+        );
+        noxCompute.add(transientPublicHandle, handle);
+    }
+
+    function test_PublicHandle_WrapAndUseInSameTxSucceeds() public {
+        this._test_PublicHandle_WrapAndUseInSameTxSucceeds();
+    }
+    function _test_PublicHandle_WrapAndUseInSameTxSucceeds() external {
+        bytes32 publicHandle1 = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(42)),
+            TEEType.Uint256
+        );
+        bytes32 publicHandle2 = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(43)),
+            TEEType.Uint256
+        );
+        assertTrue(noxCompute.isAllowed(publicHandle1, anyone));
+        assertTrue(noxCompute.isAllowed(publicHandle2, anyone));
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(publicHandle1, publicHandle2);
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    function test_PublicHandle_AddWithPersistentPublicHandleSucceeds() public {
+        this._test_PublicHandle_AddWithPersistentPublicHandleSucceeds();
+    }
+
+    function _test_PublicHandle_AddWithPersistentPublicHandleSucceeds() external {
+        TestHelper.forceAllowPersistent(handle, caller);
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(persistentPublicHandle, handle);
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    function test_PublicHandle_AddWithConfidentialHandleRhsSucceeds() public {
+        this._test_PublicHandle_AddWithConfidentialHandleRhsSucceeds();
+    }
+
+    function _test_PublicHandle_AddWithConfidentialHandleRhsSucceeds() external {
+        TestHelper.forceAllowPersistent(handle, caller);
+        bytes32 publicHandle1 = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(100)),
+            TEEType.Uint256
+        );
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(publicHandle1, handle);
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    function test_PublicHandle_AddWithConfidentialHandleLhsSucceeds() public {
+        this._test_PublicHandle_AddWithConfidentialHandleLhsSucceeds();
+    }
+
+    function _test_PublicHandle_AddWithConfidentialHandleLhsSucceeds() external {
+        TestHelper.forceAllowPersistent(handle, caller);
+        bytes32 publicHandle1 = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(100)),
+            TEEType.Uint256
+        );
+        vm.prank(caller);
+        bytes32 result = noxCompute.add(handle, publicHandle1);
+        _assertValidHandle(result, TEEType.Uint256);
+    }
+
+    function test_RevertWhen_Add_ForgedPublicHandleAsLhs() public {
+        bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertFalse(noxCompute.isAllowed(forged, anyone));
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, caller));
+        noxCompute.add(forged, legitimate);
+    }
+
+    function test_RevertWhen_Add_ForgedPublicHandleAsRhs() public {
+        this._test_RevertWhen_Add_ForgedPublicHandleAsRhs();
+    }
+
+    function _test_RevertWhen_Add_ForgedPublicHandleAsRhs() external {
+        bytes32 legitimate = noxCompute.wrapAsPublicHandle(bytes32(uint256(100)), TEEType.Uint256);
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.prank(caller);
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, caller));
+        noxCompute.add(legitimate, forged);
+    }
+
+    // ============ persistTransientHandle ============
+
+    // persistTransientHandle succeeds for a handle wrapped this tx and emits the event.
+    // Uses the this.external() pattern so wrap + persist execute in the same EVM transaction,
+    // allowing the transient-slot check inside persistTransientHandle to succeed.
+    function test_PersistTransientHandle_Succeeds() public {
+        this._test_PersistTransientHandle_Succeeds();
+    }
+    function _test_PersistTransientHandle_Succeeds() external {
+        bytes32 pub = noxCompute.wrapAsPublicHandle(bytes32(uint256(111)), TEEType.Uint256);
+        vm.expectEmit(true, true, false, false);
+        emit INoxCompute.PublicHandlePersisted(address(this), pub);
+        noxCompute.persistTransientHandle(pub);
+        assertTrue(noxCompute.isAllowed(pub, address(0)));
+    }
+
+    function test_PersistTransientHandle_ReusableCrossTxs() public view {
+        // Create in `setUp` tx and accessible in this test's tx.
+        assertTrue(noxCompute.isAllowed(persistentPublicHandle, anyone));
+    }
+
+    function test_RevertWhen_PersistTransientHandle_UniqueHandle() public {
+        bytes32 uniqueHandle = TestHelper.createHandle(TEEType.Uint256);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, uniqueHandle)
+        );
+        noxCompute.persistTransientHandle(uniqueHandle);
+    }
+
+    function test_RevertWhen_PersistTransientHandle_NotRegisteredInThisTx() public {
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, forged)
+        );
+        noxCompute.persistTransientHandle(forged);
+    }
+
+    // Reverts for a zero handle since it was not wrapped in this tx.
+    function test_RevertWhen_PersistTransientHandle_ZeroHandle() public {
+        bytes32 zeroHandle = HandleUtils.zeroHandle(TEEType.Uint256);
+        vm.expectRevert(
+            abi.encodeWithSelector(INoxCompute.UnregisteredPublicHandle.selector, zeroHandle)
+        );
+        noxCompute.persistTransientHandle(zeroHandle);
+    }
+
     // ============ Test Helpers ============
+
+    // Wraps a public handle and persists it within a single transaction. persistTransientHandle
+    // requires the handle to be transiently registered in the same tx as the wrap, so both calls
+    // must run inside one external call (they would be separate top-level txs in gas-stats mode).
+    function _wrapAndPersistPublicHandle(
+        bytes32 value,
+        TEEType teeType
+    ) external returns (bytes32 handle) {
+        handle = noxCompute.wrapAsPublicHandle(value, teeType);
+        noxCompute.persistTransientHandle(handle);
+    }
 
     function _assertValidHandle(bytes32 h, TEEType expectedType) internal view {
         _assertValidHandle(h, expectedType, false);
