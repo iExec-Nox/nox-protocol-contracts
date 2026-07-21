@@ -21,6 +21,30 @@ library TestHelper {
     );
 
     /**
+     * Returns the list of all currently supported TEE types.
+     * @dev Independent test oracle: this list is EXPLICITLY hardcoded and must not be derived
+     * from TypeUtils.isSupportedType to force manually updating tests when new types are added.
+     */
+    function allCurrentlySupportedTypes() internal pure returns (TEEType[] memory types) {
+        types = new TEEType[](5);
+        types[0] = TEEType.Bool;
+        types[1] = TEEType.Uint16;
+        types[2] = TEEType.Uint256;
+        types[3] = TEEType.Int16;
+        types[4] = TEEType.Int256;
+    }
+
+    function isCurrentlySupportedType(TEEType t) internal pure returns (bool) {
+        TEEType[] memory supported = TestHelper.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < supported.length; i++) {
+            if (supported[i] == t) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
      * Generates a deterministic unique handle with the given type.
      * @param teeType target type
      */

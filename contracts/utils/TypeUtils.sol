@@ -112,26 +112,13 @@ enum TEEType {
     Bytes32 // 99
 }
 
-error NonArithmeticType();
+error InvalidType(uint8 typeIndex);
+error UnsupportedType(uint8 typeIndex);
 error UnsupportedArithmeticType();
 error IncompatibleTypes();
 error ValueOutOfRange();
-error UnsupportedType(uint8 typeIndex);
 
 library TypeUtils {
-    /**
-     * Returns the list of all currently supported TEE types.
-     * @dev Update this list when new types are supported.
-     */
-    function allCurrentlySupportedTypes() internal pure returns (TEEType[] memory types) {
-        types = new TEEType[](5);
-        types[0] = TEEType.Bool;
-        types[1] = TEEType.Uint16;
-        types[2] = TEEType.Uint256;
-        types[3] = TEEType.Int16;
-        types[4] = TEEType.Int256;
-    }
-
     /**
      * @notice Extracts the TEE type from a handle.
      * The type is stored at byte position 5 in the handle.
@@ -140,30 +127,47 @@ library TypeUtils {
      */
     function typeOf(bytes32 handle) internal pure returns (TEEType) {
         uint8 typeIndex = uint8(handle[5]);
-        require(typeIndex <= uint8(type(TEEType).max), UnsupportedType(typeIndex));
+        require(typeIndex <= uint8(type(TEEType).max), InvalidType(typeIndex));
         return TEEType(typeIndex);
     }
 
     /**
-     * @notice Validates that a TEE type is supported for arithmetic operations.
-     * Only the following arithmetic types are supported:
-     *  - uint16
-     *  - uint256
-     *  - int16
-     *  - int256
+     * @notice Returns whether a TEE type is currently supported.
+     * @param teeType The TEE type to check
+     */
+    function isSupportedType(TEEType teeType) internal pure returns (bool) {
+        return teeType == TEEType.Bool || isSupportedArithmeticType(teeType);
+    }
+
+    /**
+     * @notice Returns whether a TEE type is a supported arithmetic type.
+     * @param teeType The TEE type to check
+     */
+    function isSupportedArithmeticType(TEEType teeType) internal pure returns (bool) {
+        return
+            teeType == TEEType.Uint16 ||
+            teeType == TEEType.Uint256 ||
+            teeType == TEEType.Int16 ||
+            teeType == TEEType.Int256;
+    }
+
+    /**
+     * @notice Validates that a TEE type is currently supported.
+     * Supported types: Bool, Uint16, Uint256, Int16, Int256.
      * @param teeType The TEE type to validate
-     * @dev Reverts with NonArithmeticType when the type is not an arithmetic type.
+     * @dev Reverts with UnsupportedType when the type is a valid enum member but not supported.
+     */
+    function validateSupportedType(TEEType teeType) internal pure {
+        require(isSupportedType(teeType), UnsupportedType(uint8(teeType)));
+    }
+
+    /**
+     * @notice Validates that a TEE type is supported for arithmetic operations.
+     * @param teeType The TEE type to validate
      * @dev Reverts with UnsupportedArithmeticType when the type is not supported.
      */
-    function validateArithmeticType(TEEType teeType) internal pure {
-        uint8 t = uint8(teeType);
-        require(t >= uint8(TEEType.Uint8) && t <= uint8(TEEType.Int256), NonArithmeticType());
-        bool supportedType =
-            teeType == TEEType.Uint16 ||
-                teeType == TEEType.Uint256 ||
-                teeType == TEEType.Int16 ||
-                teeType == TEEType.Int256;
-        require(supportedType, UnsupportedArithmeticType());
+    function validateSupportedArithmeticType(TEEType teeType) internal pure {
+        require(isSupportedArithmeticType(teeType), UnsupportedArithmeticType());
     }
 
     /**
@@ -175,12 +179,14 @@ library TypeUtils {
 
     /**
      * @notice Validates that a plaintext value fits the given TEE type's range.
-     * Only enforced for currently supported types: Bool, Uint16, Int16.
+     * Enforced for currently supported types: Bool, Uint16, Int16.
      * Uint256 and Int256 accept any bytes32.
+     * Reverts for unsupported types.
      * @param value The plaintext value to validate
      * @param teeType The target TEE type
      */
     function validateValueFitsType(bytes32 value, TEEType teeType) internal pure {
+        validateSupportedType(teeType);
         if (teeType == TEEType.Bool) {
             require(uint256(value) <= 1, ValueOutOfRange());
         } else if (teeType == TEEType.Uint16 || teeType == TEEType.Int16) {
@@ -192,7 +198,7 @@ library TypeUtils {
      * Validates that first and second have the same supported arithmetic type.
      */
     function validateOperationTypes(bytes32 first, bytes32 second) internal pure {
-        validateArithmeticType(typeOf(first));
+        validateSupportedArithmeticType(typeOf(first));
         requireType(second, typeOf(first));
     }
 

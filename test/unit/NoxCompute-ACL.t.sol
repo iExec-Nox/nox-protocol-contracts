@@ -8,7 +8,8 @@ import {ERC1967Proxy} from "@openzeppelin/contracts/proxy/ERC1967/ERC1967Proxy.s
 import {Initializable} from "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
 import {NoxCompute} from "../../contracts/NoxCompute.sol";
 import {INoxCompute} from "../../contracts/interfaces/INoxCompute.sol";
-import {TEEType} from "../../contracts/utils/TypeUtils.sol";
+import {HandleUtils} from "../../contracts/utils/HandleUtils.sol";
+import {TEEType, TypeUtils} from "../../contracts/utils/TypeUtils.sol";
 import {TestHelper} from "../utils/TestHelper.sol";
 
 contract NoxCompute_ACLTest is Test {
@@ -17,9 +18,12 @@ contract NoxCompute_ACLTest is Test {
     address internal user2 = makeAddr("user2");
     address internal viewer1 = makeAddr("viewer1");
     address internal viewer2 = makeAddr("viewer2");
+    address internal anyone = makeAddr("anyone");
     bytes32 internal handle;
     bytes32 internal handle2;
     bytes32 internal handle3;
+    bytes32 internal transientAclHandle;
+    bytes32 internal persistentAclHandle;
     bytes internal kmsKey = abi.encodePacked(bytes1(0x02), keccak256("kms-key"));
     address internal gateway = makeAddr("gateway");
     NoxCompute internal noxCompute;
@@ -30,11 +34,17 @@ contract NoxCompute_ACLTest is Test {
         handle = TestHelper.createHandle(TEEType.Uint256);
         handle2 = TestHelper.createHandle(TEEType.Uint256);
         handle3 = TestHelper.createHandle(TEEType.Uint256);
+        // Create transient and persistent ACLs in this tx to check
+        // them in a different tx (test function).
+        (transientAclHandle, persistentAclHandle) = this
+            ._createHandlesWithTransientAndPersistentAcls();
         vm.label(user1, "User1");
         vm.label(user2, "User2");
         vm.label(viewer1, "Viewer1");
         vm.label(viewer2, "Viewer2");
     }
+
+    // TODO reorder test functions to match source contract.
 
     // ============ allowPublicDecryption ============
 
@@ -211,10 +221,45 @@ contract NoxCompute_ACLTest is Test {
 
     // ============ allowTransient ============
 
+    function test_AllowTransient() public {
+        this._test_AllowTransient();
+    }
+    function _test_AllowTransient() external {
+        TestHelper.forceAllowPersistent(handle, user1);
+        TestHelper.forceAllowTransient(handle, user1);
+        TestHelper.forceDisallowPersistent(handle, user1);
+        assertTrue(noxCompute.isAllowed(handle, user1));
+    }
+
+    function test_AllowTransient_ClearsAfterTxAndPersistentRemains() public view {
+        // setUp() ran as a separate transaction from this test function to setup transient
+        // and persistent ACLs.
+        assertFalse(
+            noxCompute.isAllowed(transientAclHandle, user1),
+            "Transient permission should be cleared after tx"
+        );
+        assertTrue(
+            noxCompute.isAllowed(persistentAclHandle, user1),
+            "Persistent permission should remain"
+        );
+    }
+
     function test_AllowTransient_RevertWhen_UnauthorizedSender() public {
         vm.prank(user1);
         vm.expectRevert(abi.encodeWithSelector(INoxCompute.UnauthorizedSender.selector, user1));
         noxCompute.allowTransient(handle, user2);
+    }
+
+    function test_RevertWhen_AllowTransient_ZeroAddress() public {
+        vm.prank(user1);
+        vm.expectRevert(INoxCompute.InvalidZeroAddress.selector);
+        noxCompute.allowTransient(handle, address(0));
+    }
+
+    function test_RevertWhen_AllowTransient_PublicHandle() public {
+        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
+        noxCompute.allowTransient(publicHandle, user1);
     }
 
     // ============ disallowTransient ============
@@ -274,7 +319,6 @@ contract NoxCompute_ACLTest is Test {
     }
 
     function test_IsViewer_ByAnyoneWhenPubliclyDecryptable() public {
-        address anyone = makeAddr("anyone");
         assertFalse(noxCompute.isViewer(handle, anyone));
 
         TestHelper.forceAllowPersistent(handle, owner);
@@ -295,6 +339,17 @@ contract NoxCompute_ACLTest is Test {
 
     function test_IsAllowed_ReturnsFalseByDefault() public view {
         assertFalse(noxCompute.isAllowed(handle, user1));
+    }
+
+    function test_IsAllowed_ZeroHandlesAreAllowedByDefault() public view {
+        TEEType[] memory supportedTypes = TestHelper.allCurrentlySupportedTypes();
+        for (uint256 i = 0; i < supportedTypes.length; ++i) {
+            bytes32 zeroHandle = HandleUtils.zeroHandle(supportedTypes[i]);
+            assertTrue(
+                noxCompute.isAllowed(zeroHandle, anyone),
+                "Zero handle should be allowed after init"
+            );
+        }
     }
 
     // ============ validateAllowedForAll ============
@@ -367,6 +422,8 @@ contract NoxCompute_ACLTest is Test {
 
     // ============ Public handle ACL tests ============
 
+    // TODO dispatch these public handle tests in allow, allowTransient, ...
+
     function test_PublicHandle_Allow_RevertWhen_PublicHandle() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
         vm.expectRevert(INoxCompute.PublicHandleACLForbidden.selector);
@@ -391,14 +448,46 @@ contract NoxCompute_ACLTest is Test {
         noxCompute.allowPublicDecryption(publicHandle);
     }
 
-    function test_PublicHandle_IsAllowed_ReturnsTrue() public {
-        bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isAllowed(publicHandle, address(0xdead)));
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForUnregisteredHandle() public {
+        bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsFalse_ForForgedHandleWithBadType() public {
+        bytes32 forgedHandle = TestHelper.createPublicHandle(TEEType.Uint256);
+        // Overwrite the type byte (index 5) with a value outside the TEEType enum range.
+        bytes32 badType = bytes32(bytes1(uint8(type(TEEType).max) + 1)) >> (5 * 8);
+        bytes32 forgedHandleWithoutType = forgedHandle & ~(bytes32(bytes1(0xff)) >> (5 * 8));
+        forgedHandle = forgedHandleWithoutType | badType;
+        assertFalse(noxCompute.isAllowed(forgedHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle() public {
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle();
+    }
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForTransientRegisteredHandle() external {
+        bytes32 publicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        assertTrue(noxCompute.isAllowed(publicHandle, anyone));
+    }
+
+    function test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle() public {
+        this._test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle();
+    }
+    function _test_PublicHandle_IsAllowed_ReturnsTrue_ForPersistentRegisteredHandle() external {
+        bytes32 publicHandle = noxCompute.wrapAsPublicHandle(
+            bytes32(uint256(777)),
+            TEEType.Uint256
+        );
+        noxCompute.persistTransientHandle(publicHandle);
+        assertTrue(noxCompute.isAllowed(publicHandle, anyone));
     }
 
     function test_PublicHandle_IsViewer_ReturnsTrue() public {
         bytes32 publicHandle = TestHelper.createPublicHandle(TEEType.Uint256);
-        assertTrue(noxCompute.isViewer(publicHandle, address(0xdead)));
+        assertTrue(noxCompute.isViewer(publicHandle, anyone));
     }
 
     function test_PublicHandle_IsPubliclyDecryptable_ReturnsTrue() public {
@@ -406,13 +495,37 @@ contract NoxCompute_ACLTest is Test {
         assertTrue(noxCompute.isPubliclyDecryptable(publicHandle));
     }
 
-    function test_PublicHandle_ValidateAllowedForAll_PassesForPublicHandles() public {
-        bytes32 pub1 = TestHelper.createPublicHandle(TEEType.Uint256);
-        bytes32 pub2 = TestHelper.createPublicHandle(TEEType.Uint256);
+    function test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() public {
+        this._test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles();
+    }
+    function _test_PublicHandle_ValidateAllowedForAll_SuccessfulForRegisteredHandles() external {
+        bytes32 pub1 = noxCompute.wrapAsPublicHandle(bytes32(uint256(1)), TEEType.Uint256);
+        bytes32 pub2 = noxCompute.wrapAsPublicHandle(bytes32(uint256(2)), TEEType.Uint256);
         bytes32[] memory handles = new bytes32[](2);
         handles[0] = pub1;
         handles[1] = pub2;
-        // Should not revert: public handles are allowed for everyone
         noxCompute.validateAllowedForAll(user1, handles);
+    }
+
+    function test_PublicHandle_ValidateAllowedForAll_RevertsForUnregisteredHandles() public {
+        bytes32 forged = TestHelper.createPublicHandle(TEEType.Uint256);
+        bytes32[] memory handles = new bytes32[](1);
+        handles[0] = forged;
+        vm.expectRevert(abi.encodeWithSelector(INoxCompute.NotAllowed.selector, forged, user1));
+        noxCompute.validateAllowedForAll(user1, handles);
+    }
+
+    // =============== Helpers ===============
+
+    function _createHandlesWithTransientAndPersistentAcls()
+        external
+        returns (bytes32 transientAclHandle, bytes32 persistentAclHandle)
+    {
+        transientAclHandle = TestHelper.createHandle(TEEType.Uint256);
+        persistentAclHandle = TestHelper.createHandle(TEEType.Uint256);
+        TestHelper.forceAllowTransient(transientAclHandle, user1);
+        TestHelper.forceAllowPersistent(persistentAclHandle, user1);
+        assertTrue(noxCompute.isAllowed(transientAclHandle, user1));
+        assertTrue(noxCompute.isAllowed(persistentAclHandle, user1));
     }
 }
