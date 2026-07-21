@@ -440,7 +440,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 amount
     ) external override returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newBalanceTo) {
         // Checking only 1 argument is enough because `validateOperationTypes` asserts
-        // that all operands has the same type.
+        // that all operands have the same type.
         require(
             TypeUtils.typeOf(balanceFrom) == TEEType.Uint256,
             OnlyEuint256TypeIsSupportedForThisOperation()
@@ -478,7 +478,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 totalSupply
     ) external override returns (bytes32 success, bytes32 newBalanceTo, bytes32 newTotalSupply) {
         // Checking only 1 argument is enough because `validateOperationTypes` asserts
-        // that all operands has the same type.
+        // that all operands have the same type.
         require(
             TypeUtils.typeOf(balanceTo) == TEEType.Uint256,
             OnlyEuint256TypeIsSupportedForThisOperation()
@@ -516,7 +516,7 @@ abstract contract Compute is Common, EIP712 {
         bytes32 totalSupply
     ) external override returns (bytes32 success, bytes32 newBalanceFrom, bytes32 newTotalSupply) {
         // Checking only 1 argument is enough because `validateOperationTypes` asserts
-        // that all operands has the same type.
+        // that all operands have the same type.
         require(
             TypeUtils.typeOf(balanceFrom) == TEEType.Uint256,
             OnlyEuint256TypeIsSupportedForThisOperation()
