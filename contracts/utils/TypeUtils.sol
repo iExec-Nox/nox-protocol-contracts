@@ -191,8 +191,6 @@ library TypeUtils {
             require(uint256(value) <= 1, ValueOutOfRange());
         } else if (teeType == TEEType.Uint16 || teeType == TEEType.Int16) {
             require(uint256(value) <= type(uint16).max, ValueOutOfRange());
-        } else if (teeType == TEEType.Uint256 || teeType == TEEType.Int256) {
-            // Do nothing.
         }
     }
 
