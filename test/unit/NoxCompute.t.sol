@@ -14,6 +14,11 @@ contract NoxComputeTest is Test {
     // ERC-7201 storage location of OZ `Initializable`; low 8 bytes hold `_initialized`.
     bytes32 constant _INITIALIZABLE_SLOT =
         0xf0c57e16840df040f15088dc2f81fe391c3923bec73e23a9662efc9c229c6a00;
+    // Second slot of the ERC-7201 OZ `AccessControlDefaultAdminRules` storage;
+    // low 20 bytes hold `_currentDefaultAdmin`.
+    bytes32 constant _DEFAULT_ADMIN_RULES_SLOT_1 = bytes32(
+        uint256(0xeef3dac4538c82c8ace4063ab0acd2d15cdb5883aa1dff7c2673abb3d8698400) + 1
+    );
 
     address admin = makeAddr("admin");
     address upgrader = makeAddr("upgrader");
@@ -31,6 +36,8 @@ contract NoxComputeTest is Test {
     function test_Initialize() public view {
         assertTrue(noxCompute.hasRole(noxCompute.DEFAULT_ADMIN_ROLE(), admin));
         assertTrue(noxCompute.hasRole(noxCompute.UPGRADER_ROLE(), upgrader));
+        assertEq(noxCompute.defaultAdmin(), admin);
+        assertEq(noxCompute.defaultAdminDelay(), 0);
         assertEq(noxCompute.proofExpirationDuration(), 1 hours);
         (
             , // bytes1 fields
@@ -107,11 +114,40 @@ contract NoxComputeTest is Test {
 
     function test_Reinitialize_ByUpgrader() public {
         vm.prank(upgrader);
-        noxCompute.reinitialize();
+        noxCompute.reinitialize(admin);
         uint64 initializedVersion = uint64(
             uint256(vm.load(address(noxCompute), _INITIALIZABLE_SLOT))
         );
         assertEq(initializedVersion, 4);
+        // Already seeded by initialize() on fresh proxies: the migration is a no-op
+        assertEq(noxCompute.defaultAdmin(), admin);
+    }
+
+    function test_Reinitialize_SeedsDefaultAdminOnLegacyProxies() public {
+        // Simulate a proxy initialized before the DefaultAdminRules migration:
+        // the admin holds DEFAULT_ADMIN_ROLE, but the DefaultAdminRules storage is empty.
+        vm.store(address(noxCompute), _DEFAULT_ADMIN_RULES_SLOT_1, bytes32(0));
+        assertEq(noxCompute.defaultAdmin(), address(0));
+        vm.prank(upgrader);
+        noxCompute.reinitialize(admin);
+        assertEq(noxCompute.defaultAdmin(), admin);
+        assertTrue(noxCompute.hasRole(noxCompute.DEFAULT_ADMIN_ROLE(), admin));
+    }
+
+    function test_RevertWhen_Reinitialize_AdminIsNotRoleHolder() public {
+        // Same legacy-proxy simulation, but with an admin address that does not hold the role
+        vm.store(address(noxCompute), _DEFAULT_ADMIN_RULES_SLOT_1, bytes32(0));
+        address notAdmin = makeAddr("notAdmin");
+        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
+        vm.expectRevert(
+            abi.encodeWithSelector(
+                IAccessControl.AccessControlUnauthorizedAccount.selector,
+                notAdmin,
+                adminRole
+            )
+        );
+        vm.prank(upgrader);
+        noxCompute.reinitialize(notAdmin);
     }
 
     function test_RevertWhen_Reinitialize_NotUpgrader() public {
@@ -125,7 +161,7 @@ contract NoxComputeTest is Test {
             )
         );
         vm.prank(notUpgrader);
-        noxCompute.reinitialize();
+        noxCompute.reinitialize(admin);
     }
 
     // ============ Helpers ============

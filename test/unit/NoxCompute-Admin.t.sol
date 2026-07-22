@@ -148,6 +148,28 @@ contract NoxCompute_AdminTest is Test {
         noxCompute.setProofExpirationDuration(2 hours);
     }
 
+    // ============ beginDefaultAdminTransfer ============
+
+    function test_BeginDefaultAdminTransfer_AndAccept() public {
+        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
+        address newAdmin = makeAddr("newAdmin");
+        vm.prank(admin);
+        noxCompute.beginDefaultAdminTransfer(newAdmin);
+        // No transfer delay is configured, acceptance is possible in the next block
+        vm.warp(block.timestamp + 1);
+        vm.prank(newAdmin);
+        noxCompute.acceptDefaultAdminTransfer();
+        assertEq(noxCompute.defaultAdmin(), newAdmin);
+        assertTrue(noxCompute.hasRole(adminRole, newAdmin));
+        assertFalse(noxCompute.hasRole(adminRole, admin));
+    }
+
+    function test_RevertWhen_BeginDefaultAdminTransfer_ZeroAddress() public {
+        vm.expectRevert(INoxCompute.DefaultAdminRoleRenouncementForbidden.selector);
+        vm.prank(admin);
+        noxCompute.beginDefaultAdminTransfer(address(0));
+    }
+
     // ============ renounceRole ============
 
     function test_RenounceRole_UpgraderRole() public {
@@ -156,13 +178,6 @@ contract NoxCompute_AdminTest is Test {
         vm.prank(upgrader);
         noxCompute.renounceRole(upgraderRole, upgrader);
         assertFalse(noxCompute.hasRole(upgraderRole, upgrader));
-    }
-
-    function test_RevertWhen_RenounceRole_AdminRole() public {
-        bytes32 adminRole = noxCompute.DEFAULT_ADMIN_ROLE();
-        vm.expectRevert(INoxCompute.AdminRoleRenouncementForbidden.selector);
-        vm.prank(admin);
-        noxCompute.renounceRole(adminRole, admin);
     }
 
     // ============ _authorizeUpgrade ============

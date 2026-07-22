@@ -48,7 +48,19 @@ contract NoxCompute is Admin, ACL, Compute {
 
     /**
      * @notice Reinitializer for already deployed proxies, runs atomically during upgrades.
+     * @param admin Current `DEFAULT_ADMIN_ROLE` holder, seeded into the
+     * AccessControlDefaultAdminRules storage on proxies initialized before the migration.
+     * @dev The AccessControlDefaultAdminRules initializer call is conditional (migration
+     * only), hence the `missing-initializer-call` allowance.
      * @custom:oz-upgrades-validate-as-initializer
+     * @custom:oz-upgrades-unsafe-allow missing-initializer-call
      */
-    function reinitialize() public reinitializer(4) onlyRole(UPGRADER_ROLE) {}
+    function reinitialize(address admin) public reinitializer(4) onlyRole(UPGRADER_ROLE) {
+        // seed AccessControlDefaultAdminRules storage. Skipped on proxies whose
+        // initialize() already ran the DefaultAdminRules initialization.
+        if (defaultAdmin() == address(0)) {
+            _checkRole(DEFAULT_ADMIN_ROLE, admin);
+            __AccessControlDefaultAdminRules_init(0, admin);
+        }
+    }
 }

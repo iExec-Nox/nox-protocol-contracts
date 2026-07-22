@@ -1,6 +1,7 @@
 import { upgrades } from "@openzeppelin/hardhat-upgrades";
 import hre from "hardhat";
 import { Address } from "viem";
+import { getChainConfig } from "../../config/config.ts";
 import { deploy } from "../deploy.ts";
 import connection from "../utils/hardhat-connection-singleton.ts";
 import { isFreshLocalNetwork, isHardhatRunCommand } from "../utils/helpers.ts";
@@ -41,9 +42,13 @@ export async function upgradeNoxCompute(proxyAddress?: Address, printLogs = true
 
     // Upgrade the proxy using the OpenZeppelin Upgrades plugin.
     // The proxy must already be registered in the OZ manifest (done in deploy.ts via forceImport).
+    const chainConfig = getChainConfig(connection.networkName);
     const upgrade = await api.upgradeProxy(noxComputeProxyAddress, newImplFactory, {
-        unsafeAllow: ["constructor"],
-        call: { fn: "reinitialize", args: [] },
+        // `missing-initializer` is only needed for the test-only NoxComputeUpgradeMock: its
+        // contract-level NatSpec allowance is lost in coverage-instrumented builds, and it
+        // inherits its initializers from NoxCompute. Real upgrades keep the strict checks.
+        unsafeAllow: contractName === "NoxCompute" ? ["constructor"] : ["constructor", "missing-initializer"],
+        call: { fn: "reinitialize", args: [chainConfig.initialAdmin] },
     });
     await upgrade.waitForDeployment();
 
