@@ -36,6 +36,9 @@ interface INoxCompute {
     error InvalidProof(bytes proof, string reason);
     /// Error thrown when an operand is bytes32(0), indicating an undefined handle
     error UndefinedHandle();
+    /// Error thrown when a token operation (transfer, mint, burn) is attempted
+    /// on a type other than Uint256
+    error OnlyEuint256TypeIsSupportedForThisOperation();
 
     // ------------- ACL events -------------
     /// Emitted when admin role is granted
