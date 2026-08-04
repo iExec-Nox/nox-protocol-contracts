@@ -58,6 +58,7 @@ jobs:
         uses: crytic/slither-action@v0.4.2
         with:
           target: "contracts/"
+          slither-version: "0.11.6"
           solc-version: ${{ steps.get-solc-version.outputs.version }}
           slither-args: >
             --checklist
