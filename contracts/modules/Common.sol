@@ -9,8 +9,6 @@ import {INoxCompute} from "../interfaces/INoxCompute.sol";
  * the storage accessor, and virtual declarations for cross-module functions.
  */
 abstract contract Common is INoxCompute {
-    // TODO: remove `slither-disable-next-line` once Slither supports the `erc7201` builtin (added in solc 0.8.35).
-    // slither-disable-next-line uninitialized-state
     bytes32 private constant NOX_COMPUTE_STORAGE_LOCATION = bytes32(
         erc7201("nox.storage.NoxCompute")
     );
