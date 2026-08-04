@@ -1,5 +1,51 @@
 # Changelog
 
+## [0.3.0](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.4...v0.3.0) (2026-08-04)
+
+
+### ⚠ BREAKING CHANGES
+
+* Block forged public handles ([#190](https://github.com/iExec-Nox/nox-protocol-contracts/issues/190))
+
+### 🚀 Added
+
+* access control default admin rules ([#189](https://github.com/iExec-Nox/nox-protocol-contracts/issues/189)) ([688c965](https://github.com/iExec-Nox/nox-protocol-contracts/commit/688c965dff38c1b86a1cf49ebc1263873b9d9645))
+
+
+### ✍️ Changed
+
+* Add more checks for new KMS public key ([#193](https://github.com/iExec-Nox/nox-protocol-contracts/issues/193)) ([b03b076](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b03b0763cc0ac76b05955576b9cb53c0b5cb6d8f))
+* Allow only euint256 handles for advanced functions mint/burn/transfer ([#192](https://github.com/iExec-Nox/nox-protocol-contracts/issues/192)) ([515acac](https://github.com/iExec-Nox/nox-protocol-contracts/commit/515acac73ea533bce9650c2ad12f443df493d7be))
+* Block forged public handles ([#190](https://github.com/iExec-Nox/nox-protocol-contracts/issues/190)) ([ef0af1c](https://github.com/iExec-Nox/nox-protocol-contracts/commit/ef0af1c808ef755c33e7d946c110b4aa5932d34f))
+* Block unsupported types in wrap as public handle ([#191](https://github.com/iExec-Nox/nox-protocol-contracts/issues/191)) ([bf1319b](https://github.com/iExec-Nox/nox-protocol-contracts/commit/bf1319b379127f70d65a2d794ffd03dcb4beef89))
+* Check public handles in validateInputProof ([#169](https://github.com/iExec-Nox/nox-protocol-contracts/issues/169)) ([0195c18](https://github.com/iExec-Nox/nox-protocol-contracts/commit/0195c185a2fe3389d9db1d49bbcf847c0d924fc8))
+* Check value range in wrapAsPublicHandle ([#170](https://github.com/iExec-Nox/nox-protocol-contracts/issues/170)) ([14df5f5](https://github.com/iExec-Nox/nox-protocol-contracts/commit/14df5f567f80d095145fb91ec6bc5b009c2b3dcb))
+* Fix KMS public key checks ([#167](https://github.com/iExec-Nox/nox-protocol-contracts/issues/167)) ([bd7b36d](https://github.com/iExec-Nox/nox-protocol-contracts/commit/bd7b36d19fdce0f3fdcb91bab5b3d5895e31b39b))
+* Gate reinitializer functions for better security ([#184](https://github.com/iExec-Nox/nox-protocol-contracts/issues/184)) ([ede6dcd](https://github.com/iExec-Nox/nox-protocol-contracts/commit/ede6dcd2f0442f45b54a30e25fa3ee635840cfad))
+* hal 01 proof created at lower bound ([#185](https://github.com/iExec-Nox/nox-protocol-contracts/issues/185)) ([04e479c](https://github.com/iExec-Nox/nox-protocol-contracts/commit/04e479c49c526ece493c7bbc960c54147e8fb3f8))
+* HAL-02 canonical zero handle ([#186](https://github.com/iExec-Nox/nox-protocol-contracts/issues/186)) ([4a94e8f](https://github.com/iExec-Nox/nox-protocol-contracts/commit/4a94e8fedc4b32189264623e4dda1c89011e10a8))
+* HAL-05 descriptive error for out of range TEE type ([#187](https://github.com/iExec-Nox/nox-protocol-contracts/issues/187)) ([95b94cf](https://github.com/iExec-Nox/nox-protocol-contracts/commit/95b94cfef24f115729ce0722d56bcd16e3b3522e))
+* HAL-07 prevent admin role renouncement ([#188](https://github.com/iExec-Nox/nox-protocol-contracts/issues/188)) ([5e04ee9](https://github.com/iExec-Nox/nox-protocol-contracts/commit/5e04ee9cc6b057add9dfb1d0adae354235bc5072))
+* Skip all ACL calls for public handles ([#168](https://github.com/iExec-Nox/nox-protocol-contracts/issues/168)) ([725d689](https://github.com/iExec-Nox/nox-protocol-contracts/commit/725d6899b30f00daf0b01ec58f2eab7b5c7fb40d))
+* Use OZ transient storage utilities and clean TODOs ([#172](https://github.com/iExec-Nox/nox-protocol-contracts/issues/172)) ([dbf93a4](https://github.com/iExec-Nox/nox-protocol-contracts/commit/dbf93a4e2a25af5fd2c73730762d232a51aa6c67))
+
+
+### 📋 Misc
+
+* Add AI files ([#177](https://github.com/iExec-Nox/nox-protocol-contracts/issues/177)) ([da50d3c](https://github.com/iExec-Nox/nox-protocol-contracts/commit/da50d3c007d97e28a542d77f9323c37e1cabbbd5))
+* Add correct commit id ([#183](https://github.com/iExec-Nox/nox-protocol-contracts/issues/183)) ([b643329](https://github.com/iExec-Nox/nox-protocol-contracts/commit/b643329bb7b88f9fbdadfbe2fd2ab82d1422d3e4))
+* Add Nox usage example to the doc ([#178](https://github.com/iExec-Nox/nox-protocol-contracts/issues/178)) ([206b8ca](https://github.com/iExec-Nox/nox-protocol-contracts/commit/206b8caf5bc4683a3f1bba0f3ac7217c0d94f43b))
+* Add Pashov AI skills audit report ([#165](https://github.com/iExec-Nox/nox-protocol-contracts/issues/165)) ([54d33c1](https://github.com/iExec-Nox/nox-protocol-contracts/commit/54d33c1ab6a996bf4ca9b787fe5472e41802be8a))
+* Add Solidity and Typescript linters & remove warnings ([#173](https://github.com/iExec-Nox/nox-protocol-contracts/issues/173)) ([e1999fc](https://github.com/iExec-Nox/nox-protocol-contracts/commit/e1999fc1416b37a950ec64baf1202483819e467c))
+* Fix Readme ([#179](https://github.com/iExec-Nox/nox-protocol-contracts/issues/179)) ([71f8149](https://github.com/iExec-Nox/nox-protocol-contracts/commit/71f8149fb32b95bc1657ee7d3f88a303439cff27))
+* Prepare security audit ([#176](https://github.com/iExec-Nox/nox-protocol-contracts/issues/176)) ([c8117c1](https://github.com/iExec-Nox/nox-protocol-contracts/commit/c8117c1c7ceb3733a86f153fc87c2186f8fcb15e))
+* remove redundant allow transient ([#166](https://github.com/iExec-Nox/nox-protocol-contracts/issues/166)) ([25ccab0](https://github.com/iExec-Nox/nox-protocol-contracts/commit/25ccab098e0473014045089153d958407927fe0a))
+* Remove storage check skipping in upgrades and update scripts ([#163](https://github.com/iExec-Nox/nox-protocol-contracts/issues/163)) ([6143b87](https://github.com/iExec-Nox/nox-protocol-contracts/commit/6143b873c51c2020a8e1fdf320b8806284c53712))
+* Set final commit id for audit ([#180](https://github.com/iExec-Nox/nox-protocol-contracts/issues/180)) ([502c396](https://github.com/iExec-Nox/nox-protocol-contracts/commit/502c3968497cb4515325fd1305d9954e66a23edf))
+* Update NPM dependencies and clean some TODOs ([#171](https://github.com/iExec-Nox/nox-protocol-contracts/issues/171)) ([c4db1df](https://github.com/iExec-Nox/nox-protocol-contracts/commit/c4db1dfcaba4ec0a511472d070921e5c204a09c0))
+* Upgrade Slither version ([#196](https://github.com/iExec-Nox/nox-protocol-contracts/issues/196)) ([f53d167](https://github.com/iExec-Nox/nox-protocol-contracts/commit/f53d16745b2e65cfe66c19703cd4c2f3436b25bc))
+* Use cloc to fix line count ([#181](https://github.com/iExec-Nox/nox-protocol-contracts/issues/181)) ([90c30b8](https://github.com/iExec-Nox/nox-protocol-contracts/commit/90c30b8b43d0e09a3b902e08a8ff05fc7125ef01))
+
 ## [0.2.4](https://github.com/iExec-Nox/nox-protocol-contracts/compare/v0.2.3...v0.2.4) (2026-06-04)
 
 
